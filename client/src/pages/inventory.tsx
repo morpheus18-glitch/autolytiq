@@ -55,11 +55,13 @@ interface Vehicle {
   price: number;
   status: string;
   description: string;
-  imageUrl: string;
   createdAt: string;
 }
 
 export default function Inventory() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterMake, setFilterMake] = useState('all');
@@ -74,14 +76,10 @@ export default function Inventory() {
     status: 'available',
     description: ''
   });
+  const [vinDecoding, setVinDecoding] = useState(false);
 
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const { data: vehicles = [], isLoading, error } = useQuery({
+  const { data: vehicles = [], isLoading, error } = useQuery<Vehicle[]>({
     queryKey: ['/api/vehicles'],
-    retry: 1,
-    retryDelay: 1000,
   });
 
   const createVehicleMutation = useMutation({
@@ -89,10 +87,12 @@ export default function Inventory() {
       const vehicleData = {
         ...vehicle,
         year: parseInt(vehicle.year),
-        price: parseFloat(vehicle.price),
-        imageUrl: null
+        price: parseFloat(vehicle.price)
       };
-      return await apiRequest('/api/vehicles', 'POST', vehicleData);
+      return await apiRequest('/api/vehicles', {
+        method: 'POST',
+        body: JSON.stringify(vehicleData),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/vehicles'] });
@@ -111,31 +111,10 @@ export default function Inventory() {
         description: "Vehicle added successfully",
       });
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to add vehicle",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateVehicleMutation = useMutation({
-    mutationFn: async ({ id, ...updates }: any) => {
-      return await apiRequest(`/api/vehicles/${id}`, 'PUT', updates);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/vehicles'] });
-      setSelectedVehicle(null);
-      toast({
-        title: "Success",
-        description: "Vehicle updated successfully",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update vehicle",
+        description: "Failed to add vehicle",
         variant: "destructive",
       });
     },
@@ -143,7 +122,9 @@ export default function Inventory() {
 
   const deleteVehicleMutation = useMutation({
     mutationFn: async (id: number) => {
-      return await apiRequest(`/api/vehicles/${id}`, 'DELETE');
+      return await apiRequest(`/api/vehicles/${id}`, {
+        method: 'DELETE',
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/vehicles'] });
@@ -152,10 +133,10 @@ export default function Inventory() {
         description: "Vehicle deleted successfully",
       });
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to delete vehicle",
+        description: "Failed to delete vehicle",
         variant: "destructive",
       });
     },
@@ -163,23 +144,17 @@ export default function Inventory() {
 
   const getPricingInsightsMutation = useMutation({
     mutationFn: async (vehicleId: number) => {
-      // Simulate API call for pricing insights
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return {
-        marketValue: 26500,
-        suggestedPrice: 28500,
-        competitorPrices: [27000, 28000, 29000],
-        daysOnMarket: 45,
-        priceHistory: [29000, 28500, 28000]
-      };
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Pricing Insights",
-        description: `Market value: $${data.marketValue.toLocaleString()}, Suggested: $${data.suggestedPrice.toLocaleString()}`,
+      return await apiRequest(`/api/pricing-insights/${vehicleId}`, {
+        method: 'POST',
       });
     },
-    onError: () => {
+    onSuccess: () => {
+      toast({
+        title: "Pricing Insights",
+        description: "Pricing analysis completed successfully",
+      });
+    },
+    onError: (error) => {
       toast({
         title: "Error",
         description: "Failed to get pricing insights",
@@ -188,10 +163,62 @@ export default function Inventory() {
     },
   });
 
+  const handleVinDecode = async (vin: string) => {
+    if (!vin || vin.length !== 17) {
+      toast({
+        title: "Invalid VIN",
+        description: "VIN must be exactly 17 characters",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setVinDecoding(true);
+    try {
+      const response = await fetch(`/api/decode-vin/${vin}`);
+      if (response.ok) {
+        const decodedData = await response.json();
+        setNewVehicle(prev => ({
+          ...prev,
+          make: decodedData.make || prev.make,
+          model: decodedData.model || prev.model,
+          year: decodedData.year ? decodedData.year.toString() : prev.year,
+          description: decodedData.trim ? `${decodedData.trim} ${decodedData.bodyStyle || ''}`.trim() : prev.description
+        }));
+        toast({
+          title: "VIN Decoded Successfully",
+          description: `${decodedData.year} ${decodedData.make} ${decodedData.model}`,
+        });
+      } else {
+        throw new Error('Failed to decode VIN');
+      }
+    } catch (error) {
+      toast({
+        title: "VIN Decode Failed",
+        description: "Unable to decode VIN. Please enter details manually.",
+        variant: "destructive",
+      });
+    } finally {
+      setVinDecoding(false);
+    }
+  };
+
+  const handleCreateVehicle = () => {
+    if (!newVehicle.make || !newVehicle.model || !newVehicle.year || !newVehicle.vin || !newVehicle.price) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    createVehicleMutation.mutate(newVehicle);
+  };
+
   const filteredVehicles = vehicles.filter((vehicle: Vehicle) => {
-    const matchesSearch = vehicle.make?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vehicle.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vehicle.vin?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = vehicle.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         vehicle.vin.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || vehicle.status === filterStatus;
     const matchesMake = filterMake === 'all' || vehicle.make === filterMake;
     return matchesSearch && matchesStatus && matchesMake;
@@ -213,22 +240,10 @@ export default function Inventory() {
     switch (status) {
       case 'available': return <CheckCircle className="h-4 w-4" />;
       case 'pending': return <Clock className="h-4 w-4" />;
-      case 'sold': return <Award className="h-4 w-4" />;
+      case 'sold': return <DollarSign className="h-4 w-4" />;
       case 'maintenance': return <Wrench className="h-4 w-4" />;
       default: return <Info className="h-4 w-4" />;
     }
-  };
-
-  const handleCreateVehicle = () => {
-    if (!newVehicle.make || !newVehicle.model || !newVehicle.year || !newVehicle.vin || !newVehicle.price) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-    createVehicleMutation.mutate(newVehicle);
   };
 
   if (error) {
@@ -252,7 +267,7 @@ export default function Inventory() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Inventory Management</h1>
-          <p className="text-gray-600">Manage your vehicle inventory with pricing insights</p>
+          <p className="text-gray-600">Manage your vehicle inventory with VIN decoding and pricing insights</p>
         </div>
         <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
@@ -266,85 +281,116 @@ export default function Inventory() {
               <DialogHeader>
                 <DialogTitle>Add New Vehicle</DialogTitle>
               </DialogHeader>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="make">Make *</Label>
-                  <Input
-                    id="make"
-                    value={newVehicle.make}
-                    onChange={(e) => setNewVehicle({...newVehicle, make: e.target.value})}
-                    placeholder="Toyota"
-                  />
+              <div className="space-y-4">
+                {/* VIN Input Section */}
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <Label htmlFor="vin" className="text-sm font-medium text-blue-900">VIN * (Auto-decode vehicle info)</Label>
+                  <div className="flex gap-2 mt-2">
+                    <Input
+                      id="vin"
+                      value={newVehicle.vin}
+                      onChange={(e) => setNewVehicle({...newVehicle, vin: e.target.value.toUpperCase()})}
+                      placeholder="1HGBH41JXMN109186"
+                      className="flex-1"
+                      maxLength={17}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleVinDecode(newVehicle.vin)}
+                      disabled={vinDecoding || newVehicle.vin.length !== 17}
+                      className="whitespace-nowrap"
+                    >
+                      {vinDecoding ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          <span>Decoding...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Zap className="h-4 w-4" />
+                          <span>Decode</span>
+                        </div>
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-blue-700 mt-1">Enter 17-character VIN and click Decode to auto-fill vehicle details</p>
                 </div>
-                <div>
-                  <Label htmlFor="model">Model *</Label>
-                  <Input
-                    id="model"
-                    value={newVehicle.model}
-                    onChange={(e) => setNewVehicle({...newVehicle, model: e.target.value})}
-                    placeholder="Camry"
-                  />
+
+                {/* Vehicle Details Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="make">Make *</Label>
+                    <Input
+                      id="make"
+                      value={newVehicle.make}
+                      onChange={(e) => setNewVehicle({...newVehicle, make: e.target.value})}
+                      placeholder="Toyota"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="model">Model *</Label>
+                    <Input
+                      id="model"
+                      value={newVehicle.model}
+                      onChange={(e) => setNewVehicle({...newVehicle, model: e.target.value})}
+                      placeholder="Camry"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="year">Year *</Label>
+                    <Input
+                      id="year"
+                      type="number"
+                      value={newVehicle.year}
+                      onChange={(e) => setNewVehicle({...newVehicle, year: e.target.value})}
+                      placeholder="2023"
+                      min="1900"
+                      max="2030"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="price">Price *</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      value={newVehicle.price}
+                      onChange={(e) => setNewVehicle({...newVehicle, price: e.target.value})}
+                      placeholder="28500"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="status">Status</Label>
+                    <Select value={newVehicle.status} onValueChange={(value) => setNewVehicle({...newVehicle, status: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="available">Available</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="sold">Sold</SelectItem>
+                        <SelectItem value="maintenance">Maintenance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Input
+                      id="description"
+                      value={newVehicle.description}
+                      onChange={(e) => setNewVehicle({...newVehicle, description: e.target.value})}
+                      placeholder="Excellent condition, low mileage"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="year">Year *</Label>
-                  <Input
-                    id="year"
-                    type="number"
-                    value={newVehicle.year}
-                    onChange={(e) => setNewVehicle({...newVehicle, year: e.target.value})}
-                    placeholder="2023"
-                  />
+                <div className="flex justify-end gap-2 mt-6">
+                  <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCreateVehicle} disabled={createVehicleMutation.isPending}>
+                    {createVehicleMutation.isPending ? 'Adding...' : 'Add Vehicle'}
+                  </Button>
                 </div>
-                <div>
-                  <Label htmlFor="vin">VIN *</Label>
-                  <Input
-                    id="vin"
-                    value={newVehicle.vin}
-                    onChange={(e) => setNewVehicle({...newVehicle, vin: e.target.value})}
-                    placeholder="1HGBH41JXMN109186"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="price">Price *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    value={newVehicle.price}
-                    onChange={(e) => setNewVehicle({...newVehicle, price: e.target.value})}
-                    placeholder="28500"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="status">Status</Label>
-                  <Select value={newVehicle.status} onValueChange={(value) => setNewVehicle({...newVehicle, status: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="available">Available</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="sold">Sold</SelectItem>
-                      <SelectItem value="maintenance">Maintenance</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="md:col-span-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Input
-                    id="description"
-                    value={newVehicle.description}
-                    onChange={(e) => setNewVehicle({...newVehicle, description: e.target.value})}
-                    placeholder="Excellent condition, low mileage"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end gap-2 mt-6">
-                <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateVehicle} disabled={createVehicleMutation.isPending}>
-                  {createVehicleMutation.isPending ? 'Adding...' : 'Add Vehicle'}
-                </Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -356,54 +402,54 @@ export default function Inventory() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Inventory</p>
-                <p className="text-2xl font-bold">{vehicles.length}</p>
+                <p className="text-xs md:text-sm text-gray-600">Total Inventory</p>
+                <p className="text-lg md:text-2xl font-bold">{vehicles.length}</p>
               </div>
-              <Car className="h-8 w-8 text-blue-600" />
+              <Car className="h-6 w-6 md:h-8 md:w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Available</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-xs md:text-sm text-gray-600">Available</p>
+                <p className="text-lg md:text-2xl font-bold text-green-600">
                   {vehicles.filter((v: Vehicle) => v.status === 'available').length}
                 </p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <CheckCircle className="h-6 w-6 md:h-8 md:w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600">
+                <p className="text-xs md:text-sm text-gray-600">Pending</p>
+                <p className="text-lg md:text-2xl font-bold text-yellow-600">
                   {vehicles.filter((v: Vehicle) => v.status === 'pending').length}
                 </p>
               </div>
-              <Clock className="h-8 w-8 text-yellow-600" />
+              <Clock className="h-6 w-6 md:h-8 md:w-8 text-yellow-600" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Value</p>
-                <p className="text-2xl font-bold">
+                <p className="text-xs md:text-sm text-gray-600">Total Value</p>
+                <p className="text-sm md:text-2xl font-bold">
                   ${vehicles.reduce((sum: number, v: Vehicle) => sum + v.price, 0).toLocaleString()}
                 </p>
               </div>
-              <DollarSign className="h-8 w-8 text-blue-600" />
+              <DollarSign className="h-6 w-6 md:h-8 md:w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
@@ -413,7 +459,7 @@ export default function Inventory() {
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search by make, model, or VIN..."
               value={searchTerm}
@@ -422,46 +468,43 @@ export default function Inventory() {
             />
           </div>
         </div>
-        <Select value={filterMake} onValueChange={setFilterMake}>
-          <SelectTrigger className="w-full md:w-48">
-            <SelectValue placeholder="Filter by make" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Makes</SelectItem>
-            {uniqueMakes.map(make => (
-              <SelectItem key={make} value={make}>{make}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-full md:w-48">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="available">Available</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="sold">Sold</SelectItem>
-            <SelectItem value="maintenance">Maintenance</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-2">
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="available">Available</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="sold">Sold</SelectItem>
+              <SelectItem value="maintenance">Maintenance</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filterMake} onValueChange={setFilterMake}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Make" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Makes</SelectItem>
+              {uniqueMakes.map(make => (
+                <SelectItem key={make} value={make}>{make}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      {/* Inventory List */}
+      {/* Loading State */}
       {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p>Loading inventory...</p>
-          </div>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       ) : filteredVehicles.length === 0 ? (
         <div className="text-center py-12">
           <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">No vehicles found</h3>
-          <p className="text-gray-600 mb-4">
-            {searchTerm || filterStatus !== 'all' || filterMake !== 'all' ? 'Try adjusting your filters' : 'Get started by adding your first vehicle'}
-          </p>
+          <p className="text-gray-600 mb-4">Add your first vehicle to get started</p>
           <Button onClick={() => setShowAddDialog(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Vehicle
@@ -470,43 +513,49 @@ export default function Inventory() {
       ) : (
         <div className="grid gap-4">
           {/* Mobile Cards */}
-          <div className="md:hidden space-y-4">
+          <div className="md:hidden space-y-3">
             {filteredVehicles.map((vehicle: Vehicle) => (
-              <Card key={vehicle.id} className="p-4">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="font-semibold">{vehicle.year} {vehicle.make} {vehicle.model}</h3>
-                    <p className="text-sm text-gray-600">{vehicle.vin}</p>
+              <Card key={vehicle.id} className="p-3">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm truncate">{vehicle.year} {vehicle.make} {vehicle.model}</h3>
+                    <p className="text-xs text-gray-600 font-mono truncate">{vehicle.vin}</p>
                   </div>
-                  <Badge className={getStatusColor(vehicle.status)}>
+                  <Badge className={`${getStatusColor(vehicle.status)} text-xs px-2 py-1 ml-2`}>
                     {getStatusIcon(vehicle.status)}
-                    <span className="ml-1">{vehicle.status}</span>
+                    <span className="ml-1 hidden sm:inline">{vehicle.status}</span>
                   </Badge>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Price:</span>
-                    <span className="font-semibold">${vehicle.price.toLocaleString()}</span>
+                <div className="space-y-1 mb-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-600">Price:</span>
+                    <span className="font-semibold text-sm">${vehicle.price.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Added:</span>
-                    <span className="text-sm">{new Date(vehicle.createdAt).toLocaleDateString()}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-600">Added:</span>
+                    <span className="text-xs">{new Date(vehicle.createdAt).toLocaleDateString()}</span>
                   </div>
+                  {vehicle.description && (
+                    <div className="mt-1">
+                      <p className="text-xs text-gray-700 truncate">{vehicle.description}</p>
+                    </div>
+                  )}
                 </div>
-                <div className="flex justify-end gap-2 mt-4">
+                <div className="flex justify-end gap-1">
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={() => getPricingInsightsMutation.mutate(vehicle.id)}
                     disabled={getPricingInsightsMutation.isPending}
+                    className="p-2"
                   >
-                    <TrendingUp className="h-4 w-4" />
+                    <TrendingUp className="h-3 w-3" />
                   </Button>
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4" />
+                  <Button variant="outline" size="sm" className="p-2">
+                    <Edit className="h-3 w-3" />
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => deleteVehicleMutation.mutate(vehicle.id)}>
-                    <Trash2 className="h-4 w-4" />
+                  <Button variant="outline" size="sm" onClick={() => deleteVehicleMutation.mutate(vehicle.id)} className="p-2">
+                    <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
               </Card>
@@ -552,19 +601,13 @@ export default function Inventory() {
                             size="sm"
                             onClick={() => getPricingInsightsMutation.mutate(vehicle.id)}
                             disabled={getPricingInsightsMutation.isPending}
-                            title="Get Pricing Insights"
                           >
                             <TrendingUp className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="sm" title="Edit Vehicle">
+                          <Button variant="outline" size="sm">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => deleteVehicleMutation.mutate(vehicle.id)}
-                            title="Delete Vehicle"
-                          >
+                          <Button variant="outline" size="sm" onClick={() => deleteVehicleMutation.mutate(vehicle.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
