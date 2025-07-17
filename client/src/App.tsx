@@ -10,9 +10,14 @@ import Sales from "@/pages/sales";
 import Customers from "@/pages/customers";
 import Analytics from "@/pages/analytics";
 import Settings from "@/pages/settings";
+import CompetitivePricing from "@/pages/competitive-pricing";
 import Sidebar from "@/components/sidebar";
+import { usePixelTracker } from "@/hooks/use-pixel-tracker";
 
 function Router() {
+  // Initialize pixel tracking for the entire app
+  usePixelTracker();
+  
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
@@ -23,6 +28,7 @@ function Router() {
           <Route path="/sales" component={Sales} />
           <Route path="/customers" component={Customers} />
           <Route path="/analytics" component={Analytics} />
+          <Route path="/competitive-pricing" component={CompetitivePricing} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>

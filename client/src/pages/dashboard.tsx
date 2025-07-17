@@ -3,6 +3,7 @@ import { Bell, Plus } from "lucide-react";
 import MetricsGrid from "@/components/metrics-grid";
 import InventoryTable from "@/components/inventory-table";
 import ActivityFeed from "@/components/activity-feed";
+import CompetitiveInsights from "@/components/competitive-insights";
 import { useState } from "react";
 import VehicleModal from "@/components/vehicle-modal";
 
@@ -45,8 +46,9 @@ export default function Dashboard() {
             <InventoryTable showAddButton={false} limit={10} />
           </div>
           
-          <div>
+          <div className="space-y-6">
             <ActivityFeed />
+            <CompetitiveInsights />
           </div>
         </div>
       </main>
