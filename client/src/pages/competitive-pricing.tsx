@@ -69,7 +69,7 @@ export default function CompetitivePricing() {
   const { data: competitivePricing, isLoading: competitiveLoading } = useQuery({
     queryKey: ['/api/competitive-pricing', searchFilters],
     queryFn: () => apiRequest(`/api/competitive-pricing?${new URLSearchParams(searchFilters).toString()}`),
-    enabled: searchFilters.make || searchFilters.model || searchFilters.year || searchFilters.source
+    enabled: !!(searchFilters.make || searchFilters.model || searchFilters.year || searchFilters.source)
   });
 
   // Fetch pricing insights

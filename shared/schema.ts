@@ -549,3 +549,72 @@ export type CustomerTradeIn = typeof customerTradeIns.$inferSelect;
 export type CustomerCreditApplication = typeof customerCreditApplications.$inferSelect;
 export type CustomerDocument = typeof customerDocuments.$inferSelect;
 export type CustomerLeadSource = typeof customerLeadSources.$inferSelect;
+
+// Deal Desk Tables
+export const deals = pgTable("deals", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  vehicleId: integer("vehicle_id").references(() => vehicles.id).notNull(),
+  salePrice: decimal("sale_price", { precision: 10, scale: 2 }).notNull(),
+  tradeInValue: decimal("trade_in_value", { precision: 10, scale: 2 }).default("0.00"),
+  cashDown: decimal("cash_down", { precision: 10, scale: 2 }).default("0.00"),
+  financeAmount: decimal("finance_amount", { precision: 10, scale: 2 }).notNull(),
+  term: integer("term").notNull(), // months
+  apr: decimal("apr", { precision: 5, scale: 2 }).notNull(),
+  payment: decimal("payment", { precision: 10, scale: 2 }).notNull(),
+  totalInterest: decimal("total_interest", { precision: 10, scale: 2 }).default("0.00"),
+  warranties: json("warranties").$type<{
+    extended: boolean;
+    gap: boolean;
+    maintenance: boolean;
+  }>().default({ extended: false, gap: false, maintenance: false }),
+  insurance: json("insurance").$type<{
+    required: boolean;
+    provider: string;
+    cost: number;
+  }>().default({ required: false, provider: "", cost: 0 }),
+  fees: json("fees").$type<{
+    documentation: number;
+    registration: number;
+    processing: number;
+  }>().default({ documentation: 0, registration: 0, processing: 0 }),
+  grossProfit: decimal("gross_profit", { precision: 10, scale: 2 }).default("0.00"),
+  status: text("status").notNull().default("draft"), // draft, pending, approved, signed, cancelled
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const dealDocuments = pgTable("deal_documents", {
+  id: serial("id").primaryKey(),
+  dealId: integer("deal_id").references(() => deals.id).notNull(),
+  documentType: text("document_type").notNull(), // purchase_agreement, finance_contract, trade_agreement, warranty_agreement
+  documentName: text("document_name").notNull(),
+  documentUrl: text("document_url"),
+  status: text("status").notNull().default("pending"), // pending, signed, completed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const dealApprovals = pgTable("deal_approvals", {
+  id: serial("id").primaryKey(),
+  dealId: integer("deal_id").references(() => deals.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  approvalType: text("approval_type").notNull(), // manager, finance, general_manager
+  status: text("status").notNull().default("pending"), // pending, approved, rejected
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Deal Desk Insert Schemas
+export const insertDealSchema = createInsertSchema(deals).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertDealDocumentSchema = createInsertSchema(dealDocuments).omit({ id: true, createdAt: true });
+export const insertDealApprovalSchema = createInsertSchema(dealApprovals).omit({ id: true, createdAt: true, updatedAt: true });
+
+// Deal Desk Types
+export type Deal = typeof deals.$inferSelect;
+export type DealDocument = typeof dealDocuments.$inferSelect;
+export type DealApproval = typeof dealApprovals.$inferSelect;
+export type InsertDeal = z.infer<typeof insertDealSchema>;
+export type InsertDealDocument = z.infer<typeof insertDealDocumentSchema>;
+export type InsertDealApproval = z.infer<typeof insertDealApprovalSchema>;

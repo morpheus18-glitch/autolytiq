@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Car, BarChart3, Handshake, Users, TrendingUp, Settings, Target, Wrench, DollarSign, Shield, Building } from "lucide-react";
+import { Car, BarChart3, Handshake, Users, TrendingUp, Settings, Target, Wrench, DollarSign, Shield, Building, Calculator } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
@@ -12,6 +12,7 @@ const navigation = [
       { name: "Inventory", href: "/inventory", icon: Car },
       { name: "Sales & Leads", href: "/sales", icon: Handshake },
       { name: "Customers", href: "/customers", icon: Users },
+      { name: "Deal Desk", href: "/deal-desk", icon: Calculator },
       { name: "Analytics", href: "/analytics", icon: TrendingUp },
       { name: "Competitive Pricing", href: "/competitive-pricing", icon: Target },
     ]

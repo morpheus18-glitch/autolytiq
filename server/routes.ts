@@ -640,6 +640,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Deal Desk Routes (Stub implementation)
+  app.get("/api/deals", async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch deals" });
+    }
+  });
+
+  app.post("/api/deals", async (req, res) => {
+    try {
+      const deal = {
+        id: Date.now(),
+        ...req.body,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      res.status(201).json(deal);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid deal data" });
+    }
+  });
+
   // Register admin routes
   registerAdminRoutes(app);
 
