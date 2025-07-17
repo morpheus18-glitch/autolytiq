@@ -1,388 +1,590 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Filter, Phone, Mail, MapPin, User, Calendar, CreditCard, FileText, Car, Tag } from "lucide-react";
-import { useState } from "react";
-import type { Customer, CustomerNote, CustomerCall } from "@shared/schema";
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { 
+  Plus, 
+  Search, 
+  Filter, 
+  Edit, 
+  Trash2, 
+  Phone, 
+  Mail, 
+  MapPin, 
+  User,
+  Car,
+  Calendar,
+  Star,
+  TrendingUp,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  MessageCircle,
+  DollarSign,
+  CreditCard,
+  Shield
+} from 'lucide-react';
 
-interface CustomerCardProps {
-  customer: Customer;
-  onClose: () => void;
-}
-
-function CustomerCard({ customer, onClose }: CustomerCardProps) {
-  const { data: notes } = useQuery<CustomerNote[]>({
-    queryKey: ["/api/customers", customer.id, "notes"],
-  });
-
-  const { data: calls } = useQuery<CustomerCall[]>({
-    queryKey: ["/api/customers", customer.id, "calls"],
-  });
-
-  return (
-    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-      <DialogHeader>
-        <DialogTitle className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-            {customer.profileImage ? (
-              <img src={customer.profileImage} alt={customer.name} className="w-full h-full rounded-full object-cover" />
-            ) : (
-              <User className="w-6 h-6 text-blue-600" />
-            )}
-          </div>
-          <div>
-            <h2 className="text-xl font-bold">{customer.name}</h2>
-            <p className="text-sm text-gray-500">{customer.email}</p>
-          </div>
-        </DialogTitle>
-      </DialogHeader>
-
-      <div className="space-y-6">
-        {/* Contact Information */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4 text-gray-500" />
-              <span className="text-sm">{customer.phone || "No phone"}</span>
-              {customer.phone && (
-                <Button size="sm" variant="outline" className="ml-auto">
-                  Call
-                </Button>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Mail className="w-4 h-4 text-gray-500" />
-              <span className="text-sm">{customer.email}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-gray-500" />
-              <span className="text-sm">{customer.address || "No address"}</span>
-            </div>
-          </div>
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-gray-500" />
-              <span className="text-sm">
-                DOB: {customer.dateOfBirth ? new Date(customer.dateOfBirth).toLocaleDateString() : "Not provided"}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-gray-500" />
-              <span className="text-sm">
-                Credit Score: {customer.creditScore || "Not available"}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-gray-500" />
-              <span className="text-sm">
-                License: {customer.licenseNumber || "Not provided"}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Tags */}
-        {customer.tags && customer.tags.length > 0 && (
-          <div className="flex items-center gap-2">
-            <Tag className="w-4 h-4 text-gray-500" />
-            <div className="flex flex-wrap gap-1">
-              {customer.tags.map((tag, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Tabs for detailed information */}
-        <Tabs defaultValue="notes" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="notes">Notes</TabsTrigger>
-            <TabsTrigger value="calls">Call History</TabsTrigger>
-            <TabsTrigger value="vehicles">Vehicle Interest</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="notes" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Customer Notes</h3>
-              <Button size="sm">Add Note</Button>
-            </div>
-            <div className="space-y-3">
-              {notes?.map((note) => (
-                <Card key={note.id} className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-medium">{note.subject}</h4>
-                      <p className="text-sm text-gray-600 mt-1">{note.content}</p>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {new Date(note.createdAt).toLocaleDateString()}
-                    </div>
-                  </div>
-                </Card>
-              )) || (
-                <p className="text-gray-500 text-center py-8">No notes available</p>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="calls" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Call History</h3>
-              <Button size="sm">Log Call</Button>
-            </div>
-            <div className="space-y-3">
-              {calls?.map((call) => (
-                <Card key={call.id} className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={call.callType === 'inbound' ? 'default' : 'secondary'}>
-                          {call.callType}
-                        </Badge>
-                        <span className="text-sm">{call.phoneNumber}</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">{call.notes}</p>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {new Date(call.createdAt).toLocaleDateString()}
-                    </div>
-                  </div>
-                </Card>
-              )) || (
-                <p className="text-gray-500 text-center py-8">No call history available</p>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="vehicles" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Vehicle Interest</h3>
-              <Button size="sm">Add Interest</Button>
-            </div>
-            <p className="text-gray-500 text-center py-8">No vehicle interests recorded</p>
-          </TabsContent>
-
-          <TabsContent value="documents" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Documents</h3>
-              <Button size="sm">Upload Document</Button>
-            </div>
-            <p className="text-gray-500 text-center py-8">No documents uploaded</p>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </DialogContent>
-  );
+interface Customer {
+  id: number;
+  firstName: string;
+  lastName: string;
+  name: string;
+  email: string;
+  phone: string;
+  cellPhone: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  creditScore: number;
+  income: number;
+  status: string;
+  salesConsultant: string;
+  leadSource: string;
+  notes: string;
+  createdAt: string;
+  lastContactDate?: string;
+  nextFollowUpDate?: string;
+  purchaseHistory?: any[];
+  tags?: string[];
 }
 
 export default function Customers() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterBy, setFilterBy] = useState("all");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  
-  const { data: customers, isLoading } = useQuery<Customer[]>({
-    queryKey: ["/api/customers"],
+  const [newCustomer, setNewCustomer] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    cellPhone: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    creditScore: '',
+    income: '',
+    status: 'prospect',
+    salesConsultant: '',
+    leadSource: '',
+    notes: ''
   });
 
-  const filteredCustomers = customers?.filter(customer => {
-    const matchesSearch = 
-      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.licenseNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-    const matchesFilter = filterBy === "all" || 
-      (filterBy === "active" && customer.isActive) ||
-      (filterBy === "inactive" && !customer.isActive) ||
-      (filterBy === "has-phone" && customer.phone) ||
-      (filterBy === "has-license" && customer.licenseNumber);
+  const { data: customers = [], isLoading, error } = useQuery({
+    queryKey: ['/api/customers'],
+    retry: 1,
+    retryDelay: 1000,
+  });
 
-    return matchesSearch && matchesFilter;
-  }) || [];
+  const createCustomerMutation = useMutation({
+    mutationFn: async (customer: any) => {
+      const customerData = {
+        ...customer,
+        name: `${customer.firstName} ${customer.lastName}`,
+        creditScore: customer.creditScore ? parseInt(customer.creditScore) : null,
+        income: customer.income ? parseFloat(customer.income) : null,
+        tags: customer.tags || [],
+        isActive: true
+      };
+      return await apiRequest('/api/customers', 'POST', customerData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
+      setShowAddDialog(false);
+      setNewCustomer({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        cellPhone: '',
+        address: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        creditScore: '',
+        income: '',
+        status: 'prospect',
+        salesConsultant: '',
+        leadSource: '',
+        notes: ''
+      });
+      toast({
+        title: "Success",
+        description: "Customer created successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create customer",
+        variant: "destructive",
+      });
+    },
+  });
 
-  return (
-    <div className="flex-1 overflow-hidden">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Customer Management</h2>
-            <p className="text-gray-500">Advanced customer relationship management</p>
-          </div>
-          <Button className="bg-primary text-white hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Customer
+  const updateCustomerMutation = useMutation({
+    mutationFn: async ({ id, ...updates }: any) => {
+      return await apiRequest(`/api/customers/${id}`, 'PUT', updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
+      setSelectedCustomer(null);
+      toast({
+        title: "Success",
+        description: "Customer updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update customer",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteCustomerMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return await apiRequest(`/api/customers/${id}`, 'DELETE');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
+      toast({
+        title: "Success",
+        description: "Customer deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete customer",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const filteredCustomers = customers.filter((customer: Customer) => {
+    const matchesSearch = customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         customer.phone?.includes(searchTerm);
+    const matchesStatus = filterStatus === 'all' || customer.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'hot': return 'bg-red-100 text-red-800';
+      case 'warm': return 'bg-yellow-100 text-yellow-800';
+      case 'cold': return 'bg-blue-100 text-blue-800';
+      case 'prospect': return 'bg-gray-100 text-gray-800';
+      case 'customer': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getCreditScoreColor = (score: number) => {
+    if (score >= 750) return 'text-green-600';
+    if (score >= 650) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const handleCreateCustomer = () => {
+    if (!newCustomer.firstName || !newCustomer.lastName) {
+      toast({
+        title: "Error",
+        description: "First name and last name are required",
+        variant: "destructive",
+      });
+      return;
+    }
+    createCustomerMutation.mutate(newCustomer);
+  };
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Error Loading Customers</h3>
+          <p className="text-gray-600 mb-4">Unable to load customer data</p>
+          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/customers'] })}>
+            Try Again
           </Button>
         </div>
-      </header>
+      </div>
+    );
+  }
 
-      {/* Advanced Search and Filters */}
-      <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+  return (
+    <div className="p-4 md:p-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">Customer Management</h1>
+          <p className="text-gray-600">Manage your customer relationships and sales pipeline</p>
+        </div>
+        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+          <DialogTrigger asChild>
+            <Button className="w-full md:w-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Customer
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add New Customer</DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="firstName">First Name *</Label>
+                <Input
+                  id="firstName"
+                  value={newCustomer.firstName}
+                  onChange={(e) => setNewCustomer({...newCustomer, firstName: e.target.value})}
+                  placeholder="Enter first name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName">Last Name *</Label>
+                <Input
+                  id="lastName"
+                  value={newCustomer.lastName}
+                  onChange={(e) => setNewCustomer({...newCustomer, lastName: e.target.value})}
+                  placeholder="Enter last name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={newCustomer.email}
+                  onChange={(e) => setNewCustomer({...newCustomer, email: e.target.value})}
+                  placeholder="customer@email.com"
+                />
+              </div>
+              <div>
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  value={newCustomer.phone}
+                  onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})}
+                  placeholder="(555) 123-4567"
+                />
+              </div>
+              <div>
+                <Label htmlFor="cellPhone">Cell Phone</Label>
+                <Input
+                  id="cellPhone"
+                  value={newCustomer.cellPhone}
+                  onChange={(e) => setNewCustomer({...newCustomer, cellPhone: e.target.value})}
+                  placeholder="(555) 123-4567"
+                />
+              </div>
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Select value={newCustomer.status} onValueChange={(value) => setNewCustomer({...newCustomer, status: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="prospect">Prospect</SelectItem>
+                    <SelectItem value="hot">Hot Lead</SelectItem>
+                    <SelectItem value="warm">Warm Lead</SelectItem>
+                    <SelectItem value="cold">Cold Lead</SelectItem>
+                    <SelectItem value="customer">Customer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="md:col-span-2">
+                <Label htmlFor="address">Address</Label>
+                <Input
+                  id="address"
+                  value={newCustomer.address}
+                  onChange={(e) => setNewCustomer({...newCustomer, address: e.target.value})}
+                  placeholder="123 Main St"
+                />
+              </div>
+              <div>
+                <Label htmlFor="city">City</Label>
+                <Input
+                  id="city"
+                  value={newCustomer.city}
+                  onChange={(e) => setNewCustomer({...newCustomer, city: e.target.value})}
+                  placeholder="Austin"
+                />
+              </div>
+              <div>
+                <Label htmlFor="state">State</Label>
+                <Input
+                  id="state"
+                  value={newCustomer.state}
+                  onChange={(e) => setNewCustomer({...newCustomer, state: e.target.value})}
+                  placeholder="TX"
+                />
+              </div>
+              <div>
+                <Label htmlFor="zipCode">ZIP Code</Label>
+                <Input
+                  id="zipCode"
+                  value={newCustomer.zipCode}
+                  onChange={(e) => setNewCustomer({...newCustomer, zipCode: e.target.value})}
+                  placeholder="78701"
+                />
+              </div>
+              <div>
+                <Label htmlFor="creditScore">Credit Score</Label>
+                <Input
+                  id="creditScore"
+                  type="number"
+                  value={newCustomer.creditScore}
+                  onChange={(e) => setNewCustomer({...newCustomer, creditScore: e.target.value})}
+                  placeholder="750"
+                />
+              </div>
+              <div>
+                <Label htmlFor="income">Annual Income</Label>
+                <Input
+                  id="income"
+                  type="number"
+                  value={newCustomer.income}
+                  onChange={(e) => setNewCustomer({...newCustomer, income: e.target.value})}
+                  placeholder="65000"
+                />
+              </div>
+              <div>
+                <Label htmlFor="salesConsultant">Sales Consultant</Label>
+                <Input
+                  id="salesConsultant"
+                  value={newCustomer.salesConsultant}
+                  onChange={(e) => setNewCustomer({...newCustomer, salesConsultant: e.target.value})}
+                  placeholder="John Smith"
+                />
+              </div>
+              <div>
+                <Label htmlFor="leadSource">Lead Source</Label>
+                <Select value={newCustomer.leadSource} onValueChange={(value) => setNewCustomer({...newCustomer, leadSource: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select source" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="website">Website</SelectItem>
+                    <SelectItem value="referral">Referral</SelectItem>
+                    <SelectItem value="walk-in">Walk-in</SelectItem>
+                    <SelectItem value="phone">Phone</SelectItem>
+                    <SelectItem value="social">Social Media</SelectItem>
+                    <SelectItem value="advertising">Advertising</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="md:col-span-2">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={newCustomer.notes}
+                  onChange={(e) => setNewCustomer({...newCustomer, notes: e.target.value})}
+                  placeholder="Customer notes and preferences..."
+                  rows={3}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateCustomer} disabled={createCustomerMutation.isPending}>
+                {createCustomerMutation.isPending ? 'Creating...' : 'Create Customer'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              type="text"
-              placeholder="Search by name, email, phone, address, or license..."
+              placeholder="Search customers..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
-          <Select value={filterBy} onValueChange={setFilterBy}>
-            <SelectTrigger className="w-48">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Filter customers" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Customers</SelectItem>
-              <SelectItem value="active">Active Only</SelectItem>
-              <SelectItem value="inactive">Inactive Only</SelectItem>
-              <SelectItem value="has-phone">With Phone</SelectItem>
-              <SelectItem value="has-license">With License</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-full md:w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="hot">Hot Leads</SelectItem>
+            <SelectItem value="warm">Warm Leads</SelectItem>
+            <SelectItem value="cold">Cold Leads</SelectItem>
+            <SelectItem value="prospect">Prospects</SelectItem>
+            <SelectItem value="customer">Customers</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-auto p-6">
-        <Card className="shadow-sm border border-gray-200">
-          <CardHeader className="border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Customer Database ({filteredCustomers.length} customers)
-              </h3>
-            </div>
-          </CardHeader>
-          
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Customer
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Contact
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Credit Score
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Last Activity
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {isLoading ? (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center">
-                        <div className="animate-pulse">Loading customers...</div>
-                      </td>
-                    </tr>
-                  ) : filteredCustomers.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                        No customers found matching your search criteria
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredCustomers.map((customer) => (
-                      <tr key={customer.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                              {customer.profileImage ? (
-                                <img src={customer.profileImage} alt={customer.name} className="w-full h-full rounded-full object-cover" />
-                              ) : (
-                                <User className="w-5 h-5 text-blue-600" />
-                              )}
-                            </div>
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">{customer.name}</div>
-                              <div className="text-sm text-gray-500">{customer.email}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {customer.phone && (
-                              <div className="flex items-center gap-1">
-                                <Phone className="w-3 h-3 text-gray-400" />
-                                {customer.phone}
-                              </div>
-                            )}
-                            {customer.address && (
-                              <div className="flex items-center gap-1 text-gray-500">
-                                <MapPin className="w-3 h-3" />
-                                {customer.address.substring(0, 30)}...
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <Badge variant={customer.isActive ? "default" : "secondary"}>
-                            {customer.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {customer.creditScore ? (
-                            <div className="flex items-center gap-1">
-                              <CreditCard className="w-4 h-4 text-gray-400" />
-                              {customer.creditScore}
-                            </div>
-                          ) : (
-                            "Not available"
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(customer.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedCustomer(customer)}
-                          >
-                            View Profile
-                          </Button>
-                        </td>
-                      </tr>
-                    ))
+      {/* Customer List */}
+      {isLoading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p>Loading customers...</p>
+          </div>
+        </div>
+      ) : filteredCustomers.length === 0 ? (
+        <div className="text-center py-12">
+          <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No customers found</h3>
+          <p className="text-gray-600 mb-4">
+            {searchTerm || filterStatus !== 'all' ? 'Try adjusting your filters' : 'Get started by adding your first customer'}
+          </p>
+          <Button onClick={() => setShowAddDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Customer
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-4">
+            {filteredCustomers.map((customer: Customer) => (
+              <Card key={customer.id} className="p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 className="font-semibold">{customer.name}</h3>
+                    <p className="text-sm text-gray-600">{customer.salesConsultant}</p>
+                  </div>
+                  <Badge className={getStatusColor(customer.status)}>
+                    {customer.status}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm">{customer.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm">{customer.phone}</span>
+                  </div>
+                  {customer.creditScore && (
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-gray-400" />
+                      <span className={`text-sm ${getCreditScoreColor(customer.creditScore)}`}>
+                        {customer.creditScore}
+                      </span>
+                    </div>
                   )}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      </main>
+                </div>
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button variant="outline" size="sm">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => deleteCustomerMutation.mutate(customer.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
 
-      {/* Customer Profile Modal */}
-      <Dialog open={!!selectedCustomer} onOpenChange={() => setSelectedCustomer(null)}>
-        {selectedCustomer && (
-          <CustomerCard 
-            customer={selectedCustomer} 
-            onClose={() => setSelectedCustomer(null)} 
-          />
-        )}
-      </Dialog>
+          {/* Desktop Table */}
+          <div className="hidden md:block">
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Credit Score</TableHead>
+                    <TableHead>Sales Consultant</TableHead>
+                    <TableHead>Lead Source</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredCustomers.map((customer: Customer) => (
+                    <TableRow key={customer.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{customer.name}</div>
+                          <div className="text-sm text-gray-600">{customer.city}, {customer.state}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm">{customer.email}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm">{customer.phone}</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(customer.status)}>
+                          {customer.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {customer.creditScore && (
+                          <span className={getCreditScoreColor(customer.creditScore)}>
+                            {customer.creditScore}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>{customer.salesConsultant}</TableCell>
+                      <TableCell>{customer.leadSource}</TableCell>
+                      <TableCell>
+                        {new Date(customer.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => deleteCustomerMutation.mutate(customer.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
