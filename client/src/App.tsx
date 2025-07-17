@@ -11,6 +11,11 @@ import Customers from "@/pages/customers";
 import Analytics from "@/pages/analytics";
 import Settings from "@/pages/settings";
 import CompetitivePricing from "@/pages/competitive-pricing";
+// Admin Pages
+import RolesPage from "@/pages/admin/roles";
+import DepartmentsPage from "@/pages/admin/departments";
+// Service Pages
+import ServiceOrdersPage from "@/pages/service/service-orders";
 import Sidebar from "@/components/sidebar";
 import { usePixelTracker } from "@/hooks/use-pixel-tracker";
 
@@ -30,6 +35,14 @@ function Router() {
           <Route path="/analytics" component={Analytics} />
           <Route path="/competitive-pricing" component={CompetitivePricing} />
           <Route path="/settings" component={Settings} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin/roles" component={RolesPage} />
+          <Route path="/admin/departments" component={DepartmentsPage} />
+          
+          {/* Service Routes */}
+          <Route path="/service/orders" component={ServiceOrdersPage} />
+          
           <Route component={NotFound} />
         </Switch>
       </div>

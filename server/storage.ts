@@ -6,30 +6,33 @@ import {
 
 export interface IStorage {
   // User operations
+  getUsers(): Promise<User[]>;
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<User>): Promise<User>;
+  deleteUser(id: number): Promise<void>;
   
   // Vehicle operations
   getVehicles(): Promise<Vehicle[]>;
   getVehicle(id: number): Promise<Vehicle | undefined>;
   createVehicle(vehicle: InsertVehicle): Promise<Vehicle>;
   updateVehicle(id: number, vehicle: Partial<InsertVehicle>): Promise<Vehicle | undefined>;
-  deleteVehicle(id: number): Promise<boolean>;
+  deleteVehicle(id: number): Promise<void>;
   
   // Customer operations
   getCustomers(): Promise<Customer[]>;
   getCustomer(id: number): Promise<Customer | undefined>;
   createCustomer(customer: InsertCustomer): Promise<Customer>;
   updateCustomer(id: number, customer: Partial<InsertCustomer>): Promise<Customer | undefined>;
-  deleteCustomer(id: number): Promise<boolean>;
+  deleteCustomer(id: number): Promise<void>;
   
   // Lead operations
   getLeads(): Promise<Lead[]>;
   getLead(id: number): Promise<Lead | undefined>;
   createLead(lead: InsertLead): Promise<Lead>;
   updateLead(id: number, lead: Partial<InsertLead>): Promise<Lead | undefined>;
-  deleteLead(id: number): Promise<boolean>;
+  deleteLead(id: number): Promise<void>;
   
   // Sale operations
   getSales(): Promise<Sale[]>;
@@ -170,7 +173,14 @@ export class MemStorage implements IStorage {
       username: "admin",
       password: "password",
       name: "John Smith",
-      role: "Sales Manager"
+      email: "admin@dealership.com",
+      phone: null,
+      roleId: null,
+      departmentId: null,
+      isActive: true,
+      lastLogin: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
     this.users.set(1, defaultUser);
     this.currentUserId = 2;
@@ -187,7 +197,17 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
+    const user: User = { 
+      ...insertUser, 
+      id,
+      phone: insertUser.phone || null,
+      departmentId: insertUser.departmentId || null,
+      roleId: insertUser.roleId || null,
+      isActive: insertUser.isActive ?? true,
+      lastLogin: insertUser.lastLogin || null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
     this.users.set(id, user);
     return user;
   }
@@ -782,4 +802,6 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+import { DatabaseStorage } from "./database-storage";
+
+export const storage = new DatabaseStorage();
