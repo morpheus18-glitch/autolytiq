@@ -74,6 +74,18 @@ export const customers = pgTable("customers", {
   email: text("email").notNull().unique(),
   phone: text("phone"),
   address: text("address"),
+  licenseNumber: text("license_number"),
+  licenseState: text("license_state"),
+  licenseExpiry: timestamp("license_expiry"),
+  profileImage: text("profile_image"),
+  dateOfBirth: timestamp("date_of_birth"),
+  socialSecurityNumber: text("ssn"), // Encrypted storage
+  creditScore: integer("credit_score"),
+  notes: text("notes"),
+  tags: text("tags").array(),
+  leadSource: text("lead_source"),
+  preferredContactMethod: text("preferred_contact_method"),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -255,6 +267,108 @@ export const customerInteractions = pgTable("customer_interactions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Customer management tables
+export const customerNotes = pgTable("customer_notes", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  noteType: text("note_type").notNull(), // call, meeting, email, general
+  subject: text("subject").notNull(),
+  content: text("content").notNull(),
+  isPrivate: boolean("is_private").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const customerCalls = pgTable("customer_calls", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  callType: text("call_type").notNull(), // inbound, outbound
+  phoneNumber: text("phone_number").notNull(),
+  duration: integer("duration"), // in seconds
+  callStatus: text("call_status").notNull(), // completed, missed, busy, no_answer
+  notes: text("notes"),
+  recordingUrl: text("recording_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const customerVehiclesOfInterest = pgTable("customer_vehicles_of_interest", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  vehicleId: integer("vehicle_id").references(() => vehicles.id),
+  make: text("make"),
+  model: text("model"),
+  year: integer("year"),
+  minPrice: integer("min_price"),
+  maxPrice: integer("max_price"),
+  preferredFeatures: text("preferred_features").array(),
+  priority: text("priority").notNull().default("medium"), // low, medium, high
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const customerTradeIns = pgTable("customer_trade_ins", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  make: text("make").notNull(),
+  model: text("model").notNull(),
+  year: integer("year").notNull(),
+  mileage: integer("mileage"),
+  condition: text("condition").notNull(), // excellent, good, fair, poor
+  estimatedValue: integer("estimated_value"),
+  actualValue: integer("actual_value"),
+  vin: text("vin"),
+  images: text("images").array(),
+  notes: text("notes"),
+  status: text("status").notNull().default("pending"), // pending, appraised, accepted, declined
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const customerCreditApplications = pgTable("customer_credit_applications", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  applicationStatus: text("application_status").notNull(), // submitted, pending, approved, denied
+  lenderName: text("lender_name"),
+  creditScore: integer("credit_score"),
+  approvedAmount: integer("approved_amount"),
+  interestRate: decimal("interest_rate"),
+  termMonths: integer("term_months"),
+  monthlyPayment: integer("monthly_payment"),
+  downPayment: integer("down_payment"),
+  applicationData: text("application_data"), // Encrypted JSON
+  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+  processedAt: timestamp("processed_at"),
+});
+
+export const customerDocuments = pgTable("customer_documents", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  documentType: text("document_type").notNull(), // license, insurance, proof_of_income, etc.
+  fileName: text("file_name").notNull(),
+  fileUrl: text("file_url").notNull(),
+  fileSize: integer("file_size"),
+  mimeType: text("mime_type"),
+  isVerified: boolean("is_verified").default(false),
+  verifiedBy: integer("verified_by").references(() => users.id),
+  verifiedAt: timestamp("verified_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const customerLeadSources = pgTable("customer_lead_sources", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  sourceType: text("source_type").notNull(), // website, referral, walk_in, phone, social_media, etc.
+  sourceName: text("source_name"), // specific source name
+  campaignId: text("campaign_id"),
+  referralCustomerId: integer("referral_customer_id").references(() => customers.id),
+  utmSource: text("utm_source"),
+  utmMedium: text("utm_medium"),
+  utmCampaign: text("utm_campaign"),
+  conversionValue: integer("conversion_value"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const competitorAnalytics = pgTable("competitor_analytics", {
   id: serial("id").primaryKey(),
   sessionId: text("session_id").references(() => visitorSessions.sessionId).notNull(),
@@ -363,6 +477,13 @@ export const insertCompetitivePricingSchema = createInsertSchema(competitivePric
 export const insertPricingInsightsSchema = createInsertSchema(pricingInsights).omit({ id: true, lastUpdated: true });
 export const insertMerchandisingStrategiesSchema = createInsertSchema(merchandisingStrategies).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertMarketTrendsSchema = createInsertSchema(marketTrends).omit({ id: true, lastUpdated: true });
+export const insertCustomerNoteSchema = createInsertSchema(customerNotes).omit({ id: true, createdAt: true });
+export const insertCustomerCallSchema = createInsertSchema(customerCalls).omit({ id: true, createdAt: true });
+export const insertCustomerVehicleOfInterestSchema = createInsertSchema(customerVehiclesOfInterest).omit({ id: true, createdAt: true });
+export const insertCustomerTradeInSchema = createInsertSchema(customerTradeIns).omit({ id: true, createdAt: true });
+export const insertCustomerCreditApplicationSchema = createInsertSchema(customerCreditApplications).omit({ id: true, submittedAt: true });
+export const insertCustomerDocumentSchema = createInsertSchema(customerDocuments).omit({ id: true, createdAt: true });
+export const insertCustomerLeadSourceSchema = createInsertSchema(customerLeadSources).omit({ id: true, createdAt: true });
 
 export type Department = typeof departments.$inferSelect;
 export type Role = typeof roles.$inferSelect;
@@ -413,3 +534,18 @@ export type InsertCompetitivePricing = z.infer<typeof insertCompetitivePricingSc
 export type InsertPricingInsights = z.infer<typeof insertPricingInsightsSchema>;
 export type InsertMerchandisingStrategies = z.infer<typeof insertMerchandisingStrategiesSchema>;
 export type InsertMarketTrends = z.infer<typeof insertMarketTrendsSchema>;
+export type InsertCustomerNote = z.infer<typeof insertCustomerNoteSchema>;
+export type InsertCustomerCall = z.infer<typeof insertCustomerCallSchema>;
+export type InsertCustomerVehicleOfInterest = z.infer<typeof insertCustomerVehicleOfInterestSchema>;
+export type InsertCustomerTradeIn = z.infer<typeof insertCustomerTradeInSchema>;
+export type InsertCustomerCreditApplication = z.infer<typeof insertCustomerCreditApplicationSchema>;
+export type InsertCustomerDocument = z.infer<typeof insertCustomerDocumentSchema>;
+export type InsertCustomerLeadSource = z.infer<typeof insertCustomerLeadSourceSchema>;
+
+export type CustomerNote = typeof customerNotes.$inferSelect;
+export type CustomerCall = typeof customerCalls.$inferSelect;
+export type CustomerVehicleOfInterest = typeof customerVehiclesOfInterest.$inferSelect;
+export type CustomerTradeIn = typeof customerTradeIns.$inferSelect;
+export type CustomerCreditApplication = typeof customerCreditApplications.$inferSelect;
+export type CustomerDocument = typeof customerDocuments.$inferSelect;
+export type CustomerLeadSource = typeof customerLeadSources.$inferSelect;
