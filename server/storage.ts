@@ -1,7 +1,7 @@
 import { 
-  users, vehicles, customers, leads, sales, activities,
-  type User, type Vehicle, type Customer, type Lead, type Sale, type Activity,
-  type InsertUser, type InsertVehicle, type InsertCustomer, type InsertLead, type InsertSale, type InsertActivity
+  users, vehicles, customers, leads, sales, activities, visitorSessions, pageViews, customerInteractions, competitorAnalytics, competitivePricing, pricingInsights, merchandisingStrategies, marketTrends,
+  type User, type Vehicle, type Customer, type Lead, type Sale, type Activity, type VisitorSession, type PageView, type CustomerInteraction, type CompetitorAnalytics, type CompetitivePricing, type PricingInsights, type MerchandisingStrategies, type MarketTrends,
+  type InsertUser, type InsertVehicle, type InsertCustomer, type InsertLead, type InsertSale, type InsertActivity, type InsertVisitorSession, type InsertPageView, type InsertCustomerInteraction, type InsertCompetitorAnalytics, type InsertCompetitivePricing, type InsertPricingInsights, type InsertMerchandisingStrategies, type InsertMarketTrends
 } from "@shared/schema";
 
 export interface IStorage {
@@ -47,6 +47,59 @@ export interface IStorage {
     activeLeads: number;
     avgDaysToSale: number;
   }>;
+  
+  // Visitor tracking operations
+  createVisitorSession(session: InsertVisitorSession): Promise<VisitorSession>;
+  updateVisitorSession(sessionId: string, session: Partial<InsertVisitorSession>): Promise<VisitorSession | undefined>;
+  getVisitorSession(sessionId: string): Promise<VisitorSession | undefined>;
+  getVisitorSessions(): Promise<VisitorSession[]>;
+  
+  // Page view tracking
+  createPageView(pageView: InsertPageView): Promise<PageView>;
+  getPageViews(sessionId?: string): Promise<PageView[]>;
+  
+  // Customer interaction tracking
+  createCustomerInteraction(interaction: InsertCustomerInteraction): Promise<CustomerInteraction>;
+  getCustomerInteractions(sessionId?: string): Promise<CustomerInteraction[]>;
+  
+  // Competitor analytics
+  createCompetitorAnalytics(analytics: InsertCompetitorAnalytics): Promise<CompetitorAnalytics>;
+  getCompetitorAnalytics(sessionId?: string): Promise<CompetitorAnalytics[]>;
+  
+  // Analytics metrics
+  getVisitorAnalytics(): Promise<{
+    totalVisitors: number;
+    returningVisitors: number;
+    avgSessionDuration: number;
+    topReferrers: Array<{ referrer: string; count: number }>;
+    topPages: Array<{ page: string; views: number }>;
+    deviceTypes: Array<{ type: string; count: number }>;
+    competitorInsights: Array<{ domain: string; visitors: number; avgDuration: number }>;
+  }>;
+
+  // Competitive pricing operations
+  createCompetitivePricing(pricing: InsertCompetitivePricing): Promise<CompetitivePricing>;
+  getCompetitivePricing(filters?: { make?: string; model?: string; year?: number; source?: string }): Promise<CompetitivePricing[]>;
+  updateCompetitivePricing(id: number, pricing: Partial<InsertCompetitivePricing>): Promise<CompetitivePricing | undefined>;
+  deleteCompetitivePricing(id: number): Promise<boolean>;
+
+  // Pricing insights operations
+  createPricingInsights(insights: InsertPricingInsights): Promise<PricingInsights>;
+  getPricingInsights(vehicleId?: number): Promise<PricingInsights[]>;
+  updatePricingInsights(id: number, insights: Partial<InsertPricingInsights>): Promise<PricingInsights | undefined>;
+  deletePricingInsights(id: number): Promise<boolean>;
+
+  // Merchandising strategies operations
+  createMerchandisingStrategy(strategy: InsertMerchandisingStrategies): Promise<MerchandisingStrategies>;
+  getMerchandisingStrategies(vehicleId?: number): Promise<MerchandisingStrategies[]>;
+  updateMerchandisingStrategy(id: number, strategy: Partial<InsertMerchandisingStrategies>): Promise<MerchandisingStrategies | undefined>;
+  deleteMerchandisingStrategy(id: number): Promise<boolean>;
+
+  // Market trends operations
+  createMarketTrend(trend: InsertMarketTrends): Promise<MarketTrends>;
+  getMarketTrends(category?: string): Promise<MarketTrends[]>;
+  updateMarketTrend(id: number, trend: Partial<InsertMarketTrends>): Promise<MarketTrends | undefined>;
+  deleteMarketTrend(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -56,12 +109,27 @@ export class MemStorage implements IStorage {
   private leads: Map<number, Lead>;
   private sales: Map<number, Sale>;
   private activities: Map<number, Activity>;
+  private visitorSessions: Map<string, VisitorSession>;
+  private pageViews: Map<number, PageView>;
+  private customerInteractions: Map<number, CustomerInteraction>;
+  private competitorAnalytics: Map<number, CompetitorAnalytics>;
+  private competitivePricing: Map<number, CompetitivePricing>;
+  private pricingInsights: Map<number, PricingInsights>;
+  private merchandisingStrategies: Map<number, MerchandisingStrategies>;
+  private marketTrends: Map<number, MarketTrends>;
   private currentUserId: number;
   private currentVehicleId: number;
   private currentCustomerId: number;
   private currentLeadId: number;
   private currentSaleId: number;
   private currentActivityId: number;
+  private currentPageViewId: number;
+  private currentInteractionId: number;
+  private currentCompetitorId: number;
+  private currentCompetitivePricingId: number;
+  private currentPricingInsightsId: number;
+  private currentMerchandisingStrategyId: number;
+  private currentMarketTrendId: number;
 
   constructor() {
     this.users = new Map();
@@ -70,12 +138,27 @@ export class MemStorage implements IStorage {
     this.leads = new Map();
     this.sales = new Map();
     this.activities = new Map();
+    this.visitorSessions = new Map();
+    this.pageViews = new Map();
+    this.customerInteractions = new Map();
+    this.competitorAnalytics = new Map();
+    this.competitivePricing = new Map();
+    this.pricingInsights = new Map();
+    this.merchandisingStrategies = new Map();
+    this.marketTrends = new Map();
     this.currentUserId = 1;
     this.currentVehicleId = 1;
     this.currentCustomerId = 1;
     this.currentLeadId = 1;
     this.currentSaleId = 1;
     this.currentActivityId = 1;
+    this.currentPageViewId = 1;
+    this.currentInteractionId = 1;
+    this.currentCompetitorId = 1;
+    this.currentCompetitivePricingId = 1;
+    this.currentPricingInsightsId = 1;
+    this.currentMerchandisingStrategyId = 1;
+    this.currentMarketTrendId = 1;
     
     this.initializeDefaultData();
   }
@@ -125,7 +208,9 @@ export class MemStorage implements IStorage {
     const vehicle: Vehicle = { 
       ...insertVehicle, 
       id, 
-      createdAt: new Date() 
+      createdAt: new Date(),
+      description: insertVehicle.description || null,
+      imageUrl: insertVehicle.imageUrl || null
     };
     this.vehicles.set(id, vehicle);
     
@@ -168,7 +253,9 @@ export class MemStorage implements IStorage {
     const customer: Customer = { 
       ...insertCustomer, 
       id, 
-      createdAt: new Date() 
+      createdAt: new Date(),
+      phone: insertCustomer.phone || null,
+      address: insertCustomer.address || null
     };
     this.customers.set(id, customer);
     return customer;
@@ -203,7 +290,11 @@ export class MemStorage implements IStorage {
     const lead: Lead = { 
       ...insertLead, 
       id, 
-      createdAt: new Date() 
+      createdAt: new Date(),
+      customerId: insertLead.customerId || null,
+      customerPhone: insertLead.customerPhone || null,
+      interestedIn: insertLead.interestedIn || null,
+      notes: insertLead.notes || null
     };
     this.leads.set(id, lead);
     
@@ -246,7 +337,8 @@ export class MemStorage implements IStorage {
     const sale: Sale = { 
       ...insertSale, 
       id, 
-      saleDate: new Date() 
+      saleDate: new Date(),
+      notes: insertSale.notes || null
     };
     this.sales.set(id, sale);
     
@@ -281,7 +373,8 @@ export class MemStorage implements IStorage {
     const activity: Activity = { 
       ...insertActivity, 
       id, 
-      createdAt: new Date() 
+      createdAt: new Date(),
+      userId: insertActivity.userId || null
     };
     this.activities.set(id, activity);
     return activity;
@@ -320,6 +413,372 @@ export class MemStorage implements IStorage {
       activeLeads,
       avgDaysToSale
     };
+  }
+
+  // Visitor tracking operations
+  async createVisitorSession(insertSession: InsertVisitorSession): Promise<VisitorSession> {
+    const session: VisitorSession = {
+      ...insertSession,
+      id: Date.now(), // Using timestamp as ID for simplicity
+      lastActivity: new Date(),
+      createdAt: new Date(),
+      userAgent: insertSession.userAgent || null,
+      ipAddress: insertSession.ipAddress || null,
+      referrer: insertSession.referrer || null,
+      landingPage: insertSession.landingPage || null,
+      deviceType: insertSession.deviceType || null,
+      browserName: insertSession.browserName || null,
+      operatingSystem: insertSession.operatingSystem || null,
+      country: insertSession.country || null,
+      city: insertSession.city || null,
+      isReturningVisitor: insertSession.isReturningVisitor || false,
+      totalPageViews: insertSession.totalPageViews || 0,
+      sessionDuration: insertSession.sessionDuration || 0
+    };
+    this.visitorSessions.set(session.sessionId, session);
+    return session;
+  }
+
+  async updateVisitorSession(sessionId: string, updateSession: Partial<InsertVisitorSession>): Promise<VisitorSession | undefined> {
+    const session = this.visitorSessions.get(sessionId);
+    if (!session) return undefined;
+    
+    const updatedSession = { ...session, ...updateSession, lastActivity: new Date() };
+    this.visitorSessions.set(sessionId, updatedSession);
+    return updatedSession;
+  }
+
+  async getVisitorSession(sessionId: string): Promise<VisitorSession | undefined> {
+    return this.visitorSessions.get(sessionId);
+  }
+
+  async getVisitorSessions(): Promise<VisitorSession[]> {
+    return Array.from(this.visitorSessions.values()).sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  // Page view tracking
+  async createPageView(insertPageView: InsertPageView): Promise<PageView> {
+    const id = this.currentPageViewId++;
+    const pageView: PageView = {
+      ...insertPageView,
+      id,
+      createdAt: new Date(),
+      pageTitle: insertPageView.pageTitle || null,
+      timeOnPage: insertPageView.timeOnPage || null,
+      scrollDepth: insertPageView.scrollDepth || null,
+      exitPage: insertPageView.exitPage || null
+    };
+    this.pageViews.set(id, pageView);
+    return pageView;
+  }
+
+  async getPageViews(sessionId?: string): Promise<PageView[]> {
+    const views = Array.from(this.pageViews.values());
+    if (sessionId) {
+      return views.filter(view => view.sessionId === sessionId);
+    }
+    return views.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  // Customer interaction tracking
+  async createCustomerInteraction(insertInteraction: InsertCustomerInteraction): Promise<CustomerInteraction> {
+    const id = this.currentInteractionId++;
+    const interaction: CustomerInteraction = {
+      ...insertInteraction,
+      id,
+      createdAt: new Date(),
+      vehicleId: insertInteraction.vehicleId || null,
+      elementId: insertInteraction.elementId || null,
+      data: insertInteraction.data || null
+    };
+    this.customerInteractions.set(id, interaction);
+    return interaction;
+  }
+
+  async getCustomerInteractions(sessionId?: string): Promise<CustomerInteraction[]> {
+    const interactions = Array.from(this.customerInteractions.values());
+    if (sessionId) {
+      return interactions.filter(interaction => interaction.sessionId === sessionId);
+    }
+    return interactions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  // Competitor analytics
+  async createCompetitorAnalytics(insertAnalytics: InsertCompetitorAnalytics): Promise<CompetitorAnalytics> {
+    const id = this.currentCompetitorId++;
+    const analytics: CompetitorAnalytics = {
+      ...insertAnalytics,
+      id,
+      createdAt: new Date(),
+      visitDuration: insertAnalytics.visitDuration || null,
+      pagesVisited: insertAnalytics.pagesVisited || null
+    };
+    this.competitorAnalytics.set(id, analytics);
+    return analytics;
+  }
+
+  async getCompetitorAnalytics(sessionId?: string): Promise<CompetitorAnalytics[]> {
+    const analytics = Array.from(this.competitorAnalytics.values());
+    if (sessionId) {
+      return analytics.filter(analytic => analytic.sessionId === sessionId);
+    }
+    return analytics.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  // Analytics metrics
+  async getVisitorAnalytics(): Promise<{
+    totalVisitors: number;
+    returningVisitors: number;
+    avgSessionDuration: number;
+    topReferrers: Array<{ referrer: string; count: number }>;
+    topPages: Array<{ page: string; views: number }>;
+    deviceTypes: Array<{ type: string; count: number }>;
+    competitorInsights: Array<{ domain: string; visitors: number; avgDuration: number }>;
+  }> {
+    const sessions = await this.getVisitorSessions();
+    const pageViews = await this.getPageViews();
+    const competitorData = await this.getCompetitorAnalytics();
+
+    // Calculate metrics
+    const totalVisitors = sessions.length;
+    const returningVisitors = sessions.filter(s => s.isReturningVisitor).length;
+    const avgSessionDuration = sessions.reduce((sum, s) => sum + (s.sessionDuration || 0), 0) / sessions.length || 0;
+
+    // Top referrers
+    const referrerCounts = new Map<string, number>();
+    sessions.forEach(session => {
+      if (session.referrer) {
+        referrerCounts.set(session.referrer, (referrerCounts.get(session.referrer) || 0) + 1);
+      }
+    });
+    const topReferrers = Array.from(referrerCounts.entries())
+      .map(([referrer, count]) => ({ referrer, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+
+    // Top pages
+    const pageCounts = new Map<string, number>();
+    pageViews.forEach(view => {
+      pageCounts.set(view.pageUrl, (pageCounts.get(view.pageUrl) || 0) + 1);
+    });
+    const topPages = Array.from(pageCounts.entries())
+      .map(([page, views]) => ({ page, views }))
+      .sort((a, b) => b.views - a.views)
+      .slice(0, 10);
+
+    // Device types
+    const deviceCounts = new Map<string, number>();
+    sessions.forEach(session => {
+      if (session.deviceType) {
+        deviceCounts.set(session.deviceType, (deviceCounts.get(session.deviceType) || 0) + 1);
+      }
+    });
+    const deviceTypes = Array.from(deviceCounts.entries())
+      .map(([type, count]) => ({ type, count }))
+      .sort((a, b) => b.count - a.count);
+
+    // Competitor insights
+    const competitorCounts = new Map<string, { visitors: number; totalDuration: number }>();
+    competitorData.forEach(comp => {
+      const existing = competitorCounts.get(comp.competitorDomain) || { visitors: 0, totalDuration: 0 };
+      competitorCounts.set(comp.competitorDomain, {
+        visitors: existing.visitors + 1,
+        totalDuration: existing.totalDuration + (comp.visitDuration || 0)
+      });
+    });
+    const competitorInsights = Array.from(competitorCounts.entries())
+      .map(([domain, data]) => ({
+        domain,
+        visitors: data.visitors,
+        avgDuration: data.totalDuration / data.visitors
+      }))
+      .sort((a, b) => b.visitors - a.visitors)
+      .slice(0, 10);
+
+    return {
+      totalVisitors,
+      returningVisitors,
+      avgSessionDuration,
+      topReferrers,
+      topPages,
+      deviceTypes,
+      competitorInsights
+    };
+  }
+
+  // Competitive pricing operations
+  async createCompetitivePricing(insertPricing: InsertCompetitivePricing): Promise<CompetitivePricing> {
+    const id = this.currentCompetitivePricingId++;
+    const pricing: CompetitivePricing = { 
+      ...insertPricing, 
+      id, 
+      scrapedAt: new Date(),
+      isActive: insertPricing.isActive ?? true,
+      trim: insertPricing.trim || null,
+      mileage: insertPricing.mileage || null,
+      sourceUrl: insertPricing.sourceUrl || null,
+      location: insertPricing.location || null,
+      condition: insertPricing.condition || null,
+      features: insertPricing.features || null,
+      images: insertPricing.images || null
+    };
+    this.competitivePricing.set(id, pricing);
+    return pricing;
+  }
+
+  async getCompetitivePricing(filters?: { make?: string; model?: string; year?: number; source?: string }): Promise<CompetitivePricing[]> {
+    let pricing = Array.from(this.competitivePricing.values())
+      .filter(p => p.isActive)
+      .sort((a, b) => new Date(b.scrapedAt || 0).getTime() - new Date(a.scrapedAt || 0).getTime());
+    
+    if (filters) {
+      if (filters.make) {
+        pricing = pricing.filter(p => p.make.toLowerCase().includes(filters.make!.toLowerCase()));
+      }
+      if (filters.model) {
+        pricing = pricing.filter(p => p.model.toLowerCase().includes(filters.model!.toLowerCase()));
+      }
+      if (filters.year) {
+        pricing = pricing.filter(p => p.year === filters.year);
+      }
+      if (filters.source) {
+        pricing = pricing.filter(p => p.source.toLowerCase().includes(filters.source!.toLowerCase()));
+      }
+    }
+    
+    return pricing;
+  }
+
+  async updateCompetitivePricing(id: number, updatePricing: Partial<InsertCompetitivePricing>): Promise<CompetitivePricing | undefined> {
+    const pricing = this.competitivePricing.get(id);
+    if (!pricing) return undefined;
+    
+    const updatedPricing = { ...pricing, ...updatePricing };
+    this.competitivePricing.set(id, updatedPricing);
+    return updatedPricing;
+  }
+
+  async deleteCompetitivePricing(id: number): Promise<boolean> {
+    return this.competitivePricing.delete(id);
+  }
+
+  // Pricing insights operations
+  async createPricingInsights(insertInsights: InsertPricingInsights): Promise<PricingInsights> {
+    const id = this.currentPricingInsightsId++;
+    const insights: PricingInsights = { 
+      ...insertInsights, 
+      id, 
+      lastUpdated: new Date(),
+      vehicleId: insertInsights.vehicleId || null,
+      priceRange: insertInsights.priceRange || null,
+      recommendedAction: insertInsights.recommendedAction || "",
+      factors: insertInsights.factors || null
+    };
+    this.pricingInsights.set(id, insights);
+    return insights;
+  }
+
+  async getPricingInsights(vehicleId?: number): Promise<PricingInsights[]> {
+    let insights = Array.from(this.pricingInsights.values())
+      .sort((a, b) => new Date(b.lastUpdated || 0).getTime() - new Date(a.lastUpdated || 0).getTime());
+    
+    if (vehicleId) {
+      insights = insights.filter(i => i.vehicleId === vehicleId);
+    }
+    
+    return insights;
+  }
+
+  async updatePricingInsights(id: number, updateInsights: Partial<InsertPricingInsights>): Promise<PricingInsights | undefined> {
+    const insights = this.pricingInsights.get(id);
+    if (!insights) return undefined;
+    
+    const updatedInsights = { ...insights, ...updateInsights, lastUpdated: new Date() };
+    this.pricingInsights.set(id, updatedInsights);
+    return updatedInsights;
+  }
+
+  async deletePricingInsights(id: number): Promise<boolean> {
+    return this.pricingInsights.delete(id);
+  }
+
+  // Merchandising strategies operations
+  async createMerchandisingStrategy(insertStrategy: InsertMerchandisingStrategies): Promise<MerchandisingStrategies> {
+    const id = this.currentMerchandisingStrategyId++;
+    const strategy: MerchandisingStrategies = { 
+      ...insertStrategy, 
+      id, 
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      status: insertStrategy.status || null,
+      vehicleId: insertStrategy.vehicleId || null,
+      implementationCost: insertStrategy.implementationCost || null,
+      expectedROI: insertStrategy.expectedROI || null
+    };
+    this.merchandisingStrategies.set(id, strategy);
+    return strategy;
+  }
+
+  async getMerchandisingStrategies(vehicleId?: number): Promise<MerchandisingStrategies[]> {
+    let strategies = Array.from(this.merchandisingStrategies.values())
+      .sort((a, b) => b.priority - a.priority);
+    
+    if (vehicleId) {
+      strategies = strategies.filter(s => s.vehicleId === vehicleId);
+    }
+    
+    return strategies;
+  }
+
+  async updateMerchandisingStrategy(id: number, updateStrategy: Partial<InsertMerchandisingStrategies>): Promise<MerchandisingStrategies | undefined> {
+    const strategy = this.merchandisingStrategies.get(id);
+    if (!strategy) return undefined;
+    
+    const updatedStrategy = { ...strategy, ...updateStrategy, updatedAt: new Date() };
+    this.merchandisingStrategies.set(id, updatedStrategy);
+    return updatedStrategy;
+  }
+
+  async deleteMerchandisingStrategy(id: number): Promise<boolean> {
+    return this.merchandisingStrategies.delete(id);
+  }
+
+  // Market trends operations
+  async createMarketTrend(insertTrend: InsertMarketTrends): Promise<MarketTrends> {
+    const id = this.currentMarketTrendId++;
+    const trend: MarketTrends = { 
+      ...insertTrend, 
+      id, 
+      lastUpdated: new Date()
+    };
+    this.marketTrends.set(id, trend);
+    return trend;
+  }
+
+  async getMarketTrends(category?: string): Promise<MarketTrends[]> {
+    let trends = Array.from(this.marketTrends.values())
+      .sort((a, b) => new Date(b.lastUpdated || 0).getTime() - new Date(a.lastUpdated || 0).getTime());
+    
+    if (category) {
+      trends = trends.filter(t => t.category.toLowerCase().includes(category.toLowerCase()));
+    }
+    
+    return trends;
+  }
+
+  async updateMarketTrend(id: number, updateTrend: Partial<InsertMarketTrends>): Promise<MarketTrends | undefined> {
+    const trend = this.marketTrends.get(id);
+    if (!trend) return undefined;
+    
+    const updatedTrend = { ...trend, ...updateTrend, lastUpdated: new Date() };
+    this.marketTrends.set(id, updatedTrend);
+    return updatedTrend;
+  }
+
+  async deleteMarketTrend(id: number): Promise<boolean> {
+    return this.marketTrends.delete(id);
   }
 }
 

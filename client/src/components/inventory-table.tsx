@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Eye, Trash2, Filter } from "lucide-react";
+import { usePixelTracker } from "@/hooks/use-pixel-tracker";
+import { Edit, Eye, Trash2, Filter, Target } from "lucide-react";
 import type { Vehicle } from "@shared/schema";
 import VehicleModal from "./vehicle-modal";
 
@@ -21,6 +22,7 @@ export default function InventoryTable({ showAddButton = true, limit }: Inventor
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { trackVehicleView, trackSearch, trackFilterUsage, trackInteraction } = usePixelTracker();
 
   const { data: vehicles, isLoading } = useQuery<Vehicle[]>({
     queryKey: ["/api/vehicles"],
@@ -40,20 +42,69 @@ export default function InventoryTable({ showAddButton = true, limit }: Inventor
     },
   });
 
+  const generatePricingMutation = useMutation({
+    mutationFn: async (vehicle: Vehicle) => {
+      const response = await apiRequest("/api/generate-pricing-insights", {
+        method: "POST",
+        body: {
+          vehicleId: vehicle.id,
+          make: vehicle.make,
+          model: vehicle.model,
+          year: vehicle.year,
+          currentPrice: parseFloat(vehicle.price),
+          mileage: vehicle.mileage
+        }
+      });
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/pricing-insights"] });
+      toast({ title: "Pricing insights generated successfully" });
+    },
+    onError: () => {
+      toast({ title: "Failed to generate pricing insights", variant: "destructive" });
+    },
+  });
+
   const handleEdit = (vehicle: Vehicle) => {
+    trackInteraction('vehicle_edit', `vehicle-${vehicle.id}`, vehicle.id);
     setSelectedVehicle(vehicle);
     setIsModalOpen(true);
   };
 
   const handleDelete = (id: number) => {
     if (confirm("Are you sure you want to delete this vehicle?")) {
+      trackInteraction('vehicle_delete', `vehicle-${id}`, id);
       deleteMutation.mutate(id);
     }
   };
 
   const handleAddNew = () => {
+    trackInteraction('vehicle_add', 'add-vehicle-button');
     setSelectedVehicle(null);
     setIsModalOpen(true);
+  };
+
+  const handleVehicleView = (vehicle: Vehicle) => {
+    trackVehicleView(vehicle.id, {
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      price: vehicle.price,
+      status: vehicle.status
+    });
+  };
+
+  const handleGeneratePricing = (vehicle: Vehicle) => {
+    trackInteraction('pricing_insights', `vehicle-${vehicle.id}`, vehicle.id);
+    generatePricingMutation.mutate(vehicle);
+  };
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    if (term.length > 2) {
+      trackSearch(term);
+    }
   };
 
   const filteredVehicles = vehicles?.filter(vehicle =>
@@ -109,7 +160,7 @@ export default function InventoryTable({ showAddButton = true, limit }: Inventor
                 type="text"
                 placeholder="Search vehicles..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearch(e.target.value)}
                 className="w-64"
               />
               <Button variant="outline" size="sm">
@@ -155,7 +206,7 @@ export default function InventoryTable({ showAddButton = true, limit }: Inventor
                   </tr>
                 ) : (
                   displayedVehicles.map((vehicle) => (
-                    <tr key={vehicle.id} className="hover:bg-gray-50">
+                    <tr key={vehicle.id} className="hover:bg-gray-50" onClick={() => handleVehicleView(vehicle)}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {vehicle.imageUrl ? (
@@ -195,7 +246,10 @@ export default function InventoryTable({ showAddButton = true, limit }: Inventor
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleEdit(vehicle)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(vehicle);
+                            }}
                             className="text-primary hover:text-blue-700"
                           >
                             <Edit className="w-4 h-4" />
@@ -203,6 +257,10 @@ export default function InventoryTable({ showAddButton = true, limit }: Inventor
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleVehicleView(vehicle);
+                            }}
                             className="text-gray-400 hover:text-gray-600"
                           >
                             <Eye className="w-4 h-4" />
@@ -210,7 +268,23 @@ export default function InventoryTable({ showAddButton = true, limit }: Inventor
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDelete(vehicle.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleGeneratePricing(vehicle);
+                            }}
+                            className="text-blue-500 hover:text-blue-700"
+                            disabled={generatePricingMutation.isPending}
+                            title="Generate Pricing Insights"
+                          >
+                            <Target className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(vehicle.id);
+                            }}
                             className="text-red-500 hover:text-red-700"
                             disabled={deleteMutation.isPending}
                           >
