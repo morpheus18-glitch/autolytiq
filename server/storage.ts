@@ -167,23 +167,384 @@ export class MemStorage implements IStorage {
   }
 
   private initializeDefaultData() {
-    // Create default user
-    const defaultUser: User = {
-      id: 1,
-      username: "admin",
-      password: "password",
-      name: "John Smith",
-      email: "admin@dealership.com",
-      phone: null,
-      roleId: null,
-      departmentId: null,
-      isActive: true,
-      lastLogin: null,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    this.users.set(1, defaultUser);
-    this.currentUserId = 2;
+    // Create default users
+    const users: User[] = [
+      {
+        id: 1,
+        username: "admin",
+        password: "password",
+        name: "John Smith",
+        email: "admin@dealership.com",
+        phone: "(555) 123-4567",
+        roleId: 1,
+        departmentId: 1,
+        isActive: true,
+        lastLogin: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 2,
+        username: "sarah.jones",
+        password: "password",
+        name: "Sarah Jones",
+        email: "sarah@dealership.com",
+        phone: "(555) 123-4568",
+        roleId: 2,
+        departmentId: 1,
+        isActive: true,
+        lastLogin: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 3,
+        username: "mike.wilson",
+        password: "password",
+        name: "Mike Wilson",
+        email: "mike@dealership.com",
+        phone: "(555) 123-4569",
+        roleId: 3,
+        departmentId: 2,
+        isActive: true,
+        lastLogin: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+    
+    users.forEach(user => this.users.set(user.id, user));
+    this.currentUserId = 4;
+
+    // Create sample vehicles
+    const vehicles: Vehicle[] = [
+      {
+        id: 1,
+        make: "Toyota",
+        model: "Camry",
+        year: 2023,
+        vin: "1HGBH41JXMN109186",
+        price: 28500,
+        status: "available",
+        description: "Excellent condition, low mileage",
+        imageUrl: null,
+        createdAt: new Date()
+      },
+      {
+        id: 2,
+        make: "Honda",
+        model: "Civic",
+        year: 2022,
+        vin: "2HGFC2F59MH123456",
+        price: 24900,
+        status: "available",
+        description: "Clean carfax, one owner",
+        imageUrl: null,
+        createdAt: new Date()
+      },
+      {
+        id: 3,
+        make: "Ford",
+        model: "F-150",
+        year: 2023,
+        vin: "1FTFW1ET5MFC12345",
+        price: 45000,
+        status: "pending",
+        description: "Crew cab, loaded with options",
+        imageUrl: null,
+        createdAt: new Date()
+      },
+      {
+        id: 4,
+        make: "Chevrolet",
+        model: "Silverado",
+        year: 2022,
+        vin: "1GCRYDED5MZ123456",
+        price: 42000,
+        status: "available",
+        description: "4WD, leather interior",
+        imageUrl: null,
+        createdAt: new Date()
+      },
+      {
+        id: 5,
+        make: "BMW",
+        model: "3 Series",
+        year: 2023,
+        vin: "WBA8E9G59MNU12345",
+        price: 52000,
+        status: "available",
+        description: "Premium package, sport line",
+        imageUrl: null,
+        createdAt: new Date()
+      }
+    ];
+    
+    vehicles.forEach(vehicle => this.vehicles.set(vehicle.id, vehicle));
+    this.currentVehicleId = 6;
+
+    // Create sample customers
+    const customers: Customer[] = [
+      {
+        id: 1,
+        firstName: "Robert",
+        lastName: "Johnson",
+        name: "Robert Johnson",
+        email: "robert.johnson@email.com",
+        phone: "(555) 234-5678",
+        cellPhone: "(555) 234-5679",
+        workPhone: null,
+        address: "123 Main St",
+        city: "Austin",
+        state: "TX",
+        zipCode: "78701",
+        dateOfBirth: null,
+        driversLicenseNumber: null,
+        driversLicenseState: null,
+        ssn: null,
+        creditScore: 750,
+        income: 75000,
+        employment: null,
+        bankingInfo: null,
+        insurance: null,
+        preferences: null,
+        leadSource: "website",
+        referredBy: null,
+        communicationPreferences: null,
+        purchaseHistory: null,
+        serviceHistory: null,
+        followUpSchedule: null,
+        tags: null,
+        notes: "Interested in SUVs, good credit",
+        salesConsultant: "Sarah Jones",
+        status: "hot",
+        lastContactDate: null,
+        nextFollowUpDate: null,
+        licenseNumber: null,
+        licenseState: null,
+        licenseExpiry: null,
+        profileImage: null,
+        socialSecurityNumber: null,
+        preferredContactMethod: null,
+        isActive: true,
+        createdAt: new Date()
+      },
+      {
+        id: 2,
+        firstName: "Emily",
+        lastName: "Davis",
+        name: "Emily Davis",
+        email: "emily.davis@email.com",
+        phone: "(555) 345-6789",
+        cellPhone: "(555) 345-6790",
+        workPhone: null,
+        address: "456 Oak Ave",
+        city: "Dallas",
+        state: "TX",
+        zipCode: "75201",
+        dateOfBirth: null,
+        driversLicenseNumber: null,
+        driversLicenseState: null,
+        ssn: null,
+        creditScore: 680,
+        income: 55000,
+        employment: null,
+        bankingInfo: null,
+        insurance: null,
+        preferences: null,
+        leadSource: "referral",
+        referredBy: null,
+        communicationPreferences: null,
+        purchaseHistory: null,
+        serviceHistory: null,
+        followUpSchedule: null,
+        tags: null,
+        notes: "First-time buyer, needs financing",
+        salesConsultant: "Mike Wilson",
+        status: "warm",
+        lastContactDate: null,
+        nextFollowUpDate: null,
+        licenseNumber: null,
+        licenseState: null,
+        licenseExpiry: null,
+        profileImage: null,
+        socialSecurityNumber: null,
+        preferredContactMethod: null,
+        isActive: true,
+        createdAt: new Date()
+      },
+      {
+        id: 3,
+        firstName: "Michael",
+        lastName: "Brown",
+        name: "Michael Brown",
+        email: "michael.brown@email.com",
+        phone: "(555) 456-7890",
+        cellPhone: "(555) 456-7891",
+        workPhone: null,
+        address: "789 Pine St",
+        city: "Houston",
+        state: "TX",
+        zipCode: "77001",
+        dateOfBirth: null,
+        driversLicenseNumber: null,
+        driversLicenseState: null,
+        ssn: null,
+        creditScore: 720,
+        income: 85000,
+        employment: null,
+        bankingInfo: null,
+        insurance: null,
+        preferences: null,
+        leadSource: "walk-in",
+        referredBy: null,
+        communicationPreferences: null,
+        purchaseHistory: null,
+        serviceHistory: null,
+        followUpSchedule: null,
+        tags: null,
+        notes: "Interested in trucks, cash buyer",
+        salesConsultant: "John Smith",
+        status: "customer",
+        lastContactDate: null,
+        nextFollowUpDate: null,
+        licenseNumber: null,
+        licenseState: null,
+        licenseExpiry: null,
+        profileImage: null,
+        socialSecurityNumber: null,
+        preferredContactMethod: null,
+        isActive: true,
+        createdAt: new Date()
+      }
+    ];
+    
+    customers.forEach(customer => this.customers.set(customer.id, customer));
+    this.currentCustomerId = 4;
+
+    // Create sample leads
+    const leads: Lead[] = [
+      {
+        id: 1,
+        customerId: 1,
+        leadNumber: "L-2024-001",
+        source: "website",
+        status: "new",
+        priority: "high",
+        temperature: "hot",
+        interestedVehicles: null,
+        budget: null,
+        timeline: "immediate",
+        tradeInInfo: null,
+        financing: null,
+        assignedTo: "Sarah Jones",
+        lastActivity: new Date(),
+        nextFollowUp: new Date(),
+        activities: null,
+        tags: null,
+        notes: "Very interested in Toyota Camry",
+        conversionProbability: 85,
+        estimatedValue: 28500,
+        competitorInfo: null,
+        customerName: "Robert Johnson",
+        customerEmail: "robert.johnson@email.com",
+        customerPhone: "(555) 234-5678",
+        interestedIn: "Toyota Camry",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 2,
+        customerId: 2,
+        leadNumber: "L-2024-002",
+        source: "referral",
+        status: "contacted",
+        priority: "medium",
+        temperature: "warm",
+        interestedVehicles: null,
+        budget: null,
+        timeline: "within_month",
+        tradeInInfo: null,
+        financing: null,
+        assignedTo: "Mike Wilson",
+        lastActivity: new Date(),
+        nextFollowUp: new Date(),
+        activities: null,
+        tags: null,
+        notes: "Needs financing options",
+        conversionProbability: 65,
+        estimatedValue: 24900,
+        competitorInfo: null,
+        customerName: "Emily Davis",
+        customerEmail: "emily.davis@email.com",
+        customerPhone: "(555) 345-6789",
+        interestedIn: "Honda Civic",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+    
+    leads.forEach(lead => this.leads.set(lead.id, lead));
+    this.currentLeadId = 3;
+
+    // Create sample sales
+    const sales: Sale[] = [
+      {
+        id: 1,
+        customerId: 3,
+        vehicleId: 1,
+        salesPersonId: 1,
+        saleDate: new Date(),
+        salePrice: 28500,
+        downPayment: 5000,
+        financeAmount: 23500,
+        interestRate: 4.5,
+        loanTerm: 60,
+        monthlyPayment: 438,
+        tradeInValue: 0,
+        taxes: 2000,
+        fees: 500,
+        totalAmount: 31000,
+        status: "completed",
+        financeCompany: "Toyota Financial",
+        notes: "Smooth transaction",
+        createdAt: new Date()
+      }
+    ];
+    
+    sales.forEach(sale => this.sales.set(sale.id, sale));
+    this.currentSaleId = 2;
+
+    // Create sample activities
+    const activities: Activity[] = [
+      {
+        id: 1,
+        type: "sale_completed",
+        description: "Sale completed for Toyota Camry - $28,500",
+        userId: 1,
+        relatedId: 1,
+        createdAt: new Date()
+      },
+      {
+        id: 2,
+        type: "lead_created",
+        description: "New lead: Robert Johnson interested in Toyota Camry",
+        userId: 2,
+        relatedId: 1,
+        createdAt: new Date()
+      },
+      {
+        id: 3,
+        type: "customer_contacted",
+        description: "Follow-up call with Emily Davis",
+        userId: 3,
+        relatedId: 2,
+        createdAt: new Date()
+      }
+    ];
+    
+    activities.forEach(activity => this.activities.set(activity.id, activity));
+    this.currentActivityId = 4;
   }
 
   // User operations
