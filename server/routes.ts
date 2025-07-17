@@ -107,6 +107,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Customer management sub-routes
+  app.get("/api/customers/:id/notes", async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const notes = [];
+      res.json(notes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch customer notes" });
+    }
+  });
+
+  app.post("/api/customers/:id/notes", async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const note = { id: 1, ...req.body, customerId, createdAt: new Date() };
+      res.status(201).json(note);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid note data" });
+    }
+  });
+
+  app.get("/api/customers/:id/calls", async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const calls = [];
+      res.json(calls);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch customer calls" });
+    }
+  });
+
+  app.post("/api/customers/:id/calls", async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const call = { id: 1, ...req.body, customerId, createdAt: new Date() };
+      res.status(201).json(call);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid call data" });
+    }
+  });
+
+  app.get("/api/customers/:id/documents", async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const documents = [];
+      res.json(documents);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch customer documents" });
+    }
+  });
+
+  app.post("/api/customers/:id/documents", async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const document = { id: 1, ...req.body, customerId, createdAt: new Date() };
+      res.status(201).json(document);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid document data" });
+    }
+  });
+
+  app.get("/api/customers/:id/vehicles-of-interest", async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const vehiclesOfInterest = [];
+      res.json(vehiclesOfInterest);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch vehicles of interest" });
+    }
+  });
+
+  app.post("/api/customers/:id/vehicles-of-interest", async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const vehicleOfInterest = { id: 1, ...req.body, customerId, createdAt: new Date() };
+      res.status(201).json(vehicleOfInterest);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid vehicle of interest data" });
+    }
+  });
+
   // Lead routes
   app.get("/api/leads", async (req, res) => {
     try {
