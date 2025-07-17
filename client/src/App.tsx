@@ -11,7 +11,7 @@ import Customers from "@/pages/customers";
 import Analytics from "@/pages/analytics";
 import Settings from "@/pages/settings";
 import CompetitivePricing from "@/pages/competitive-pricing";
-import DealDesk from "@/pages/deal-desk";
+import ProfessionalDealDesk from "@/pages/professional-deal-desk";
 // Admin Pages
 import RolesPage from "@/pages/admin/roles";
 import DepartmentsPage from "@/pages/admin/departments";
@@ -35,7 +35,7 @@ function Router() {
           <Route path="/customers" component={Customers} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/competitive-pricing" component={CompetitivePricing} />
-          <Route path="/deal-desk" component={DealDesk} />
+          <Route path="/deal-desk" component={ProfessionalDealDesk} />
           <Route path="/settings" component={Settings} />
           
           {/* Admin Routes */}
