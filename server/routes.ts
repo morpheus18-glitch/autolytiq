@@ -272,6 +272,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ML Integration endpoints
+  app.post("/api/ml/optimize-pricing/:vehicleId", async (req, res) => {
+    try {
+      const { vehicleId } = req.params;
+      const vehicle = await storage.getVehicleById(parseInt(vehicleId));
+      
+      if (!vehicle) {
+        return res.status(404).json({ error: "Vehicle not found" });
+      }
+
+      // Call ML backend for pricing optimization
+      const mlResponse = await fetch('http://localhost:8000/analyze/pricing/' + vehicleId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: vehicle.id.toString(),
+          make: vehicle.make,
+          model: vehicle.model,
+          year: vehicle.year,
+          mileage: vehicle.mileage || 0,
+          price: vehicle.price,
+          category: vehicle.category || 'sedan',
+          vin: vehicle.vin,
+          stock_number: vehicle.stockNumber || '',
+          color: vehicle.color || '',
+          transmission: vehicle.transmission || 'automatic',
+          fuel_type: vehicle.fuelType || 'gasoline',
+          body_style: vehicle.bodyStyle || 'sedan',
+          condition: vehicle.condition || 'excellent',
+          features: [],
+          days_on_lot: vehicle.daysOnLot || 0,
+          cost_basis: vehicle.cost || null,
+          market_value: vehicle.price
+        })
+      });
+
+      if (!mlResponse.ok) {
+        throw new Error('ML service unavailable');
+      }
+
+      const mlData = await mlResponse.json();
+      res.json(mlData);
+    } catch (error) {
+      console.error("Error optimizing pricing:", error);
+      res.status(500).json({ error: "Failed to optimize pricing" });
+    }
+  });
+
+  app.post("/api/ml/optimize-deal", async (req, res) => {
+    try {
+      const dealData = req.body;
+      
+      // Call ML backend for deal optimization
+      const mlResponse = await fetch('http://localhost:8000/optimize/deal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dealData)
+      });
+
+      if (!mlResponse.ok) {
+        throw new Error('ML service unavailable');
+      }
+
+      const mlData = await mlResponse.json();
+      res.json(mlData);
+    } catch (error) {
+      console.error("Error optimizing deal:", error);
+      res.status(500).json({ error: "Failed to optimize deal" });
+    }
+  });
+
   // Visitor tracking routes
   app.post("/api/tracking/session", async (req, res) => {
     try {
