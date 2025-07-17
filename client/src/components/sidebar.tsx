@@ -1,14 +1,55 @@
 import { Link, useLocation } from "wouter";
-import { Car, BarChart3, Handshake, Users, TrendingUp, Settings, Target } from "lucide-react";
+import { Car, BarChart3, Handshake, Users, TrendingUp, Settings, Target, Wrench, DollarSign, Shield, Building } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
-  { name: "Inventory", href: "/inventory", icon: Car },
-  { name: "Sales & Leads", href: "/sales", icon: Handshake },
-  { name: "Customers", href: "/customers", icon: Users },
-  { name: "Analytics", href: "/analytics", icon: TrendingUp },
-  { name: "Competitive Pricing", href: "/competitive-pricing", icon: Target },
-  { name: "Settings", href: "/settings", icon: Settings },
+  
+  // Sales Department
+  { 
+    name: "Sales Department", 
+    isSection: true,
+    children: [
+      { name: "Inventory", href: "/inventory", icon: Car },
+      { name: "Sales & Leads", href: "/sales", icon: Handshake },
+      { name: "Customers", href: "/customers", icon: Users },
+      { name: "Analytics", href: "/analytics", icon: TrendingUp },
+      { name: "Competitive Pricing", href: "/competitive-pricing", icon: Target },
+    ]
+  },
+  
+  // Service Department
+  { 
+    name: "Service Department", 
+    isSection: true,
+    children: [
+      { name: "Service Orders", href: "/service/orders", icon: Wrench },
+      { name: "Parts Inventory", href: "/service/parts", icon: Car },
+      { name: "Service Reports", href: "/service/reports", icon: BarChart3 },
+    ]
+  },
+  
+  // Accounting Department
+  { 
+    name: "Accounting Department", 
+    isSection: true,
+    children: [
+      { name: "Financial Reports", href: "/accounting/reports", icon: DollarSign },
+      { name: "Payroll", href: "/accounting/payroll", icon: Users },
+      { name: "Transactions", href: "/accounting/transactions", icon: BarChart3 },
+    ]
+  },
+  
+  // Administration
+  { 
+    name: "Administration", 
+    isSection: true,
+    children: [
+      { name: "Departments", href: "/admin/departments", icon: Building },
+      { name: "Roles & Permissions", href: "/admin/roles", icon: Shield },
+      { name: "User Management", href: "/admin/users", icon: Users },
+      { name: "Settings", href: "/settings", icon: Settings },
+    ]
+  },
 ];
 
 export default function Sidebar() {
@@ -30,25 +71,60 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {navigation.map((item) => {
-          const Icon = item.icon;
-          const isActive = location === item.href;
+          // Dashboard (standalone item)
+          if (item.href && !item.isSection) {
+            const Icon = item.icon;
+            const isActive = location === item.href;
+            
+            return (
+              <Link key={item.name} href={item.href}>
+                <a
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition-colors ${
+                    isActive
+                      ? "text-primary bg-blue-50"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{item.name}</span>
+                </a>
+              </Link>
+            );
+          }
           
-          return (
-            <Link key={item.name} href={item.href}>
-              <a
-                className={`flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition-colors ${
-                  isActive
-                    ? "text-primary bg-blue-50"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span>{item.name}</span>
-              </a>
-            </Link>
-          );
+          // Section headers with children
+          if (item.isSection && item.children) {
+            return (
+              <div key={item.name} className="space-y-1">
+                <div className="px-4 py-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                  {item.name}
+                </div>
+                {item.children.map((child) => {
+                  const Icon = child.icon;
+                  const isActive = location === child.href;
+                  
+                  return (
+                    <Link key={child.name} href={child.href}>
+                      <a
+                        className={`flex items-center space-x-3 px-4 py-2 rounded-lg font-medium transition-colors ${
+                          isActive
+                            ? "text-primary bg-blue-50"
+                            : "text-gray-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{child.name}</span>
+                      </a>
+                    </Link>
+                  );
+                })}
+              </div>
+            );
+          }
+          
+          return null;
         })}
       </nav>
 

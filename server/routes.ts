@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertVehicleSchema, insertCustomerSchema, insertLeadSchema, insertSaleSchema, insertVisitorSessionSchema, insertPageViewSchema, insertCustomerInteractionSchema, insertCompetitorAnalyticsSchema, insertCompetitivePricingSchema, insertPricingInsightsSchema, insertMerchandisingStrategiesSchema, insertMarketTrendsSchema } from "@shared/schema";
 import { competitiveScraper } from "./services/competitive-scraper";
+import { registerAdminRoutes } from "./admin-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Vehicle routes
@@ -55,10 +56,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/vehicles/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const deleted = await storage.deleteVehicle(id);
-      if (!deleted) {
-        return res.status(404).json({ message: "Vehicle not found" });
-      }
+      await storage.deleteVehicle(id);
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete vehicle" });
@@ -102,10 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/customers/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const deleted = await storage.deleteCustomer(id);
-      if (!deleted) {
-        return res.status(404).json({ message: "Customer not found" });
-      }
+      await storage.deleteCustomer(id);
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete customer" });
@@ -149,10 +144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/leads/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const deleted = await storage.deleteLead(id);
-      if (!deleted) {
-        return res.status(404).json({ message: "Lead not found" });
-      }
+      await storage.deleteLead(id);
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete lead" });
@@ -566,6 +558,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to analyze market trends" });
     }
   });
+
+  // Register admin routes
+  registerAdminRoutes(app);
 
   const httpServer = createServer(app);
   return httpServer;
