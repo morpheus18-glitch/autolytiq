@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertVehicleSchema, insertCustomerSchema, insertLeadSchema, insertSaleSchema, insertVisitorSessionSchema, insertPageViewSchema, insertCustomerInteractionSchema, insertCompetitorAnalyticsSchema, insertCompetitivePricingSchema, insertPricingInsightsSchema, insertMerchandisingStrategiesSchema, insertMarketTrendsSchema } from "@shared/schema";
 import { competitiveScraper } from "./services/competitive-scraper";
 import { registerAdminRoutes } from "./admin-routes";
+import { decodeVINHandler } from "./services/vin-decoder";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Vehicle routes
@@ -62,6 +63,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to delete vehicle" });
     }
   });
+
+  // VIN decoder route
+  app.get("/api/decode-vin/:vin", decodeVINHandler);
 
   // Customer routes
   app.get("/api/customers", async (req, res) => {
