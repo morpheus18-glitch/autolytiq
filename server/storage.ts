@@ -1,7 +1,7 @@
 import { 
-  users, vehicles, customers, leads, sales, activities, visitorSessions, pageViews, customerInteractions, competitorAnalytics, competitivePricing, pricingInsights, merchandisingStrategies, marketTrends,
-  type User, type Vehicle, type Customer, type Lead, type Sale, type Activity, type VisitorSession, type PageView, type CustomerInteraction, type CompetitorAnalytics, type CompetitivePricing, type PricingInsights, type MerchandisingStrategies, type MarketTrends,
-  type InsertUser, type InsertVehicle, type InsertCustomer, type InsertLead, type InsertSale, type InsertActivity, type InsertVisitorSession, type InsertPageView, type InsertCustomerInteraction, type InsertCompetitorAnalytics, type InsertCompetitivePricing, type InsertPricingInsights, type InsertMerchandisingStrategies, type InsertMarketTrends
+  users, vehicles, customers, leads, sales, activities, visitorSessions, pageViews, customerInteractions, competitorAnalytics, competitivePricing, pricingInsights, merchandisingStrategies, marketTrends, deals, dealDocuments, dealApprovals,
+  type User, type Vehicle, type Customer, type Lead, type Sale, type Activity, type VisitorSession, type PageView, type CustomerInteraction, type CompetitorAnalytics, type CompetitivePricing, type PricingInsights, type MerchandisingStrategies, type MarketTrends, type Deal, type DealDocument, type DealApproval,
+  type InsertUser, type InsertVehicle, type InsertCustomer, type InsertLead, type InsertSale, type InsertActivity, type InsertVisitorSession, type InsertPageView, type InsertCustomerInteraction, type InsertCompetitorAnalytics, type InsertCompetitivePricing, type InsertPricingInsights, type InsertMerchandisingStrategies, type InsertMarketTrends, type InsertDeal, type InsertDealDocument, type InsertDealApproval
 } from "@shared/schema";
 
 export interface IStorage {
@@ -253,8 +253,8 @@ export class MemStorage implements IStorage {
     return updatedVehicle;
   }
 
-  async deleteVehicle(id: number): Promise<boolean> {
-    return this.vehicles.delete(id);
+  async deleteVehicle(id: number): Promise<void> {
+    this.vehicles.delete(id);
   }
 
   // Customer operations
@@ -275,7 +275,11 @@ export class MemStorage implements IStorage {
       id, 
       createdAt: new Date(),
       phone: insertCustomer.phone || null,
-      address: insertCustomer.address || null
+      address: insertCustomer.address || null,
+      isActive: insertCustomer.isActive ?? true,
+      notes: insertCustomer.notes || null,
+      licenseNumber: insertCustomer.licenseNumber || null,
+      licenseState: insertCustomer.licenseState || null
     };
     this.customers.set(id, customer);
     return customer;
@@ -290,8 +294,8 @@ export class MemStorage implements IStorage {
     return updatedCustomer;
   }
 
-  async deleteCustomer(id: number): Promise<boolean> {
-    return this.customers.delete(id);
+  async deleteCustomer(id: number): Promise<void> {
+    this.customers.delete(id);
   }
 
   // Lead operations
@@ -337,8 +341,8 @@ export class MemStorage implements IStorage {
     return updatedLead;
   }
 
-  async deleteLead(id: number): Promise<boolean> {
-    return this.leads.delete(id);
+  async deleteLead(id: number): Promise<void> {
+    this.leads.delete(id);
   }
 
   // Sale operations
