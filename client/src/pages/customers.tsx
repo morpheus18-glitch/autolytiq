@@ -1,78 +1,33 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { apiRequest } from '@/lib/queryClient';
+import EnhancedCustomerSearch from '@/components/enhanced-customer-search';
 import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  User,
-  TrendingUp,
-  CheckCircle,
-  CreditCard,
-  AlertCircle,
-  Users,
-  TrendingDown,
-  UserCheck,
-  Info
+  SlidersHorizontal, 
+  List, 
+  Users, 
+  BarChart3, 
+  Download, 
+  Upload,
+  UserPlus
 } from 'lucide-react';
-
-interface Customer {
-  id: number;
-  firstName: string;
-  lastName: string;
-  name: string;
-  email: string;
-  phone: string;
-  cellPhone?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
-  creditScore?: number;
-  income?: number;
-  status: string;
-  salesConsultant?: string;
-  leadSource?: string;
-  notes?: string;
-  createdAt: string;
-  isActive: boolean;
-}
+import type { Customer } from '@shared/schema';
 
 export default function Customers() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { trackInteraction } = usePixelTracker();
   
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
-  const [newCustomer, setNewCustomer] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    cellPhone: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    creditScore: '',
-    income: '',
-    status: 'prospect',
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'enhanced' | 'basic'>('enhanced');
     salesConsultant: '',
     leadSource: 'website',
     notes: ''
@@ -88,136 +43,52 @@ export default function Customers() {
 
   const salesConsultants = users.filter(user => user.role?.toLowerCase().includes('sales') || user.department?.toLowerCase().includes('sales'));
 
-  const createCustomerMutation = useMutation({
-    mutationFn: async (customer: any) => {
-      const customerData = {
-        ...customer,
-        name: `${customer.firstName} ${customer.lastName}`,
-        creditScore: customer.creditScore ? parseInt(customer.creditScore) : null,
-        income: customer.income ? parseFloat(customer.income) : null,
-        isActive: true
-      };
-      return await apiRequest('/api/customers', {
-        method: 'POST',
-        body: JSON.stringify(customerData),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
-      setShowAddDialog(false);
-      setNewCustomer({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        cellPhone: '',
-        address: '',
-        city: '',
-        state: '',
-        zipCode: '',
-        creditScore: '',
-        income: '',
-        status: 'prospect',
-        salesConsultant: '',
-        leadSource: 'website',
-        notes: ''
-      });
-      toast({
-        title: "Success",
-        description: "Customer added successfully",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to add customer",
-        variant: "destructive",
-      });
-    },
-  });
-
   const deleteCustomerMutation = useMutation({
     mutationFn: async (id: number) => {
-      return await apiRequest(`/api/customers/${id}`, {
-        method: 'DELETE',
-      });
+      await apiRequest('DELETE', `/api/customers/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
-      toast({
-        title: "Success",
-        description: "Customer deleted successfully",
-      });
+      toast({ title: 'Customer deleted successfully' });
     },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to delete customer",
-        variant: "destructive",
-      });
+    onError: () => {
+      toast({ title: 'Failed to delete customer', variant: 'destructive' });
     },
   });
 
-  const handleCreateCustomer = () => {
-    if (!newCustomer.firstName || !newCustomer.lastName || !newCustomer.email || !newCustomer.phone) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-    createCustomerMutation.mutate(newCustomer);
+  const handleEdit = (customer: Customer) => {
+    trackInteraction('customer_edit', `customer-${customer.id}`, customer.id);
+    setSelectedCustomer(customer);
+    setIsEditModalOpen(true);
   };
 
-  const handleDeleteCustomer = (id: number) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
+  const handleAdd = () => {
+    trackInteraction('customer_add', 'add-customer-button');
+    setSelectedCustomer(null);
+    setIsAddModalOpen(true);
+  };
+
+  const handleView = (customer: Customer) => {
+    trackInteraction('customer_view', `customer-${customer.id}`, customer.id);
+    // Could open a detailed view modal here
+  };
+
+  const handleDelete = (id: number) => {
+    if (confirm('Are you sure you want to delete this customer?')) {
+      trackInteraction('customer_delete', `customer-${id}`, id);
       deleteCustomerMutation.mutate(id);
     }
   };
 
-  const handleEditCustomer = (customer: Customer) => {
-    setEditingCustomer(customer);
-    setShowEditDialog(true);
+  const handleExport = () => {
+    trackInteraction('customer_export', 'export-button');
+    toast({ title: 'Export started', description: 'Your customer data is being exported...' });
   };
 
-  const handleUpdateCustomer = async () => {
-    if (!editingCustomer || !editingCustomer.firstName || !editingCustomer.lastName || !editingCustomer.email || !editingCustomer.phone) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      await apiRequest(`/api/customers/${editingCustomer.id}`, {
-        method: 'PUT',
-        body: editingCustomer
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
-      setShowEditDialog(false);
-      setEditingCustomer(null);
-      
-      toast({
-        title: "Success",
-        description: "Customer updated successfully"
-      });
-    } catch (error) {
-      toast({
-        title: "Error", 
-        description: "Failed to update customer",
-        variant: "destructive"
-      });
-    }
+  const handleImport = () => {
+    trackInteraction('customer_import', 'import-button');
+    toast({ title: 'Import ready', description: 'Select a file to import customer data...' });
   };
-
-  const filteredCustomers = customers.filter((customer: Customer) => {
-    const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customer.phone.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || customer.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
