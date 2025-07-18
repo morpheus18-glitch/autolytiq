@@ -214,9 +214,9 @@ export default function Customers() {
   }
 
   return (
-    <div className="p-3 md:p-6 space-y-4 md:space-y-6 min-h-screen">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6 min-h-screen w-full max-w-full overflow-x-hidden">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 w-full">
         <div>
           <h1 className="text-xl md:text-3xl font-bold">Customer Management</h1>
           <p className="text-sm md:text-base text-gray-600">Complete CRM system for managing customer relationships</p>

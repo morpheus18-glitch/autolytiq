@@ -20,15 +20,33 @@ import DepartmentsPage from "@/pages/admin/departments";
 import ServiceOrdersPage from "@/pages/service/service-orders";
 import Sidebar from "@/components/sidebar";
 import { usePixelTracker } from "@/hooks/use-pixel-tracker";
+import { useState } from "react";
 
 function Router() {
   // Initialize pixel tracking for the entire app
   usePixelTracker();
   
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 overflow-hidden">
+    <div className="layout h-screen bg-gray-50 flex flex-col md:flex-row">
+      {/* Mobile overlay for sidebar */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)}
+        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+      />
+      
+      {/* Main content area */}
+      <div className="content flex-1 min-w-0 overflow-hidden">
         <div className="h-full overflow-auto">
           <Switch>
           <Route path="/" component={Dashboard} />
