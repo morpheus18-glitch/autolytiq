@@ -315,7 +315,7 @@ export default function CompetitivePricing() {
                       <SelectValue placeholder="All Sources" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Sources</SelectItem>
+                      <SelectItem value="all">All Sources</SelectItem>
                       <SelectItem value="AutoTrader">AutoTrader</SelectItem>
                       <SelectItem value="Cars.com">Cars.com</SelectItem>
                       <SelectItem value="CarGurus">CarGurus</SelectItem>

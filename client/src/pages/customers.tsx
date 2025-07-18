@@ -58,6 +58,8 @@ export default function Customers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [newCustomer, setNewCustomer] = useState({
     firstName: '',
     lastName: '',
@@ -168,6 +170,44 @@ export default function Customers() {
     }
   };
 
+  const handleEditCustomer = (customer: Customer) => {
+    setEditingCustomer(customer);
+    setShowEditDialog(true);
+  };
+
+  const handleUpdateCustomer = async () => {
+    if (!editingCustomer || !editingCustomer.firstName || !editingCustomer.lastName || !editingCustomer.email || !editingCustomer.phone) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await apiRequest(`/api/customers/${editingCustomer.id}`, {
+        method: 'PUT',
+        body: editingCustomer
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
+      setShowEditDialog(false);
+      setEditingCustomer(null);
+      
+      toast({
+        title: "Success",
+        description: "Customer updated successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error", 
+        description: "Failed to update customer",
+        variant: "destructive"
+      });
+    }
+  };
+
   const filteredCustomers = customers.filter((customer: Customer) => {
     const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -192,9 +232,9 @@ export default function Customers() {
       case 'hot': return <TrendingUp className="h-3 w-3" />;
       case 'warm': return <TrendingUp className="h-3 w-3" />;
       case 'cold': return <TrendingDown className="h-3 w-3" />;
-      case 'customer': return <UserCheck className="h-3 w-3" />;
+      case 'customer': return <CheckCircle className="h-3 w-3" />;
       case 'prospect': return <User className="h-3 w-3" />;
-      default: return <Info className="h-3 w-3" />;
+      default: return <User className="h-3 w-3" />;
     }
   };
 
@@ -399,12 +439,151 @@ export default function Customers() {
               </div>
             </DialogContent>
           </Dialog>
+          
+          {/* Edit Customer Dialog */}
+          <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+            <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Edit Customer</DialogTitle>
+              </DialogHeader>
+              {editingCustomer && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="editFirstName">First Name *</Label>
+                      <Input
+                        id="editFirstName"
+                        value={editingCustomer.firstName}
+                        onChange={(e) => setEditingCustomer({...editingCustomer, firstName: e.target.value})}
+                        placeholder="John"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="editLastName">Last Name *</Label>
+                      <Input
+                        id="editLastName"
+                        value={editingCustomer.lastName}
+                        onChange={(e) => setEditingCustomer({...editingCustomer, lastName: e.target.value})}
+                        placeholder="Doe"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="editEmail">Email *</Label>
+                      <Input
+                        id="editEmail"
+                        type="email"
+                        value={editingCustomer.email}
+                        onChange={(e) => setEditingCustomer({...editingCustomer, email: e.target.value})}
+                        placeholder="john@example.com"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="editPhone">Phone *</Label>
+                      <Input
+                        id="editPhone"
+                        value={editingCustomer.phone}
+                        onChange={(e) => setEditingCustomer({...editingCustomer, phone: e.target.value})}
+                        placeholder="(555) 123-4567"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="editCellPhone">Cell Phone</Label>
+                      <Input
+                        id="editCellPhone"
+                        value={editingCustomer.cellPhone || ''}
+                        onChange={(e) => setEditingCustomer({...editingCustomer, cellPhone: e.target.value})}
+                        placeholder="(555) 123-4567"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="editAddress">Address</Label>
+                      <Input
+                        id="editAddress"
+                        value={editingCustomer.address || ''}
+                        onChange={(e) => setEditingCustomer({...editingCustomer, address: e.target.value})}
+                        placeholder="123 Main St"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="editCity">City</Label>
+                      <Input
+                        id="editCity"
+                        value={editingCustomer.city || ''}
+                        onChange={(e) => setEditingCustomer({...editingCustomer, city: e.target.value})}
+                        placeholder="Austin"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="editState">State</Label>
+                      <Input
+                        id="editState"
+                        value={editingCustomer.state || ''}
+                        onChange={(e) => setEditingCustomer({...editingCustomer, state: e.target.value})}
+                        placeholder="TX"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="editZipCode">ZIP Code</Label>
+                      <Input
+                        id="editZipCode"
+                        value={editingCustomer.zipCode || ''}
+                        onChange={(e) => setEditingCustomer({...editingCustomer, zipCode: e.target.value})}
+                        placeholder="78701"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="editCreditScore">Credit Score</Label>
+                      <Input
+                        id="editCreditScore"
+                        type="number"
+                        value={editingCustomer.creditScore || ''}
+                        onChange={(e) => setEditingCustomer({...editingCustomer, creditScore: parseInt(e.target.value) || 0})}
+                        placeholder="720"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="editStatus">Status</Label>
+                      <Select value={editingCustomer.status} onValueChange={(value) => setEditingCustomer({...editingCustomer, status: value})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="prospect">Prospect</SelectItem>
+                          <SelectItem value="hot">Hot Lead</SelectItem>
+                          <SelectItem value="warm">Warm Lead</SelectItem>
+                          <SelectItem value="cold">Cold Lead</SelectItem>
+                          <SelectItem value="customer">Customer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="editSalesConsultant">Sales Consultant</Label>
+                      <Input
+                        id="editSalesConsultant"
+                        value={editingCustomer.salesConsultant || ''}
+                        onChange={(e) => setEditingCustomer({...editingCustomer, salesConsultant: e.target.value})}
+                        placeholder="John Smith"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleUpdateCustomer}>
+                      Update Customer
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
       {/* Statistics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => { setSearchTerm(''); setFilterStatus('all'); }}>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs md:text-sm font-medium">Total Customers</CardTitle>
           </CardHeader>
@@ -415,7 +594,7 @@ export default function Customers() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setFilterStatus('hot')}>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs md:text-sm font-medium">Hot Leads</CardTitle>
           </CardHeader>
@@ -426,7 +605,7 @@ export default function Customers() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setFilterStatus('customer')}>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs md:text-sm font-medium">Active Customers</CardTitle>
           </CardHeader>
@@ -437,7 +616,7 @@ export default function Customers() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSearchTerm('')}>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs md:text-sm font-medium">Avg Credit Score</CardTitle>
           </CardHeader>
@@ -552,7 +731,7 @@ export default function Customers() {
                         <Mail className="h-4 w-4 md:mr-2" />
                         <span className="hidden md:inline">Email</span>
                       </Button>
-                      <Button variant="outline" size="sm" className="flex-1 md:flex-none">
+                      <Button variant="outline" size="sm" className="flex-1 md:flex-none" onClick={() => handleEditCustomer(customer)}>
                         <Edit className="h-4 w-4 md:mr-2" />
                         <span className="hidden md:inline">Edit</span>
                       </Button>
