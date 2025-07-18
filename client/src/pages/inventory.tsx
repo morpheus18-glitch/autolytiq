@@ -10,6 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { usePixelTracker } from '@/hooks/use-pixel-tracker';
+import EnhancedInventorySearch from '@/components/enhanced-inventory-search';
+import VehicleModal from '@/components/vehicle-modal';
 import { 
   Plus, 
   Search, 
@@ -45,34 +48,16 @@ import {
   Shield,
   Info
 } from 'lucide-react';
-
-interface Vehicle {
-  id: number;
-  make: string;
-  model: string;
-  year: number;
-  vin: string;
-  price: number;
-  status: string;
-  description: string;
-  createdAt: string;
-}
+import type { Vehicle } from '@shared/schema';
 
 export default function Inventory() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { trackInteraction } = usePixelTracker();
   
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterMake, setFilterMake] = useState('all');
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
-  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
-  const [newVehicle, setNewVehicle] = useState({
-    make: '',
-    model: '',
-    year: '',
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showEnhancedSearch, setShowEnhancedSearch] = useState(true);
     vin: '',
     price: '',
     status: 'available',
