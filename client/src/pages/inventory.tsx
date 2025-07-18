@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
@@ -66,7 +66,9 @@ export default function Inventory() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterMake, setFilterMake] = useState('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [newVehicle, setNewVehicle] = useState({
     make: '',
     model: '',
@@ -215,6 +217,44 @@ export default function Inventory() {
     createVehicleMutation.mutate(newVehicle);
   };
 
+  const handleEditVehicle = (vehicle: Vehicle) => {
+    setEditingVehicle(vehicle);
+    setShowEditDialog(true);
+  };
+
+  const handleUpdateVehicle = async () => {
+    if (!editingVehicle || !editingVehicle.make || !editingVehicle.model || !editingVehicle.year || !editingVehicle.vin || !editingVehicle.price) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await apiRequest(`/api/vehicles/${editingVehicle.id}`, {
+        method: 'PUT',
+        body: editingVehicle
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/vehicles'] });
+      setShowEditDialog(false);
+      setEditingVehicle(null);
+      
+      toast({
+        title: "Success",
+        description: "Vehicle updated successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error", 
+        description: "Failed to update vehicle",
+        variant: "destructive"
+      });
+    }
+  };
+
   const filteredVehicles = vehicles.filter((vehicle: Vehicle) => {
     const matchesSearch = vehicle.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -266,7 +306,7 @@ export default function Inventory() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Inventory Management</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">AutolytiQ - Inventory Management</h1>
           <p className="text-gray-600">Manage your vehicle inventory with VIN decoding and pricing insights</p>
         </div>
         <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
