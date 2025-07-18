@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import VINDecoder from "@/components/vin-decoder";
 import { insertVehicleSchema, type InsertVehicle, type Vehicle } from "@shared/schema";
 
 interface VehicleModalProps {
@@ -77,12 +78,34 @@ export default function VehicleModal({ open, onOpenChange, vehicle }: VehicleMod
     }
   };
 
+  const handleVINDecode = (decodedData: any) => {
+    // Populate form with decoded data
+    form.setValue("make", decodedData.make || "");
+    form.setValue("model", decodedData.model || "");
+    form.setValue("year", decodedData.year || new Date().getFullYear());
+    form.setValue("vin", decodedData.vin || "");
+    
+    // Set additional fields if available
+    if (decodedData.engine) form.setValue("engine", decodedData.engine);
+    if (decodedData.transmission) form.setValue("transmission", decodedData.transmission);
+    if (decodedData.fuelType) form.setValue("fuelType", decodedData.fuelType);
+    if (decodedData.bodyStyle) form.setValue("bodyStyle", decodedData.bodyStyle);
+    if (decodedData.doors) form.setValue("doors", decodedData.doors);
+    if (decodedData.drivetrain) form.setValue("drivetrain", decodedData.drivetrain);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{vehicle ? "Edit Vehicle" : "Add New Vehicle"}</DialogTitle>
         </DialogHeader>
+        
+        {!vehicle && (
+          <div className="mb-6">
+            <VINDecoder onDecodeSuccess={handleVINDecode} defaultVin={form.watch("vin")} />
+          </div>
+        )}
         
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
