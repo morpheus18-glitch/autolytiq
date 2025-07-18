@@ -844,6 +844,172 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Credit Applications endpoints
+  app.get('/api/credit-applications/:customerId', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.customerId);
+      const applications = await storage.getCreditApplications(customerId);
+      res.json(applications);
+    } catch (error) {
+      console.error('Error fetching credit applications:', error);
+      res.status(500).json({ error: 'Failed to fetch credit applications' });
+    }
+  });
+
+  app.post('/api/credit-applications', async (req, res) => {
+    try {
+      const application = await storage.createCreditApplication(req.body);
+      res.status(201).json(application);
+    } catch (error) {
+      console.error('Error creating credit application:', error);
+      res.status(500).json({ error: 'Failed to create credit application' });
+    }
+  });
+
+  app.put('/api/credit-applications/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const application = await storage.updateCreditApplication(id, req.body);
+      if (!application) {
+        return res.status(404).json({ error: 'Credit application not found' });
+      }
+      res.json(application);
+    } catch (error) {
+      console.error('Error updating credit application:', error);
+      res.status(500).json({ error: 'Failed to update credit application' });
+    }
+  });
+
+  // Co-Applicants endpoints
+  app.get('/api/co-applicants/:customerId', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.customerId);
+      const coApplicants = await storage.getCoApplicants(customerId);
+      res.json(coApplicants);
+    } catch (error) {
+      console.error('Error fetching co-applicants:', error);
+      res.status(500).json({ error: 'Failed to fetch co-applicants' });
+    }
+  });
+
+  app.post('/api/co-applicants', async (req, res) => {
+    try {
+      const coApplicant = await storage.createCoApplicant(req.body);
+      res.status(201).json(coApplicant);
+    } catch (error) {
+      console.error('Error creating co-applicant:', error);
+      res.status(500).json({ error: 'Failed to create co-applicant' });
+    }
+  });
+
+  // Trade Vehicles endpoints
+  app.get('/api/trade-vehicles/:customerId', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.customerId);
+      const tradeVehicles = await storage.getTradeVehicles(customerId);
+      res.json(tradeVehicles);
+    } catch (error) {
+      console.error('Error fetching trade vehicles:', error);
+      res.status(500).json({ error: 'Failed to fetch trade vehicles' });
+    }
+  });
+
+  app.post('/api/trade-vehicles', async (req, res) => {
+    try {
+      const tradeVehicle = await storage.createTradeVehicle(req.body);
+      res.status(201).json(tradeVehicle);
+    } catch (error) {
+      console.error('Error creating trade vehicle:', error);
+      res.status(500).json({ error: 'Failed to create trade vehicle' });
+    }
+  });
+
+  app.put('/api/trade-vehicles/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const tradeVehicle = await storage.updateTradeVehicle(id, req.body);
+      if (!tradeVehicle) {
+        return res.status(404).json({ error: 'Trade vehicle not found' });
+      }
+      res.json(tradeVehicle);
+    } catch (error) {
+      console.error('Error updating trade vehicle:', error);
+      res.status(500).json({ error: 'Failed to update trade vehicle' });
+    }
+  });
+
+  // Showroom Visits endpoints
+  app.get('/api/showroom-visits/:customerId', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.customerId);
+      const visits = await storage.getShowroomVisits(customerId);
+      res.json(visits);
+    } catch (error) {
+      console.error('Error fetching showroom visits:', error);
+      res.status(500).json({ error: 'Failed to fetch showroom visits' });
+    }
+  });
+
+  app.post('/api/showroom-visits', async (req, res) => {
+    try {
+      const visit = await storage.createShowroomVisit(req.body);
+      res.status(201).json(visit);
+    } catch (error) {
+      console.error('Error creating showroom visit:', error);
+      res.status(500).json({ error: 'Failed to create showroom visit' });
+    }
+  });
+
+  app.put('/api/showroom-visits/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const visit = await storage.updateShowroomVisit(id, req.body);
+      if (!visit) {
+        return res.status(404).json({ error: 'Showroom visit not found' });
+      }
+      res.json(visit);
+    } catch (error) {
+      console.error('Error updating showroom visit:', error);
+      res.status(500).json({ error: 'Failed to update showroom visit' });
+    }
+  });
+
+  // Salesperson Notes endpoints
+  app.get('/api/salesperson-notes/:customerId', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.customerId);
+      const notes = await storage.getSalespersonNotes(customerId);
+      res.json(notes);
+    } catch (error) {
+      console.error('Error fetching salesperson notes:', error);
+      res.status(500).json({ error: 'Failed to fetch salesperson notes' });
+    }
+  });
+
+  app.post('/api/salesperson-notes', async (req, res) => {
+    try {
+      const note = await storage.createSalespersonNote(req.body);
+      res.status(201).json(note);
+    } catch (error) {
+      console.error('Error creating salesperson note:', error);
+      res.status(500).json({ error: 'Failed to create salesperson note' });
+    }
+  });
+
+  app.put('/api/salesperson-notes/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const note = await storage.updateSalespersonNote(id, req.body);
+      if (!note) {
+        return res.status(404).json({ error: 'Salesperson note not found' });
+      }
+      res.json(note);
+    } catch (error) {
+      console.error('Error updating salesperson note:', error);
+      res.status(500).json({ error: 'Failed to update salesperson note' });
+    }
+  });
+
   // Register admin routes
   registerAdminRoutes(app);
 

@@ -1,6 +1,6 @@
 import { 
-  users, vehicles, customers, leads, sales, activities, visitorSessions, pageViews, customerInteractions, competitorAnalytics, competitivePricing, pricingInsights, merchandisingStrategies, marketTrends, deals, dealDocuments, dealApprovals,
-  type User, type Vehicle, type Customer, type Lead, type Sale, type Activity, type VisitorSession, type PageView, type CustomerInteraction, type CompetitorAnalytics, type CompetitivePricing, type PricingInsights, type MerchandisingStrategies, type MarketTrends, type Deal, type DealDocument, type DealApproval,
+  users, vehicles, customers, leads, sales, activities, visitorSessions, pageViews, customerInteractions, competitorAnalytics, competitivePricing, pricingInsights, merchandisingStrategies, marketTrends, deals, dealDocuments, dealApprovals, creditApplications, coApplicants, tradeVehicles, showroomVisits, salespersonNotes,
+  type User, type Vehicle, type Customer, type Lead, type Sale, type Activity, type VisitorSession, type PageView, type CustomerInteraction, type CompetitorAnalytics, type CompetitivePricing, type PricingInsights, type MerchandisingStrategies, type MarketTrends, type Deal, type DealDocument, type DealApproval, type CreditApplication, type CoApplicant, type TradeVehicle, type ShowroomVisit, type SalespersonNote,
   type InsertUser, type InsertVehicle, type InsertCustomer, type InsertLead, type InsertSale, type InsertActivity, type InsertVisitorSession, type InsertPageView, type InsertCustomerInteraction, type InsertCompetitorAnalytics, type InsertCompetitivePricing, type InsertPricingInsights, type InsertMerchandisingStrategies, type InsertMarketTrends, type InsertDeal, type InsertDealDocument, type InsertDealApproval
 } from "@shared/schema";
 
@@ -103,6 +103,41 @@ export interface IStorage {
   getMarketTrends(category?: string): Promise<MarketTrends[]>;
   updateMarketTrend(id: number, trend: Partial<InsertMarketTrends>): Promise<MarketTrends | undefined>;
   deleteMarketTrend(id: number): Promise<boolean>;
+  
+  // Credit application operations
+  getCreditApplications(customerId: number): Promise<CreditApplication[]>;
+  getCreditApplication(id: number): Promise<CreditApplication | undefined>;
+  createCreditApplication(application: any): Promise<CreditApplication>;
+  updateCreditApplication(id: number, application: any): Promise<CreditApplication | undefined>;
+  deleteCreditApplication(id: number): Promise<void>;
+  
+  // Co-applicant operations
+  getCoApplicants(customerId: number): Promise<CoApplicant[]>;
+  getCoApplicant(id: number): Promise<CoApplicant | undefined>;
+  createCoApplicant(coApplicant: any): Promise<CoApplicant>;
+  updateCoApplicant(id: number, coApplicant: any): Promise<CoApplicant | undefined>;
+  deleteCoApplicant(id: number): Promise<void>;
+  
+  // Trade vehicle operations
+  getTradeVehicles(customerId: number): Promise<TradeVehicle[]>;
+  getTradeVehicle(id: number): Promise<TradeVehicle | undefined>;
+  createTradeVehicle(tradeVehicle: any): Promise<TradeVehicle>;
+  updateTradeVehicle(id: number, tradeVehicle: any): Promise<TradeVehicle | undefined>;
+  deleteTradeVehicle(id: number): Promise<void>;
+  
+  // Showroom visit operations
+  getShowroomVisits(customerId: number): Promise<ShowroomVisit[]>;
+  getShowroomVisit(id: number): Promise<ShowroomVisit | undefined>;
+  createShowroomVisit(visit: any): Promise<ShowroomVisit>;
+  updateShowroomVisit(id: number, visit: any): Promise<ShowroomVisit | undefined>;
+  deleteShowroomVisit(id: number): Promise<void>;
+  
+  // Salesperson note operations
+  getSalespersonNotes(customerId: number): Promise<SalespersonNote[]>;
+  getSalespersonNote(id: number): Promise<SalespersonNote | undefined>;
+  createSalespersonNote(note: any): Promise<SalespersonNote>;
+  updateSalespersonNote(id: number, note: any): Promise<SalespersonNote | undefined>;
+  deleteSalespersonNote(id: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -120,6 +155,11 @@ export class MemStorage implements IStorage {
   private pricingInsights: Map<number, PricingInsights>;
   private merchandisingStrategies: Map<number, MerchandisingStrategies>;
   private marketTrends: Map<number, MarketTrends>;
+  private creditApplications: Map<number, CreditApplication>;
+  private coApplicants: Map<number, CoApplicant>;
+  private tradeVehicles: Map<number, TradeVehicle>;
+  private showroomVisits: Map<number, ShowroomVisit>;
+  private salespersonNotes: Map<number, SalespersonNote>;
   private currentUserId: number;
   private currentVehicleId: number;
   private currentCustomerId: number;
@@ -133,6 +173,11 @@ export class MemStorage implements IStorage {
   private currentPricingInsightsId: number;
   private currentMerchandisingStrategyId: number;
   private currentMarketTrendId: number;
+  private currentCreditApplicationId: number;
+  private currentCoApplicantId: number;
+  private currentTradeVehicleId: number;
+  private currentShowroomVisitId: number;
+  private currentSalespersonNoteId: number;
 
   constructor() {
     this.users = new Map();
@@ -149,6 +194,11 @@ export class MemStorage implements IStorage {
     this.pricingInsights = new Map();
     this.merchandisingStrategies = new Map();
     this.marketTrends = new Map();
+    this.creditApplications = new Map();
+    this.coApplicants = new Map();
+    this.tradeVehicles = new Map();
+    this.showroomVisits = new Map();
+    this.salespersonNotes = new Map();
     this.currentUserId = 1;
     this.currentVehicleId = 1;
     this.currentCustomerId = 1;
@@ -162,6 +212,11 @@ export class MemStorage implements IStorage {
     this.currentPricingInsightsId = 1;
     this.currentMerchandisingStrategyId = 1;
     this.currentMarketTrendId = 1;
+    this.currentCreditApplicationId = 1;
+    this.currentCoApplicantId = 1;
+    this.currentTradeVehicleId = 1;
+    this.currentShowroomVisitId = 1;
+    this.currentSalespersonNoteId = 1;
     
     this.initializeDefaultData();
   }
@@ -1204,6 +1259,242 @@ export class MemStorage implements IStorage {
 
   async deleteMarketTrend(id: number): Promise<boolean> {
     return this.marketTrends.delete(id);
+  }
+
+  // Credit Application operations
+  async getCreditApplications(customerId: number): Promise<CreditApplication[]> {
+    return Array.from(this.creditApplications.values()).filter(app => app.customerId === customerId);
+  }
+
+  async getCreditApplication(id: number): Promise<CreditApplication | undefined> {
+    return this.creditApplications.get(id);
+  }
+
+  async createCreditApplication(application: any): Promise<CreditApplication> {
+    const newApp: CreditApplication = {
+      id: this.currentCreditApplicationId++,
+      customerId: application.customerId,
+      applicationDate: new Date().toISOString(),
+      fullName: application.fullName,
+      dateOfBirth: application.dateOfBirth,
+      ssn: application.ssn,
+      employmentHistory: application.employmentHistory || [],
+      currentIncome: application.currentIncome,
+      rentMortgage: application.rentMortgage,
+      consentGiven: application.consentGiven || false,
+      status: "pending",
+      submittedAt: null,
+      approvedAt: null,
+      rejectedAt: null,
+      rejectionReason: null,
+      approvalAmount: null,
+      interestRate: null,
+      termMonths: null,
+      notes: application.notes || "",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.creditApplications.set(newApp.id, newApp);
+    return newApp;
+  }
+
+  async updateCreditApplication(id: number, application: any): Promise<CreditApplication | undefined> {
+    const existing = this.creditApplications.get(id);
+    if (!existing) return undefined;
+    
+    const updated = { ...existing, ...application, updatedAt: new Date().toISOString() };
+    this.creditApplications.set(id, updated);
+    return updated;
+  }
+
+  async deleteCreditApplication(id: number): Promise<void> {
+    this.creditApplications.delete(id);
+  }
+
+  // Co-Applicant operations
+  async getCoApplicants(customerId: number): Promise<CoApplicant[]> {
+    return Array.from(this.coApplicants.values()).filter(app => {
+      const creditApp = Array.from(this.creditApplications.values()).find(ca => ca.customerId === customerId);
+      return creditApp && app.creditApplicationId === creditApp.id;
+    });
+  }
+
+  async getCoApplicant(id: number): Promise<CoApplicant | undefined> {
+    return this.coApplicants.get(id);
+  }
+
+  async createCoApplicant(coApplicant: any): Promise<CoApplicant> {
+    const newCoApplicant: CoApplicant = {
+      id: this.currentCoApplicantId++,
+      creditApplicationId: coApplicant.creditApplicationId,
+      firstName: coApplicant.firstName,
+      lastName: coApplicant.lastName,
+      email: coApplicant.email || null,
+      phone: coApplicant.phone || null,
+      dateOfBirth: coApplicant.dateOfBirth,
+      ssn: coApplicant.ssn,
+      address: coApplicant.address || null,
+      city: coApplicant.city || null,
+      state: coApplicant.state || null,
+      zipCode: coApplicant.zipCode || null,
+      employmentHistory: coApplicant.employmentHistory || [],
+      currentIncome: coApplicant.currentIncome || null,
+      creditScore: coApplicant.creditScore || null,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.coApplicants.set(newCoApplicant.id, newCoApplicant);
+    return newCoApplicant;
+  }
+
+  async updateCoApplicant(id: number, coApplicant: any): Promise<CoApplicant | undefined> {
+    const existing = this.coApplicants.get(id);
+    if (!existing) return undefined;
+    
+    const updated = { ...existing, ...coApplicant, updatedAt: new Date().toISOString() };
+    this.coApplicants.set(id, updated);
+    return updated;
+  }
+
+  async deleteCoApplicant(id: number): Promise<void> {
+    this.coApplicants.delete(id);
+  }
+
+  // Trade Vehicle operations
+  async getTradeVehicles(customerId: number): Promise<TradeVehicle[]> {
+    return Array.from(this.tradeVehicles.values()).filter(vehicle => vehicle.customerId === customerId);
+  }
+
+  async getTradeVehicle(id: number): Promise<TradeVehicle | undefined> {
+    return this.tradeVehicles.get(id);
+  }
+
+  async createTradeVehicle(tradeVehicle: any): Promise<TradeVehicle> {
+    const newTradeVehicle: TradeVehicle = {
+      id: this.currentTradeVehicleId++,
+      customerId: tradeVehicle.customerId,
+      year: tradeVehicle.year,
+      make: tradeVehicle.make,
+      model: tradeVehicle.model,
+      trim: tradeVehicle.trim || null,
+      vin: tradeVehicle.vin,
+      mileage: tradeVehicle.mileage || null,
+      condition: tradeVehicle.condition || null,
+      estimatedValue: tradeVehicle.estimatedValue || null,
+      kbbValue: tradeVehicle.kbbValue || null,
+      mmrValue: tradeVehicle.mmrValue || null,
+      actualValue: tradeVehicle.actualValue || null,
+      photos: tradeVehicle.photos || [],
+      notes: tradeVehicle.notes || null,
+      status: "pending",
+      appraisedAt: null,
+      appraisedBy: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.tradeVehicles.set(newTradeVehicle.id, newTradeVehicle);
+    return newTradeVehicle;
+  }
+
+  async updateTradeVehicle(id: number, tradeVehicle: any): Promise<TradeVehicle | undefined> {
+    const existing = this.tradeVehicles.get(id);
+    if (!existing) return undefined;
+    
+    const updated = { ...existing, ...tradeVehicle, updatedAt: new Date().toISOString() };
+    this.tradeVehicles.set(id, updated);
+    return updated;
+  }
+
+  async deleteTradeVehicle(id: number): Promise<void> {
+    this.tradeVehicles.delete(id);
+  }
+
+  // Showroom Visit operations
+  async getShowroomVisits(customerId: number): Promise<ShowroomVisit[]> {
+    return Array.from(this.showroomVisits.values()).filter(visit => visit.customerId === customerId);
+  }
+
+  async getShowroomVisit(id: number): Promise<ShowroomVisit | undefined> {
+    return this.showroomVisits.get(id);
+  }
+
+  async createShowroomVisit(visit: any): Promise<ShowroomVisit> {
+    const newVisit: ShowroomVisit = {
+      id: this.currentShowroomVisitId++,
+      customerId: visit.customerId,
+      visitDate: visit.visitDate || new Date().toISOString(),
+      status: "scheduled",
+      assignedSalesperson: visit.assignedSalesperson || null,
+      scheduledTime: visit.scheduledTime || null,
+      arrivedTime: null,
+      meetingStartTime: null,
+      testDriveStartTime: null,
+      leftTime: null,
+      soldTime: null,
+      vehicleOfInterest: visit.vehicleOfInterest || null,
+      comments: visit.comments || null,
+      statusHistory: [],
+      followUpRequired: visit.followUpRequired || false,
+      followUpDate: visit.followUpDate || null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.showroomVisits.set(newVisit.id, newVisit);
+    return newVisit;
+  }
+
+  async updateShowroomVisit(id: number, visit: any): Promise<ShowroomVisit | undefined> {
+    const existing = this.showroomVisits.get(id);
+    if (!existing) return undefined;
+    
+    const updated = { ...existing, ...visit, updatedAt: new Date().toISOString() };
+    this.showroomVisits.set(id, updated);
+    return updated;
+  }
+
+  async deleteShowroomVisit(id: number): Promise<void> {
+    this.showroomVisits.delete(id);
+  }
+
+  // Salesperson Note operations
+  async getSalespersonNotes(customerId: number): Promise<SalespersonNote[]> {
+    return Array.from(this.salespersonNotes.values()).filter(note => note.customerId === customerId);
+  }
+
+  async getSalespersonNote(id: number): Promise<SalespersonNote | undefined> {
+    return this.salespersonNotes.get(id);
+  }
+
+  async createSalespersonNote(note: any): Promise<SalespersonNote> {
+    const newNote: SalespersonNote = {
+      id: this.currentSalespersonNoteId++,
+      customerId: note.customerId,
+      salespersonId: note.salespersonId,
+      note: note.note,
+      flaggedForManager: note.flaggedForManager || false,
+      flaggedAt: note.flaggedForManager ? new Date().toISOString() : null,
+      reviewedAt: null,
+      reviewedBy: null,
+      isPrivate: note.isPrivate || false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.salespersonNotes.set(newNote.id, newNote);
+    return newNote;
+  }
+
+  async updateSalespersonNote(id: number, note: any): Promise<SalespersonNote | undefined> {
+    const existing = this.salespersonNotes.get(id);
+    if (!existing) return undefined;
+    
+    const updated = { ...existing, ...note, updatedAt: new Date().toISOString() };
+    this.salespersonNotes.set(id, updated);
+    return updated;
+  }
+
+  async deleteSalespersonNote(id: number): Promise<void> {
+    this.salespersonNotes.delete(id);
   }
 }
 

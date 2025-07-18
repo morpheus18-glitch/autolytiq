@@ -120,6 +120,133 @@ export const customers = pgTable("customers", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Credit Applications
+export const creditApplications = pgTable("credit_applications", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  applicationDate: timestamp("application_date").defaultNow().notNull(),
+  fullName: text("full_name").notNull(),
+  dateOfBirth: text("date_of_birth").notNull(),
+  ssn: text("ssn").notNull(), // Encrypted
+  employmentHistory: json("employment_history").$type<Array<{
+    employer: string;
+    position: string;
+    startDate: string;
+    endDate?: string;
+    income: number;
+    phone: string;
+  }>>(),
+  currentIncome: decimal("current_income", { precision: 10, scale: 2 }),
+  rentMortgage: decimal("rent_mortgage", { precision: 10, scale: 2 }),
+  consentGiven: boolean("consent_given").default(false),
+  status: text("status").notNull().default("pending"), // pending, submitted, approved, rejected
+  submittedAt: timestamp("submitted_at"),
+  approvedAt: timestamp("approved_at"),
+  rejectedAt: timestamp("rejected_at"),
+  rejectionReason: text("rejection_reason"),
+  approvalAmount: decimal("approval_amount", { precision: 10, scale: 2 }),
+  interestRate: decimal("interest_rate", { precision: 5, scale: 2 }),
+  termMonths: integer("term_months"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Co-Applicants
+export const coApplicants = pgTable("co_applicants", {
+  id: serial("id").primaryKey(),
+  creditApplicationId: integer("credit_application_id").references(() => creditApplications.id).notNull(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  dateOfBirth: text("date_of_birth").notNull(),
+  ssn: text("ssn").notNull(), // Encrypted
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  zipCode: text("zip_code"),
+  employmentHistory: json("employment_history").$type<Array<{
+    employer: string;
+    position: string;
+    startDate: string;
+    endDate?: string;
+    income: number;
+    phone: string;
+  }>>(),
+  currentIncome: decimal("current_income", { precision: 10, scale: 2 }),
+  creditScore: integer("credit_score"),
+  status: text("status").notNull().default("pending"), // pending, approved, rejected
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Trade Vehicles
+export const tradeVehicles = pgTable("trade_vehicles", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  year: integer("year").notNull(),
+  make: text("make").notNull(),
+  model: text("model").notNull(),
+  trim: text("trim"),
+  vin: text("vin").notNull(),
+  mileage: integer("mileage"),
+  condition: text("condition"), // excellent, good, fair, poor
+  estimatedValue: decimal("estimated_value", { precision: 10, scale: 2 }),
+  kbbValue: decimal("kbb_value", { precision: 10, scale: 2 }),
+  mmrValue: decimal("mmr_value", { precision: 10, scale: 2 }),
+  actualValue: decimal("actual_value", { precision: 10, scale: 2 }),
+  photos: json("photos").$type<Array<{url: string; caption: string}>>(),
+  notes: text("notes"),
+  status: text("status").notNull().default("pending"), // pending, appraised, accepted, rejected
+  appraisedAt: timestamp("appraised_at"),
+  appraisedBy: text("appraised_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Showroom Visits
+export const showroomVisits = pgTable("showroom_visits", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  visitDate: timestamp("visit_date").defaultNow().notNull(),
+  status: text("status").notNull().default("scheduled"), // scheduled, arrived, in_meeting, test_drive, left, sold
+  assignedSalesperson: text("assigned_salesperson"),
+  scheduledTime: timestamp("scheduled_time"),
+  arrivedTime: timestamp("arrived_time"),
+  meetingStartTime: timestamp("meeting_start_time"),
+  testDriveStartTime: timestamp("test_drive_start_time"),
+  leftTime: timestamp("left_time"),
+  soldTime: timestamp("sold_time"),
+  vehicleOfInterest: text("vehicle_of_interest"),
+  comments: text("comments"),
+  statusHistory: json("status_history").$type<Array<{
+    status: string;
+    timestamp: string;
+    user: string;
+    comment: string;
+  }>>(),
+  followUpRequired: boolean("follow_up_required").default(false),
+  followUpDate: timestamp("follow_up_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Salesperson Notes
+export const salespersonNotes = pgTable("salesperson_notes", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  salespersonId: integer("salesperson_id").references(() => users.id).notNull(),
+  note: text("note").notNull(),
+  flaggedForManager: boolean("flagged_for_manager").default(false),
+  flaggedAt: timestamp("flagged_at"),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: integer("reviewed_by").references(() => users.id),
+  isPrivate: boolean("is_private").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const leads = pgTable("leads", {
   id: serial("id").primaryKey(),
   customerId: integer("customer_id").references(() => customers.id),
@@ -592,10 +719,24 @@ export const insertCustomerCreditApplicationSchema = createInsertSchema(customer
 export const insertCustomerDocumentSchema = createInsertSchema(customerDocuments).omit({ id: true, createdAt: true });
 export const insertCustomerLeadSourceSchema = createInsertSchema(customerLeadSources).omit({ id: true, createdAt: true });
 
+// New customer detail insert schemas
+export const insertCreditApplicationSchema = createInsertSchema(creditApplications).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCoApplicantSchema = createInsertSchema(coApplicants).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertTradeVehicleSchema = createInsertSchema(tradeVehicles).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertShowroomVisitSchema = createInsertSchema(showroomVisits).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertSalespersonNoteSchema = createInsertSchema(salespersonNotes).omit({ id: true, createdAt: true, updatedAt: true });
+
 export type Department = typeof departments.$inferSelect;
 export type Role = typeof roles.$inferSelect;
 export type Permission = typeof permissions.$inferSelect;
 export type RolePermission = typeof rolePermissions.$inferSelect;
+
+// New customer detail types
+export type CreditApplication = typeof creditApplications.$inferSelect;
+export type CoApplicant = typeof coApplicants.$inferSelect;
+export type TradeVehicle = typeof tradeVehicles.$inferSelect;
+export type ShowroomVisit = typeof showroomVisits.$inferSelect;
+export type SalespersonNote = typeof salespersonNotes.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Employee = typeof employees.$inferSelect;
 export type ServicePart = typeof serviceParts.$inferSelect;
