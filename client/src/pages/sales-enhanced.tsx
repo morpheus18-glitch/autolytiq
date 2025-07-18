@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { apiRequest } from '@/lib/queryClient';
 import EnhancedSalesSearch from '@/components/enhanced-sales-search';
+import LeadModal from '@/components/lead-modal';
 import { 
   SlidersHorizontal, 
   List, 
@@ -164,6 +165,23 @@ export default function Sales() {
           </Card>
         )}
       </div>
+
+      {/* Lead Modal */}
+      {isAddModalOpen && (
+        <LeadModal
+          open={isAddModalOpen}
+          onOpenChange={setIsAddModalOpen}
+          lead={null}
+        />
+      )}
+      
+      {isEditModalOpen && (
+        <LeadModal
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          lead={selectedLead}
+        />
+      )}
     </div>
   );
 }

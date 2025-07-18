@@ -176,11 +176,13 @@ export default function Inventory() {
       </div>
 
       {/* Vehicle Modal */}
-      <VehicleModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        vehicle={selectedVehicle}
-      />
+      {isModalOpen && (
+        <VehicleModal
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          vehicle={selectedVehicle}
+        />
+      )}
     </div>
   );
 }
