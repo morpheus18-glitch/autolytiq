@@ -148,6 +148,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // VIN Decoder route
+  app.post("/api/decode-vin", async (req, res) => {
+    try {
+      const { vin } = req.body;
+      if (!vin) {
+        return res.status(400).json({ message: "VIN is required" });
+      }
+
+      const { decodeVIN } = await import('./services/valuation-service');
+      const decodedData = await decodeVIN(vin);
+      
+      if (!decodedData) {
+        return res.status(404).json({ message: "Unable to decode VIN" });
+      }
+
+      // Map decoded data to vehicle fields
+      const vehicleData = {
+        make: decodedData.make,
+        model: decodedData.model,
+        year: decodedData.year,
+        vin: vin.toUpperCase(),
+        engine: decodedData.engine,
+        transmission: decodedData.transmission,
+        fuelType: decodedData.fuelType,
+        bodyStyle: decodedData.bodyType,
+        doors: decodedData.doors,
+        drivetrain: decodedData.drivetrain,
+        trim: decodedData.trim
+      };
+
+      res.json(vehicleData);
+    } catch (error) {
+      console.error('VIN decode error:', error);
+      res.status(500).json({ message: "Failed to decode VIN" });
+    }
+  });
+
   // Real valuation routes using free APIs
   app.get("/api/valuations/:id", async (req, res) => {
     try {

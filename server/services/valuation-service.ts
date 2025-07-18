@@ -63,18 +63,21 @@ export async function decodeVIN(vin: string): Promise<VINDecodeData | null> {
       return item?.Value || null;
     };
 
-    return {
+    const decodedData = {
       make: getValue('Make') || '',
       model: getValue('Model') || '',
       year: parseInt(getValue('Model Year') || '0'),
-      trim: getValue('Trim') || undefined,
-      engine: getValue('Engine Configuration') || undefined,
-      transmission: getValue('Transmission Style') || undefined,
-      fuelType: getValue('Fuel Type - Primary') || undefined,
-      bodyType: getValue('Body Class') || undefined,
-      doors: parseInt(getValue('Doors') || '0') || undefined,
-      drivetrain: getValue('Drive Type') || undefined,
+      trim: getValue('Trim') || getValue('Series') || undefined,
+      engine: getValue('Engine Configuration') || getValue('Engine Number of Cylinders') || getValue('Displacement (L)') || undefined,
+      transmission: getValue('Transmission Style') || getValue('Transmission Speeds') || undefined,
+      fuelType: getValue('Fuel Type - Primary') || getValue('Fuel Type - Secondary') || undefined,
+      bodyType: getValue('Body Class') || getValue('Vehicle Type') || undefined,
+      doors: parseInt(getValue('Doors') || '0') || parseInt(getValue('Number of Doors') || '0') || undefined,
+      drivetrain: getValue('Drive Type') || getValue('Wheel Base Type') || undefined,
     };
+
+    console.log('🔍 VIN Decoded:', JSON.stringify(decodedData, null, 2));
+    return decodedData;
   } catch (error) {
     console.error('VIN decode error:', error);
     return null;
