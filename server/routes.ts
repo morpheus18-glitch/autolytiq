@@ -977,6 +977,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Customer lifecycle and shopping history
+  app.get("/api/customers/:id/lifecycle", async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      
+      // Get customer's page views and interactions across all sessions
+      const pageViews = await storage.getCustomerPageViews(customerId);
+      const interactions = await storage.getCustomerInteractionsByCustomerId(customerId);
+      const sessions = await storage.getCustomerSessions(customerId);
+      
+      // Get customer's deals and sales history
+      const deals = await storage.getDealsByCustomer(customerId);
+      const sales = await storage.getSalesByCustomer(customerId);
+      
+      const lifecycle = {
+        customerId,
+        totalSessions: sessions.length,
+        totalPageViews: pageViews.length,
+        totalInteractions: interactions.length,
+        totalDeals: deals.length,
+        totalSales: sales.length,
+        recentSessions: sessions.slice(0, 10),
+        recentPageViews: pageViews.slice(0, 20),
+        recentInteractions: interactions.slice(0, 15),
+        deals,
+        sales,
+        shoppingJourney: {
+          firstVisit: sessions[0]?.startTime || null,
+          lastVisit: sessions[sessions.length - 1]?.endTime || null,
+          averageSessionDuration: sessions.reduce((acc, s) => acc + (s.duration || 0), 0) / sessions.length || 0,
+          mostViewedPages: pageViews.reduce((acc, pv) => {
+            acc[pv.pagePath] = (acc[pv.pagePath] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>),
+          conversionStatus: sales.length > 0 ? 'converted' : deals.length > 0 ? 'in_progress' : 'browsing'
+        }
+      };
+      
+      res.json(lifecycle);
+    } catch (error) {
+      console.error('Customer lifecycle error:', error);
+      res.status(500).json({ message: "Failed to fetch customer lifecycle" });
+    }
+  });
+
+  // Create deal from customer
+  app.post("/api/customers/:id/deals", async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const customer = await storage.getCustomer(customerId);
+      
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
+      
+      const dealData = {
+        buyerName: `${customer.firstName} ${customer.lastName}`,
+        customerId: customerId,
+        dealType: req.body.dealType || 'finance',
+        status: 'open',
+        salePrice: req.body.salePrice || 0,
+        vehicleId: req.body.vehicleId || null,
+        salesConsultant: req.body.salesConsultant || 'TBD',
+        ...req.body
+      };
+      
+      const deal = await storage.createDeal(dealData);
+      res.status(201).json(deal);
+    } catch (error) {
+      console.error("Error creating deal from customer:", error);
+      res.status(500).json({ message: "Failed to create deal" });
+    }
+  });
+
   // Competitor analytics
   app.post("/api/tracking/competitor", async (req, res) => {
     try {

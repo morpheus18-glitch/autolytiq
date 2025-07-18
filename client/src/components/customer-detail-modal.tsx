@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +32,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
-import type { Customer, CreditApplication, CoApplicant, TradeVehicle, ShowroomVisit, SalespersonNote } from "@shared/schema";
+import { useLocation } from "wouter";
+import type { Customer, CreditApplication, CoApplicant, TradeVehicle, ShowroomVisit, SalespersonNote, Vehicle } from "@shared/schema";
 import {
   CreditCard,
   Car,
@@ -51,6 +53,11 @@ import {
   Phone,
   Mail,
   MapPin,
+  Activity,
+  ShoppingCart,
+  Eye,
+  MousePointer,
+  TrendingUp,
   Camera,
   Save,
   X,
@@ -64,11 +71,30 @@ interface CustomerDetailModalProps {
 
 export default function CustomerDetailModal({ customer, open, onOpenChange }: CustomerDetailModalProps) {
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
   const [editingCreditApp, setEditingCreditApp] = useState<CreditApplication | null>(null);
   const [editingTradeVehicle, setEditingTradeVehicle] = useState<TradeVehicle | null>(null);
   const [editingShowroomVisit, setEditingShowroomVisit] = useState<ShowroomVisit | null>(null);
   const [newNote, setNewNote] = useState("");
+  const [dealFormData, setDealFormData] = useState({
+    dealType: 'finance',
+    vehicleId: null as number | null,
+    salePrice: 0,
+    salesConsultant: ''
+  });
+
+  // Customer lifecycle data
+  const { data: lifecycle, isLoading: loadingLifecycle } = useQuery({
+    queryKey: ["/api/customers", customer.id, "lifecycle"],
+    enabled: open,
+  });
+
+  // Available vehicles for deal creation
+  const { data: vehicles = [] } = useQuery<Vehicle[]>({
+    queryKey: ["/api/vehicles"],
+    enabled: open,
+  });
 
   // Credit Applications
   const { data: creditApplications = [], isLoading: loadingCreditApps } = useQuery({
@@ -170,6 +196,23 @@ export default function CustomerDetailModal({ customer, open, onOpenChange }: Cu
     },
   });
 
+  // Create deal mutation
+  const createDealMutation = useMutation({
+    mutationFn: async (dealData: any) => {
+      return apiRequest(`/api/customers/${customer.id}/deals`, "POST", dealData);
+    },
+    onSuccess: (deal) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers", customer.id, "lifecycle"] });
+      toast({ title: "Deal created successfully!" });
+      onOpenChange(false);
+      setLocation(`/deals/${deal.id}`);
+    },
+    onError: () => {
+      toast({ title: "Failed to create deal", variant: "destructive" });
+    }
+  });
+
   const handleAddNote = () => {
     if (!newNote.trim()) return;
     
@@ -178,6 +221,10 @@ export default function CustomerDetailModal({ customer, open, onOpenChange }: Cu
       salespersonId: 1, // TODO: Get from auth context
       note: newNote.trim(),
     });
+  };
+
+  const handleCreateDeal = () => {
+    createDealMutation.mutate(dealFormData);
   };
 
   const getStatusColor = (status: string) => {
@@ -213,8 +260,18 @@ export default function CustomerDetailModal({ customer, open, onOpenChange }: Cu
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 gap-1 h-auto md:h-10">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-8 gap-1 h-auto md:h-10">
             <TabsTrigger value="overview" className="text-xs md:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="lifecycle" className="flex items-center gap-1 text-xs md:text-sm">
+              <Activity className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="hidden md:inline">Lifecycle</span>
+              <span className="md:hidden">Life</span>
+            </TabsTrigger>
+            <TabsTrigger value="create-deal" className="flex items-center gap-1 text-xs md:text-sm">
+              <ShoppingCart className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="hidden md:inline">Create Deal</span>
+              <span className="md:hidden">Deal</span>
+            </TabsTrigger>
             <TabsTrigger value="credit" className="flex items-center gap-1 text-xs md:text-sm">
               <CreditCard className="w-3 h-3 md:w-4 md:h-4" />
               <span className="hidden md:inline">Credit App</span>
@@ -596,6 +653,183 @@ export default function CustomerDetailModal({ customer, open, onOpenChange }: Cu
                 </div>
               )}
             </TabsContent>
+            {/* Customer Lifecycle Tab */}
+            <TabsContent value="lifecycle" className="space-y-4 p-2 md:p-4">
+              {loadingLifecycle ? (
+                <div className="text-center py-8">Loading customer lifecycle...</div>
+              ) : !lifecycle ? (
+                <div className="text-center py-8 text-gray-500">No lifecycle data available</div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Shopping Journey Summary */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Activity className="w-5 h-5" />
+                        Shopping Journey
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-blue-600">{lifecycle.totalSessions}</div>
+                          <div className="text-sm text-gray-500">Total Sessions</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-600">{lifecycle.totalPageViews}</div>
+                          <div className="text-sm text-gray-500">Page Views</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-purple-600">{lifecycle.totalInteractions}</div>
+                          <div className="text-sm text-gray-500">Interactions</div>
+                        </div>
+                      </div>
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-sm font-medium">First Visit</Label>
+                          <p className="text-sm">{lifecycle.shoppingJourney.firstVisit ? new Date(lifecycle.shoppingJourney.firstVisit).toLocaleDateString() : "Never"}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Last Visit</Label>
+                          <p className="text-sm">{lifecycle.shoppingJourney.lastVisit ? new Date(lifecycle.shoppingJourney.lastVisit).toLocaleDateString() : "Never"}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Avg Session Duration</Label>
+                          <p className="text-sm">{Math.round(lifecycle.shoppingJourney.averageSessionDuration / 1000 / 60)} minutes</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Conversion Status</Label>
+                          <Badge className={lifecycle.shoppingJourney.conversionStatus === 'converted' ? 'bg-green-100 text-green-800' : lifecycle.shoppingJourney.conversionStatus === 'in_progress' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}>
+                            {lifecycle.shoppingJourney.conversionStatus}
+                          </Badge>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Recent Page Views */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Eye className="w-5 h-5" />
+                        Recent Page Views
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {lifecycle.recentPageViews.map((view: any, index: number) => (
+                          <div key={index} className="flex justify-between items-center text-sm">
+                            <span className="truncate">{view.pagePath}</span>
+                            <span className="text-gray-500 text-xs">{new Date(view.timestamp).toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Recent Interactions */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <MousePointer className="w-5 h-5" />
+                        Recent Interactions
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {lifecycle.recentInteractions.map((interaction: any, index: number) => (
+                          <div key={index} className="flex justify-between items-center text-sm">
+                            <span className="truncate">{interaction.interactionType}: {interaction.elementId}</span>
+                            <span className="text-gray-500 text-xs">{new Date(interaction.timestamp).toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Create Deal Tab */}
+            <TabsContent value="create-deal" className="space-y-4 p-2 md:p-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ShoppingCart className="w-5 h-5" />
+                    Create New Deal for {customer.firstName} {customer.lastName}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="deal-type">Deal Type</Label>
+                      <Select value={dealFormData.dealType} onValueChange={(value) => setDealFormData({...dealFormData, dealType: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select deal type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="finance">Finance</SelectItem>
+                          <SelectItem value="cash">Cash</SelectItem>
+                          <SelectItem value="lease">Lease</SelectItem>
+                          <SelectItem value="trade">Trade</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="vehicle">Vehicle</Label>
+                      <Select value={dealFormData.vehicleId?.toString() || ""} onValueChange={(value) => setDealFormData({...dealFormData, vehicleId: value ? parseInt(value) : null})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select vehicle" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {vehicles.map((vehicle) => (
+                            <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                              {vehicle.year} {vehicle.make} {vehicle.model} - ${vehicle.price?.toLocaleString()}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="sale-price">Sale Price</Label>
+                      <Input
+                        id="sale-price"
+                        type="number"
+                        value={dealFormData.salePrice}
+                        onChange={(e) => setDealFormData({...dealFormData, salePrice: parseFloat(e.target.value) || 0})}
+                        placeholder="Enter sale price"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="sales-consultant">Sales Consultant</Label>
+                      <Input
+                        id="sales-consultant"
+                        value={dealFormData.salesConsultant}
+                        onChange={(e) => setDealFormData({...dealFormData, salesConsultant: e.target.value})}
+                        placeholder="Enter sales consultant name"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setActiveTab("overview")}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleCreateDeal}
+                      disabled={createDealMutation.isPending}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {createDealMutation.isPending ? "Creating..." : "Create Deal"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
           </ScrollArea>
         </Tabs>
       </DialogContent>
