@@ -91,7 +91,7 @@ export default function CustomerDetailModal({ customer, open, onOpenChange }: Cu
   });
 
   // Available vehicles for deal creation
-  const { data: vehicles = [] } = useQuery<Vehicle[]>({
+  const { data: vehicles = [], isLoading: loadingVehicles } = useQuery<Vehicle[]>({
     queryKey: ["/api/vehicles"],
     enabled: open,
   });
@@ -224,7 +224,26 @@ export default function CustomerDetailModal({ customer, open, onOpenChange }: Cu
   };
 
   const handleCreateDeal = () => {
-    createDealMutation.mutate(dealFormData);
+    if (!dealFormData.vehicleId) {
+      toast({ title: "Please select a vehicle", variant: "destructive" });
+      return;
+    }
+    if (!dealFormData.salePrice || dealFormData.salePrice <= 0) {
+      toast({ title: "Please enter a valid sale price", variant: "destructive" });
+      return;
+    }
+    if (!dealFormData.salesConsultant.trim()) {
+      toast({ title: "Please enter a sales consultant name", variant: "destructive" });
+      return;
+    }
+    
+    createDealMutation.mutate({
+      dealType: dealFormData.dealType,
+      vehicleId: dealFormData.vehicleId,
+      salePrice: dealFormData.salePrice,
+      salesConsultant: dealFormData.salesConsultant.trim(),
+      customerId: customer.id,
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -672,35 +691,35 @@ export default function CustomerDetailModal({ customer, open, onOpenChange }: Cu
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-blue-600">{lifecycle.totalSessions}</div>
+                          <div className="text-2xl font-bold text-blue-600">{lifecycle?.totalSessions || 0}</div>
                           <div className="text-sm text-gray-500">Total Sessions</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-green-600">{lifecycle.totalPageViews}</div>
+                          <div className="text-2xl font-bold text-green-600">{lifecycle?.totalPageViews || 0}</div>
                           <div className="text-sm text-gray-500">Page Views</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-purple-600">{lifecycle.totalInteractions}</div>
+                          <div className="text-2xl font-bold text-purple-600">{lifecycle?.totalInteractions || 0}</div>
                           <div className="text-sm text-gray-500">Interactions</div>
                         </div>
                       </div>
                       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label className="text-sm font-medium">First Visit</Label>
-                          <p className="text-sm">{lifecycle.shoppingJourney.firstVisit ? new Date(lifecycle.shoppingJourney.firstVisit).toLocaleDateString() : "Never"}</p>
+                          <p className="text-sm">{lifecycle?.shoppingJourney?.firstVisit ? new Date(lifecycle.shoppingJourney.firstVisit).toLocaleDateString() : "Never"}</p>
                         </div>
                         <div>
                           <Label className="text-sm font-medium">Last Visit</Label>
-                          <p className="text-sm">{lifecycle.shoppingJourney.lastVisit ? new Date(lifecycle.shoppingJourney.lastVisit).toLocaleDateString() : "Never"}</p>
+                          <p className="text-sm">{lifecycle?.shoppingJourney?.lastVisit ? new Date(lifecycle.shoppingJourney.lastVisit).toLocaleDateString() : "Never"}</p>
                         </div>
                         <div>
                           <Label className="text-sm font-medium">Avg Session Duration</Label>
-                          <p className="text-sm">{Math.round(lifecycle.shoppingJourney.averageSessionDuration / 1000 / 60)} minutes</p>
+                          <p className="text-sm">{Math.round((lifecycle?.shoppingJourney?.averageSessionDuration || 0) / 1000 / 60)} minutes</p>
                         </div>
                         <div>
                           <Label className="text-sm font-medium">Conversion Status</Label>
-                          <Badge className={lifecycle.shoppingJourney.conversionStatus === 'converted' ? 'bg-green-100 text-green-800' : lifecycle.shoppingJourney.conversionStatus === 'in_progress' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}>
-                            {lifecycle.shoppingJourney.conversionStatus}
+                          <Badge className={lifecycle?.shoppingJourney?.conversionStatus === 'converted' ? 'bg-green-100 text-green-800' : lifecycle?.shoppingJourney?.conversionStatus === 'in_progress' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}>
+                            {lifecycle?.shoppingJourney?.conversionStatus || 'browsing'}
                           </Badge>
                         </div>
                       </div>
@@ -717,7 +736,7 @@ export default function CustomerDetailModal({ customer, open, onOpenChange }: Cu
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {lifecycle.recentPageViews.map((view: any, index: number) => (
+                        {(lifecycle?.recentPageViews || []).map((view: any, index: number) => (
                           <div key={index} className="flex justify-between items-center text-sm">
                             <span className="truncate">{view.pagePath}</span>
                             <span className="text-gray-500 text-xs">{new Date(view.timestamp).toLocaleString()}</span>
@@ -737,7 +756,7 @@ export default function CustomerDetailModal({ customer, open, onOpenChange }: Cu
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {lifecycle.recentInteractions.map((interaction: any, index: number) => (
+                        {(lifecycle?.recentInteractions || []).map((interaction: any, index: number) => (
                           <div key={index} className="flex justify-between items-center text-sm">
                             <span className="truncate">{interaction.interactionType}: {interaction.elementId}</span>
                             <span className="text-gray-500 text-xs">{new Date(interaction.timestamp).toLocaleString()}</span>
@@ -783,11 +802,17 @@ export default function CustomerDetailModal({ customer, open, onOpenChange }: Cu
                           <SelectValue placeholder="Select vehicle" />
                         </SelectTrigger>
                         <SelectContent>
-                          {vehicles.map((vehicle) => (
-                            <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                              {vehicle.year} {vehicle.make} {vehicle.model} - ${vehicle.price?.toLocaleString()}
-                            </SelectItem>
-                          ))}
+                          {loadingVehicles ? (
+                            <SelectItem value="" disabled>Loading vehicles...</SelectItem>
+                          ) : vehicles && vehicles.length > 0 ? (
+                            vehicles.map((vehicle) => (
+                              <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                                {vehicle.year} {vehicle.make} {vehicle.model} - ${vehicle.price?.toLocaleString()}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="" disabled>No vehicles available</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
