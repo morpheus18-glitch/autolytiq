@@ -1,8 +1,10 @@
-# Dealership Management Dashboard (DMD)
+# AutolytiQ - Dealership Management System
+
+🚀 **Live URL**: [autolytiq.com](https://autolytiq.com)
 
 ## Overview
 
-This is a full-stack dealership management system built with React (TypeScript) for the frontend and Express.js for the backend. The application provides a comprehensive solution for managing vehicle inventory, sales, customer relationships, analytics, and competitive pricing intelligence for automotive dealerships. The system includes advanced features like web scraping, machine learning-powered pricing analysis, and automated merchandising strategies with pixel tracking for customer insights.
+AutolytiQ is a comprehensive dealership management system built with React (TypeScript) for the frontend and Express.js for the backend. The application provides a complete solution for managing vehicle inventory, sales, customer relationships, analytics, and competitive pricing intelligence for automotive dealerships. The system includes advanced features like web scraping, machine learning-powered pricing analysis, and automated merchandising strategies with pixel tracking for customer insights.
 
 ## User Preferences
 
