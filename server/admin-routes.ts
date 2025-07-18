@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { DatabaseStorage } from "./database-storage";
 import { insertDepartmentSchema, insertRoleSchema, insertPermissionSchema, insertUserSchema, insertEmployeeSchema, insertServiceOrderSchema, insertServicePartSchema, insertPayrollSchema, insertFinancialTransactionSchema } from "@shared/schema";
+import { sendVerificationEmail } from "./services/email-service";
 
 const storage = new DatabaseStorage();
 
@@ -211,12 +212,34 @@ export function registerAdminRoutes(app: Express) {
   });
 
   // User management routes
+  app.get("/api/admin/users", async (req, res) => {
+    try {
+      const users = await storage.getUsers();
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
   app.get("/api/users", async (req, res) => {
     try {
       const users = await storage.getUsers();
       res.json(users);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.get("/api/admin/users/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = await storage.getUser(id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
@@ -233,6 +256,69 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
+  // User creation route with email verification
+  app.post("/api/admin/users", async (req, res) => {
+    try {
+      const validatedData = insertUserSchema.parse(req.body);
+      
+      // Generate a temporary password and verification code
+      const tempPassword = Math.random().toString(36).slice(-12);
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Create user with temporary password
+      const userData = {
+        ...validatedData,
+        // Combine firstName and lastName if provided separately, otherwise use name
+        name: validatedData.firstName && validatedData.lastName 
+          ? `${validatedData.firstName} ${validatedData.lastName}`
+          : validatedData.name || validatedData.username,
+        password: tempPassword, // This should be hashed in production
+        isActive: false, // User inactive until email verified
+      };
+      
+      const user = await storage.createUser(userData);
+      
+      // Send verification email
+      try {
+        const emailSent = await sendVerificationEmail(user.email, user.name, verificationCode, tempPassword);
+        if (emailSent) {
+          res.status(201).json({ 
+            ...user, 
+            message: "User created successfully. Verification email sent.",
+            verificationRequired: true 
+          });
+        } else {
+          res.status(201).json({ 
+            ...user, 
+            message: "User created but email could not be sent. Please manually activate.",
+            verificationRequired: false 
+          });
+        }
+      } catch (emailError) {
+        console.error("Email sending failed:", emailError);
+        res.status(201).json({ 
+          ...user, 
+          message: "User created but email could not be sent. Please manually activate.",
+          verificationRequired: false 
+        });
+      }
+    } catch (error) {
+      console.error("User creation error:", error);
+      res.status(400).json({ message: "Invalid user data", error: error.message });
+    }
+  });
+
+  app.put("/api/admin/users/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertUserSchema.partial().parse(req.body);
+      const user = await storage.updateUser(id, validatedData);
+      res.json(user);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid user data" });
+    }
+  });
+
   app.put("/api/users/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -241,6 +327,16 @@ export function registerAdminRoutes(app: Express) {
       res.json(user);
     } catch (error) {
       res.status(400).json({ message: "Invalid user data" });
+    }
+  });
+
+  app.delete("/api/admin/users/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteUser(id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete user" });
     }
   });
 
