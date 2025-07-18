@@ -25,26 +25,28 @@ export default function Dashboard() {
   return (
     <div className="flex-1 overflow-hidden">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
+      <header className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
-            <p className="text-gray-500">Welcome back, here's what's happening at your dealership</p>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Dashboard</h2>
+            <p className="text-gray-500 text-sm sm:text-base hidden sm:block">Welcome back, here's what's happening at your dealership</p>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <Button 
               onClick={() => setIsModalOpen(true)}
-              className="bg-primary text-white hover:bg-blue-700"
+              className="bg-primary text-white hover:bg-blue-700 text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
+              size="sm"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Vehicle
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Add Vehicle</span>
+              <span className="sm:hidden">Add</span>
             </Button>
             <div className="relative">
               <Bell 
-                className="text-gray-400 text-xl cursor-pointer hover:text-gray-600" 
+                className="text-gray-400 text-lg sm:text-xl cursor-pointer hover:text-gray-600" 
                 onClick={handleNotificationClick}
               />
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
                 3
               </span>
             </div>
@@ -53,7 +55,7 @@ export default function Dashboard() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-auto p-6">
+      <main className="flex-1 overflow-auto p-3 sm:p-6">
         <MetricsGrid />
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

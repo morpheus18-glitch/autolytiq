@@ -143,6 +143,13 @@ export interface IStorage {
   getShowroomSessions(date?: string): Promise<ShowroomSession[]>;
   getShowroomSession(id: number): Promise<ShowroomSession | undefined>;
   createShowroomSession(session: any): Promise<ShowroomSession>;
+  
+  // Customer lifecycle methods
+  getCustomerPageViews(customerId: number): Promise<PageView[]>;
+  getCustomerInteractionsByCustomerId(customerId: number): Promise<CustomerInteraction[]>;
+  getCustomerSessions(customerId: number): Promise<VisitorSession[]>;
+  getDealsByCustomer(customerId: number): Promise<Deal[]>;
+  getSalesByCustomer(customerId: number): Promise<Sale[]>;
   updateShowroomSession(id: number, session: any): Promise<ShowroomSession | undefined>;
   deleteShowroomSession(id: number): Promise<void>;
   endShowroomSession(id: number): Promise<ShowroomSession | undefined>;
@@ -181,6 +188,10 @@ export class MemStorage implements IStorage {
   private showroomVisits: Map<number, ShowroomVisit>;
   private salespersonNotes: Map<number, SalespersonNote>;
   private showroomSessions: Map<number, ShowroomSession>;
+  private deals: Map<string, any>;
+  private dealProducts: Map<string, any[]>;
+  private dealGross: Map<string, any>;
+  private accountingEntries: Map<string, any[]>;
   private currentUserId: number;
   private currentVehicleId: number;
   private currentCustomerId: number;
@@ -222,6 +233,10 @@ export class MemStorage implements IStorage {
     this.showroomVisits = new Map();
     this.salespersonNotes = new Map();
     this.showroomSessions = new Map();
+    this.deals = new Map();
+    this.dealProducts = new Map();
+    this.dealGross = new Map();
+    this.accountingEntries = new Map();
     this.currentUserId = 1;
     this.currentVehicleId = 1;
     this.currentCustomerId = 1;
@@ -1842,6 +1857,50 @@ export class MemStorage implements IStorage {
 
     // Store all entries
     this.accountingEntries.set(deal.id, entries);
+  }
+
+  // Customer lifecycle methods implementation
+  async getCustomerPageViews(customerId: number): Promise<PageView[]> {
+    const customer = await this.getCustomer(customerId);
+    if (!customer) return [];
+    
+    return Array.from(this.pageViews.values())
+      .filter(pageView => pageView.userId === customerId.toString())
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }
+
+  async getCustomerInteractionsByCustomerId(customerId: number): Promise<CustomerInteraction[]> {
+    const customer = await this.getCustomer(customerId);
+    if (!customer) return [];
+    
+    return Array.from(this.customerInteractions.values())
+      .filter(interaction => interaction.customerId === customerId.toString())
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }
+
+  async getCustomerSessions(customerId: number): Promise<VisitorSession[]> {
+    const customer = await this.getCustomer(customerId);
+    if (!customer) return [];
+    
+    return Array.from(this.visitorSessions.values())
+      .filter(session => session.userId === customerId.toString())
+      .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+  }
+
+  async getDealsByCustomer(customerId: number): Promise<Deal[]> {
+    const customer = await this.getCustomer(customerId);
+    if (!customer) return [];
+    
+    return Array.from(this.deals.values())
+      .filter(deal => deal.customerId === customerId);
+  }
+
+  async getSalesByCustomer(customerId: number): Promise<Sale[]> {
+    const customer = await this.getCustomer(customerId);
+    if (!customer) return [];
+    
+    return Array.from(this.sales.values())
+      .filter(sale => sale.customerId === customerId);
   }
 }
 
