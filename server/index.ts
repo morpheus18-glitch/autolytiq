@@ -6,6 +6,33 @@ import { storage } from "./storage";
 import { initializeComprehensiveSampleData } from "./comprehensive-sample-data";
 
 const app = express();
+
+// Security middleware - SSL and security headers
+app.use((req, res, next) => {
+  // Force HTTPS in production
+  if (process.env.NODE_ENV === 'production' && req.header('x-forwarded-proto') !== 'https') {
+    return res.redirect(`https://${req.header('host')}${req.url}`);
+  }
+  
+  // Security headers
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Content-Security-Policy', 
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "font-src 'self' https://fonts.gstatic.com; " +
+    "img-src 'self' data: https:; " +
+    "connect-src 'self' https://www.google-analytics.com https://analytics.google.com;"
+  );
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
