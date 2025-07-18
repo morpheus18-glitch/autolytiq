@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, varchar, decimal, json, primaryKey, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, varchar, decimal, json, primaryKey, unique, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -719,6 +719,26 @@ export const insertCustomerCreditApplicationSchema = createInsertSchema(customer
 export const insertCustomerDocumentSchema = createInsertSchema(customerDocuments).omit({ id: true, createdAt: true });
 export const insertCustomerLeadSourceSchema = createInsertSchema(customerLeadSources).omit({ id: true, createdAt: true });
 
+// Showroom Manager - Daily customer tracking for showroom floor management
+export const showroomSessions = pgTable("showroom_sessions", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  vehicleId: integer("vehicle_id").references(() => vehicles.id),
+  stockNumber: varchar("stock_number", { length: 50 }),
+  salespersonId: integer("salesperson_id").references(() => users.id),
+  leadSource: varchar("lead_source", { length: 50 }),
+  eventStatus: varchar("event_status", { length: 50 }).default("pending").notNull(), // sold, dead, working, pending, sent_to_finance
+  dealStage: varchar("deal_stage", { length: 50 }).default("vehicle_selection").notNull(), // vehicle_selection, test_drive, numbers, closed_deal, finalized
+  notes: text("notes"),
+  timeEntered: timestamp("time_entered").defaultNow().notNull(),
+  timeExited: timestamp("time_exited"),
+  sessionDate: date("session_date").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertShowroomSessionSchema = createInsertSchema(showroomSessions).omit({ id: true, createdAt: true, updatedAt: true });
+
 // New customer detail insert schemas
 export const insertCreditApplicationSchema = createInsertSchema(creditApplications).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertCoApplicantSchema = createInsertSchema(coApplicants).omit({ id: true, createdAt: true, updatedAt: true });
@@ -737,6 +757,7 @@ export type CoApplicant = typeof coApplicants.$inferSelect;
 export type TradeVehicle = typeof tradeVehicles.$inferSelect;
 export type ShowroomVisit = typeof showroomVisits.$inferSelect;
 export type SalespersonNote = typeof salespersonNotes.$inferSelect;
+export type ShowroomSession = typeof showroomSessions.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Employee = typeof employees.$inferSelect;
 export type ServicePart = typeof serviceParts.$inferSelect;

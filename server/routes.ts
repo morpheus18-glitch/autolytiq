@@ -821,6 +821,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Showroom Session Routes
+  app.get("/api/showroom-sessions", async (req, res) => {
+    try {
+      const date = req.query.date as string;
+      const sessions = await storage.getShowroomSessions(date);
+      res.json(sessions);
+    } catch (error) {
+      console.error('Error fetching showroom sessions:', error);
+      res.status(500).json({ error: 'Failed to fetch showroom sessions' });
+    }
+  });
+
+  app.get("/api/showroom-sessions/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const session = await storage.getShowroomSession(id);
+      if (!session) {
+        return res.status(404).json({ error: 'Showroom session not found' });
+      }
+      res.json(session);
+    } catch (error) {
+      console.error('Error fetching showroom session:', error);
+      res.status(500).json({ error: 'Failed to fetch showroom session' });
+    }
+  });
+
+  app.post("/api/showroom-sessions", async (req, res) => {
+    try {
+      const session = await storage.createShowroomSession(req.body);
+      res.json(session);
+    } catch (error) {
+      console.error('Error creating showroom session:', error);
+      res.status(500).json({ error: 'Failed to create showroom session' });
+    }
+  });
+
+  app.put("/api/showroom-sessions/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const session = await storage.updateShowroomSession(id, req.body);
+      if (!session) {
+        return res.status(404).json({ error: 'Showroom session not found' });
+      }
+      res.json(session);
+    } catch (error) {
+      console.error('Error updating showroom session:', error);
+      res.status(500).json({ error: 'Failed to update showroom session' });
+    }
+  });
+
+  app.put("/api/showroom-sessions/:id/end", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const session = await storage.endShowroomSession(id);
+      if (!session) {
+        return res.status(404).json({ error: 'Showroom session not found' });
+      }
+      res.json(session);
+    } catch (error) {
+      console.error('Error ending showroom session:', error);
+      res.status(500).json({ error: 'Failed to end showroom session' });
+    }
+  });
+
+  app.delete("/api/showroom-sessions/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteShowroomSession(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting showroom session:', error);
+      res.status(500).json({ error: 'Failed to delete showroom session' });
+    }
+  });
+
   // Deal Desk Routes (Stub implementation)
   app.get("/api/deals", async (req, res) => {
     try {

@@ -15,6 +15,7 @@ import CompetitivePricing from "@/pages/competitive-pricing";
 import ProfessionalDealDesk from "@/pages/professional-deal-desk";
 import Reports from "@/pages/reports";
 import MLDashboard from "@/pages/ml-dashboard";
+import ShowroomManager from "@/pages/showroom-manager";
 // Admin Pages
 import RolesPage from "@/pages/admin/roles";
 import DepartmentsPage from "@/pages/admin/departments";
@@ -66,6 +67,7 @@ function Router() {
           <Route path="/analytics" component={Analytics} />
           <Route path="/competitive-pricing" component={CompetitivePricing} />
           <Route path="/deal-desk" component={ProfessionalDealDesk} />
+          <Route path="/showroom-manager" component={ShowroomManager} />
           <Route path="/reports" component={Reports} />
           <Route path="/ml-dashboard" component={MLDashboard} />
           <Route path="/settings" component={Settings} />

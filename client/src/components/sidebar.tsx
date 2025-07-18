@@ -14,7 +14,8 @@ import {
   Calculator,
   Menu,
   X,
-  Brain
+  Brain,
+  Timer
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -30,6 +31,7 @@ const navigation = [
       { name: "Sales & Leads", href: "/sales", icon: Handshake },
       { name: "Customers", href: "/customers", icon: Users },
       { name: "Deal Desk", href: "/deal-desk", icon: Calculator },
+      { name: "Showroom Manager", href: "/showroom-manager", icon: Timer },
       { name: "Analytics", href: "/analytics", icon: TrendingUp },
       { name: "Reports", href: "/reports", icon: BarChart3 },
       { name: "Competitive Pricing", href: "/competitive-pricing", icon: Target },
