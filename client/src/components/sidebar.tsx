@@ -30,7 +30,7 @@ const navigation = [
       { name: "Inventory", href: "/inventory", icon: Car },
       { name: "Sales & Leads", href: "/sales", icon: Handshake },
       { name: "Customers", href: "/customers", icon: Users },
-      { name: "Deal Desk", href: "/deal-desk", icon: Calculator },
+      { name: "Deal Desk", href: "/deals", icon: Calculator },
       { name: "Showroom Manager", href: "/showroom-manager", icon: Timer },
       { name: "Analytics", href: "/analytics", icon: TrendingUp },
       { name: "Reports", href: "/reports", icon: BarChart3 },
