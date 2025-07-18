@@ -148,6 +148,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Authentication routes
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password, twoFactorCode } = req.body;
+
+      if (!username || !password) {
+        return res.status(400).json({ message: "Username and password are required" });
+      }
+
+      // Master account bypass (for initial setup)
+      if (username === "master_admin" && password === "AutolytiQ2025!Master") {
+        const masterUser = {
+          id: 0,
+          username: "master_admin",
+          role: "super_admin",
+          permissions: ["all"],
+          isMaster: true
+        };
+
+        // Set session
+        req.session.user = masterUser;
+        req.session.loginTime = new Date();
+
+        console.log('🔑 Master account login successful');
+        return res.json({
+          success: true,
+          user: masterUser,
+          requiresTwoFactor: false,
+          message: "Master account authenticated"
+        });
+      }
+
+      // Regular user authentication
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // Check password (in production, use bcrypt)
+      if (user.password !== password) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // Check if 2FA is required
+      if (user.twoFactorEnabled && !twoFactorCode) {
+        return res.json({
+          success: false,
+          requiresTwoFactor: true,
+          message: "Two-factor authentication required"
+        });
+      }
+
+      // Verify 2FA if provided
+      if (user.twoFactorEnabled && twoFactorCode) {
+        // In production, verify against actual 2FA secret
+        if (twoFactorCode !== "123456") { // Demo code
+          return res.status(401).json({ message: "Invalid 2FA code" });
+        }
+      }
+
+      // Set session
+      req.session.user = {
+        id: user.id,
+        username: user.username,
+        role: user.role || "user",
+        permissions: user.permissions || []
+      };
+      req.session.loginTime = new Date();
+
+      console.log(`🔑 User login successful: ${username}`);
+      res.json({
+        success: true,
+        user: req.session.user,
+        requiresTwoFactor: false
+      });
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ message: "Authentication failed" });
+    }
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.json({ success: true, message: "Logged out successfully" });
+    });
+  });
+
+  app.get("/api/auth/session", (req, res) => {
+    if (req.session.user) {
+      res.json({
+        authenticated: true,
+        user: req.session.user,
+        loginTime: req.session.loginTime
+      });
+    } else {
+      res.json({ authenticated: false });
+    }
+  });
+
   // VIN Decoder route
   app.post("/api/decode-vin", async (req, res) => {
     try {
