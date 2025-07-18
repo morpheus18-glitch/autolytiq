@@ -5,6 +5,7 @@ import { insertVehicleSchema, insertCustomerSchema, insertLeadSchema, insertSale
 import { competitiveScraper } from "./services/competitive-scraper";
 import { registerAdminRoutes } from "./admin-routes";
 import { decodeVINHandler } from "./services/vin-decoder";
+import { mlBackend } from "./ml-integration";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Vehicle routes
@@ -760,6 +761,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(200).json({ message: "Market trends analyzed successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to analyze market trends" });
+    }
+  });
+
+  // ML Backend Integration Routes
+  app.post("/api/ml/predict-price", async (req, res) => {
+    try {
+      const vehicleData = req.body;
+      if (!vehicleData.make || !vehicleData.model || !vehicleData.year) {
+        return res.status(400).json({ message: "Make, model, and year are required" });
+      }
+      
+      const prediction = await mlBackend.getPricePrediction(vehicleData);
+      res.json(prediction);
+    } catch (error) {
+      console.error("ML prediction error:", error);
+      res.status(500).json({ message: "Failed to generate price prediction" });
+    }
+  });
+
+  app.get("/api/ml/status", async (req, res) => {
+    try {
+      const status = await mlBackend.getMLBackendStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("ML status error:", error);
+      res.status(500).json({ message: "Failed to get ML backend status" });
+    }
+  });
+
+  app.post("/api/ml/scrape", async (req, res) => {
+    try {
+      const result = await mlBackend.runScraping();
+      res.json(result);
+    } catch (error) {
+      console.error("ML scraping error:", error);
+      res.status(500).json({ message: "Failed to run ML scraping" });
+    }
+  });
+
+  app.post("/api/ml/train", async (req, res) => {
+    try {
+      const result = await mlBackend.runTraining();
+      res.json(result);
+    } catch (error) {
+      console.error("ML training error:", error);
+      res.status(500).json({ message: "Failed to run ML training" });
+    }
+  });
+
+  app.post("/api/ml/start-dashboard", async (req, res) => {
+    try {
+      const port = req.body.port || 8501;
+      await mlBackend.startDashboard(port);
+      res.json({ message: `ML Dashboard started on port ${port}` });
+    } catch (error) {
+      console.error("ML dashboard error:", error);
+      res.status(500).json({ message: "Failed to start ML dashboard" });
     }
   });
 
