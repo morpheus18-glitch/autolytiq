@@ -146,6 +146,18 @@ export interface IStorage {
   updateShowroomSession(id: number, session: any): Promise<ShowroomSession | undefined>;
   deleteShowroomSession(id: number): Promise<void>;
   endShowroomSession(id: number): Promise<ShowroomSession | undefined>;
+
+  // Deal Management
+  getAllDeals(): Promise<any[]>;
+  getDeal(id: string): Promise<any>;
+  createDeal(deal: any): Promise<any>;
+  updateDeal(id: string, updates: any): Promise<any>;
+  updateDealStatus(id: string, status: string): Promise<any>;
+  getDealProducts(dealId: string): Promise<any[]>;
+  addDealProduct(dealId: string, product: any): Promise<any>;
+  getDealGross(dealId: string): Promise<any>;
+  getDealAccountingEntries(dealId: string): Promise<any[]>;
+  finalizeDeal(dealId: string): Promise<any>;
 }
 
 export class MemStorage implements IStorage {
@@ -1635,6 +1647,201 @@ export class MemStorage implements IStorage {
     const updated = { ...existing, timeExited: new Date().toISOString(), updatedAt: new Date().toISOString() };
     this.showroomSessions.set(id, updated);
     return updated;
+  }
+
+  // Deal Management Implementation
+  private deals: Map<string, any> = new Map();
+  private dealProducts: Map<string, any[]> = new Map();
+  private dealGross: Map<string, any> = new Map();
+  private accountingEntries: Map<string, any[]> = new Map();
+
+  async getAllDeals(): Promise<any[]> {
+    return Array.from(this.deals.values()).sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  async getDeal(id: string): Promise<any> {
+    return this.deals.get(id);
+  }
+
+  async createDeal(dealData: any): Promise<any> {
+    const deal = {
+      id: `deal_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+      dealNumber: this.generateDealNumber(),
+      status: 'open',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ...dealData,
+    };
+    this.deals.set(deal.id, deal);
+    
+    // Initialize related data
+    this.dealProducts.set(deal.id, []);
+    this.accountingEntries.set(deal.id, []);
+    
+    return deal;
+  }
+
+  async updateDeal(id: string, updates: any): Promise<any> {
+    const existing = this.deals.get(id);
+    if (!existing) return null;
+    
+    const updated = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+    this.deals.set(id, updated);
+    
+    // Recalculate gross if financial data changed
+    await this.calculateDealGross(id);
+    
+    return updated;
+  }
+
+  async updateDealStatus(id: string, status: string): Promise<any> {
+    const deal = await this.updateDeal(id, { 
+      status,
+      ...(status === 'finalized' ? { finalizedAt: new Date().toISOString() } : {})
+    });
+    
+    // Generate accounting entries when deal is finalized
+    if (status === 'finalized' && deal) {
+      await this.generateAccountingEntries(deal);
+    }
+    
+    return deal;
+  }
+
+  async getDealProducts(dealId: string): Promise<any[]> {
+    return this.dealProducts.get(dealId) || [];
+  }
+
+  async addDealProduct(dealId: string, productData: any): Promise<any> {
+    const product = {
+      id: `product_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+      dealId,
+      createdAt: new Date().toISOString(),
+      ...productData,
+    };
+    
+    const products = this.dealProducts.get(dealId) || [];
+    products.push(product);
+    this.dealProducts.set(dealId, products);
+    
+    // Recalculate deal gross
+    await this.calculateDealGross(dealId);
+    
+    return product;
+  }
+
+  async getDealGross(dealId: string): Promise<any> {
+    return this.dealGross.get(dealId);
+  }
+
+  async getDealAccountingEntries(dealId: string): Promise<any[]> {
+    return this.accountingEntries.get(dealId) || [];
+  }
+
+  async finalizeDeal(dealId: string): Promise<any> {
+    return await this.updateDealStatus(dealId, 'finalized');
+  }
+
+  private generateDealNumber(): string {
+    const date = new Date();
+    const year = date.getFullYear().toString().slice(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    
+    return `${year}${month}${day}-${random}`;
+  }
+
+  private async calculateDealGross(dealId: string): Promise<void> {
+    const deal = this.deals.get(dealId);
+    const products = this.dealProducts.get(dealId) || [];
+    
+    if (!deal) return;
+
+    // Front-end gross calculation
+    const vehicleCost = 25000; // Would typically come from inventory
+    const tradeAdjustment = (deal.tradeAllowance || 0) - (deal.tradePayoff || 0);
+    const frontEndGross = (deal.salePrice || 0) - vehicleCost - Math.max(0, tradeAdjustment);
+
+    // Finance reserve (2 points over buy rate)
+    const financeAmount = deal.financeBalance || 0;
+    const financeReserve = financeAmount * 0.02 * ((deal.term || 60) / 12);
+
+    // Product gross
+    const productGross = products.reduce((total, product) => {
+      return total + (product.retailPrice - product.cost);
+    }, 0);
+
+    // Pack cost
+    const packCost = 300; // Standard used vehicle pack
+
+    // Net gross
+    const netGross = frontEndGross + financeReserve + productGross - packCost;
+
+    const grossRecord = {
+      id: `gross_${dealId}`,
+      dealId,
+      frontEndGross,
+      financeReserve,
+      productGross,
+      packCost,
+      netGross,
+      calculatedAt: new Date().toISOString(),
+    };
+
+    this.dealGross.set(dealId, grossRecord);
+  }
+
+  private async generateAccountingEntries(deal: any): Promise<void> {
+    const entries: any[] = [];
+
+    // Vehicle sale revenue
+    if (deal.salePrice) {
+      entries.push({
+        id: `entry_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+        dealId: deal.id,
+        accountCode: '4010',
+        accountName: 'Vehicle Sales Revenue',
+        debit: 0,
+        credit: deal.salePrice,
+        memo: `Sale of VIN ${deal.vin} to ${deal.buyerName}`,
+        entryDate: new Date().toISOString(),
+      });
+
+      entries.push({
+        id: `entry_${Date.now() + 1}_${Math.random().toString(36).substring(2, 8)}`,
+        dealId: deal.id,
+        accountCode: '1210',
+        accountName: 'Accounts Receivable',
+        debit: deal.salePrice,
+        credit: 0,
+        memo: `Receivable for deal #${deal.dealNumber}`,
+        entryDate: new Date().toISOString(),
+      });
+    }
+
+    // Additional entries for taxes, fees, etc.
+    if (deal.salesTax) {
+      entries.push({
+        id: `entry_${Date.now() + 2}_${Math.random().toString(36).substring(2, 8)}`,
+        dealId: deal.id,
+        accountCode: '2210',
+        accountName: 'Sales Tax Payable',
+        debit: 0,
+        credit: deal.salesTax,
+        memo: `Sales tax for deal #${deal.dealNumber}`,
+        entryDate: new Date().toISOString(),
+      });
+    }
+
+    // Store all entries
+    this.accountingEntries.set(deal.id, entries);
   }
 }
 

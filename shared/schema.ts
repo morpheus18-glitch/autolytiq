@@ -761,6 +761,147 @@ export type ShowroomVisit = typeof showroomVisits.$inferSelect;
 export type SalespersonNote = typeof salespersonNotes.$inferSelect;
 export type ShowroomSession = typeof showroomSessions.$inferSelect;
 export type User = typeof users.$inferSelect;
+
+// Deal Management Schema
+export const deals = pgTable("deals", {
+  id: text("id").primaryKey().notNull(),
+  dealNumber: text("deal_number").unique().notNull(),
+  status: text("status").notNull().default("open"), // open, finalized, funded, cancelled
+  
+  // Vehicle Information
+  vehicleId: text("vehicle_id").references(() => vehicles.id),
+  vin: text("vin"),
+  msrp: integer("msrp"),
+  salePrice: integer("sale_price"),
+  
+  // Customer Information
+  customerId: text("customer_id").references(() => customers.id),
+  buyerName: text("buyer_name").notNull(),
+  coBuyerName: text("co_buyer_name"),
+  
+  // Trade Information
+  tradeVin: text("trade_vin"),
+  tradeAllowance: integer("trade_allowance").default(0),
+  tradePayoff: integer("trade_payoff").default(0),
+  
+  // Financial Structure
+  dealType: text("deal_type").notNull(), // retail, lease, cash
+  cashDown: integer("cash_down").default(0),
+  rebates: integer("rebates").default(0),
+  salesTax: integer("sales_tax").default(0),
+  docFee: integer("doc_fee").default(0),
+  titleFee: integer("title_fee").default(0),
+  registrationFee: integer("registration_fee").default(0),
+  financeBalance: integer("finance_balance").default(0),
+  
+  // Credit Information
+  creditStatus: text("credit_status"), // approved, pending, denied
+  creditTier: text("credit_tier"), // A+, A, B, C, D
+  term: integer("term"),
+  rate: text("rate"),
+  
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  finalizedAt: timestamp("finalized_at"),
+  
+  // User tracking
+  salesPersonId: text("sales_person_id"),
+  financeManagerId: text("finance_manager_id"),
+});
+
+export const dealProducts = pgTable("deal_products", {
+  id: text("id").primaryKey().notNull(),
+  dealId: text("deal_id").references(() => deals.id).notNull(),
+  productName: text("product_name").notNull(),
+  retailPrice: integer("retail_price").notNull(),
+  cost: integer("cost").notNull(),
+  category: text("category"), // warranty, gap, tire_wheel, maintenance
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const dealGross = pgTable("deal_gross", {
+  id: text("id").primaryKey().notNull(),
+  dealId: text("deal_id").references(() => deals.id).notNull(),
+  frontEndGross: integer("front_end_gross").default(0),
+  financeReserve: integer("finance_reserve").default(0),
+  productGross: integer("product_gross").default(0),
+  packCost: integer("pack_cost").default(0),
+  netGross: integer("net_gross").default(0),
+  calculatedAt: timestamp("calculated_at").defaultNow(),
+});
+
+export const accountingEntries = pgTable("accounting_entries", {
+  id: text("id").primaryKey().notNull(),
+  dealId: text("deal_id").references(() => deals.id).notNull(),
+  accountCode: text("account_code").notNull(),
+  accountName: text("account_name").notNull(),
+  debit: integer("debit").default(0),
+  credit: integer("credit").default(0),
+  memo: text("memo"),
+  entryDate: timestamp("entry_date").defaultNow(),
+});
+
+export const chartOfAccounts = pgTable("chart_of_accounts", {
+  id: text("id").primaryKey().notNull(),
+  code: text("code").unique().notNull(),
+  name: text("name").notNull(),
+  category: text("category").notNull(), // asset, liability, equity, revenue, expense
+  subCategory: text("sub_category"),
+  isActive: boolean("is_active").default(true),
+});
+
+// Deal Relations
+export const dealRelations = relations(deals, ({ one, many }) => ({
+  vehicle: one(vehicles, {
+    fields: [deals.vehicleId],
+    references: [vehicles.id],
+  }),
+  customer: one(customers, {
+    fields: [deals.customerId],
+    references: [customers.id],
+  }),
+  products: many(dealProducts),
+  gross: one(dealGross),
+  accountingEntries: many(accountingEntries),
+}));
+
+export const dealProductsRelations = relations(dealProducts, ({ one }) => ({
+  deal: one(deals, {
+    fields: [dealProducts.dealId],
+    references: [deals.id],
+  }),
+}));
+
+export const dealGrossRelations = relations(dealGross, ({ one }) => ({
+  deal: one(deals, {
+    fields: [dealGross.dealId],
+    references: [deals.id],
+  }),
+}));
+
+export const accountingEntriesRelations = relations(accountingEntries, ({ one }) => ({
+  deal: one(deals, {
+    fields: [accountingEntries.dealId],
+    references: [deals.id],
+  }),
+}));
+
+// Deal Management Insert Schemas and Types
+export const insertDealSchema = createInsertSchema(deals);
+export const insertDealProductSchema = createInsertSchema(dealProducts);
+export const insertDealGrossSchema = createInsertSchema(dealGross);
+export const insertAccountingEntrySchema = createInsertSchema(accountingEntries);
+
+export type Deal = typeof deals.$inferSelect;
+export type InsertDeal = typeof deals.$inferInsert;
+export type DealProduct = typeof dealProducts.$inferSelect;
+export type InsertDealProduct = typeof dealProducts.$inferInsert;
+export type DealGross = typeof dealGross.$inferSelect;
+export type InsertDealGross = typeof dealGross.$inferInsert;
+export type AccountingEntry = typeof accountingEntries.$inferSelect;
+export type InsertAccountingEntry = typeof accountingEntries.$inferInsert;
+export type ChartOfAccount = typeof chartOfAccounts.$inferSelect;
 export type Employee = typeof employees.$inferSelect;
 export type ServicePart = typeof serviceParts.$inferSelect;
 export type ServiceOrder = typeof serviceOrders.$inferSelect;
@@ -821,74 +962,7 @@ export type CustomerCreditApplication = typeof customerCreditApplications.$infer
 export type CustomerDocument = typeof customerDocuments.$inferSelect;
 export type CustomerLeadSource = typeof customerLeadSources.$inferSelect;
 
-// Deal Desk Tables
-export const deals = pgTable("deals", {
-  id: serial("id").primaryKey(),
-  customerId: integer("customer_id").references(() => customers.id).notNull(),
-  vehicleId: integer("vehicle_id").references(() => vehicles.id).notNull(),
-  salePrice: decimal("sale_price", { precision: 10, scale: 2 }).notNull(),
-  tradeInValue: decimal("trade_in_value", { precision: 10, scale: 2 }).default("0.00"),
-  cashDown: decimal("cash_down", { precision: 10, scale: 2 }).default("0.00"),
-  financeAmount: decimal("finance_amount", { precision: 10, scale: 2 }).notNull(),
-  term: integer("term").notNull(), // months
-  apr: decimal("apr", { precision: 5, scale: 2 }).notNull(),
-  payment: decimal("payment", { precision: 10, scale: 2 }).notNull(),
-  totalInterest: decimal("total_interest", { precision: 10, scale: 2 }).default("0.00"),
-  warranties: json("warranties").$type<{
-    extended: boolean;
-    gap: boolean;
-    maintenance: boolean;
-  }>().default({ extended: false, gap: false, maintenance: false }),
-  insurance: json("insurance").$type<{
-    required: boolean;
-    provider: string;
-    cost: number;
-  }>().default({ required: false, provider: "", cost: 0 }),
-  fees: json("fees").$type<{
-    documentation: number;
-    registration: number;
-    processing: number;
-  }>().default({ documentation: 0, registration: 0, processing: 0 }),
-  grossProfit: decimal("gross_profit", { precision: 10, scale: 2 }).default("0.00"),
-  status: text("status").notNull().default("draft"), // draft, pending, approved, signed, cancelled
-  notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const dealDocuments = pgTable("deal_documents", {
-  id: serial("id").primaryKey(),
-  dealId: integer("deal_id").references(() => deals.id).notNull(),
-  documentType: text("document_type").notNull(), // purchase_agreement, finance_contract, trade_agreement, warranty_agreement
-  documentName: text("document_name").notNull(),
-  documentUrl: text("document_url"),
-  status: text("status").notNull().default("pending"), // pending, signed, completed
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const dealApprovals = pgTable("deal_approvals", {
-  id: serial("id").primaryKey(),
-  dealId: integer("deal_id").references(() => deals.id).notNull(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  approvalType: text("approval_type").notNull(), // manager, finance, general_manager
-  status: text("status").notNull().default("pending"), // pending, approved, rejected
-  notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// Deal Desk Insert Schemas
-export const insertDealSchema = createInsertSchema(deals).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertDealDocumentSchema = createInsertSchema(dealDocuments).omit({ id: true, createdAt: true });
-export const insertDealApprovalSchema = createInsertSchema(dealApprovals).omit({ id: true, createdAt: true, updatedAt: true });
-
-// Deal Desk Types
-export type Deal = typeof deals.$inferSelect;
-export type DealDocument = typeof dealDocuments.$inferSelect;
-export type DealApproval = typeof dealApprovals.$inferSelect;
-export type InsertDeal = z.infer<typeof insertDealSchema>;
-export type InsertDealDocument = z.infer<typeof insertDealDocumentSchema>;
-export type InsertDealApproval = z.infer<typeof insertDealApprovalSchema>;
+// Deal Desk Tables - Removed to avoid conflicts with comprehensive deal schema below
 
 // Additional interfaces for vehicle management
 export interface MediaItem {
