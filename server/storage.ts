@@ -1,6 +1,6 @@
 import { 
-  users, vehicles, customers, leads, sales, activities, visitorSessions, pageViews, customerInteractions, competitorAnalytics, competitivePricing, pricingInsights, merchandisingStrategies, marketTrends, deals, dealDocuments, dealApprovals, creditApplications, coApplicants, tradeVehicles, showroomVisits, salespersonNotes,
-  type User, type Vehicle, type Customer, type Lead, type Sale, type Activity, type VisitorSession, type PageView, type CustomerInteraction, type CompetitorAnalytics, type CompetitivePricing, type PricingInsights, type MerchandisingStrategies, type MarketTrends, type Deal, type DealDocument, type DealApproval, type CreditApplication, type CoApplicant, type TradeVehicle, type ShowroomVisit, type SalespersonNote,
+  users, vehicles, customers, leads, sales, activities, visitorSessions, pageViews, customerInteractions, competitorAnalytics, competitivePricing, pricingInsights, merchandisingStrategies, marketTrends, deals, dealDocuments, dealApprovals, creditApplications, coApplicants, tradeVehicles, showroomVisits, salespersonNotes, showroomSessions,
+  type User, type Vehicle, type Customer, type Lead, type Sale, type Activity, type VisitorSession, type PageView, type CustomerInteraction, type CompetitorAnalytics, type CompetitivePricing, type PricingInsights, type MerchandisingStrategies, type MarketTrends, type Deal, type DealDocument, type DealApproval, type CreditApplication, type CoApplicant, type TradeVehicle, type ShowroomVisit, type SalespersonNote, type ShowroomSession,
   type InsertUser, type InsertVehicle, type InsertCustomer, type InsertLead, type InsertSale, type InsertActivity, type InsertVisitorSession, type InsertPageView, type InsertCustomerInteraction, type InsertCompetitorAnalytics, type InsertCompetitivePricing, type InsertPricingInsights, type InsertMerchandisingStrategies, type InsertMarketTrends, type InsertDeal, type InsertDealDocument, type InsertDealApproval
 } from "@shared/schema";
 
@@ -138,6 +138,14 @@ export interface IStorage {
   createSalespersonNote(note: any): Promise<SalespersonNote>;
   updateSalespersonNote(id: number, note: any): Promise<SalespersonNote | undefined>;
   deleteSalespersonNote(id: number): Promise<void>;
+  
+  // Showroom session operations
+  getShowroomSessions(date?: string): Promise<ShowroomSession[]>;
+  getShowroomSession(id: number): Promise<ShowroomSession | undefined>;
+  createShowroomSession(session: any): Promise<ShowroomSession>;
+  updateShowroomSession(id: number, session: any): Promise<ShowroomSession | undefined>;
+  deleteShowroomSession(id: number): Promise<void>;
+  endShowroomSession(id: number): Promise<ShowroomSession | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -160,6 +168,7 @@ export class MemStorage implements IStorage {
   private tradeVehicles: Map<number, TradeVehicle>;
   private showroomVisits: Map<number, ShowroomVisit>;
   private salespersonNotes: Map<number, SalespersonNote>;
+  private showroomSessions: Map<number, ShowroomSession>;
   private currentUserId: number;
   private currentVehicleId: number;
   private currentCustomerId: number;
@@ -178,6 +187,7 @@ export class MemStorage implements IStorage {
   private currentTradeVehicleId: number;
   private currentShowroomVisitId: number;
   private currentSalespersonNoteId: number;
+  private currentShowroomSessionId: number;
 
   constructor() {
     this.users = new Map();
@@ -199,6 +209,7 @@ export class MemStorage implements IStorage {
     this.tradeVehicles = new Map();
     this.showroomVisits = new Map();
     this.salespersonNotes = new Map();
+    this.showroomSessions = new Map();
     this.currentUserId = 1;
     this.currentVehicleId = 1;
     this.currentCustomerId = 1;
@@ -217,6 +228,7 @@ export class MemStorage implements IStorage {
     this.currentTradeVehicleId = 1;
     this.currentShowroomVisitId = 1;
     this.currentSalespersonNoteId = 1;
+    this.currentShowroomSessionId = 1;
     
     this.initializeDefaultData();
   }
@@ -600,6 +612,77 @@ export class MemStorage implements IStorage {
     
     activities.forEach(activity => this.activities.set(activity.id, activity));
     this.currentActivityId = 4;
+
+    // Create sample showroom sessions
+    const showroomSessions: ShowroomSession[] = [
+      {
+        id: 1,
+        customerId: 1,
+        vehicleId: 1,
+        stockNumber: "STK001",
+        salespersonId: 1,
+        leadSource: "walk-in",
+        eventStatus: "pending",
+        dealStage: "test_drive",
+        notes: "Customer interested in test drive",
+        timeEntered: new Date().toISOString(),
+        timeExited: null,
+        sessionDate: new Date().toISOString().split('T')[0],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 2,
+        customerId: 2,
+        vehicleId: 3,
+        stockNumber: "STK003",
+        salespersonId: 2,
+        leadSource: "website",
+        eventStatus: "sold",
+        dealStage: "finalized",
+        notes: "Deal completed - financing approved",
+        timeEntered: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        timeExited: new Date().toISOString(),
+        sessionDate: new Date().toISOString().split('T')[0],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 3,
+        customerId: 3,
+        vehicleId: 2,
+        stockNumber: "STK002",
+        salespersonId: 3,
+        leadSource: "referral",
+        eventStatus: "dead",
+        dealStage: "vehicle_selection",
+        notes: "Customer decided not to purchase",
+        timeEntered: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+        timeExited: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+        sessionDate: new Date().toISOString().split('T')[0],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 4,
+        customerId: 4,
+        vehicleId: 4,
+        stockNumber: "STK004",
+        salespersonId: 1,
+        leadSource: "phone",
+        eventStatus: "pending",
+        dealStage: "numbers",
+        notes: "Working on financing options",
+        timeEntered: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+        timeExited: null,
+        sessionDate: new Date().toISOString().split('T')[0],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ];
+
+    showroomSessions.forEach(session => this.showroomSessions.set(session.id, session));
+    this.currentShowroomSessionId = 5;
   }
 
   // User operations
@@ -1495,6 +1578,62 @@ export class MemStorage implements IStorage {
 
   async deleteSalespersonNote(id: number): Promise<void> {
     this.salespersonNotes.delete(id);
+  }
+
+  // Showroom session operations
+  async getShowroomSessions(date?: string): Promise<ShowroomSession[]> {
+    const sessions = Array.from(this.showroomSessions.values());
+    if (date) {
+      return sessions.filter(session => session.sessionDate === date);
+    }
+    return sessions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async getShowroomSession(id: number): Promise<ShowroomSession | undefined> {
+    return this.showroomSessions.get(id);
+  }
+
+  async createShowroomSession(session: any): Promise<ShowroomSession> {
+    const newSession: ShowroomSession = {
+      id: this.currentShowroomSessionId++,
+      customerId: session.customerId,
+      vehicleId: session.vehicleId || null,
+      stockNumber: session.stockNumber || null,
+      salespersonId: session.salespersonId || null,
+      leadSource: session.leadSource || null,
+      eventStatus: session.eventStatus || "pending",
+      dealStage: session.dealStage || "vehicle_selection",
+      notes: session.notes || null,
+      timeEntered: new Date().toISOString(),
+      timeExited: null,
+      sessionDate: session.sessionDate || new Date().toISOString().split('T')[0],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.showroomSessions.set(newSession.id, newSession);
+    return newSession;
+  }
+
+  async updateShowroomSession(id: number, session: any): Promise<ShowroomSession | undefined> {
+    const existing = this.showroomSessions.get(id);
+    if (!existing) return undefined;
+    
+    const updated = { ...existing, ...session, updatedAt: new Date().toISOString() };
+    this.showroomSessions.set(id, updated);
+    return updated;
+  }
+
+  async deleteShowroomSession(id: number): Promise<void> {
+    this.showroomSessions.delete(id);
+  }
+
+  async endShowroomSession(id: number): Promise<ShowroomSession | undefined> {
+    const existing = this.showroomSessions.get(id);
+    if (!existing) return undefined;
+    
+    const updated = { ...existing, timeExited: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    this.showroomSessions.set(id, updated);
+    return updated;
   }
 }
 
