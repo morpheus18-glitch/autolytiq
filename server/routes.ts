@@ -251,6 +251,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Deal Management Routes
+  app.get("/api/deals", async (req, res) => {
+    try {
+      const deals = await storage.getAllDeals();
+      res.json(deals);
+    } catch (error) {
+      console.error("Error fetching deals:", error);
+      res.status(500).json({ message: "Failed to fetch deals" });
+    }
+  });
+
+  app.get("/api/deals/:id", async (req, res) => {
+    try {
+      const deal = await storage.getDeal(req.params.id);
+      if (!deal) {
+        return res.status(404).json({ message: "Deal not found" });
+      }
+      res.json(deal);
+    } catch (error) {
+      console.error("Error fetching deal:", error);
+      res.status(500).json({ message: "Failed to fetch deal" });
+    }
+  });
+
+  app.post("/api/deals", async (req, res) => {
+    try {
+      const dealData = req.body;
+      const deal = await storage.createDeal(dealData);
+      res.status(201).json(deal);
+    } catch (error) {
+      console.error("Error creating deal:", error);
+      res.status(500).json({ message: "Failed to create deal" });
+    }
+  });
+
+  app.put("/api/deals/:id", async (req, res) => {
+    try {
+      const deal = await storage.updateDeal(req.params.id, req.body);
+      if (!deal) {
+        return res.status(404).json({ message: "Deal not found" });
+      }
+      res.json(deal);
+    } catch (error) {
+      console.error("Error updating deal:", error);
+      res.status(500).json({ message: "Failed to update deal" });
+    }
+  });
+
+  app.patch("/api/deals/:id/status", async (req, res) => {
+    try {
+      const { status } = req.body;
+      const deal = await storage.updateDealStatus(req.params.id, status);
+      if (!deal) {
+        return res.status(404).json({ message: "Deal not found" });
+      }
+      res.json(deal);
+    } catch (error) {
+      console.error("Error updating deal status:", error);
+      res.status(500).json({ message: "Failed to update deal status" });
+    }
+  });
+
+  app.get("/api/deals/:id/products", async (req, res) => {
+    try {
+      const products = await storage.getDealProducts(req.params.id);
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching deal products:", error);
+      res.status(500).json({ message: "Failed to fetch deal products" });
+    }
+  });
+
+  app.post("/api/deals/:id/products", async (req, res) => {
+    try {
+      const product = await storage.addDealProduct(req.params.id, req.body);
+      res.status(201).json(product);
+    } catch (error) {
+      console.error("Error adding deal product:", error);
+      res.status(500).json({ message: "Failed to add deal product" });
+    }
+  });
+
+  app.get("/api/deals/:id/gross", async (req, res) => {
+    try {
+      const gross = await storage.getDealGross(req.params.id);
+      res.json(gross);
+    } catch (error) {
+      console.error("Error fetching deal gross:", error);
+      res.status(500).json({ message: "Failed to fetch deal gross" });
+    }
+  });
+
+  app.get("/api/deals/:id/accounting", async (req, res) => {
+    try {
+      const entries = await storage.getDealAccountingEntries(req.params.id);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching deal accounting entries:", error);
+      res.status(500).json({ message: "Failed to fetch deal accounting entries" });
+    }
+  });
+
+  app.post("/api/deals/:id/finalize", async (req, res) => {
+    try {
+      const deal = await storage.finalizeDeal(req.params.id);
+      if (!deal) {
+        return res.status(404).json({ message: "Deal not found" });
+      }
+      res.json(deal);
+    } catch (error) {
+      console.error("Error finalizing deal:", error);
+      res.status(500).json({ message: "Failed to finalize deal" });
+    }
+  });
+
   // VIN Decoder route
   app.post("/api/decode-vin", async (req, res) => {
     try {

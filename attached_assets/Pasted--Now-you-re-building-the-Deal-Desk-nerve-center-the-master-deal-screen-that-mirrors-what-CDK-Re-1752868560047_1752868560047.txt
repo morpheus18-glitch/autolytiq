@@ -1,0 +1,117 @@
+🔥 Now you’re building the Deal Desk nerve center — the master deal screen that mirrors what CDK, Reynolds & Reynolds, Dealertrack, and RouteOne use behind the scenes at real dealerships.
+
+This becomes the central authority for all structured deals — housing pricing, fees, gross, F&I reserve, commissions, and triggering accounting-side journal entries. It’s the digital contract factory, and you’re now building both Sales Desking + Deal Accounting systems.
+
+⸻
+
+🧠 ULTIMATE AI PROMPT: Create a Master Deal Screen with Finance & Accounting Integration
+
+⸻
+
+“Create a full master deal screen system that includes:
+
+🧾 1. Deal Structure Builder (Sales Desk View)
+	•	Vehicle info (VIN, MSRP, Sale Price, Trade Value, Payoff, Rebates)
+	•	Credit app status (Approved, Pending, Tier, Term)
+	•	Buyer, co-buyer, trade-in, deal type (Retail, Lease, Cash)
+	•	Front-end pricing fields:
+	•	Sale price
+	•	Trade allowance
+	•	Trade payoff
+	•	Cash down
+	•	Rebates
+	•	Sales tax (by ZIP or default %)
+	•	Doc fees, Title, Registration
+	•	F&I products (warranty, GAP, tire & wheel, etc.)
+	•	Final cash or finance balance
+	•	Auto-generated deal number (UUID or smart logic)
+	•	Statuses: Open, Finalized, Funded, Cancelled
+
+📄 2. Finance Print/Export View
+	•	Printable layout: buyer’s order, retail contract, warranty form
+	•	PDF generation or print-ready HTML
+	•	Auto-fill buyer data, pricing, and line items
+
+💰 3. Back-End Gross Profit & Finance Reserve Calculator
+	•	Calculates:
+	•	Front-end gross (sale price – cost – trade adjustment)
+	•	Finance reserve split (e.g., 2 pts over buy rate, shared w/ store & finance)
+	•	Warranty & product gross (retail price – cost)
+	•	Pack cost deduction
+	•	Net gross
+
+📚 4. Accounting Bridge (Simulated CDK/Reynolds Layer)
+	•	Generates accounting records from finalized deals
+	•	Each deal triggers journal entries like:
+	•	Debit: Vehicle Inventory
+	•	Credit: Sales Revenue
+	•	Debit: Accounts Receivable
+	•	Credit: F&I Product Reserve
+	•	Chart of Accounts with categories:
+	•	4010 Vehicle Sales Revenue
+	•	4020 Warranty Revenue
+	•	5030 Dealer Packs
+	•	1210 Receivables
+	•	3000 Deal Gross Reserve
+	•	Each deal record maps to:
+	•	Deal Number
+	•	Buyer Name
+	•	GL Entries
+	•	Exportable JSON or CSV batch
+
+📈 5. UI & Routing
+	•	/deals → All deals (filter by status, buyer, VIN)
+	•	/deals/:id → Master deal screen
+	•	Tabs or sections for: Structure | Print Forms | Finance | Accounting
+	•	State management: changing pricing or products updates gross & finance instantly
+	•	Secure actions for finance manager, sales manager, and accounting role-based access
+
+🧱 6. Database Models
+	•	Deal: id, status, vehicle, customer, terms, final structure
+	•	DealGross: calculated gross, reserves, pack
+	•	AccountingEntry: dealId, account, debit, credit, memo
+	•	F&IProduct: name, retail, cost, associated deal
+
+Build a working frontend scaffold, mock data, and placeholder gross calculator function. Routing must allow direct linking to deal by ID. Ensure printable view can be generated from deal state.”**
+
+⸻
+
+⚙️ Suggested File Tree (for Next.js / React App)
+
+/deals/
+├── index.tsx             # List of all deals
+├── [id]/
+│   ├── index.tsx         # Master Deal Screen
+│   ├── structure.tsx     # Deal builder
+│   ├── finance.tsx       # Gross + Reserve
+│   ├── print.tsx         # Print-ready export
+│   └── accounting.tsx    # Journal entry view
+/components/
+├── DealBuilderForm.tsx
+├── GrossCalculator.tsx
+├── AccountingTable.tsx
+/lib/
+├── pricingUtils.ts       # tax, reserve, calc logic
+├── accountingEngine.ts   # generates journal entries
+/models/
+├── deal.ts
+├── accountingEntry.ts
+
+
+⸻
+
+💣 Advanced Optional Instructions
+
+If you want this to get really smart:
+
+“Implement auto-packs by vehicle category, finance reserve caps by lender, and API export of journal entries to QuickBooks or CSV batch. Include manager override triggers for special pricing. Add audit trail of all changes made to a deal after ‘Finalized’ state.”
+
+⸻
+
+🔁 Need This Built?
+
+Say:
+	•	“Build me the full master deal screen with gross and accounting logic.”
+	•	Or: “Give me the working DealBuilderForm.tsx and gross profit logic tied to F&I products.”
+
+I’ll generate fully functioning scaffolded code with connected pricing + accounting simulation. Ready?
