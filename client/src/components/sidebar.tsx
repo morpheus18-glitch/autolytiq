@@ -1,5 +1,21 @@
 import { Link, useLocation } from "wouter";
-import { Car, BarChart3, Handshake, Users, TrendingUp, Settings, Target, Wrench, DollarSign, Shield, Building, Calculator } from "lucide-react";
+import { 
+  Car, 
+  BarChart3, 
+  Handshake, 
+  Users, 
+  TrendingUp, 
+  Settings, 
+  Target, 
+  Wrench, 
+  DollarSign, 
+  Shield, 
+  Building, 
+  Calculator,
+  Menu,
+  X
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
@@ -53,94 +69,140 @@ const navigation = [
   },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onToggle: () => void;
+}
+
+export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
   const [location] = useLocation();
 
   return (
-    <div className="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col">
-      {/* Logo and Brand */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-            <Car className="text-white text-lg" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">DMD</h1>
-            <p className="text-sm text-gray-500">Dealership Management</p>
-          </div>
-        </div>
+    <>
+      {/* Mobile menu button */}
+      <div className="md:hidden fixed top-4 left-4 z-50">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onToggle}
+          className="bg-white shadow-md"
+        >
+          {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+        </Button>
       </div>
 
-      {/* Navigation Menu */}
-      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-        {navigation.map((item) => {
-          // Dashboard (standalone item)
-          if (item.href && !item.isSection) {
-            const Icon = item.icon;
-            const isActive = location === item.href;
-            
-            return (
-              <Link key={item.name} href={item.href}>
-                <a
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition-colors ${
-                    isActive
-                      ? "text-primary bg-blue-50"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span>{item.name}</span>
-                </a>
-              </Link>
-            );
-          }
-          
-          // Section headers with children
-          if (item.isSection && item.children) {
-            return (
-              <div key={item.name} className="space-y-1">
-                <div className="px-4 py-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                  {item.name}
-                </div>
-                {item.children.map((child) => {
-                  const Icon = child.icon;
-                  const isActive = location === child.href;
-                  
-                  return (
-                    <Link key={child.name} href={child.href}>
-                      <a
-                        className={`flex items-center space-x-3 px-4 py-2 rounded-lg font-medium transition-colors ${
-                          isActive
-                            ? "text-primary bg-blue-50"
-                            : "text-gray-600 hover:bg-gray-100"
-                        }`}
-                      >
-                        <Icon className="w-4 h-4" />
-                        <span>{child.name}</span>
-                      </a>
-                    </Link>
-                  );
-                })}
+      {/* Sidebar */}
+      <div className={`
+        sidebar
+        fixed md:relative
+        top-0 left-0
+        h-full
+        w-64 
+        bg-white 
+        shadow-lg 
+        border-r 
+        border-gray-200 
+        flex 
+        flex-col
+        z-50
+        transform 
+        transition-transform 
+        duration-300 
+        ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0
+      `}>
+        {/* Logo and Brand */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <Car className="text-white text-lg" />
               </div>
-            );
-          }
-          
-          return null;
-        })}
-      </nav>
-
-      {/* User Profile */}
-      <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-            <Users className="text-gray-600 w-5 h-5" />
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">DMD</h1>
+                <p className="text-sm text-gray-500">Dealership Management</p>
+              </div>
+            </div>
+            {/* Close button for mobile */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="md:hidden"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
-          <div>
-            <p className="font-medium text-gray-900">John Smith</p>
-            <p className="text-sm text-gray-500">Sales Manager</p>
+        </div>
+
+        {/* Navigation Menu */}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          {navigation.map((item) => {
+            if (item.isSection) {
+              return (
+                <div key={item.name}>
+                  <h3 className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {item.name}
+                  </h3>
+                  <div className="space-y-1">
+                    {item.children?.map((child) => {
+                      const isActive = location === child.href;
+                      const Icon = child.icon;
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className={`
+                            flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors
+                            ${isActive 
+                              ? 'bg-primary text-white' 
+                              : 'text-gray-700 hover:bg-gray-100'
+                            }
+                          `}
+                          onClick={onClose}
+                        >
+                          <Icon className="mr-3 h-4 w-4" />
+                          {child.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            } else {
+              const isActive = location === item.href;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`
+                    flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors
+                    ${isActive 
+                      ? 'bg-primary text-white' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                    }
+                  `}
+                  onClick={onClose}
+                >
+                  <Icon className="mr-3 h-4 w-4" />
+                  {item.name}
+                </Link>
+              );
+            }
+          })}
+        </nav>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-gray-200">
+          <div className="text-xs text-gray-500 text-center">
+            <p>© 2024 DMD System</p>
+            <p>v1.0.0</p>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
