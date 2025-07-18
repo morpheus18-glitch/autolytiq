@@ -278,55 +278,60 @@ export default function EnhancedCustomerSearch({
       />
 
       {/* Summary Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3">
             <div className="flex items-center space-x-2">
-              <Users className="h-5 w-5 text-blue-500" />
+              <Users className="h-4 w-4 text-blue-500" />
               <div>
-                <p className="text-sm text-gray-600">Total Customers</p>
-                <p className="text-2xl font-bold">{summaryStats.totalCustomers}</p>
+                <p className="text-xs text-gray-600">Total Customers</p>
+                <p className="text-lg font-bold">{summaryStats.totalCustomers}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3">
             <div className="flex items-center space-x-2">
-              <CreditCard className="h-5 w-5 text-green-500" />
+              <CreditCard className="h-4 w-4 text-green-500" />
               <div>
-                <p className="text-sm text-gray-600">Avg Credit Score</p>
-                <p className="text-2xl font-bold">{Math.round(summaryStats.avgCreditScore)}</p>
+                <p className="text-xs text-gray-600">Avg Credit Score</p>
+                <p className="text-lg font-bold">{Math.round(summaryStats.avgCreditScore)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3">
             <div className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-purple-500" />
+              <TrendingUp className="h-4 w-4 text-purple-500" />
               <div>
-                <p className="text-sm text-gray-600">Avg Income</p>
-                <p className="text-2xl font-bold">${summaryStats.avgIncome.toLocaleString()}</p>
+                <p className="text-xs text-gray-600">Avg Income</p>
+                <p className="text-lg font-bold">${summaryStats.avgIncome.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3">
             <div className="flex items-center space-x-2">
-              <User className="h-5 w-5 text-orange-500" />
+              <User className="h-4 w-4 text-orange-500" />
               <div>
-                <p className="text-sm text-gray-600">Status Breakdown</p>
+                <p className="text-xs text-gray-600">Status Breakdown</p>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {Object.entries(summaryStats.statusBreakdown).map(([status, count]) => (
+                  {Object.entries(summaryStats.statusBreakdown).slice(0, 2).map(([status, count]) => (
                     <Badge key={status} variant="secondary" className="text-xs">
                       {status}: {count}
                     </Badge>
                   ))}
+                  {Object.entries(summaryStats.statusBreakdown).length > 2 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{Object.entries(summaryStats.statusBreakdown).length - 2} more
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
@@ -349,24 +354,22 @@ export default function EnhancedCustomerSearch({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Credit Score</TableHead>
-                  <TableHead>Income</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Sales Consultant</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+          <div className="overflow-x-auto rounded-lg border">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b bg-gray-50">
+                  <th className="text-left p-3 font-medium text-sm">Customer</th>
+                  <th className="text-left p-3 font-medium text-sm hidden md:table-cell">Contact</th>
+                  <th className="text-left p-3 font-medium text-sm hidden lg:table-cell">Location</th>
+                  <th className="text-left p-3 font-medium text-sm hidden xl:table-cell">Credit</th>
+                  <th className="text-left p-3 font-medium text-sm hidden sm:table-cell">Status</th>
+                  <th className="text-left p-3 font-medium text-sm">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
                 {filteredData.map((customer) => (
-                  <TableRow key={customer.id}>
-                    <TableCell>
+                  <tr key={customer.id} className="border-b hover:bg-gray-50 transition-colors">
+                    <td className="p-3">
                       <div>
                         <div className="font-medium">
                           {customer.firstName} {customer.lastName}
@@ -374,9 +377,23 @@ export default function EnhancedCustomerSearch({
                         <div className="text-sm text-gray-500">
                           {customer.leadSource && `Source: ${customer.leadSource}`}
                         </div>
+                        <div className="md:hidden mt-1 space-y-1">
+                          {customer.email && (
+                            <div className="flex items-center text-xs text-gray-600">
+                              <Mail className="h-3 w-3 mr-1" />
+                              {customer.email}
+                            </div>
+                          )}
+                          {customer.phone && (
+                            <div className="flex items-center text-xs text-gray-600">
+                              <Phone className="h-3 w-3 mr-1" />
+                              {customer.phone}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </td>
+                    <td className="p-3 hidden md:table-cell">
                       <div className="space-y-1">
                         {customer.email && (
                           <div className="flex items-center text-sm">
@@ -391,8 +408,8 @@ export default function EnhancedCustomerSearch({
                           </div>
                         )}
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </td>
+                    <td className="p-3 hidden lg:table-cell">
                       <div className="flex items-center text-sm">
                         <MapPin className="h-4 w-4 mr-1" />
                         <div>
@@ -406,67 +423,66 @@ export default function EnhancedCustomerSearch({
                           )}
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      {customer.creditScore ? (
-                        <div className="font-semibold">{customer.creditScore}</div>
-                      ) : (
-                        <div className="text-gray-400">N/A</div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {customer.income ? (
-                        <div className="font-semibold">${customer.income.toLocaleString()}</div>
-                      ) : (
-                        <div className="text-gray-400">N/A</div>
-                      )}
-                    </TableCell>
-                    <TableCell>
+                    </td>
+                    <td className="p-3 hidden xl:table-cell">
+                      <div className="space-y-1">
+                        {customer.creditScore ? (
+                          <div className="font-semibold">{customer.creditScore}</div>
+                        ) : (
+                          <div className="text-gray-400">N/A</div>
+                        )}
+                        {customer.income && (
+                          <div className="text-sm text-gray-600">${customer.income.toLocaleString()}</div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-3 hidden sm:table-cell">
                       <Badge className={getStatusColor(customer.status)}>
                         {customer.status}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {customer.salesConsultant || "Unassigned"}
+                    </td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="sm:hidden">
+                          <Badge className={getStatusColor(customer.status)} variant="outline">
+                            {customer.status}
+                          </Badge>
+                        </div>
+                        <div className="flex gap-1">
+                          {onView && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => onView(customer)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {onEdit && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => onEdit(customer)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {onDelete && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => onDelete(customer.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        {onView && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onView(customer)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {onEdit && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onEdit(customer)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {onDelete && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onDelete(customer.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
             {filteredData.length === 0 && (
               <div className="text-center py-8 text-gray-500">
                 No customers found matching your search criteria.
