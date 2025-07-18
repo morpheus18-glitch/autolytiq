@@ -567,74 +567,95 @@ export default function ShowroomManager() {
                   No active sessions for {format(selectedDate, 'MMMM d, yyyy')}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-4">
-                  {activeSessions.map(session => (
-                    <Card
-                      key={session.id}
-                      className="hover:shadow-md transition-shadow cursor-pointer"
-                      onClick={() => {
-                        setSelectedSession(session);
-                        setIsEditDialogOpen(true);
-                      }}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                          <div className="flex-1 space-y-2">
+                <div className="overflow-x-auto rounded-lg border">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b bg-gray-50">
+                        <th className="text-left p-3 font-medium text-sm">Customer</th>
+                        <th className="text-left p-3 font-medium text-sm hidden md:table-cell">Vehicle</th>
+                        <th className="text-left p-3 font-medium text-sm hidden lg:table-cell">Time</th>
+                        <th className="text-left p-3 font-medium text-sm hidden md:table-cell">Stock #</th>
+                        <th className="text-left p-3 font-medium text-sm">Status</th>
+                        <th className="text-left p-3 font-medium text-sm hidden sm:table-cell">Stage</th>
+                        <th className="text-left p-3 font-medium text-sm">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {activeSessions.map(session => (
+                        <tr 
+                          key={session.id} 
+                          className="border-b hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="p-3">
                             <div className="flex items-center gap-2">
                               <User className="h-4 w-4 text-blue-600" />
-                              <span className="font-medium">{getCustomerName(session.customerId)}</span>
+                              <div>
+                                <div className="font-medium">{getCustomerName(session.customerId)}</div>
+                                <div className="text-sm text-gray-600 md:hidden">
+                                  {format(new Date(session.timeEntered), 'h:mm a')} - {getSessionDuration(session)}
+                                </div>
+                              </div>
                             </div>
-                            
+                          </td>
+                          <td className="p-3 hidden md:table-cell">
+                            {session.vehicleId ? (
+                              <div className="flex items-center gap-2">
+                                <Car className="h-4 w-4 text-gray-600" />
+                                <span className="text-sm">{getVehicleInfo(session.vehicleId)}</span>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="p-3 hidden lg:table-cell">
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                               <Clock className="h-4 w-4" />
                               <span>{format(new Date(session.timeEntered), 'h:mm a')} - {getSessionDuration(session)}</span>
                             </div>
-                            
-                            {session.vehicleId && (
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Car className="h-4 w-4" />
-                                <span>{getVehicleInfo(session.vehicleId)}</span>
-                              </div>
+                          </td>
+                          <td className="p-3 hidden md:table-cell">
+                            {session.stockNumber ? (
+                              <Badge variant="outline">{session.stockNumber}</Badge>
+                            ) : (
+                              <span className="text-gray-400">-</span>
                             )}
-                            
-                            {session.notes && (
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <FileText className="h-4 w-4" />
-                                <span className="truncate">{session.notes}</span>
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
-                            <div className="flex flex-wrap gap-2">
-                              {session.stockNumber && (
-                                <Badge variant="outline">{session.stockNumber}</Badge>
-                              )}
-                              <Badge className={stageColors[session.dealStage]}>
-                                {dealStages.find(s => s.value === session.dealStage)?.label}
-                              </Badge>
-                              <Badge className={statusColors[session.eventStatus]}>
-                                {eventStatuses.find(s => s.value === session.eventStatus)?.label}
-                              </Badge>
+                          </td>
+                          <td className="p-3">
+                            <Badge className={statusColors[session.eventStatus]}>
+                              {eventStatuses.find(s => s.value === session.eventStatus)?.label}
+                            </Badge>
+                          </td>
+                          <td className="p-3 hidden sm:table-cell">
+                            <Badge className={stageColors[session.dealStage]}>
+                              {dealStages.find(s => s.value === session.dealStage)?.label}
+                            </Badge>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedSession(session);
+                                  setIsEditDialogOpen(true);
+                                }}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                disabled={endSessionMutation.isPending}
+                                onClick={() => handleEndSession(session.id)}
+                              >
+                                {endSessionMutation.isPending ? 'Ending...' : 'End'}
+                              </Button>
                             </div>
-                            
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={endSessionMutation.isPending}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEndSession(session.id);
-                              }}
-                              className="w-full md:w-auto"
-                            >
-                              {endSessionMutation.isPending ? 'Ending...' : 'End Session'}
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </CardContent>
@@ -658,24 +679,47 @@ export default function ShowroomManager() {
                   No completed sessions for {format(selectedDate, 'MMMM d, yyyy')}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-4">
-                  {completedSessions.map(session => (
-                    <Card
-                      key={session.id}
-                      className="hover:shadow-md transition-shadow cursor-pointer"
-                      onClick={() => {
-                        setSelectedSession(session);
-                        setIsEditDialogOpen(true);
-                      }}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                          <div className="flex-1 space-y-2">
+                <div className="overflow-x-auto rounded-lg border">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b bg-gray-50">
+                        <th className="text-left p-3 font-medium text-sm">Customer</th>
+                        <th className="text-left p-3 font-medium text-sm hidden md:table-cell">Vehicle</th>
+                        <th className="text-left p-3 font-medium text-sm hidden lg:table-cell">Duration</th>
+                        <th className="text-left p-3 font-medium text-sm hidden md:table-cell">Stock #</th>
+                        <th className="text-left p-3 font-medium text-sm">Status</th>
+                        <th className="text-left p-3 font-medium text-sm hidden sm:table-cell">Stage</th>
+                        <th className="text-left p-3 font-medium text-sm">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {completedSessions.map(session => (
+                        <tr 
+                          key={session.id} 
+                          className="border-b hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="p-3">
                             <div className="flex items-center gap-2">
                               <User className="h-4 w-4 text-green-600" />
-                              <span className="font-medium">{getCustomerName(session.customerId)}</span>
+                              <div>
+                                <div className="font-medium">{getCustomerName(session.customerId)}</div>
+                                <div className="text-sm text-gray-600 md:hidden">
+                                  {format(new Date(session.timeEntered), 'h:mm a')} - {format(new Date(session.timeExited!), 'h:mm a')}
+                                </div>
+                              </div>
                             </div>
-                            
+                          </td>
+                          <td className="p-3 hidden md:table-cell">
+                            {session.vehicleId ? (
+                              <div className="flex items-center gap-2">
+                                <Car className="h-4 w-4 text-gray-600" />
+                                <span className="text-sm">{getVehicleInfo(session.vehicleId)}</span>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="p-3 hidden lg:table-cell">
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                               <Clock className="h-4 w-4" />
                               <span>
@@ -683,44 +727,46 @@ export default function ShowroomManager() {
                                 <span className="text-xs ml-2">({getSessionDuration(session)})</span>
                               </span>
                             </div>
-                            
-                            {session.vehicleId && (
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Car className="h-4 w-4" />
-                                <span>{getVehicleInfo(session.vehicleId)}</span>
-                              </div>
+                          </td>
+                          <td className="p-3 hidden md:table-cell">
+                            {session.stockNumber ? (
+                              <Badge variant="outline">{session.stockNumber}</Badge>
+                            ) : (
+                              <span className="text-gray-400">-</span>
                             )}
-                            
-                            {session.notes && (
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <FileText className="h-4 w-4" />
-                                <span className="truncate">{session.notes}</span>
+                          </td>
+                          <td className="p-3">
+                            <Badge className={statusColors[session.eventStatus]}>
+                              {eventStatuses.find(s => s.value === session.eventStatus)?.label}
+                            </Badge>
+                          </td>
+                          <td className="p-3 hidden sm:table-cell">
+                            <Badge className={stageColors[session.dealStage]}>
+                              {dealStages.find(s => s.value === session.dealStage)?.label}
+                            </Badge>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedSession(session);
+                                  setIsEditDialogOpen(true);
+                                }}
+                              >
+                                View
+                              </Button>
+                              <div className="flex items-center gap-1 text-sm text-gray-500">
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                                <span className="hidden sm:inline">Done</span>
                               </div>
-                            )}
-                          </div>
-                          
-                          <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
-                            <div className="flex flex-wrap gap-2">
-                              {session.stockNumber && (
-                                <Badge variant="outline">{session.stockNumber}</Badge>
-                              )}
-                              <Badge className={stageColors[session.dealStage]}>
-                                {dealStages.find(s => s.value === session.dealStage)?.label}
-                              </Badge>
-                              <Badge className={statusColors[session.eventStatus]}>
-                                {eventStatuses.find(s => s.value === session.eventStatus)?.label}
-                              </Badge>
                             </div>
-                            
-                            <div className="flex items-center gap-1 text-sm text-gray-500">
-                              <CheckCircle className="h-4 w-4" />
-                              <span>Completed</span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </CardContent>
