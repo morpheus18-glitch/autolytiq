@@ -6,6 +6,8 @@ import { competitiveScraper } from "./services/competitive-scraper";
 import { registerAdminRoutes } from "./admin-routes";
 import { decodeVINHandler } from "./services/vin-decoder";
 import { mlBackend } from "./ml-integration";
+import { valuationService } from './services/valuation-service';
+import { photoService } from './services/photo-service';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Vehicle routes
@@ -268,6 +270,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Valuation refresh error:', error);
       res.status(500).json({ message: "Failed to refresh valuations", error: error.message });
+    }
+  });
+
+  // Vehicle photo generation route
+  app.post("/api/vehicles/:id/photos", async (req, res) => {
+    try {
+      const vehicleId = parseInt(req.params.id);
+      const vehicle = await storage.getVehicle(vehicleId);
+      
+      if (!vehicle) {
+        return res.status(404).json({ message: "Vehicle not found" });
+      }
+
+      const { generateVehiclePhotos } = await import('./services/photo-service');
+      const photos = await generateVehiclePhotos(
+        vehicleId, 
+        vehicle.make, 
+        vehicle.model, 
+        vehicle.year
+      );
+
+      // Update vehicle with photos
+      await storage.updateVehicle(vehicleId, { media: photos });
+
+      res.json({ photos });
+    } catch (error) {
+      console.error('Error generating vehicle photos:', error);
+      res.status(500).json({ message: "Failed to generate photos" });
+    }
+  });
+
+  // Vehicle pricing update with history tracking
+  app.put("/api/vehicles/:id/pricing", async (req, res) => {
+    try {
+      const vehicleId = parseInt(req.params.id);
+      const { price, reason, user } = req.body;
+      
+      const vehicle = await storage.getVehicle(vehicleId);
+      if (!vehicle) {
+        return res.status(404).json({ message: "Vehicle not found" });
+      }
+
+      // Create price history entry
+      const priceHistoryEntry = {
+        price: price,
+        user: user || 'System',
+        timestamp: new Date().toISOString(),
+        reason: reason || 'Price update'
+      };
+
+      // Add to existing price history or create new array
+      const currentPriceHistory = vehicle.priceHistory || [];
+      const updatedPriceHistory = [...currentPriceHistory, priceHistoryEntry];
+
+      // Create audit log entry
+      const auditLogEntry = {
+        user: user || 'System',
+        action: `Price updated from $${vehicle.price} to $${price}`,
+        timestamp: new Date().toISOString(),
+        details: reason
+      };
+
+      const currentAuditLogs = vehicle.auditLogs || [];
+      const updatedAuditLogs = [...currentAuditLogs, auditLogEntry];
+
+      // Update vehicle with new price and history
+      const updatedVehicle = await storage.updateVehicle(vehicleId, {
+        price: price,
+        priceHistory: updatedPriceHistory,
+        auditLogs: updatedAuditLogs
+      });
+
+      res.json({
+        vehicle: updatedVehicle,
+        priceHistory: updatedPriceHistory
+      });
+    } catch (error) {
+      console.error('Error updating vehicle pricing:', error);
+      res.status(500).json({ message: "Failed to update pricing" });
     }
   });
 
