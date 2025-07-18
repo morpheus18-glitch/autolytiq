@@ -69,7 +69,8 @@ export const vehicles = pgTable("vehicles", {
   imageUrl: text("image_url"),
   media: json("media").$type<Array<{url: string; label: string; type: string}>>(),
   valuations: json("valuations").$type<{kbb?: number; mmr?: number; blackBook?: number; jdPower?: number}>(),
-  auditLogs: json("audit_logs").$type<Array<{user: string; action: string; timestamp: string}>>(),
+  auditLogs: json("audit_logs").$type<Array<{user: string; action: string; timestamp: string; details?: string}>>(),
+  priceHistory: json("price_history").$type<Array<{price: number; user: string; timestamp: string; reason?: string}>>(),
   tags: json("tags").$type<string[]>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -887,3 +888,24 @@ export type DealApproval = typeof dealApprovals.$inferSelect;
 export type InsertDeal = z.infer<typeof insertDealSchema>;
 export type InsertDealDocument = z.infer<typeof insertDealDocumentSchema>;
 export type InsertDealApproval = z.infer<typeof insertDealApprovalSchema>;
+
+// Additional interfaces for vehicle management
+export interface MediaItem {
+  url: string;
+  label: string;
+  type: string;
+}
+
+export interface PriceHistoryEntry {
+  price: number;
+  user: string;
+  timestamp: string;
+  reason?: string;
+}
+
+export interface AuditLogEntry {
+  user: string;
+  action: string;
+  timestamp: string;
+  details?: string;
+}

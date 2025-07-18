@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Vehicle } from '@shared/schema';
+import axios from 'axios';
 
 interface ValuationData {
   kbb?: number;
@@ -68,6 +69,10 @@ export default function VehicleDetail() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [newTag, setNewTag] = useState('');
   const [newNote, setNewNote] = useState('');
+  const [pricingData, setPricingData] = useState({
+    price: 0,
+    reason: ''
+  });
 
   const { data: vehicle, isLoading } = useQuery<Vehicle>({
     queryKey: ['/api/vehicles', id],
@@ -118,9 +123,42 @@ export default function VehicleDetail() {
     },
   });
 
+  const generatePhotosMutation = useMutation({
+    mutationFn: async () => {
+      const response = await axios.post(`/api/vehicles/${id}/photos`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/vehicles', id] });
+      toast({ title: 'Photos generated successfully' });
+    },
+    onError: () => {
+      toast({ title: 'Failed to generate photos', variant: 'destructive' });
+    },
+  });
+
+  const updatePricingMutation = useMutation({
+    mutationFn: async (data: { price: number; reason: string; user: string }) => {
+      const response = await axios.put(`/api/vehicles/${id}/pricing`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/vehicles', id] });
+      toast({ title: 'Pricing updated successfully' });
+      setPricingData({ price: 0, reason: '' });
+    },
+    onError: () => {
+      toast({ title: 'Failed to update pricing', variant: 'destructive' });
+    },
+  });
+
   useEffect(() => {
     if (vehicle) {
       setEditData(vehicle);
+      setPricingData({
+        price: vehicle.price || 0,
+        reason: ''
+      });
     }
   }, [vehicle]);
 
@@ -277,8 +315,8 @@ export default function VehicleDetail() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium text-blue-600">Mileage</p>
-                  <p className="text-lg font-bold text-blue-900">
-                    {vehicle.mileage?.toLocaleString() || 'N/A'}
+  <p className="text-lg font-bold text-blue-900">
+                    {vehicle?.mileage?.toLocaleString() || 'N/A'}
                   </p>
                 </div>
                 <TrendingUp className="h-6 w-6 text-blue-600" />
@@ -333,7 +371,7 @@ export default function VehicleDetail() {
         <div className="bg-white rounded-lg shadow-sm border">
           <Tabs defaultValue="details" className="w-full">
             <div className="border-b border-gray-200 bg-gray-50 rounded-t-lg overflow-x-auto">
-              <TabsList className="grid w-full grid-cols-5 bg-transparent h-auto p-0 min-w-max">
+              <TabsList className="grid w-full grid-cols-6 bg-transparent h-auto p-0 min-w-max">
                 <TabsTrigger 
                   value="details" 
                   className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-3 px-3 sm:px-6 font-medium text-xs sm:text-sm whitespace-nowrap"
@@ -361,6 +399,13 @@ export default function VehicleDetail() {
                 >
                   <Image className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   Media
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="pricing"
+                  className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-3 px-3 sm:px-6 font-medium text-xs sm:text-sm whitespace-nowrap"
+                >
+                  <Tag className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  Pricing
                 </TabsTrigger>
                 <TabsTrigger 
                   value="notes"
@@ -663,10 +708,20 @@ export default function VehicleDetail() {
                       <div className="text-center py-12">
                         <Image className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                         <p className="text-gray-500">No media available</p>
-                        <Button variant="outline" className="mt-4">
-                          <Upload className="w-4 h-4 mr-2" />
-                          Upload Media
-                        </Button>
+                        <div className="space-y-2 mt-4">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => generatePhotosMutation.mutate()}
+                            disabled={generatePhotosMutation.isPending}
+                          >
+                            <Image className="w-4 h-4 mr-2" />
+                            {generatePhotosMutation.isPending ? 'Generating...' : 'Generate Stock Photos'}
+                          </Button>
+                          <Button variant="outline">
+                            <Upload className="w-4 h-4 mr-2" />
+                            Upload Media
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </CardContent>
@@ -687,6 +742,94 @@ export default function VehicleDetail() {
                         className="flex-1"
                       />
                       <Button onClick={handleAddNote}>Add</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="pricing" className="p-4 space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <DollarSign className="w-5 h-5" />
+                      Pricing Management
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Current Pricing */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-600">Current List Price</span>
+                        <span className="text-2xl font-bold text-green-600">
+                          ${vehicle?.price?.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Price Update Form */}
+                    <div className="border rounded-lg p-4 space-y-3">
+                      <h4 className="font-medium text-gray-900">Update Pricing</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <Label htmlFor="new-price">New Price</Label>
+                          <Input
+                            id="new-price"
+                            type="number"
+                            value={pricingData.price}
+                            onChange={(e) => setPricingData({
+                              ...pricingData,
+                              price: parseInt(e.target.value) || 0
+                            })}
+                            placeholder="Enter new price"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="price-reason">Reason (Optional)</Label>
+                          <Input
+                            id="price-reason"
+                            value={pricingData.reason}
+                            onChange={(e) => setPricingData({
+                              ...pricingData,
+                              reason: e.target.value
+                            })}
+                            placeholder="e.g., Market adjustment"
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => updatePricingMutation.mutate({
+                          price: pricingData.price,
+                          reason: pricingData.reason,
+                          user: 'Current User'
+                        })}
+                        disabled={updatePricingMutation.isPending || pricingData.price === 0}
+                        className="w-full sm:w-auto"
+                      >
+                        {updatePricingMutation.isPending ? 'Updating...' : 'Update Price'}
+                      </Button>
+                    </div>
+
+                    {/* Price History */}
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-3">Price History</h4>
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {vehicle?.priceHistory?.map((entry, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                            <div>
+                              <p className="font-medium">${entry.price.toLocaleString()}</p>
+                              <p className="text-sm text-gray-500">{entry.reason || 'Price update'}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm text-gray-600">{entry.user}</p>
+                              <p className="text-xs text-gray-500">
+                                {format(new Date(entry.timestamp), 'MMM dd, yyyy HH:mm')}
+                              </p>
+                            </div>
+                          </div>
+                        )) || (
+                          <p className="text-gray-500 text-center py-4">No price history available</p>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
