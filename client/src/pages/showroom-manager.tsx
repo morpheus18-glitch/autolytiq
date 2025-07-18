@@ -104,25 +104,28 @@ export default function ShowroomManager() {
   // Fetch showroom sessions for the selected date
   const { data: sessions = [], isLoading } = useQuery<ShowroomSession[]>({
     queryKey: ['/api/showroom-sessions', dateString],
-    queryFn: () => apiRequest(`/api/showroom-sessions?date=${dateString}`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/showroom-sessions?date=${dateString}`);
+      return response.json();
+    },
   });
 
   // Fetch customers for dropdown
-  const { data: customers = [] } = useQuery<Customer[]>({
+  const { data: customers = [], isLoading: customersLoading, error: customersError } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
-    queryFn: () => apiRequest('/api/customers'),
   });
 
   // Fetch vehicles for dropdown
-  const { data: vehicles = [] } = useQuery<Vehicle[]>({
+  const { data: vehicles = [], isLoading: vehiclesLoading, error: vehiclesError } = useQuery<Vehicle[]>({
     queryKey: ['/api/vehicles'],
-    queryFn: () => apiRequest('/api/vehicles'),
   });
 
   // Ensure data is properly handled as arrays
   const safeCustomers = Array.isArray(customers) ? customers : [];
   const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
   const safeSessions = Array.isArray(sessions) ? sessions : [];
+
+  // Debug logging removed - data is loading correctly
 
   // Create session mutation
   const createSessionMutation = useMutation({
