@@ -189,188 +189,195 @@ export default function VehicleDetail() {
   const currentMedia = mediaItems[currentImageIndex];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Professional Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center space-x-4">
+    <div className="flex-1 overflow-auto bg-gray-50">
+      {/* Mobile-Optimized Header */}
+      <div className="bg-white shadow-sm border-b sticky top-0 z-10">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
               <Button
                 variant="ghost"
+                size="sm"
                 onClick={() => navigate('/inventory')}
                 className="text-gray-500 hover:text-gray-700"
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Inventory
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                <span className="hidden sm:inline">Back</span>
               </Button>
-              <div className="border-l border-gray-300 pl-4">
-                <h1 className="text-2xl font-bold text-gray-900">
+              <div>
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900">
                   {vehicle.year} {vehicle.make} {vehicle.model}
                 </h1>
-                <div className="flex items-center space-x-4 mt-1">
-                  <p className="text-sm text-gray-500 font-mono">VIN: {vehicle.vin}</p>
+                <div className="flex items-center space-x-2 mt-1">
                   <Badge 
                     variant={vehicle.status === 'available' ? 'default' : 'secondary'}
                     className="uppercase text-xs"
                   >
                     {vehicle.status}
                   </Badge>
-                  <span className="text-lg font-bold text-green-600">
+                  <span className="text-sm font-bold text-green-600">
                     ${vehicle.price?.toLocaleString()}
                   </span>
                 </div>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
               {!isEditing ? (
-                <>
-                  <Button variant="outline" size="sm">
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload Media
-                  </Button>
-                  <Button onClick={() => setIsEditing(true)} className="bg-blue-600 hover:bg-blue-700">
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit Vehicle
-                  </Button>
-                </>
+                <Button 
+                  onClick={() => setIsEditing(true)} 
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Edit className="w-4 h-4 mr-1" />
+                  <span className="hidden sm:inline">Edit</span>
+                </Button>
               ) : (
                 <>
                   <Button 
                     variant="outline" 
+                    size="sm"
                     onClick={handleCancel}
-                    className="border-gray-300"
                   >
-                    <X className="w-4 h-4 mr-2" />
-                    Cancel
+                    <X className="w-4 h-4" />
                   </Button>
                   <Button 
                     onClick={handleSave} 
+                    size="sm"
                     disabled={updateVehicleMutation.isPending}
                     className="bg-green-600 hover:bg-green-700"
                   >
-                    <Save className="w-4 h-4 mr-2" />
-                    {updateVehicleMutation.isPending ? 'Saving...' : 'Save Changes'}
+                    <Save className="w-4 h-4 mr-1" />
+                    <span className="hidden sm:inline">
+                      {updateVehicleMutation.isPending ? 'Saving...' : 'Save'}
+                    </span>
                   </Button>
                 </>
               )}
             </div>
           </div>
+          
+          {/* Mobile VIN Display */}
+          <div className="mt-2 sm:hidden">
+            <p className="text-xs text-gray-500 font-mono">VIN: {vehicle.vin}</p>
+          </div>
+          
+          {/* Desktop VIN Display */}
+          <div className="hidden sm:block mt-1">
+            <p className="text-sm text-gray-500 font-mono">VIN: {vehicle.vin}</p>
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Left Column - Vehicle Details */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* Quick Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <Card className="bg-gradient-to-r from-blue-50 to-blue-100">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-blue-600">Mileage</p>
-                      <p className="text-2xl font-bold text-blue-900">
-                        {vehicle.mileage?.toLocaleString() || 'N/A'}
-                      </p>
-                    </div>
-                    <TrendingUp className="h-8 w-8 text-blue-600" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-gradient-to-r from-green-50 to-green-100">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-green-600">List Price</p>
-                      <p className="text-2xl font-bold text-green-900">
-                        ${vehicle.price?.toLocaleString()}
-                      </p>
-                    </div>
-                    <DollarSign className="h-8 w-8 text-green-600" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-gradient-to-r from-purple-50 to-purple-100">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-purple-600">Days on Lot</p>
-                      <p className="text-2xl font-bold text-purple-900">
-                        {vehicle.createdAt ? Math.floor((Date.now() - new Date(vehicle.createdAt).getTime()) / (1000 * 60 * 60 * 24)) : 0}
-                      </p>
-                    </div>
-                    <Calendar className="h-8 w-8 text-purple-600" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-gradient-to-r from-orange-50 to-orange-100">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-orange-600">Market Value</p>
-                      <p className="text-2xl font-bold text-orange-900">
-                        ${valuations?.kbb?.toLocaleString() || 'Loading...'}
-                      </p>
-                    </div>
-                    <BarChart3 className="h-8 w-8 text-orange-600" />
-                  </div>
-                </CardContent>
-              </Card>
+      <div className="p-4 space-y-4">
+        {/* Quick Stats Cards - Mobile Optimized */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <Card className="bg-gradient-to-r from-blue-50 to-blue-100">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-blue-600">Mileage</p>
+                  <p className="text-lg font-bold text-blue-900">
+                    {vehicle.mileage?.toLocaleString() || 'N/A'}
+                  </p>
+                </div>
+                <TrendingUp className="h-6 w-6 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-r from-green-50 to-green-100">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-green-600">List Price</p>
+                  <p className="text-lg font-bold text-green-900">
+                    ${vehicle.price?.toLocaleString()}
+                  </p>
+                </div>
+                <DollarSign className="h-6 w-6 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-r from-purple-50 to-purple-100">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-purple-600">Days on Lot</p>
+                  <p className="text-lg font-bold text-purple-900">
+                    {vehicle.createdAt ? Math.floor((Date.now() - new Date(vehicle.createdAt).getTime()) / (1000 * 60 * 60 * 24)) : 0}
+                  </p>
+                </div>
+                <Calendar className="h-6 w-6 text-purple-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-r from-orange-50 to-orange-100">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-orange-600">Market Value</p>
+                  <p className="text-lg font-bold text-orange-900">
+                    ${valuations?.kbb?.toLocaleString() || 'Loading...'}
+                  </p>
+                </div>
+                <BarChart3 className="h-6 w-6 text-orange-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Mobile-Optimized Tabbed Interface */}
+        <div className="bg-white rounded-lg shadow-sm border">
+          <Tabs defaultValue="details" className="w-full">
+            <div className="border-b border-gray-200 bg-gray-50 rounded-t-lg overflow-x-auto">
+              <TabsList className="grid w-full grid-cols-5 bg-transparent h-auto p-0 min-w-max">
+                <TabsTrigger 
+                  value="details" 
+                  className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-3 px-3 sm:px-6 font-medium text-xs sm:text-sm whitespace-nowrap"
+                >
+                  <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Vehicle </span>Details
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="valuations"
+                  className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-3 px-3 sm:px-6 font-medium text-xs sm:text-sm whitespace-nowrap"
+                >
+                  <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Market </span>Valuations
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="history"
+                  className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-3 px-3 sm:px-6 font-medium text-xs sm:text-sm whitespace-nowrap"
+                >
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Price </span>History
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="media"
+                  className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-3 px-3 sm:px-6 font-medium text-xs sm:text-sm whitespace-nowrap"
+                >
+                  <Image className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  Media
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="notes"
+                  className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-3 px-3 sm:px-6 font-medium text-xs sm:text-sm whitespace-nowrap"
+                >
+                  <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  Notes
+                </TabsTrigger>
+              </TabsList>
             </div>
 
-            {/* Professional Tabbed Interface */}
-            <div className="bg-white rounded-lg shadow-sm border">
-              <Tabs defaultValue="details" className="w-full">
-                <div className="border-b border-gray-200 bg-gray-50 rounded-t-lg">
-                  <TabsList className="grid w-full grid-cols-5 bg-transparent h-auto p-0">
-                    <TabsTrigger 
-                      value="details" 
-                      className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-4 px-6 font-medium"
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      Vehicle Details
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="valuations"
-                      className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-4 px-6 font-medium"
-                    >
-                      <DollarSign className="w-4 h-4 mr-2" />
-                      Market Valuations
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="history"
-                      className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-4 px-6 font-medium"
-                    >
-                      <Clock className="w-4 h-4 mr-2" />
-                      Price History
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="media"
-                      className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-4 px-6 font-medium"
-                    >
-                      <Image className="w-4 h-4 mr-2" />
-                      Media Gallery
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="notes"
-                      className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-4 px-6 font-medium"
-                    >
-                      <User className="w-4 h-4 mr-2" />
-                      Notes & History
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
-
-                <TabsContent value="details" className="p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Basic Information */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="font-semibold text-gray-900 mb-3">Basic Information</h3>
-                      <div className="grid grid-cols-2 gap-3">
+            <TabsContent value="details" className="p-4 space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Basic Information */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-gray-900 mb-3">Basic Information</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <Label className="text-sm font-medium text-gray-600">Make</Label>
                           {isEditing ? (
@@ -417,10 +424,10 @@ export default function VehicleDetail() {
                       </div>
                     </div>
 
-                    {/* Vehicle Specifications */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="font-semibold text-gray-900 mb-3">Specifications</h3>
-                      <div className="grid grid-cols-2 gap-3">
+                {/* Vehicle Specifications */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-gray-900 mb-3">Specifications</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <Label className="text-sm font-medium text-gray-600">Mileage</Label>
                           {isEditing ? (
@@ -457,10 +464,12 @@ export default function VehicleDetail() {
                       </div>
                     </div>
 
-                    {/* Pricing & Status */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="font-semibold text-gray-900 mb-3">Pricing & Status</h3>
-                      <div className="grid grid-cols-2 gap-3">
+              </div>
+              
+              {/* Pricing & Status - Full Width */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900 mb-3">Pricing & Status</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <Label className="text-sm font-medium text-gray-600">List Price</Label>
                           {isEditing ? (
@@ -514,11 +523,10 @@ export default function VehicleDetail() {
                               {vehicle.description || 'No description available'}
                             </p>
                           )}
-                        </div>
-                      </div>
-                    </div>
                   </div>
-                </TabsContent>
+                </div>
+              </div>
+            </TabsContent>
 
                 <TabsContent value="valuations" className="p-6 space-y-6">
                 <Card>
@@ -683,18 +691,17 @@ export default function VehicleDetail() {
                   </CardContent>
                 </Card>
               </TabsContent>
-              </Tabs>
-            </div>
-          </div>
+          </Tabs>
+        </div>
 
-          {/* Right Column - Tags and Quick Actions */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Tags */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Tags</CardTitle>
-              </CardHeader>
-              <CardContent>
+        {/* Tags and Quick Actions - Mobile Optimized */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Tags */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">Tags</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
                 <div className="flex flex-wrap gap-2 mb-4">
                   {vehicle.tags?.map((tag, index) => (
                     <Badge key={index} variant="secondary" className="flex items-center gap-1">
@@ -721,31 +728,30 @@ export default function VehicleDetail() {
                     />
                     <Button onClick={handleAddTag}>Add</Button>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+            )}
+            </CardContent>
+          </Card>
 
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button className="w-full" variant="outline">
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Generate Pricing Report
-                </Button>
-                <Button className="w-full" variant="outline">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Download PDF Report
-                </Button>
-                <Button className="w-full" variant="outline">
-                  <Eye className="w-4 h-4 mr-2" />
-                  Preview Listing
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 space-y-2">
+              <Button className="w-full" variant="outline" size="sm">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                <span className="text-xs">Generate Pricing Report</span>
+              </Button>
+              <Button className="w-full" variant="outline" size="sm">
+                <FileText className="w-4 h-4 mr-2" />
+                <span className="text-xs">Download PDF Report</span>
+              </Button>
+              <Button className="w-full" variant="outline" size="sm">
+                <Eye className="w-4 h-4 mr-2" />
+                <span className="text-xs">Preview Listing</span>
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
