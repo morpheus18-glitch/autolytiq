@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { apiRequest } from '@/lib/queryClient';
@@ -17,6 +18,7 @@ export default function Inventory() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { trackInteraction } = usePixelTracker();
+  const [, setLocation] = useLocation();
   
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -73,8 +75,8 @@ export default function Inventory() {
 
   const handleView = (vehicle: Vehicle) => {
     trackInteraction('vehicle_view', `vehicle-${vehicle.id}`, vehicle.id);
-    // Navigate to vehicle detail page
-    window.location.href = `/inventory/${vehicle.id}`;
+    // Navigate to vehicle detail page using wouter
+    setLocation(`/inventory/${vehicle.id}`);
   };
 
   const handleDelete = (id: number) => {
