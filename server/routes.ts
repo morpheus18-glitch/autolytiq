@@ -170,7 +170,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Set session
         req.session.user = masterUser;
         req.session.loginTime = new Date();
-
+        
+        // Save session explicitly
         console.log('🔑 Master account login successful');
         return res.json({
           success: true,

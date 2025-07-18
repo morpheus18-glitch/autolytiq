@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Shield, Lock, User, AlertTriangle } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
 
@@ -25,9 +25,9 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [showPassword, setShowPassword] = useState(false);
   const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
-  const [showMasterInfo, setShowMasterInfo] = useState(false);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -41,6 +41,10 @@ export default function Login() {
   const loginMutation = useMutation({
     mutationFn: async (data: LoginForm) => {
       const response = await apiRequest('POST', '/api/auth/login', data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
+      }
       return response.json();
     },
     onSuccess: (data) => {
@@ -55,7 +59,9 @@ export default function Login() {
           title: 'Login Successful',
           description: `Welcome back, ${data.user.username}!`,
         });
-        setLocation('/dashboard');
+        // Invalidate the auth session query to refresh authentication state
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/session'] });
+        setLocation('/');
       }
     },
     onError: (error: any) => {
@@ -166,33 +172,11 @@ export default function Login() {
 
             <Separator className="my-6" />
 
-            {/* Master Account Information */}
-            <div className="space-y-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => setShowMasterInfo(!showMasterInfo)}
-              >
-                <AlertTriangle className="h-4 w-4 mr-2" />
-                Show Master Account Info
-              </Button>
-
-              {showMasterInfo && (
-                <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-900/20">
-                  <AlertTriangle className="h-4 w-4 text-amber-600" />
-                  <AlertDescription className="text-sm">
-                    <div className="space-y-2">
-                      <p className="font-semibold text-amber-800 dark:text-amber-200">Master Account Credentials:</p>
-                      <div className="font-mono text-xs bg-white dark:bg-gray-800 p-2 rounded border">
-                        <p><strong>Username:</strong> master_admin</p>
-                        <p><strong>Password:</strong> AutolytiQ2025!Master</p>
-                        <p className="text-amber-600 mt-1">* Bypasses 2FA for initial setup</p>
-                      </div>
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              )}
+            {/* Hidden Master Account Access */}
+            <div className="text-center">
+              <p className="text-xs text-gray-500">
+                For initial setup assistance, contact system administrator
+              </p>
             </div>
           </CardContent>
         </Card>
