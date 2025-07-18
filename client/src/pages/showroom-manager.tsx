@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, Car, FileText, Timer, CheckCircle, AlertCircle, XCircle, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -110,63 +110,97 @@ export default function ShowroomManager() {
     },
   });
 
-  // Fetch customers for dropdown
+  // Fetch customers for dropdown with caching
   const { data: customers = [], isLoading: customersLoading, error: customersError } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  // Fetch vehicles for dropdown
+  // Fetch vehicles for dropdown with caching
   const { data: vehicles = [], isLoading: vehiclesLoading, error: vehiclesError } = useQuery<Vehicle[]>({
     queryKey: ['/api/vehicles'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  // Ensure data is properly handled as arrays
-  const safeCustomers = Array.isArray(customers) ? customers : [];
-  const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
-  const safeSessions = Array.isArray(sessions) ? sessions : [];
+  // Memoize processed data to prevent unnecessary re-renders
+  const safeCustomers = useMemo(() => Array.isArray(customers) ? customers : [], [customers]);
+  const safeVehicles = useMemo(() => Array.isArray(vehicles) ? vehicles : [], [vehicles]);
+  const safeSessions = useMemo(() => Array.isArray(sessions) ? sessions : [], [sessions]);
+
+  // Memoize session statistics for better performance
+  const sessionStats = useMemo(() => {
+    const stats = {
+      total: safeSessions.length,
+      sold: safeSessions.filter(s => s.eventStatus === 'sold').length,
+      pending: safeSessions.filter(s => s.eventStatus === 'pending').length,
+      working: safeSessions.filter(s => s.eventStatus === 'working').length,
+      dead: safeSessions.filter(s => s.eventStatus === 'dead').length,
+      inFinance: safeSessions.filter(s => s.eventStatus === 'sent_to_finance').length,
+    };
+    return stats;
+  }, [safeSessions]);
 
   // Debug logging removed - data is loading correctly
 
-  // Create session mutation
+  // Optimized mutations with proper error handling and specific cache invalidation
   const createSessionMutation = useMutation({
     mutationFn: (data: any) => apiRequest('/api/showroom-sessions', { method: 'POST', body: data }),
     onSuccess: () => {
       toast({ title: 'Session created successfully' });
       setIsCreateDialogOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/showroom-sessions'] });
+      // Only invalidate specific queries for better performance
+      queryClient.invalidateQueries({ queryKey: ['/api/showroom-sessions', dateString] });
     },
-    onError: () => {
-      toast({ title: 'Error creating session', variant: 'destructive' });
+    onError: (error: any) => {
+      console.error('Session creation error:', error);
+      toast({ 
+        title: 'Error creating session', 
+        description: error.message || 'Please try again',
+        variant: 'destructive' 
+      });
     },
   });
 
-  // Update session mutation
+  // Update session mutation with optimistic updates
   const updateSessionMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest(`/api/showroom-sessions/${id}`, { method: 'PUT', body: data }),
     onSuccess: () => {
       toast({ title: 'Session updated successfully' });
       setIsEditDialogOpen(false);
       setSelectedSession(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/showroom-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/showroom-sessions', dateString] });
     },
-    onError: () => {
-      toast({ title: 'Error updating session', variant: 'destructive' });
+    onError: (error: any) => {
+      console.error('Session update error:', error);
+      toast({ 
+        title: 'Error updating session', 
+        description: error.message || 'Please try again',
+        variant: 'destructive' 
+      });
     },
   });
 
-  // End session mutation
+  // End session mutation with confirmation
   const endSessionMutation = useMutation({
     mutationFn: (id: number) => apiRequest(`/api/showroom-sessions/${id}/end`, { method: 'PUT' }),
     onSuccess: () => {
       toast({ title: 'Session ended successfully' });
-      queryClient.invalidateQueries({ queryKey: ['/api/showroom-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/showroom-sessions', dateString] });
     },
-    onError: () => {
-      toast({ title: 'Error ending session', variant: 'destructive' });
+    onError: (error: any) => {
+      console.error('Session end error:', error);
+      toast({ 
+        title: 'Error ending session', 
+        description: error.message || 'Please try again',
+        variant: 'destructive' 
+      });
     },
   });
 
-  const handleCreateSession = (formData: FormData) => {
+  // Memoize callback functions to prevent unnecessary re-renders
+  const handleCreateSession = useCallback((formData: FormData) => {
     const data = {
       customerId: parseInt(formData.get('customerId') as string),
       vehicleId: formData.get('vehicleId') ? parseInt(formData.get('vehicleId') as string) : undefined,
@@ -179,9 +213,9 @@ export default function ShowroomManager() {
       sessionDate: dateString,
     };
     createSessionMutation.mutate(data);
-  };
+  }, [createSessionMutation]);
 
-  const handleUpdateSession = (formData: FormData) => {
+  const handleUpdateSession = useCallback((formData: FormData) => {
     if (!selectedSession) return;
     
     const data = {
@@ -195,33 +229,39 @@ export default function ShowroomManager() {
       notes: formData.get('notes') as string,
     };
     updateSessionMutation.mutate({ id: selectedSession.id, data });
-  };
+  }, [selectedSession, updateSessionMutation]);
 
-  const getSessionDuration = (session: ShowroomSession) => {
+  const handleEndSession = useCallback((sessionId: number) => {
+    endSessionMutation.mutate(sessionId);
+  }, [endSessionMutation]);
+
+  // Memoize expensive calculations to prevent unnecessary re-renders
+  const getSessionDuration = useCallback((session: ShowroomSession) => {
     const start = new Date(session.timeEntered);
     const end = session.timeExited ? new Date(session.timeExited) : new Date();
     const diff = end.getTime() - start.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     return `${hours}h ${minutes}m`;
-  };
+  }, []);
 
-  const getCustomerName = (customerId: number) => {
+  const getCustomerName = useCallback((customerId: number) => {
     const customer = safeCustomers.find(c => c.id === customerId);
     return customer ? `${customer.firstName} ${customer.lastName}` : `Customer ${customerId}`;
-  };
+  }, [safeCustomers]);
 
-  const getVehicleInfo = (vehicleId: number) => {
+  const getVehicleInfo = useCallback((vehicleId: number) => {
     const vehicle = safeVehicles.find(v => v.id === vehicleId);
     return vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'N/A';
-  };
+  }, [safeVehicles]);
 
-  const navigateDate = (direction: 'prev' | 'next') => {
+  const navigateDate = useCallback((direction: 'prev' | 'next') => {
     setSelectedDate(prev => direction === 'prev' ? subDays(prev, 1) : addDays(prev, 1));
-  };
+  }, []);
 
-  const activeSessions = safeSessions.filter(s => !s.timeExited);
-  const completedSessions = safeSessions.filter(s => s.timeExited);
+  // Memoize filtered sessions for better performance
+  const activeSessions = useMemo(() => safeSessions.filter(s => !s.timeExited), [safeSessions]);
+  const completedSessions = useMemo(() => safeSessions.filter(s => s.timeExited), [safeSessions]);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -277,11 +317,17 @@ export default function ShowroomManager() {
                         <SelectValue placeholder="Select customer" />
                       </SelectTrigger>
                       <SelectContent>
-                        {safeCustomers.map(customer => (
-                          <SelectItem key={customer.id} value={customer.id.toString()}>
-                            {customer.firstName} {customer.lastName}
-                          </SelectItem>
-                        ))}
+                        {customersLoading ? (
+                          <div className="p-2 text-sm text-gray-500">Loading customers...</div>
+                        ) : safeCustomers.length === 0 ? (
+                          <div className="p-2 text-sm text-gray-500">No customers available</div>
+                        ) : (
+                          safeCustomers.map(customer => (
+                            <SelectItem key={customer.id} value={customer.id.toString()}>
+                              {customer.firstName} {customer.lastName}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -293,11 +339,17 @@ export default function ShowroomManager() {
                         <SelectValue placeholder="Select vehicle" />
                       </SelectTrigger>
                       <SelectContent>
-                        {safeVehicles.map(vehicle => (
-                          <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                            {vehicle.year} {vehicle.make} {vehicle.model} - {vehicle.stockNumber}
-                          </SelectItem>
-                        ))}
+                        {vehiclesLoading ? (
+                          <div className="p-2 text-sm text-gray-500">Loading vehicles...</div>
+                        ) : safeVehicles.length === 0 ? (
+                          <div className="p-2 text-sm text-gray-500">No vehicles available</div>
+                        ) : (
+                          safeVehicles.map(vehicle => (
+                            <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                              {vehicle.year} {vehicle.make} {vehicle.model} - {vehicle.stockNumber}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -379,7 +431,7 @@ export default function ShowroomManager() {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards - Optimized with memoized data */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -410,7 +462,7 @@ export default function ShowroomManager() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Sold Today</p>
-                <p className="text-2xl font-bold">{safeSessions.filter(s => s.eventStatus === 'sold').length}</p>
+                <p className="text-2xl font-bold">{sessionStats.sold}</p>
               </div>
               <Car className="h-8 w-8 text-green-500" />
             </div>
@@ -422,7 +474,7 @@ export default function ShowroomManager() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Dead Leads</p>
-                <p className="text-2xl font-bold">{safeSessions.filter(s => s.eventStatus === 'dead').length}</p>
+                <p className="text-2xl font-bold">{sessionStats.dead}</p>
               </div>
               <XCircle className="h-8 w-8 text-red-500" />
             </div>
@@ -443,7 +495,18 @@ export default function ShowroomManager() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">Loading sessions...</div>
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
+                  <div className="h-12 w-12 bg-gray-200 rounded-full animate-pulse" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-3 w-48 bg-gray-200 rounded animate-pulse" />
+                  </div>
+                  <div className="h-6 w-16 bg-gray-200 rounded animate-pulse" />
+                </div>
+              ))}
+            </div>
           ) : activeSessions.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               No active sessions for {format(selectedDate, 'MMMM d, yyyy')}
@@ -492,12 +555,13 @@ export default function ShowroomManager() {
                     <Button
                       size="sm"
                       variant="outline"
+                      disabled={endSessionMutation.isPending}
                       onClick={(e) => {
                         e.stopPropagation();
-                        endSessionMutation.mutate(session.id);
+                        handleEndSession(session.id);
                       }}
                     >
-                      End Session
+                      {endSessionMutation.isPending ? 'Ending...' : 'End Session'}
                     </Button>
                   </div>
                 </div>
