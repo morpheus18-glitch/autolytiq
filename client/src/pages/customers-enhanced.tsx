@@ -88,45 +88,50 @@ export default function Customers() {
           <h1 className="text-2xl md:text-3xl font-bold">AutolytiQ - Customer Management</h1>
           <p className="text-gray-600">Advanced CRM with comprehensive customer analytics</p>
         </div>
-        <div className="flex flex-col md:flex-row gap-2">
-          <Button variant="outline" onClick={handleExport}>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button variant="outline" onClick={handleExport} size="sm" className="flex-1 sm:flex-none">
             <Download className="w-4 h-4 mr-2" />
-            Export
+            <span className="hidden sm:inline">Export</span>
           </Button>
-          <Button variant="outline" onClick={handleImport}>
+          <Button variant="outline" onClick={handleImport} size="sm" className="flex-1 sm:flex-none">
             <Upload className="w-4 h-4 mr-2" />
-            Import
+            <span className="hidden sm:inline">Import</span>
           </Button>
-          <Button onClick={handleAdd} className="bg-primary hover:bg-blue-700">
+          <Button onClick={handleAdd} className="bg-primary hover:bg-blue-700 flex-1 sm:flex-none" size="sm">
             <UserPlus className="w-4 h-4 mr-2" />
-            Add Customer
+            <span className="hidden sm:inline">Add Customer</span>
+            <span className="sm:hidden">Add</span>
           </Button>
         </div>
       </div>
 
       {/* View Mode Toggle */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'enhanced' | 'basic')}>
-          <TabsList>
-            <TabsTrigger value="enhanced" className="flex items-center gap-2">
+          <TabsList className="w-full md:w-auto">
+            <TabsTrigger value="enhanced" className="flex items-center gap-2 flex-1 md:flex-none">
               <SlidersHorizontal className="w-4 h-4" />
-              Enhanced Search
+              <span className="hidden sm:inline">Enhanced Search</span>
+              <span className="sm:hidden">Enhanced</span>
             </TabsTrigger>
-            <TabsTrigger value="basic" className="flex items-center gap-2">
+            <TabsTrigger value="basic" className="flex items-center gap-2 flex-1 md:flex-none">
               <List className="w-4 h-4" />
-              Basic View
+              <span className="hidden sm:inline">Basic View</span>
+              <span className="sm:hidden">Basic</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>
         
-        <div className="flex items-center gap-2">
-          <Badge variant="outline">
-            <Users className="w-4 h-4 mr-1" />
-            CRM Analytics
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge variant="outline" className="text-xs">
+            <Users className="w-3 h-3 mr-1" />
+            <span className="hidden sm:inline">CRM Analytics</span>
+            <span className="sm:hidden">CRM</span>
           </Badge>
-          <Badge variant="outline">
-            <BarChart3 className="w-4 h-4 mr-1" />
-            Sales Insights
+          <Badge variant="outline" className="text-xs">
+            <BarChart3 className="w-3 h-3 mr-1" />
+            <span className="hidden sm:inline">Sales Insights</span>
+            <span className="sm:hidden">Sales</span>
           </Badge>
         </div>
       </div>
