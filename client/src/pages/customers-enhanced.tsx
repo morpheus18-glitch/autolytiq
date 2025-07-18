@@ -9,6 +9,7 @@ import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { apiRequest } from '@/lib/queryClient';
 import EnhancedCustomerSearch from '@/components/enhanced-customer-search';
 import CustomerModal from '@/components/customer-modal';
+import CustomerDetailModal from '@/components/customer-detail-modal';
 import { 
   SlidersHorizontal, 
   List, 
@@ -28,6 +29,7 @@ export default function Customers() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'enhanced' | 'basic'>('enhanced');
 
   const deleteCustomerMutation = useMutation({
@@ -57,7 +59,8 @@ export default function Customers() {
 
   const handleView = (customer: Customer) => {
     trackInteraction('customer_view', `customer-${customer.id}`, customer.id);
-    // Could open a detailed view modal here
+    setSelectedCustomer(customer);
+    setIsDetailModalOpen(true);
   };
 
   const handleDelete = (id: number) => {
@@ -173,6 +176,15 @@ export default function Customers() {
         <CustomerModal
           open={isEditModalOpen}
           onOpenChange={setIsEditModalOpen}
+          customer={selectedCustomer}
+        />
+      )}
+
+      {/* Customer Detail Modal */}
+      {isDetailModalOpen && selectedCustomer && (
+        <CustomerDetailModal
+          open={isDetailModalOpen}
+          onOpenChange={setIsDetailModalOpen}
           customer={selectedCustomer}
         />
       )}
