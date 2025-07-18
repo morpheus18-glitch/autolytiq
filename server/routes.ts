@@ -67,6 +67,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // VIN decoder route
   app.get("/api/decode-vin/:vin", decodeVINHandler);
 
+  // Valuation routes
+  app.get("/api/valuations/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const vehicle = await storage.getVehicle(id);
+      if (!vehicle) {
+        return res.status(404).json({ message: "Vehicle not found" });
+      }
+      
+      // Mock valuation data - in production, this would call actual APIs
+      const mockValuations = {
+        kbb: vehicle.price + Math.floor(Math.random() * 4000) - 2000,
+        mmr: vehicle.price + Math.floor(Math.random() * 3000) - 1500,
+        blackBook: vehicle.price + Math.floor(Math.random() * 3500) - 1750,
+        jdPower: vehicle.price + Math.floor(Math.random() * 2500) - 1250,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      res.json(mockValuations);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch valuations" });
+    }
+  });
+
+  app.post("/api/valuations/refresh/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const vehicle = await storage.getVehicle(id);
+      if (!vehicle) {
+        return res.status(404).json({ message: "Vehicle not found" });
+      }
+      
+      // Mock refresh - in production, this would call actual valuation APIs
+      const refreshedValuations = {
+        kbb: vehicle.price + Math.floor(Math.random() * 4000) - 2000,
+        mmr: vehicle.price + Math.floor(Math.random() * 3000) - 1500,
+        blackBook: vehicle.price + Math.floor(Math.random() * 3500) - 1750,
+        jdPower: vehicle.price + Math.floor(Math.random() * 2500) - 1250,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      res.json(refreshedValuations);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to refresh valuations" });
+    }
+  });
+
   // Customer routes
   app.get("/api/customers", async (req, res) => {
     try {
