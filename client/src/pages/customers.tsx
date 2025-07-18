@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -81,6 +81,12 @@ export default function Customers() {
   const { data: customers = [], isLoading, error } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
   });
+
+  const { data: users = [] } = useQuery<any[]>({
+    queryKey: ['/api/users'],
+  });
+
+  const salesConsultants = users.filter(user => user.role?.toLowerCase().includes('sales') || user.department?.toLowerCase().includes('sales'));
 
   const createCustomerMutation = useMutation({
     mutationFn: async (customer: any) => {
@@ -258,7 +264,7 @@ export default function Customers() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 w-full">
         <div>
-          <h1 className="text-xl md:text-3xl font-bold">Customer Management</h1>
+          <h1 className="text-xl md:text-3xl font-bold">AutolytiQ - Customer Management</h1>
           <p className="text-sm md:text-base text-gray-600">Complete CRM system for managing customer relationships</p>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
@@ -269,9 +275,12 @@ export default function Customers() {
                 Add Customer
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Customer</DialogTitle>
+                <DialogDescription>
+                  Create a new customer record with contact information
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -394,12 +403,18 @@ export default function Customers() {
                   </div>
                   <div>
                     <Label htmlFor="salesConsultant">Sales Consultant</Label>
-                    <Input
-                      id="salesConsultant"
-                      value={newCustomer.salesConsultant}
-                      onChange={(e) => setNewCustomer({...newCustomer, salesConsultant: e.target.value})}
-                      placeholder="John Smith"
-                    />
+                    <Select value={newCustomer.salesConsultant} onValueChange={(value) => setNewCustomer({...newCustomer, salesConsultant: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select sales consultant" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {salesConsultants.map((consultant) => (
+                          <SelectItem key={consultant.id} value={consultant.name}>
+                            {consultant.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="leadSource">Lead Source</Label>
@@ -442,9 +457,12 @@ export default function Customers() {
           
           {/* Edit Customer Dialog */}
           <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-            <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Edit Customer</DialogTitle>
+                <DialogDescription>
+                  Update customer information and contact details
+                </DialogDescription>
               </DialogHeader>
               {editingCustomer && (
                 <div className="space-y-4">
@@ -558,12 +576,18 @@ export default function Customers() {
                     </div>
                     <div>
                       <Label htmlFor="editSalesConsultant">Sales Consultant</Label>
-                      <Input
-                        id="editSalesConsultant"
-                        value={editingCustomer.salesConsultant || ''}
-                        onChange={(e) => setEditingCustomer({...editingCustomer, salesConsultant: e.target.value})}
-                        placeholder="John Smith"
-                      />
+                      <Select value={editingCustomer.salesConsultant || ''} onValueChange={(value) => setEditingCustomer({...editingCustomer, salesConsultant: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select sales consultant" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {salesConsultants.map((consultant) => (
+                            <SelectItem key={consultant.id} value={consultant.name}>
+                              {consultant.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   <div className="flex justify-end gap-2">

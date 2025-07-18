@@ -407,6 +407,69 @@ export function initializeComprehensiveSampleData(storage: MemStorage): void {
     }
   ];
 
+  // Add sales consultants to storage
+  const salesConsultants = [
+    {
+      firstName: "Sarah",
+      lastName: "Jones",
+      name: "Sarah Jones",
+      email: "sarah.jones@autolytiq.com",
+      phone: "(555) 200-1001",
+      role: "Senior Sales Consultant",
+      department: "Sales",
+      isActive: true
+    },
+    {
+      firstName: "Mike", 
+      lastName: "Wilson",
+      name: "Mike Wilson",
+      email: "mike.wilson@autolytiq.com",
+      phone: "(555) 200-1002",
+      role: "Sales Consultant",
+      department: "Sales",
+      isActive: true
+    },
+    {
+      firstName: "John",
+      lastName: "Smith",
+      name: "John Smith", 
+      email: "john.smith@autolytiq.com",
+      phone: "(555) 200-1003",
+      role: "Sales Consultant",
+      department: "Sales",
+      isActive: true
+    },
+    {
+      firstName: "Emily",
+      lastName: "Davis",
+      name: "Emily Davis",
+      email: "emily.davis@autolytiq.com",
+      phone: "(555) 200-1004",
+      role: "Sales Manager",
+      department: "Sales",
+      isActive: true
+    },
+    {
+      firstName: "Robert",
+      lastName: "Johnson",
+      name: "Robert Johnson",
+      email: "robert.johnson@autolytiq.com",
+      phone: "(555) 200-1005",
+      role: "Sales Consultant",
+      department: "Sales",
+      isActive: true
+    }
+  ];
+
+  // Add sales consultants to storage
+  salesConsultants.forEach(async (consultantData) => {
+    try {
+      await storage.createUser(consultantData);
+    } catch (error) {
+      console.error('Error creating sales consultant:', error);
+    }
+  });
+
   // Add customers to storage
   additionalCustomers.forEach(async (customerData) => {
     try {
