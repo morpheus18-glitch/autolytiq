@@ -5,6 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
+import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { 
   BarChart, 
   Bar, 
@@ -82,6 +84,16 @@ const leadSourceData = [
 export default function Reports() {
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
+  const { toast } = useToast();
+  const { trackInteraction } = usePixelTracker();
+
+  const handleExport = () => {
+    trackInteraction('report_export', `export-${selectedPeriod}-${selectedDepartment}`);
+    toast({ 
+      title: 'Export Started', 
+      description: `Exporting ${selectedDepartment} reports for ${selectedPeriod}...` 
+    });
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -114,7 +126,7 @@ export default function Reports() {
               <SelectItem value="finance">Finance</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleExport}>
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>

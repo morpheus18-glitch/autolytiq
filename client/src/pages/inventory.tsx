@@ -58,6 +58,16 @@ export default function Inventory() {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showEnhancedSearch, setShowEnhancedSearch] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterMake, setFilterMake] = useState('all');
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+  const [newVehicle, setNewVehicle] = useState({
+    make: '',
+    model: '',
+    year: '',
     vin: '',
     price: '',
     status: 'available',
