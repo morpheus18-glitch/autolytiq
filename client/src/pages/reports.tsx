@@ -254,34 +254,58 @@ export default function Reports() {
               <CardDescription>Individual sales consultant metrics</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {salesPersonData.map((person, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <Users className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">{person.name}</div>
-                        <div className="text-sm text-muted-foreground">{person.sales} units sold</div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-8 text-center">
-                      <div>
-                        <div className="text-lg font-semibold">${person.revenue.toLocaleString()}</div>
-                        <div className="text-sm text-muted-foreground">Revenue</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-semibold">{person.conversion}%</div>
-                        <div className="text-sm text-muted-foreground">Conversion</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-semibold">{person.satisfaction}</div>
-                        <div className="text-sm text-muted-foreground">Rating</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="overflow-x-auto rounded-lg border">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b bg-gray-50">
+                      <th className="text-left p-3 font-medium text-sm">Sales Person</th>
+                      <th className="text-left p-3 font-medium text-sm hidden md:table-cell">Units Sold</th>
+                      <th className="text-left p-3 font-medium text-sm">Revenue</th>
+                      <th className="text-left p-3 font-medium text-sm hidden sm:table-cell">Conversion</th>
+                      <th className="text-left p-3 font-medium text-sm hidden lg:table-cell">Satisfaction</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {salesPersonData.map((person, index) => (
+                      <tr key={index} className="border-b hover:bg-gray-50 transition-colors">
+                        <td className="p-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                              <Users className="h-4 w-4 text-blue-600" />
+                            </div>
+                            <div>
+                              <div className="font-medium">{person.name}</div>
+                              <div className="text-sm text-gray-600 md:hidden">{person.sales} units</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-3 hidden md:table-cell">
+                          <Badge variant="outline">{person.sales}</Badge>
+                        </td>
+                        <td className="p-3">
+                          <div className="font-medium">${person.revenue.toLocaleString()}</div>
+                        </td>
+                        <td className="p-3 hidden sm:table-cell">
+                          <div className="flex items-center gap-2">
+                            <div className="text-sm font-medium">{person.conversion}%</div>
+                            <div className="w-16 bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full" 
+                                style={{ width: `${person.conversion}%` }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-3 hidden lg:table-cell">
+                          <div className="flex items-center gap-1">
+                            <Award className="h-4 w-4 text-yellow-500" />
+                            <span className="text-sm font-medium">{person.satisfaction}/5</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>

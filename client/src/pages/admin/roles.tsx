@@ -181,62 +181,86 @@ export default function RolesPage() {
         </Dialog>
       </div>
 
-      <div className="grid gap-4">
-        {rolesLoading ? (
-          <div className="text-center py-8">Loading roles...</div>
-        ) : roles.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            All Roles
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {rolesLoading ? (
+            <div className="text-center py-8">Loading roles...</div>
+          ) : roles.length === 0 ? (
+            <div className="text-center py-8">
               <Shield className="w-12 h-12 mx-auto mb-4 text-gray-400" />
               <h3 className="text-lg font-medium mb-2">No roles found</h3>
               <p className="text-gray-600">Create your first role to get started.</p>
-            </CardContent>
-          </Card>
-        ) : (
-          roles.map((role) => (
-            <Card key={role.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Shield className="w-5 h-5 text-blue-600" />
-                    <div>
-                      <CardTitle className="text-lg">{role.name}</CardTitle>
-                      <p className="text-sm text-gray-600">{role.description}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="secondary">
-                      {getDepartmentName(role.departmentId)}
-                    </Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handlePermissions(role)}
-                    >
-                      <Users className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(role)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(role.id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-          ))
-        )}
-      </div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b bg-gray-50">
+                    <th className="text-left p-3 font-medium text-sm">Role</th>
+                    <th className="text-left p-3 font-medium text-sm hidden md:table-cell">Description</th>
+                    <th className="text-left p-3 font-medium text-sm hidden sm:table-cell">Department</th>
+                    <th className="text-left p-3 font-medium text-sm">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {roles.map((role) => (
+                    <tr key={role.id} className="border-b hover:bg-gray-50 transition-colors">
+                      <td className="p-3">
+                        <div className="flex items-center gap-2">
+                          <Shield className="h-4 w-4 text-blue-600" />
+                          <div>
+                            <div className="font-medium">{role.name}</div>
+                            <div className="text-sm text-gray-600 md:hidden">{role.description}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-3 hidden md:table-cell">
+                        <span className="text-sm text-gray-600">{role.description}</span>
+                      </td>
+                      <td className="p-3 hidden sm:table-cell">
+                        <Badge variant="secondary">
+                          {getDepartmentName(role.departmentId)}
+                        </Badge>
+                      </td>
+                      <td className="p-3">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handlePermissions(role)}
+                          >
+                            <Users className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEdit(role)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDelete(role.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Permission Management Modal */}
       <Dialog open={isPermissionModalOpen} onOpenChange={setIsPermissionModalOpen}>
