@@ -781,8 +781,43 @@ export const deals = pgTable("deals", {
   
   // Trade Information
   tradeVin: text("trade_vin"),
+  tradeYear: integer("trade_year"),
+  tradeMake: text("trade_make"),
+  tradeModel: text("trade_model"),
+  tradeTrim: text("trade_trim"),
+  tradeMileage: integer("trade_mileage"),
+  tradeCondition: text("trade_condition"), // excellent, good, fair, poor
   tradeAllowance: integer("trade_allowance").default(0),
   tradePayoff: integer("trade_payoff").default(0),
+  tradeActualCashValue: integer("trade_actual_cash_value").default(0),
+  
+  // Payoff Information
+  payoffLenderName: text("payoff_lender_name"),
+  payoffLenderAddress: text("payoff_lender_address"),
+  payoffLenderCity: text("payoff_lender_city"),
+  payoffLenderState: text("payoff_lender_state"),
+  payoffLenderZip: text("payoff_lender_zip"),
+  payoffLenderPhone: text("payoff_lender_phone"),
+  payoffAccountNumber: text("payoff_account_number"),
+  payoffAmount: integer("payoff_amount").default(0),
+  payoffPerDiem: decimal("payoff_per_diem", { precision: 10, scale: 2 }).default("0"),
+  payoffGoodThrough: date("payoff_good_through"),
+  
+  // Insurance Information
+  insuranceCompany: text("insurance_company"),
+  insuranceAgent: text("insurance_agent"),
+  insurancePhone: text("insurance_phone"),
+  insurancePolicyNumber: text("insurance_policy_number"),
+  insuranceEffectiveDate: date("insurance_effective_date"),
+  insuranceExpirationDate: date("insurance_expiration_date"),
+  insuranceDeductible: integer("insurance_deductible"),
+  insuranceCoverage: json("insurance_coverage").$type<{
+    liability: boolean;
+    collision: boolean;
+    comprehensive: boolean;
+    uninsured: boolean;
+    pip: boolean;
+  }>(),
   
   // Financial Structure
   dealType: text("deal_type").notNull(), // retail, lease, cash

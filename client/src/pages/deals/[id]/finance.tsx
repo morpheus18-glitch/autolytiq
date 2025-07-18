@@ -32,7 +32,8 @@ export default function DealFinanceTab({ deal }: DealFinanceTabProps) {
 
   const calculatePayment = () => {
     const principal = deal.financeBalance || 0;
-    const rate = parseFloat(deal.rate?.replace('%', '') || '0') / 100 / 12;
+    const rateStr = typeof deal.rate === 'string' ? deal.rate : String(deal.rate || '0');
+    const rate = parseFloat(rateStr.replace('%', '') || '0') / 100 / 12;
     const term = deal.term || 60;
     
     if (rate === 0) return principal / term;
