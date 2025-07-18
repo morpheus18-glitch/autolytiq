@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -8,10 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { insertDealSchema, type Deal, type DealProduct, type Vehicle, type Customer } from '@shared/schema';
-import { Car, User, DollarSign, CreditCard, Plus, Trash2 } from 'lucide-react';
+import { insertDealSchema, type Deal, type Vehicle, type Customer } from '@shared/schema';
+import { Car, User, DollarSign, CreditCard, MapPin, Phone, Mail, Edit, Save, X } from 'lucide-react';
 
 interface DealStructureTabProps {
   deal: Deal;
@@ -21,35 +23,87 @@ export default function DealStructureTab({ deal }: DealStructureTabProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(deal.customerId || null);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(deal.vehicleId || null);
+
+  // Fetch customers and vehicles for selection
+  const { data: customers = [] } = useQuery<Customer[]>({
+    queryKey: ['/api/customers'],
+  });
+
+  const { data: vehicles = [] } = useQuery<Vehicle[]>({
+    queryKey: ['/api/vehicles'],
+  });
+
+  const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
+  const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
+
+  // Calculate sales tax based on customer zip code
+  const calculateSalesTax = (zipCode: string | null | undefined, salePrice: number) => {
+    if (!zipCode || salePrice === 0) return 0;
+    
+    // Sales tax rates by ZIP code prefix
+    const taxRates: { [key: string]: number } = {
+      '90': 0.0825, // CA
+      '10': 0.0825, // NY
+      '77': 0.0825, // TX
+      '60': 0.0825, // IL
+      '33': 0.06,   // FL
+      '30': 0.07,   // GA
+      '98': 0.065,  // WA
+      '80': 0.0465, // CO
+      '97': 0.0,    // OR (no sales tax)
+      '03': 0.0,    // NH (no sales tax)
+    };
+
+    const zipPrefix = zipCode.substring(0, 2);
+    const taxRate = taxRates[zipPrefix] || 0.07; // Default 7% if not found
+    return salePrice * taxRate;
+  };
 
   const form = useForm({
     resolver: zodResolver(insertDealSchema),
     defaultValues: {
       ...deal,
-      salePrice: deal.salePrice || 0,
+      customerId: selectedCustomerId,
+      vehicleId: selectedVehicleId,
+      salePrice: selectedVehicle?.price || deal.salePrice || 0,
       tradeAllowance: deal.tradeAllowance || 0,
       tradePayoff: deal.tradePayoff || 0,
       cashDown: deal.cashDown || 0,
       rebates: deal.rebates || 0,
       salesTax: deal.salesTax || 0,
       docFee: deal.docFee || 599,
-      titleFee: deal.titleFee || 75,
-      registrationFee: deal.registrationFee || 150,
+      financeBalance: deal.financeBalance || 0,
+      rate: deal.rate || 0,
+      term: deal.term || 0,
     },
   });
 
-  // Query for vehicles and customers for dropdowns
-  const { data: vehicles = [] } = useQuery<Vehicle[]>({
-    queryKey: ['/api/vehicles'],
-  });
+  // Update form when selections change
+  useEffect(() => {
+    if (selectedVehicle) {
+      form.setValue('vehicleId', selectedVehicle.id);
+      form.setValue('salePrice', selectedVehicle.price || 0);
+      form.setValue('vin', selectedVehicle.vin || '');
+      
+      // Recalculate sales tax
+      const newSalesTax = calculateSalesTax(selectedCustomer?.zipCode, selectedVehicle.price || 0);
+      form.setValue('salesTax', newSalesTax);
+    }
+  }, [selectedVehicle, selectedCustomer, form]);
 
-  const { data: customers = [] } = useQuery<Customer[]>({
-    queryKey: ['/api/customers'],
-  });
-
-  const { data: dealProducts = [] } = useQuery<DealProduct[]>({
-    queryKey: ['/api/deals', deal.id, 'products'],
-  });
+  useEffect(() => {
+    if (selectedCustomer) {
+      form.setValue('customerId', selectedCustomer.id);
+      form.setValue('buyerName', `${selectedCustomer.firstName} ${selectedCustomer.lastName}`);
+      
+      // Recalculate sales tax
+      const currentSalePrice = form.getValues('salePrice') || 0;
+      const newSalesTax = calculateSalesTax(selectedCustomer.zipCode, currentSalePrice);
+      form.setValue('salesTax', newSalesTax);
+    }
+  }, [selectedCustomer, form]);
 
   const updateDealMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -60,7 +114,7 @@ export default function DealStructureTab({ deal }: DealStructureTabProps) {
       queryClient.invalidateQueries({ queryKey: ['/api/deals', deal.id] });
       toast({
         title: 'Deal Updated',
-        description: 'Deal structure has been successfully updated.',
+        description: 'Deal structure has been updated successfully.',
       });
       setIsEditing(false);
     },
@@ -73,33 +127,13 @@ export default function DealStructureTab({ deal }: DealStructureTabProps) {
     },
   });
 
-  const addProductMutation = useMutation({
-    mutationFn: async (product: any) => {
-      const response = await apiRequest('POST', `/api/deals/${deal.id}/products`, product);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/deals', deal.id, 'products'] });
-      toast({
-        title: 'Product Added',
-        description: 'F&I product has been added to the deal.',
-      });
-    },
-  });
-
-  const onSubmit = (data: any) => {
-    // Calculate finance balance
-    const totalCharges = data.salePrice + data.salesTax + data.docFee + data.titleFee + data.registrationFee;
-    const totalCredits = data.tradeAllowance + data.cashDown + data.rebates;
-    const financeBalance = totalCharges - totalCredits - data.tradePayoff;
-
-    updateDealMutation.mutate({
-      ...data,
-      financeBalance: Math.max(0, financeBalance),
-    });
+  const handleSave = () => {
+    const formData = form.getValues();
+    updateDealMutation.mutate(formData);
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | null) => {
+    if (!amount) return '$0';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -107,163 +141,256 @@ export default function DealStructureTab({ deal }: DealStructureTabProps) {
     }).format(amount);
   };
 
-  const calculateTotal = () => {
-    const salePrice = form.watch('salePrice') || 0;
-    const salesTax = form.watch('salesTax') || 0;
-    const docFee = form.watch('docFee') || 0;
-    const titleFee = form.watch('titleFee') || 0;
-    const registrationFee = form.watch('registrationFee') || 0;
-    const tradeAllowance = form.watch('tradeAllowance') || 0;
-    const tradePayoff = form.watch('tradePayoff') || 0;
-    const cashDown = form.watch('cashDown') || 0;
-    const rebates = form.watch('rebates') || 0;
-
-    const totalCharges = salePrice + salesTax + docFee + titleFee + registrationFee;
-    const totalCredits = tradeAllowance + cashDown + rebates;
-    const financeBalance = Math.max(0, totalCharges - totalCredits - tradePayoff);
-
-    return { totalCharges, totalCredits, financeBalance };
+  const formatPercent = (rate: number | null) => {
+    if (!rate) return '0%';
+    return `${rate.toFixed(2)}%`;
   };
-
-  const totals = calculateTotal();
 
   return (
     <div className="space-y-6">
-      {/* Vehicle and Customer Information */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Car className="h-5 w-5" />
-              Vehicle Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="vehicleId">Vehicle</Label>
-              <Select
-                value={form.watch('vehicleId') || ''}
-                onValueChange={(value) => form.setValue('vehicleId', value)}
-                disabled={!isEditing}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select vehicle" />
-                </SelectTrigger>
-                <SelectContent>
-                  {vehicles.map((vehicle) => (
-                    <SelectItem key={vehicle.id} value={vehicle.id}>
-                      {vehicle.year} {vehicle.make} {vehicle.model} - {vehicle.vin}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="vin">VIN</Label>
-              <Input
-                id="vin"
-                {...form.register('vin')}
-                disabled={!isEditing}
-                placeholder="Vehicle VIN"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="msrp">MSRP</Label>
-              <Input
-                id="msrp"
-                type="number"
-                {...form.register('msrp', { valueAsNumber: true })}
-                disabled={!isEditing}
-                placeholder="0"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="salePrice">Sale Price</Label>
-              <Input
-                id="salePrice"
-                type="number"
-                {...form.register('salePrice', { valueAsNumber: true })}
-                disabled={!isEditing}
-                placeholder="0"
-                className="font-medium"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Customer Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="customerId">Customer</Label>
-              <Select
-                value={form.watch('customerId') || ''}
-                onValueChange={(value) => form.setValue('customerId', value)}
-                disabled={!isEditing}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select customer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {customers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                      {customer.firstName} {customer.lastName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="buyerName">Buyer Name</Label>
-              <Input
-                id="buyerName"
-                {...form.register('buyerName')}
-                disabled={!isEditing}
-                placeholder="Primary buyer name"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="coBuyerName">Co-Buyer Name</Label>
-              <Input
-                id="coBuyerName"
-                {...form.register('coBuyerName')}
-                disabled={!isEditing}
-                placeholder="Co-buyer name (optional)"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="dealType">Deal Type</Label>
-              <Select
-                value={form.watch('dealType') || ''}
-                onValueChange={(value) => form.setValue('dealType', value)}
-                disabled={!isEditing}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select deal type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="retail">Retail</SelectItem>
-                  <SelectItem value="lease">Lease</SelectItem>
-                  <SelectItem value="cash">Cash</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Deal Structure</h2>
+          <p className="text-gray-600 mt-1">Configure deal details, customer, and vehicle information</p>
+        </div>
+        <div className="flex gap-2">
+          {isEditing ? (
+            <>
+              <Button onClick={handleSave} disabled={updateDealMutation.isPending} className="bg-green-600 hover:bg-green-700">
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+              <Button variant="outline" onClick={() => setIsEditing(false)}>
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            </>
+          ) : (
+            <Button onClick={() => setIsEditing(true)} variant="outline">
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Structure
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Financial Structure */}
+      {/* Customer Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Customer Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isEditing ? (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="customer-select">Select Customer</Label>
+                <Select value={selectedCustomerId?.toString() || ''} onValueChange={(value) => setSelectedCustomerId(parseInt(value))}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a customer..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {customers.map((customer) => (
+                      <SelectItem key={customer.id} value={customer.id.toString()}>
+                        {customer.firstName} {customer.lastName} - {customer.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {selectedCustomer && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Contact Information</Label>
+                    <div className="mt-2 space-y-1">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Mail className="h-4 w-4 text-blue-600" />
+                        {selectedCustomer.email}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Phone className="h-4 w-4 text-blue-600" />
+                        {selectedCustomer.phone}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <MapPin className="h-4 w-4 text-blue-600" />
+                        {selectedCustomer.address}, {selectedCustomer.city}, {selectedCustomer.state} {selectedCustomer.zipCode}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Customer Details</Label>
+                    <div className="mt-2 space-y-1">
+                      <div className="text-sm">
+                        <span className="font-medium">Credit Score:</span> {selectedCustomer.creditScore || 'Not provided'}
+                      </div>
+                      <div className="text-sm">
+                        <span className="font-medium">Income:</span> {formatCurrency(selectedCustomer.income)}
+                      </div>
+                      <div className="text-sm">
+                        <span className="font-medium">Sales Tax Rate:</span> {formatPercent(calculateSalesTax(selectedCustomer.zipCode, 100) * 100)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {selectedCustomer ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h4 className="font-medium text-lg">{selectedCustomer.firstName} {selectedCustomer.lastName}</h4>
+                    <div className="mt-2 space-y-1">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Mail className="h-4 w-4" />
+                        {selectedCustomer.email}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Phone className="h-4 w-4" />
+                        {selectedCustomer.phone}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <MapPin className="h-4 w-4" />
+                        {selectedCustomer.address}, {selectedCustomer.city}, {selectedCustomer.state} {selectedCustomer.zipCode}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium">Credit Score:</span>
+                        <Badge variant={selectedCustomer.creditScore && selectedCustomer.creditScore >= 700 ? 'default' : 'secondary'}>
+                          {selectedCustomer.creditScore || 'Not provided'}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium">Income:</span>
+                        <span className="text-sm">{formatCurrency(selectedCustomer.income)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  No customer selected
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Vehicle Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Car className="h-5 w-5" />
+            Vehicle Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isEditing ? (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="vehicle-select">Select Vehicle</Label>
+                <Select value={selectedVehicleId?.toString() || ''} onValueChange={(value) => setSelectedVehicleId(parseInt(value))}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a vehicle..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vehicles.map((vehicle) => (
+                      <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                        {vehicle.year} {vehicle.make} {vehicle.model} - {formatCurrency(vehicle.price)} ({vehicle.vin})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {selectedVehicle && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-green-50 rounded-lg">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Vehicle Details</Label>
+                    <div className="mt-2 space-y-1">
+                      <div className="text-sm">
+                        <span className="font-medium">Year:</span> {selectedVehicle.year}
+                      </div>
+                      <div className="text-sm">
+                        <span className="font-medium">Make:</span> {selectedVehicle.make}
+                      </div>
+                      <div className="text-sm">
+                        <span className="font-medium">Model:</span> {selectedVehicle.model}
+                      </div>
+                      <div className="text-sm">
+                        <span className="font-medium">VIN:</span> {selectedVehicle.vin}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Pricing</Label>
+                    <div className="mt-2 space-y-1">
+                      <div className="text-sm">
+                        <span className="font-medium">List Price:</span> {formatCurrency(selectedVehicle.price)}
+                      </div>
+                      <div className="text-sm">
+                        <span className="font-medium">Mileage:</span> {selectedVehicle.mileage?.toLocaleString() || 'N/A'} miles
+                      </div>
+                      <div className="text-sm">
+                        <span className="font-medium">Status:</span> 
+                        <Badge className="ml-2" variant={selectedVehicle.status === 'available' ? 'default' : 'secondary'}>
+                          {selectedVehicle.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {selectedVehicle ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h4 className="font-medium text-lg">{selectedVehicle.year} {selectedVehicle.make} {selectedVehicle.model}</h4>
+                    <div className="mt-2 space-y-1">
+                      <div className="text-sm text-gray-600">
+                        <span className="font-medium">VIN:</span> {selectedVehicle.vin}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        <span className="font-medium">Mileage:</span> {selectedVehicle.mileage?.toLocaleString() || 'N/A'} miles
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        <span className="font-medium">Status:</span> 
+                        <Badge className="ml-2" variant={selectedVehicle.status === 'available' ? 'default' : 'secondary'}>
+                          {selectedVehicle.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium">List Price:</span>
+                        <span className="text-lg font-bold text-green-600">{formatCurrency(selectedVehicle.price)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  No vehicle selected
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Deal Financial Structure */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -272,278 +399,171 @@ export default function DealStructureTab({ deal }: DealStructureTabProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-4">
-                <h4 className="font-medium text-gray-900">Trade Information</h4>
-                <div>
-                  <Label htmlFor="tradeVin">Trade VIN</Label>
-                  <Input
-                    id="tradeVin"
-                    {...form.register('tradeVin')}
-                    disabled={!isEditing}
-                    placeholder="Trade vehicle VIN"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="tradeAllowance">Trade Allowance</Label>
-                  <Input
-                    id="tradeAllowance"
-                    type="number"
-                    {...form.register('tradeAllowance', { valueAsNumber: true })}
-                    disabled={!isEditing}
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="tradePayoff">Trade Payoff</Label>
-                  <Input
-                    id="tradePayoff"
-                    type="number"
-                    {...form.register('tradePayoff', { valueAsNumber: true })}
-                    disabled={!isEditing}
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="font-medium text-gray-900">Down Payment & Rebates</h4>
-                <div>
-                  <Label htmlFor="cashDown">Cash Down</Label>
-                  <Input
-                    id="cashDown"
-                    type="number"
-                    {...form.register('cashDown', { valueAsNumber: true })}
-                    disabled={!isEditing}
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="rebates">Rebates</Label>
-                  <Input
-                    id="rebates"
-                    type="number"
-                    {...form.register('rebates', { valueAsNumber: true })}
-                    disabled={!isEditing}
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="font-medium text-gray-900">Taxes & Fees</h4>
-                <div>
-                  <Label htmlFor="salesTax">Sales Tax</Label>
-                  <Input
-                    id="salesTax"
-                    type="number"
-                    {...form.register('salesTax', { valueAsNumber: true })}
-                    disabled={!isEditing}
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="docFee">Doc Fee</Label>
-                  <Input
-                    id="docFee"
-                    type="number"
-                    {...form.register('docFee', { valueAsNumber: true })}
-                    disabled={!isEditing}
-                    placeholder="599"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="titleFee">Title Fee</Label>
-                  <Input
-                    id="titleFee"
-                    type="number"
-                    {...form.register('titleFee', { valueAsNumber: true })}
-                    disabled={!isEditing}
-                    placeholder="75"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="registrationFee">Registration Fee</Label>
-                  <Input
-                    id="registrationFee"
-                    type="number"
-                    {...form.register('registrationFee', { valueAsNumber: true })}
-                    disabled={!isEditing}
-                    placeholder="150"
-                  />
-                </div>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <Label>Sale Price</Label>
+              <Input 
+                type="number" 
+                {...form.register('salePrice', { valueAsNumber: true })}
+                disabled={!isEditing}
+                className="text-lg font-semibold"
+              />
             </div>
-
-            {/* Deal Summary */}
-            <div className="border-t pt-6">
-              <h4 className="font-medium text-gray-900 mb-4">Deal Summary</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <p className="text-sm text-blue-600 font-medium">Total Charges</p>
-                  <p className="text-2xl font-bold text-blue-900">
-                    {formatCurrency(totals.totalCharges)}
-                  </p>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <p className="text-sm text-green-600 font-medium">Total Credits</p>
-                  <p className="text-2xl font-bold text-green-900">
-                    {formatCurrency(totals.totalCredits)}
-                  </p>
-                </div>
-                <div className="bg-purple-50 p-4 rounded-lg">
-                  <p className="text-sm text-purple-600 font-medium">Finance Balance</p>
-                  <p className="text-2xl font-bold text-purple-900">
-                    {formatCurrency(totals.financeBalance)}
-                  </p>
-                </div>
-              </div>
+            <div>
+              <Label>Trade Allowance</Label>
+              <Input 
+                type="number" 
+                {...form.register('tradeAllowance', { valueAsNumber: true })}
+                disabled={!isEditing}
+              />
             </div>
-
-            {/* Credit Information */}
-            <div className="border-t pt-6">
-              <h4 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
-                Credit Information
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <Label htmlFor="creditStatus">Credit Status</Label>
-                  <Select
-                    value={form.watch('creditStatus') || ''}
-                    onValueChange={(value) => form.setValue('creditStatus', value)}
-                    disabled={!isEditing}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
-                      <SelectItem value="denied">Denied</SelectItem>
-                    </SelectContent>
-                  </Select>
+            <div>
+              <Label>Trade Payoff</Label>
+              <Input 
+                type="number" 
+                {...form.register('tradePayoff', { valueAsNumber: true })}
+                disabled={!isEditing}
+              />
+            </div>
+            <div>
+              <Label>Cash Down</Label>
+              <Input 
+                type="number" 
+                {...form.register('cashDown', { valueAsNumber: true })}
+                disabled={!isEditing}
+              />
+            </div>
+            <div>
+              <Label>Rebates</Label>
+              <Input 
+                type="number" 
+                {...form.register('rebates', { valueAsNumber: true })}
+                disabled={!isEditing}
+              />
+            </div>
+            <div>
+              <Label>Sales Tax</Label>
+              <Input 
+                type="number" 
+                {...form.register('salesTax', { valueAsNumber: true })}
+                disabled={!isEditing}
+                className="bg-yellow-50"
+              />
+            </div>
+            <div>
+              <Label>Doc Fee</Label>
+              <Input 
+                type="number" 
+                {...form.register('docFee', { valueAsNumber: true })}
+                disabled={!isEditing}
+              />
+            </div>
+            <div>
+              <Label>Finance Balance</Label>
+              <Input 
+                type="number" 
+                {...form.register('financeBalance', { valueAsNumber: true })}
+                disabled={!isEditing}
+              />
+            </div>
+            <div>
+              <Label>Rate (%)</Label>
+              <Input 
+                type="number" 
+                step="0.01"
+                {...form.register('rate', { valueAsNumber: true })}
+                disabled={!isEditing}
+              />
+            </div>
+            <div>
+              <Label>Term (months)</Label>
+              <Input 
+                type="number" 
+                {...form.register('term', { valueAsNumber: true })}
+                disabled={!isEditing}
+              />
+            </div>
+          </div>
+          
+          <Separator className="my-6" />
+          
+          {/* Deal Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-medium mb-3">Deal Summary</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Sale Price:</span>
+                  <span>{formatCurrency(form.watch('salePrice'))}</span>
                 </div>
-                <div>
-                  <Label htmlFor="creditTier">Credit Tier</Label>
-                  <Select
-                    value={form.watch('creditTier') || ''}
-                    onValueChange={(value) => form.setValue('creditTier', value)}
-                    disabled={!isEditing}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select tier" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="A+">A+ (Excellent)</SelectItem>
-                      <SelectItem value="A">A (Good)</SelectItem>
-                      <SelectItem value="B">B (Fair)</SelectItem>
-                      <SelectItem value="C">C (Poor)</SelectItem>
-                      <SelectItem value="D">D (Bad)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="flex justify-between text-sm">
+                  <span>Trade Allowance:</span>
+                  <span>{formatCurrency(form.watch('tradeAllowance'))}</span>
                 </div>
-                <div>
-                  <Label htmlFor="term">Term (Months)</Label>
-                  <Input
-                    id="term"
-                    type="number"
-                    {...form.register('term', { valueAsNumber: true })}
-                    disabled={!isEditing}
-                    placeholder="60"
-                  />
+                <div className="flex justify-between text-sm">
+                  <span>Trade Payoff:</span>
+                  <span>-{formatCurrency(form.watch('tradePayoff'))}</span>
                 </div>
-                <div>
-                  <Label htmlFor="rate">Interest Rate</Label>
-                  <Input
-                    id="rate"
-                    {...form.register('rate')}
-                    disabled={!isEditing}
-                    placeholder="5.99%"
-                  />
+                <div className="flex justify-between text-sm">
+                  <span>Cash Down:</span>
+                  <span>{formatCurrency(form.watch('cashDown'))}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Rebates:</span>
+                  <span>{formatCurrency(form.watch('rebates'))}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Sales Tax:</span>
+                  <span>{formatCurrency(form.watch('salesTax'))}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Doc Fee:</span>
+                  <span>{formatCurrency(form.watch('docFee'))}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-semibold">
+                  <span>Total Amount Due:</span>
+                  <span>{formatCurrency(
+                    (form.watch('salePrice') || 0) + 
+                    (form.watch('salesTax') || 0) + 
+                    (form.watch('docFee') || 0) - 
+                    (form.watch('tradeAllowance') || 0) + 
+                    (form.watch('tradePayoff') || 0) - 
+                    (form.watch('cashDown') || 0) - 
+                    (form.watch('rebates') || 0)
+                  )}</span>
                 </div>
               </div>
             </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-between items-center pt-6 border-t">
-              <div>
-                {!isEditing ? (
-                  <Button
-                    type="button"
-                    onClick={() => setIsEditing(true)}
-                    disabled={deal.status === 'funded' || deal.status === 'cancelled'}
-                  >
-                    Edit Deal Structure
-                  </Button>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button
-                      type="submit"
-                      disabled={updateDealMutation.isPending}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      Save Changes
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsEditing(false)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                )}
+            
+            <div>
+              <h4 className="font-medium mb-3">Finance Information</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Finance Balance:</span>
+                  <span>{formatCurrency(form.watch('financeBalance'))}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Interest Rate:</span>
+                  <span>{formatPercent(form.watch('rate'))}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Term:</span>
+                  <span>{form.watch('term')} months</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-semibold">
+                  <span>Monthly Payment:</span>
+                  <span>{formatCurrency(
+                    form.watch('financeBalance') && form.watch('rate') && form.watch('term') ? 
+                    (form.watch('financeBalance') * (form.watch('rate') / 100 / 12) * 
+                    Math.pow(1 + (form.watch('rate') / 100 / 12), form.watch('term'))) /
+                    (Math.pow(1 + (form.watch('rate') / 100 / 12), form.watch('term')) - 1) : 0
+                  )}</span>
+                </div>
               </div>
             </div>
-          </form>
-        </CardContent>
-      </Card>
-
-      {/* F&I Products */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Plus className="h-5 w-5" />
-              F&I Products
-            </span>
-            <Button
-              size="sm"
-              onClick={() => {
-                // Add product functionality would go here
-              }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {dealProducts.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Plus className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>No F&I products added to this deal yet.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {dealProducts.map((product) => (
-                <div key={product.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium">{product.productName}</p>
-                    <p className="text-sm text-gray-600 capitalize">{product.category}</p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="font-medium">{formatCurrency(product.retailPrice)}</span>
-                    <Button variant="ghost" size="sm">
-                      <Trash2 className="h-4 w-4 text-red-600" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          </div>
         </CardContent>
       </Card>
     </div>
