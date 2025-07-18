@@ -64,6 +64,11 @@ The system uses PostgreSQL with the following main entities:
 - **Automated Tasks**: Scheduled competitive analysis and merchandising updates
 - **Middleware**: Request logging, error handling, and JSON parsing
 - **Development Tools**: Vite integration for hot module replacement
+- **Python ML Backend**: Complete modular ML system with autonomous scraping and XGBoost models
+- **ML Integration Layer**: TypeScript integration between Express.js and Python ML system
+- **Advanced Scrapers**: Headless browser scraping with bot detection bypass
+- **Data Pipeline**: Automated data cleaning, deduplication, and validation
+- **Model Management**: Intelligent retraining with performance monitoring
 
 ## Data Flow
 
@@ -90,6 +95,18 @@ The system uses PostgreSQL with the following main entities:
 - **vite**: Build tool and development server
 - **typescript**: Type checking and compilation
 - **@replit/vite-plugin-***: Replit-specific development tools
+
+### ML Backend Dependencies
+- **pandas**: Data manipulation and analysis
+- **numpy**: Numerical computing
+- **scikit-learn**: Machine learning library
+- **xgboost**: Gradient boosting framework
+- **selenium**: Web browser automation
+- **undetected-chromedriver**: Stealth browser automation
+- **streamlit**: Interactive dashboard framework
+- **flask**: Web framework for API
+- **plotly**: Interactive data visualization
+- **beautifulsoup4**: HTML parsing for web scraping
 
 ## Deployment Strategy
 
@@ -135,3 +152,12 @@ The architecture follows a traditional full-stack pattern with modern tooling, e
 - **Search Analytics**: Added real-time summary statistics and data visualization for all search results
 - **Filter Management**: Created sophisticated filter management with active filter display, clear options, and persistent state
 - **Multi-Modal Search**: Enabled text search across multiple fields with intelligent matching and relevance scoring
+- **Complete ML Backend System**: Built comprehensive Python ML pricing system with autonomous vehicle scraping, XGBoost models, and real-time predictions
+- **Advanced Web Scraping**: Implemented headless browser scraping with bot detection bypass for CarGurus and AutoTrader
+- **ML Pipeline Architecture**: Created modular pipeline system with scraping, training, and prediction cycles
+- **Intelligent Deduplication**: Built sophisticated duplicate detection using VIN matching and similarity scoring
+- **Streamlit Dashboard**: Created interactive ML dashboard for real-time pricing analysis and pipeline management
+- **Flask API Integration**: Built RESTful API for ML system integration with Express.js backend
+- **Model Retraining System**: Implemented automated model retraining with performance monitoring and rollback capabilities
+- **Docker Containerization**: Added complete Docker setup with multi-service orchestration for scalable deployment
+- **Production-Ready ML**: Created enterprise-grade ML system with monitoring, logging, and error handling
