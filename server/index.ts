@@ -2,6 +2,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { seedDefaultData } from "./seed-data";
+import { storage } from "./storage";
+import { initializeComprehensiveSampleData } from "./comprehensive-sample-data";
 
 const app = express();
 app.use(express.json());
@@ -42,6 +44,9 @@ app.use((req, res, next) => {
   
   // Seed default data on startup
   await seedDefaultData();
+  
+  // Initialize comprehensive sample data
+  initializeComprehensiveSampleData(storage as any);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
