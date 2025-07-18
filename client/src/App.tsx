@@ -19,6 +19,12 @@ import DepartmentsPage from "@/pages/admin/departments";
 import UsersPage from "@/pages/admin/users";
 // Service Pages
 import ServiceOrdersPage from "@/pages/service/service-orders";
+import PartsInventoryPage from "@/pages/service/parts";
+import ServiceReportsPage from "@/pages/service/reports";
+// Accounting Pages
+import FinancialReportsPage from "@/pages/accounting/reports";
+import PayrollPage from "@/pages/accounting/payroll";
+import TransactionsPage from "@/pages/accounting/transactions";
 import Sidebar from "@/components/sidebar";
 import { usePixelTracker } from "@/hooks/use-pixel-tracker";
 import { useState } from "react";
@@ -67,6 +73,13 @@ function Router() {
           
           {/* Service Routes */}
           <Route path="/service/orders" component={ServiceOrdersPage} />
+          <Route path="/service/parts" component={PartsInventoryPage} />
+          <Route path="/service/reports" component={ServiceReportsPage} />
+          
+          {/* Accounting Routes */}
+          <Route path="/accounting/reports" component={FinancialReportsPage} />
+          <Route path="/accounting/payroll" component={PayrollPage} />
+          <Route path="/accounting/transactions" component={TransactionsPage} />
           
           <Route component={NotFound} />
           </Switch>

@@ -30,6 +30,7 @@ const navigation = [
       { name: "Customers", href: "/customers", icon: Users },
       { name: "Deal Desk", href: "/deal-desk", icon: Calculator },
       { name: "Analytics", href: "/analytics", icon: TrendingUp },
+      { name: "Reports", href: "/reports", icon: BarChart3 },
       { name: "Competitive Pricing", href: "/competitive-pricing", icon: Target },
     ]
   },
