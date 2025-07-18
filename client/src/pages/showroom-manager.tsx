@@ -4,12 +4,14 @@ import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, Car, FileText, 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { format, addDays, subDays } from 'date-fns';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -96,7 +98,9 @@ export default function ShowroomManager() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<ShowroomSession | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
   const { toast } = useToast();
+  const { trackInteraction } = usePixelTracker();
   const queryClient = useQueryClient();
 
   const dateString = format(selectedDate, 'yyyy-MM-dd');
@@ -212,8 +216,9 @@ export default function ShowroomManager() {
       notes: formData.get('notes') as string,
       sessionDate: dateString,
     };
+    trackInteraction('session_create', 'new-session-form', data.customerId);
     createSessionMutation.mutate(data);
-  }, [createSessionMutation]);
+  }, [createSessionMutation, trackInteraction, dateString]);
 
   const handleUpdateSession = useCallback((formData: FormData) => {
     if (!selectedSession) return;
@@ -228,12 +233,14 @@ export default function ShowroomManager() {
       dealStage: formData.get('dealStage') as string,
       notes: formData.get('notes') as string,
     };
+    trackInteraction('session_update', `session-${selectedSession.id}`, selectedSession.id);
     updateSessionMutation.mutate({ id: selectedSession.id, data });
-  }, [selectedSession, updateSessionMutation]);
+  }, [selectedSession, updateSessionMutation, trackInteraction]);
 
   const handleEndSession = useCallback((sessionId: number) => {
+    trackInteraction('session_end', `session-${sessionId}`, sessionId);
     endSessionMutation.mutate(sessionId);
-  }, [endSessionMutation]);
+  }, [endSessionMutation, trackInteraction]);
 
   // Memoize expensive calculations to prevent unnecessary re-renders
   const getSessionDuration = useCallback((session: ShowroomSession) => {
@@ -256,23 +263,29 @@ export default function ShowroomManager() {
   }, [safeVehicles]);
 
   const navigateDate = useCallback((direction: 'prev' | 'next') => {
+    trackInteraction('date_navigation', `date-${direction}`, selectedDate.getTime());
     setSelectedDate(prev => direction === 'prev' ? subDays(prev, 1) : addDays(prev, 1));
-  }, []);
+  }, [trackInteraction, selectedDate]);
+
+  const handleTabChange = useCallback((tab: string) => {
+    trackInteraction('tab_change', `showroom-tab-${tab}`);
+    setActiveTab(tab);
+  }, [trackInteraction]);
 
   // Memoize filtered sessions for better performance
   const activeSessions = useMemo(() => safeSessions.filter(s => !s.timeExited), [safeSessions]);
   const completedSessions = useMemo(() => safeSessions.filter(s => s.timeExited), [safeSessions]);
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header with date navigation */}
+    <div className="p-4 md:p-6 space-y-6">
+      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Showroom Manager</h1>
-          <p className="text-gray-600">Track daily customer sessions and deal progress</p>
+          <h1 className="text-2xl md:text-3xl font-bold">AutolytiQ - Showroom Manager</h1>
+          <p className="text-gray-600">Advanced showroom session tracking and deal management</p>
         </div>
         
-        <div className="flex flex-col md:flex-row gap-4 items-center">
+        <div className="flex flex-col md:flex-row gap-2">
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -281,7 +294,7 @@ export default function ShowroomManager() {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg">
+            <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-lg text-sm">
               <Calendar className="h-4 w-4" />
               <span className="font-medium">{format(selectedDate, 'MMMM d, yyyy')}</span>
             </div>
@@ -296,7 +309,7 @@ export default function ShowroomManager() {
           
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="bg-primary hover:bg-blue-700">
                 <Plus className="h-4 w-4 mr-2" />
                 New Session
               </Button>
@@ -431,211 +444,256 @@ export default function ShowroomManager() {
         </div>
       </div>
 
-      {/* Stats Cards - Optimized with memoized data */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Active Sessions</p>
-                <p className="text-2xl font-bold">{activeSessions.length}</p>
-              </div>
-              <Timer className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Completed</p>
-                <p className="text-2xl font-bold">{completedSessions.length}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Sold Today</p>
-                <p className="text-2xl font-bold">{sessionStats.sold}</p>
-              </div>
-              <Car className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Dead Leads</p>
-                <p className="text-2xl font-bold">{sessionStats.dead}</p>
-              </div>
-              <XCircle className="h-8 w-8 text-red-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Professional Tabs Layout */}
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="active">Active Sessions</TabsTrigger>
+          <TabsTrigger value="completed">Completed</TabsTrigger>
+        </TabsList>
 
-      {/* Active Sessions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Timer className="h-5 w-5" />
-            Active Sessions ({activeSessions.length})
-          </CardTitle>
-          <CardDescription>
-            Currently in progress sessions
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
-                  <div className="h-12 w-12 bg-gray-200 rounded-full animate-pulse" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
-                    <div className="h-3 w-48 bg-gray-200 rounded animate-pulse" />
+        <TabsContent value="overview" className="space-y-6">
+          {/* Stats Cards - Optimized with memoized data */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Active Sessions</p>
+                    <p className="text-2xl font-bold">{activeSessions.length}</p>
                   </div>
-                  <div className="h-6 w-16 bg-gray-200 rounded animate-pulse" />
+                  <Timer className="h-8 w-8 text-blue-500" />
                 </div>
-              ))}
-            </div>
-          ) : activeSessions.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              No active sessions for {format(selectedDate, 'MMMM d, yyyy')}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {activeSessions.map(session => (
-                <div
-                  key={session.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                  onClick={() => {
-                    setSelectedSession(session);
-                    setIsEditDialogOpen(true);
-                  }}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex flex-col">
-                      <div className="font-medium">{getCustomerName(session.customerId)}</div>
-                      <div className="text-sm text-gray-600 flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        {format(new Date(session.timeEntered), 'h:mm a')} - {getSessionDuration(session)}
-                      </div>
-                    </div>
-                    
-                    {session.vehicleId && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Car className="h-4 w-4" />
-                        {getVehicleInfo(session.vehicleId)}
-                      </div>
-                    )}
-                    
-                    {session.stockNumber && (
-                      <Badge variant="outline">
-                        {session.stockNumber}
-                      </Badge>
-                    )}
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Completed</p>
+                    <p className="text-2xl font-bold">{completedSessions.length}</p>
                   </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Badge className={stageColors[session.dealStage]}>
-                      {dealStages.find(s => s.value === session.dealStage)?.label}
-                    </Badge>
-                    <Badge className={statusColors[session.eventStatus]}>
-                      {eventStatuses.find(s => s.value === session.eventStatus)?.label}
-                    </Badge>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={endSessionMutation.isPending}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEndSession(session.id);
+                  <CheckCircle className="h-8 w-8 text-green-500" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Sold Today</p>
+                    <p className="text-2xl font-bold">{sessionStats.sold}</p>
+                  </div>
+                  <Car className="h-8 w-8 text-green-500" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Dead Leads</p>
+                    <p className="text-2xl font-bold">{sessionStats.dead}</p>
+                  </div>
+                  <XCircle className="h-8 w-8 text-red-500" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quick Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Daily Summary</CardTitle>
+              <CardDescription>
+                Session overview for {format(selectedDate, 'MMMM d, yyyy')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Total Sessions</span>
+                  <Badge variant="outline">{sessionStats.total}</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Active</span>
+                  <Badge className="bg-blue-100 text-blue-800">{activeSessions.length}</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Completed</span>
+                  <Badge className="bg-green-100 text-green-800">{completedSessions.length}</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Conversion Rate</span>
+                  <Badge variant="outline">
+                    {sessionStats.total > 0 ? Math.round((sessionStats.sold / sessionStats.total) * 100) : 0}%
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="active" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Timer className="h-5 w-5" />
+                Active Sessions ({activeSessions.length})
+              </CardTitle>
+              <CardDescription>
+                Currently in progress sessions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
+                      <div className="h-12 w-12 bg-gray-200 rounded-full animate-pulse" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+                        <div className="h-3 w-48 bg-gray-200 rounded animate-pulse" />
+                      </div>
+                      <div className="h-6 w-16 bg-gray-200 rounded animate-pulse" />
+                    </div>
+                  ))}
+                </div>
+              ) : activeSessions.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No active sessions for {format(selectedDate, 'MMMM d, yyyy')}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {activeSessions.map(session => (
+                    <div
+                      key={session.id}
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                      onClick={() => {
+                        setSelectedSession(session);
+                        setIsEditDialogOpen(true);
                       }}
                     >
-                      {endSessionMutation.isPending ? 'Ending...' : 'End Session'}
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Completed Sessions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5" />
-            Completed Sessions ({completedSessions.length})
-          </CardTitle>
-          <CardDescription>
-            Sessions completed today
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {completedSessions.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              No completed sessions for {format(selectedDate, 'MMMM d, yyyy')}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {completedSessions.map(session => (
-                <div
-                  key={session.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                  onClick={() => {
-                    setSelectedSession(session);
-                    setIsEditDialogOpen(true);
-                  }}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex flex-col">
-                      <div className="font-medium">{getCustomerName(session.customerId)}</div>
-                      <div className="text-sm text-gray-600 flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        {format(new Date(session.timeEntered), 'h:mm a')} - {format(new Date(session.timeExited!), 'h:mm a')}
-                        <span className="text-xs">({getSessionDuration(session)})</span>
+                      <div className="flex items-center gap-4">
+                        <div className="flex flex-col">
+                          <div className="font-medium">{getCustomerName(session.customerId)}</div>
+                          <div className="text-sm text-gray-600 flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            {format(new Date(session.timeEntered), 'h:mm a')} - {getSessionDuration(session)}
+                          </div>
+                        </div>
+                        
+                        {session.vehicleId && (
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Car className="h-4 w-4" />
+                            {getVehicleInfo(session.vehicleId)}
+                          </div>
+                        )}
+                        
+                        {session.stockNumber && (
+                          <Badge variant="outline">
+                            {session.stockNumber}
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Badge className={stageColors[session.dealStage]}>
+                          {dealStages.find(s => s.value === session.dealStage)?.label}
+                        </Badge>
+                        <Badge className={statusColors[session.eventStatus]}>
+                          {eventStatuses.find(s => s.value === session.eventStatus)?.label}
+                        </Badge>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={endSessionMutation.isPending}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEndSession(session.id);
+                          }}
+                        >
+                          {endSessionMutation.isPending ? 'Ending...' : 'End Session'}
+                        </Button>
                       </div>
                     </div>
-                    
-                    {session.vehicleId && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Car className="h-4 w-4" />
-                        {getVehicleInfo(session.vehicleId)}
-                      </div>
-                    )}
-                    
-                    {session.stockNumber && (
-                      <Badge variant="outline">
-                        {session.stockNumber}
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Badge className={stageColors[session.dealStage]}>
-                      {dealStages.find(s => s.value === session.dealStage)?.label}
-                    </Badge>
-                    <Badge className={statusColors[session.eventStatus]}>
-                      {eventStatuses.find(s => s.value === session.eventStatus)?.label}
-                    </Badge>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="completed" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5" />
+                Completed Sessions ({completedSessions.length})
+              </CardTitle>
+              <CardDescription>
+                Sessions completed today
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {completedSessions.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No completed sessions for {format(selectedDate, 'MMMM d, yyyy')}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {completedSessions.map(session => (
+                    <div
+                      key={session.id}
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                      onClick={() => {
+                        setSelectedSession(session);
+                        setIsEditDialogOpen(true);
+                      }}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="flex flex-col">
+                          <div className="font-medium">{getCustomerName(session.customerId)}</div>
+                          <div className="text-sm text-gray-600 flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            {format(new Date(session.timeEntered), 'h:mm a')} - {format(new Date(session.timeExited!), 'h:mm a')}
+                            <span className="text-xs">({getSessionDuration(session)})</span>
+                          </div>
+                        </div>
+                        
+                        {session.vehicleId && (
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Car className="h-4 w-4" />
+                            {getVehicleInfo(session.vehicleId)}
+                          </div>
+                        )}
+                        
+                        {session.stockNumber && (
+                          <Badge variant="outline">
+                            {session.stockNumber}
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Badge className={stageColors[session.dealStage]}>
+                          {dealStages.find(s => s.value === session.dealStage)?.label}
+                        </Badge>
+                        <Badge className={statusColors[session.eventStatus]}>
+                          {eventStatuses.find(s => s.value === session.eventStatus)?.label}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Edit Session Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
