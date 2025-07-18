@@ -29,7 +29,8 @@ function Router() {
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 overflow-hidden">
-        <Switch>
+        <div className="h-full overflow-auto">
+          <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/inventory" component={Inventory} />
           <Route path="/sales" component={Sales} />
@@ -48,7 +49,8 @@ function Router() {
           <Route path="/service/orders" component={ServiceOrdersPage} />
           
           <Route component={NotFound} />
-        </Switch>
+          </Switch>
+        </div>
       </div>
     </div>
   );
