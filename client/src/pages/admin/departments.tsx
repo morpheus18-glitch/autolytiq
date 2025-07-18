@@ -197,61 +197,84 @@ export default function DepartmentsPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4">
-        {departmentsLoading ? (
-          <div className="text-center py-8">Loading departments...</div>
-        ) : departments.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building className="h-5 w-5" />
+            All Departments
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {departmentsLoading ? (
+            <div className="text-center py-8">Loading departments...</div>
+          ) : departments.length === 0 ? (
+            <div className="text-center py-8">
               <Building className="w-12 h-12 mx-auto mb-4 text-gray-400" />
               <h3 className="text-lg font-medium mb-2">No departments found</h3>
               <p className="text-gray-600">Create your first department to get started.</p>
-            </CardContent>
-          </Card>
-        ) : (
-          departments.map((department) => {
-            const stats = getDepartmentStats(department.id);
-            return (
-              <Card key={department.id} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <Building className="w-5 h-5 text-blue-600" />
-                      <div>
-                        <CardTitle className="text-lg">{department.name}</CardTitle>
-                        <p className="text-sm text-gray-600">{department.description}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="secondary">
-                        {stats.rolesCount} roles
-                      </Badge>
-                      <Badge variant="secondary">
-                        {stats.usersCount} users
-                      </Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(department)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(department.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-              </Card>
-            );
-          })
-        )}
-      </div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b bg-gray-50">
+                    <th className="text-left p-3 font-medium text-sm">Department</th>
+                    <th className="text-left p-3 font-medium text-sm hidden md:table-cell">Description</th>
+                    <th className="text-left p-3 font-medium text-sm hidden sm:table-cell">Roles</th>
+                    <th className="text-left p-3 font-medium text-sm hidden sm:table-cell">Users</th>
+                    <th className="text-left p-3 font-medium text-sm">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {departments.map((department) => {
+                    const stats = getDepartmentStats(department.id);
+                    return (
+                      <tr key={department.id} className="border-b hover:bg-gray-50 transition-colors">
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            <Building className="h-4 w-4 text-blue-600" />
+                            <div>
+                              <div className="font-medium">{department.name}</div>
+                              <div className="text-sm text-gray-600 md:hidden">{department.description}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-3 hidden md:table-cell">
+                          <span className="text-sm text-gray-600">{department.description}</span>
+                        </td>
+                        <td className="p-3 hidden sm:table-cell">
+                          <Badge variant="outline">{stats.rolesCount}</Badge>
+                        </td>
+                        <td className="p-3 hidden sm:table-cell">
+                          <Badge variant="outline">{stats.usersCount}</Badge>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEdit(department)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDelete(department.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
