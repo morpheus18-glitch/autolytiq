@@ -42,7 +42,7 @@ export interface VehiclePhoto {
   attribution?: string;
 }
 
-export class PhotoService {
+class PhotoService {
   private pexelsApiKey: string | null;
 
   constructor() {
@@ -173,3 +173,7 @@ export class PhotoService {
 }
 
 export const photoService = new PhotoService();
+
+export async function generateVehiclePhotos(vehicleId: number, make: string, model: string, year: number) {
+  return await photoService.getVehiclePhotos(make, model, year);
+}

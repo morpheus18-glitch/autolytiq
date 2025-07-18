@@ -76,21 +76,11 @@ export default function VehicleDetail() {
 
   const { data: vehicle, isLoading } = useQuery<Vehicle>({
     queryKey: ['/api/vehicles', id],
-    queryFn: async () => {
-      const response = await apiRequest(`/api/vehicles/${id}`, {
-        method: 'GET',
-      });
-      return response;
-    },
     enabled: !!id,
   });
 
   const { data: valuations } = useQuery<ValuationData>({
     queryKey: ['/api/valuations', id],
-    queryFn: async () => {
-      const response = await apiRequest('GET', `/api/valuations/${id}`);
-      return response.json();
-    },
     enabled: !!id,
   });
 
