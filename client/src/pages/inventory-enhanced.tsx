@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { apiRequest } from '@/lib/queryClient';
@@ -20,6 +20,8 @@ export default function Inventory() {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'enhanced' | 'basic'>('enhanced');
+
+  // Note: vehicles data is fetched inside EnhancedInventorySearch component
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
