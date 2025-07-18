@@ -65,10 +65,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // VIN decoder route
-  app.get("/api/decode-vin/:vin", decodeVINHandler);
+  // Enhanced VIN decoder route using free NHTSA API
+  app.get("/api/decode-vin/:vin", async (req, res) => {
+    try {
+      const vin = req.params.vin;
+      
+      if (!vin || vin.length !== 17) {
+        return res.status(400).json({ message: "Invalid VIN format" });
+      }
+      
+      const { decodeVIN } = await import('./services/valuation-service');
+      const vinData = await decodeVIN(vin);
+      
+      if (!vinData) {
+        return res.status(404).json({ message: "VIN not found or invalid" });
+      }
+      
+      res.json({
+        vin: vin,
+        decoded: vinData,
+        source: 'NHTSA vPIC API (Free)',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('VIN decode error:', error);
+      res.status(500).json({ message: "Failed to decode VIN", error: error.message });
+    }
+  });
 
-  // Valuation routes
+  // Legacy VIN decoder for compatibility
+  app.get("/api/legacy-decode-vin/:vin", decodeVINHandler);
+
+  // Batch valuation endpoint for multiple vehicles
+  app.post("/api/valuations/batch", async (req, res) => {
+    try {
+      const { vins } = req.body;
+      
+      if (!Array.isArray(vins) || vins.length === 0) {
+        return res.status(400).json({ message: "VINs array is required" });
+      }
+      
+      if (vins.length > 20) {
+        return res.status(400).json({ message: "Maximum 20 VINs per batch request" });
+      }
+      
+      const { getBatchValuations } = await import('./services/valuation-service');
+      const results = await getBatchValuations(vins);
+      
+      res.json({
+        processed: Object.keys(results).length,
+        results: results,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Batch valuation error:', error);
+      res.status(500).json({ message: "Failed to process batch valuations", error: error.message });
+    }
+  });
+
+  // Quick valuation by make/model/year (no VIN required)
+  app.post("/api/valuations/quick", async (req, res) => {
+    try {
+      const { make, model, year, mileage } = req.body;
+      
+      if (!make || !model || !year) {
+        return res.status(400).json({ message: "Make, model, and year are required" });
+      }
+      
+      const { getQuickValuation } = await import('./services/valuation-service');
+      const valuation = await getQuickValuation(make, model, year, mileage);
+      
+      if (!valuation) {
+        return res.status(404).json({ message: "Unable to generate valuation" });
+      }
+      
+      res.json(valuation);
+    } catch (error) {
+      console.error('Quick valuation error:', error);
+      res.status(500).json({ message: "Failed to get quick valuation", error: error.message });
+    }
+  });
+
+  // Real valuation routes using free APIs
   app.get("/api/valuations/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -77,18 +155,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Vehicle not found" });
       }
       
-      // Mock valuation data - in production, this would call actual APIs
-      const mockValuations = {
-        kbb: vehicle.price + Math.floor(Math.random() * 4000) - 2000,
-        mmr: vehicle.price + Math.floor(Math.random() * 3000) - 1500,
-        blackBook: vehicle.price + Math.floor(Math.random() * 3500) - 1750,
-        jdPower: vehicle.price + Math.floor(Math.random() * 2500) - 1250,
+      // Import valuation service
+      const { getComprehensiveValuation, getQuickValuation } = await import('./services/valuation-service');
+      
+      let valuationResult;
+      
+      if (vehicle.vin) {
+        // Use VIN for most accurate valuation
+        valuationResult = await getComprehensiveValuation(vehicle.vin);
+      } else {
+        // Fallback to make/model/year valuation
+        const quickVal = await getQuickValuation(
+          vehicle.make, 
+          vehicle.model, 
+          vehicle.year, 
+          vehicle.mileage || undefined
+        );
+        valuationResult = {
+          vinData: null,
+          valuations: quickVal ? [quickVal] : [],
+          averageMarketValue: quickVal?.marketValue
+        };
+      }
+      
+      // Format response to match existing structure
+      const response = {
+        vehicleId: id,
+        vin: vehicle.vin,
+        vinData: valuationResult.vinData,
+        sources: valuationResult.valuations,
+        summary: {
+          averageMarketValue: valuationResult.averageMarketValue,
+          recommendedPrice: valuationResult.recommendedPrice,
+          currentListPrice: vehicle.price,
+          sourcesUsed: valuationResult.valuations.length,
+          lastUpdated: new Date().toISOString()
+        },
+        // Legacy format for compatibility
+        kbb: valuationResult.averageMarketValue || vehicle.price,
+        mmr: valuationResult.valuations.find(v => v.source === 'VinCheck.info')?.marketValue || vehicle.price,
+        blackBook: valuationResult.valuations.find(v => v.source === 'Market Estimation')?.tradeInValue || vehicle.price * 0.85,
+        jdPower: valuationResult.recommendedPrice || vehicle.price,
         lastUpdated: new Date().toISOString()
       };
       
-      res.json(mockValuations);
+      res.json(response);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch valuations" });
+      console.error('Valuation API error:', error);
+      res.status(500).json({ message: "Failed to fetch valuations", error: error.message });
     }
   });
 
@@ -100,18 +214,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Vehicle not found" });
       }
       
-      // Mock refresh - in production, this would call actual valuation APIs
-      const refreshedValuations = {
-        kbb: vehicle.price + Math.floor(Math.random() * 4000) - 2000,
-        mmr: vehicle.price + Math.floor(Math.random() * 3000) - 1500,
-        blackBook: vehicle.price + Math.floor(Math.random() * 3500) - 1750,
-        jdPower: vehicle.price + Math.floor(Math.random() * 2500) - 1250,
+      // Force refresh from live APIs
+      const { getComprehensiveValuation, getQuickValuation } = await import('./services/valuation-service');
+      
+      let valuationResult;
+      
+      if (vehicle.vin) {
+        console.log(`🔄 Refreshing valuation for VIN: ${vehicle.vin}`);
+        valuationResult = await getComprehensiveValuation(vehicle.vin);
+      } else {
+        console.log(`🔄 Refreshing valuation for ${vehicle.make} ${vehicle.model} ${vehicle.year}`);
+        const quickVal = await getQuickValuation(
+          vehicle.make, 
+          vehicle.model, 
+          vehicle.year, 
+          vehicle.mileage || undefined
+        );
+        valuationResult = {
+          vinData: null,
+          valuations: quickVal ? [quickVal] : [],
+          averageMarketValue: quickVal?.marketValue
+        };
+      }
+      
+      // Update vehicle's valuation cache in database
+      if (valuationResult.averageMarketValue) {
+        const valuationData = {
+          kbb: valuationResult.averageMarketValue,
+          mmr: valuationResult.valuations.find(v => v.source === 'VinCheck.info')?.marketValue,
+          blackBook: valuationResult.valuations.find(v => v.source === 'Market Estimation')?.tradeInValue,
+          jdPower: valuationResult.recommendedPrice,
+          lastUpdated: new Date().toISOString(),
+          sources: valuationResult.valuations.map(v => v.source)
+        };
+        
+        await storage.updateVehicle(id, { valuations: valuationData });
+        console.log(`✅ Valuation cache updated for vehicle ${id}`);
+      }
+      
+      const response = {
+        vehicleId: id,
+        vin: vehicle.vin,
+        refreshed: true,
+        sourcesUsed: valuationResult.valuations.length,
+        kbb: valuationResult.averageMarketValue || vehicle.price,
+        mmr: valuationResult.valuations.find(v => v.source === 'VinCheck.info')?.marketValue || vehicle.price,
+        blackBook: valuationResult.valuations.find(v => v.source === 'Market Estimation')?.tradeInValue || vehicle.price * 0.85,
+        jdPower: valuationResult.recommendedPrice || vehicle.price,
         lastUpdated: new Date().toISOString()
       };
       
-      res.json(refreshedValuations);
+      res.json(response);
     } catch (error) {
-      res.status(500).json({ message: "Failed to refresh valuations" });
+      console.error('Valuation refresh error:', error);
+      res.status(500).json({ message: "Failed to refresh valuations", error: error.message });
     }
   });
 
