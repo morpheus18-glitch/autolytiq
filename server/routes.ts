@@ -283,8 +283,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Vehicle not found" });
       }
 
-      const { generateVehiclePhotos } = await import('./services/photo-service');
-      const photos = await generateVehiclePhotos(
+      const photoService = await import('./services/photo-service');
+      const photos = await photoService.generateVehiclePhotos(
         vehicleId, 
         vehicle.make, 
         vehicle.model, 

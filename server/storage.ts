@@ -726,7 +726,8 @@ export class MemStorage implements IStorage {
     const id = this.currentVehicleId++;
     const vehicle: Vehicle = { 
       ...insertVehicle, 
-      id, 
+      id,
+      uuid: crypto.randomUUID(),
       createdAt: new Date(),
       description: insertVehicle.description || null,
       imageUrl: insertVehicle.imageUrl || null
