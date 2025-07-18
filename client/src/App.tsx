@@ -16,6 +16,7 @@ import Reports from "@/pages/reports";
 // Admin Pages
 import RolesPage from "@/pages/admin/roles";
 import DepartmentsPage from "@/pages/admin/departments";
+import UsersPage from "@/pages/admin/users";
 // Service Pages
 import ServiceOrdersPage from "@/pages/service/service-orders";
 import Sidebar from "@/components/sidebar";
@@ -62,6 +63,7 @@ function Router() {
           {/* Admin Routes */}
           <Route path="/admin/roles" component={RolesPage} />
           <Route path="/admin/departments" component={DepartmentsPage} />
+          <Route path="/admin/users" component={UsersPage} />
           
           {/* Service Routes */}
           <Route path="/service/orders" component={ServiceOrdersPage} />

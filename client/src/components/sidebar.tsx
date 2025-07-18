@@ -121,7 +121,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
                 <Car className="text-white text-lg" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">DMD</h1>
+                <h1 className="text-xl font-bold text-gray-900">AutolytiQ</h1>
                 <p className="text-sm text-gray-500">Dealership Management</p>
               </div>
             </div>
@@ -198,7 +198,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
         {/* Footer */}
         <div className="p-4 border-t border-gray-200">
           <div className="text-xs text-gray-500 text-center">
-            <p>© 2024 DMD System</p>
+            <p>© 2024 AutolytiQ System</p>
             <p>v1.0.0</p>
           </div>
         </div>
