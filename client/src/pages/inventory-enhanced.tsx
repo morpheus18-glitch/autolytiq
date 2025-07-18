@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { apiRequest } from '@/lib/queryClient';
 import EnhancedInventorySearch from '@/components/enhanced-inventory-search';
+import InventoryTable from '@/components/inventory/inventory-table';
 import VehicleModal from '@/components/vehicle-modal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +21,7 @@ export default function Inventory() {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'enhanced' | 'basic'>('enhanced');
+  const [showSearch, setShowSearch] = useState(false);
 
   // Note: vehicles data is fetched inside EnhancedInventorySearch component
 
@@ -156,24 +158,12 @@ export default function Inventory() {
             showAddButton={true}
           />
         ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Inventory View</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <p>Switch to Enhanced Search for advanced filtering and analytics</p>
-                <Button 
-                  variant="outline" 
-                  className="mt-4"
-                  onClick={() => setViewMode('enhanced')}
-                >
-                  <SlidersHorizontal className="w-4 h-4 mr-2" />
-                  Try Enhanced Search
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <InventoryTable
+            onEdit={handleEdit}
+            onDelete={(vehicle) => handleDelete(vehicle.id)}
+            onGeneratePricing={handleGeneratePricing}
+            showActions={true}
+          />
         )}
       </div>
 

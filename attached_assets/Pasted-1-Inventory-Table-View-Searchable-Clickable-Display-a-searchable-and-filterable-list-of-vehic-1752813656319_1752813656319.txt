@@ -1,0 +1,93 @@
+1. Inventory Table View (Searchable & Clickable)
+
+“Display a searchable and filterable list of vehicles. Each row must be clickable, opening the detail view for that vehicle using a dynamic route (/inventory/:vin or /vehicles/:id).”
+
+⸻
+
+2. Vehicle Detail Page (Structured, Modular Layout)
+
+“Build a full-screen vehicle detail page containing:
+
+	•	Vehicle metadata (VIN, year, make, model, mileage, trim, etc.)
+	•	Photo carousel with drag-and-drop image management
+	•	Tabs for:
+	•	Market Valuations
+	•	Price History / Audit Logs
+	•	Media
+	•	Notes / Custom Tags”
+
+⸻
+
+3. Valuation API Integration
+
+“In the ‘Market Valuations’ tab, add linked valuation sources:
+
+	•	KBB
+	•	Black Book
+	•	MMR
+	•	J.D. Power
+
+Include placeholder fetch logic for each API using mock data, and display each valuation in a comparison card layout. Include a timestamp and data freshness indicator.”
+
+⸻
+
+4. Media Management
+
+“Include the ability to:
+
+	•	Upload images and videos per vehicle
+	•	Tag images (e.g., damage, interior, exterior)
+	•	Drag to reorder
+	•	Preview full screen”
+
+⸻
+
+5. Price + History Audit Log
+
+“Track:
+
+	•	All price changes
+	•	Manual valuation adjustments
+	•	User actions on each listing (edit, delete, tag, flag)
+
+Store logs with timestamp, user ID, and action summary. Display in a collapsible timeline format.”
+
+⸻
+
+6. Routing + Navigation
+
+“Make each vehicle’s listing in /inventory route to /inventory/[id]. Ensure browser navigation, back buttons, and breadcrumbs work correctly. Add persistent sidebar navigation for quick module switching.”
+
+⸻
+
+7. Data Model (Sample Schema)
+
+“Create a schema for vehicles with:
+
+	•	id (uuid)
+	•	vin (string)
+	•	make, model, year, trim
+	•	mileage
+	•	price
+	•	media: [ { url, label, type }]
+	•	valuations: { kbb, mmr, blackBook, jdPower }
+	•	auditLogs: [ { user, action, timestamp } ]
+	•	tags: [string]
+	•	createdAt, updatedAt”
+
+⸻
+
+8. Admin Features (Optional for Phase 2)
+
+“Add the ability to:
+
+	•	Flag duplicate vehicles
+	•	Archive or delist inventory
+	•	Tag vehicles for spotlight or lot pack
+	•	Download vehicle details as PDF report”
+
+⸻
+
+🧠 Bonus Directive (Modular + Scalable)
+
+“Build each feature as a reusable component. Valuation card, audit timeline, photo gallery, and vehicle detail block should be independent and importable. Prefer modular folder structure: /components/inventory/, /routes/inventory/[id], /lib/api/valu

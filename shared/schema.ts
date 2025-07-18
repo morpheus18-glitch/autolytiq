@@ -61,11 +61,18 @@ export const vehicles = pgTable("vehicles", {
   model: text("model").notNull(),
   year: integer("year").notNull(),
   vin: text("vin").notNull().unique(),
+  trim: text("trim"),
+  mileage: integer("mileage"),
   price: integer("price").notNull(),
   status: text("status").notNull(), // available, pending, sold, maintenance
   description: text("description"),
   imageUrl: text("image_url"),
+  media: json("media").$type<Array<{url: string; label: string; type: string}>>(),
+  valuations: json("valuations").$type<{kbb?: number; mmr?: number; blackBook?: number; jdPower?: number}>(),
+  auditLogs: json("audit_logs").$type<Array<{user: string; action: string; timestamp: string}>>(),
+  tags: json("tags").$type<string[]>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const customers = pgTable("customers", {
