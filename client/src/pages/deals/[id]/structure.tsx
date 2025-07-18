@@ -158,12 +158,12 @@ export default function DealStructureTab({ deal }: DealStructureTabProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header with Auto-Save Status */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Deal Structure</h2>
-          <p className="text-gray-600 mt-1">Configure deal details with automatic saving</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Deal Structure</h2>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">Configure deal details with automatic saving</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -184,12 +184,12 @@ export default function DealStructureTab({ deal }: DealStructureTabProps) {
       </div>
 
       <Tabs defaultValue="customer" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="customer">Customer</TabsTrigger>
-          <TabsTrigger value="vehicle">Vehicle</TabsTrigger>
-          <TabsTrigger value="trade">Trade-In</TabsTrigger>
-          <TabsTrigger value="payoff">Payoff</TabsTrigger>
-          <TabsTrigger value="insurance">Insurance</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1">
+          <TabsTrigger value="customer" className="text-xs sm:text-sm">Customer</TabsTrigger>
+          <TabsTrigger value="vehicle" className="text-xs sm:text-sm">Vehicle</TabsTrigger>
+          <TabsTrigger value="trade" className="text-xs sm:text-sm">Trade-In</TabsTrigger>
+          <TabsTrigger value="payoff" className="text-xs sm:text-sm">Payoff</TabsTrigger>
+          <TabsTrigger value="insurance" className="text-xs sm:text-sm">Insurance</TabsTrigger>
         </TabsList>
 
         {/* Customer Tab */}
@@ -338,7 +338,7 @@ export default function DealStructureTab({ deal }: DealStructureTabProps) {
                 initialVin={deal.tradeVin || ''}
               />
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 <div>
                   <Label>Trade VIN</Label>
                   <Input 
@@ -429,7 +429,7 @@ export default function DealStructureTab({ deal }: DealStructureTabProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <Label>Lender Name</Label>
                   <Input 
@@ -481,7 +481,7 @@ export default function DealStructureTab({ deal }: DealStructureTabProps) {
               
               <div>
                 <Label>Lender Address</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-2">
                   <div>
                     <Input 
                       {...form.register('payoffLenderAddress')}
@@ -522,7 +522,7 @@ export default function DealStructureTab({ deal }: DealStructureTabProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <Label>Insurance Company</Label>
                   <Input 
@@ -579,7 +579,7 @@ export default function DealStructureTab({ deal }: DealStructureTabProps) {
               
               <div>
                 <Label className="text-base font-medium mb-4 block">Coverage Types</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="flex items-center space-x-2">
                     <Checkbox id="liability" />
                     <Label htmlFor="liability">Liability</Label>
@@ -616,7 +616,7 @@ export default function DealStructureTab({ deal }: DealStructureTabProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <div>
               <h4 className="font-medium mb-3">Pricing</h4>
               <div className="space-y-2">

@@ -101,14 +101,14 @@ export default function DealDetailPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Deal #{deal.dealNumber}</h1>
-          <p className="text-gray-600 mt-1">{deal.buyerName} - {deal.vin}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Deal #{deal.dealNumber}</h1>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">{deal.buyerName} - {deal.vin}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Badge className={getStatusColor(deal.status)}>
             {deal.status.charAt(0).toUpperCase() + deal.status.slice(1)}
           </Badge>
@@ -146,7 +146,7 @@ export default function DealDetailPage() {
       </div>
 
       {/* Deal Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center">
@@ -208,32 +208,37 @@ export default function DealDetailPage() {
       <Card>
         <CardContent className="p-0">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <div className="border-b px-6">
-              <TabsList className="grid w-full grid-cols-5 bg-transparent">
-                <TabsTrigger value="structure" className="flex items-center gap-2">
-                  <Edit className="h-4 w-4" />
-                  Structure
+            <div className="border-b px-3 sm:px-6">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 bg-transparent gap-1">
+                <TabsTrigger value="structure" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Structure</span>
+                  <span className="sm:hidden">Deal</span>
                 </TabsTrigger>
-                <TabsTrigger value="finance" className="flex items-center gap-2">
-                  <Calculator className="h-4 w-4" />
-                  Finance
+                <TabsTrigger value="finance" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Calculator className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Finance</span>
+                  <span className="sm:hidden">$</span>
                 </TabsTrigger>
-                <TabsTrigger value="print" className="flex items-center gap-2">
-                  <Printer className="h-4 w-4" />
-                  Print Forms
+                <TabsTrigger value="print" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Printer className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Print Forms</span>
+                  <span className="sm:hidden">Print</span>
                 </TabsTrigger>
-                <TabsTrigger value="accounting" className="flex items-center gap-2">
-                  <Book className="h-4 w-4" />
-                  Accounting
+                <TabsTrigger value="accounting" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Book className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Accounting</span>
+                  <span className="sm:hidden">Acct</span>
                 </TabsTrigger>
-                <TabsTrigger value="history" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  History
+                <TabsTrigger value="history" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">History</span>
+                  <span className="sm:hidden">Log</span>
                 </TabsTrigger>
               </TabsList>
             </div>
 
-            <div className="p-6">
+            <div className="p-3 sm:p-6">
               <TabsContent value="structure" className="mt-0">
                 <DealStructureTab deal={deal} />
               </TabsContent>
