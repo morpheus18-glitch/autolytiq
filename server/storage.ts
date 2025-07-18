@@ -620,13 +620,23 @@ export class MemStorage implements IStorage {
 
   // Customer operations
   async getCustomers(): Promise<Customer[]> {
-    return Array.from(this.customers.values()).sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    try {
+      return Array.from(this.customers.values()).sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    } catch (error) {
+      console.error('Error getting customers:', error);
+      throw error;
+    }
   }
 
   async getCustomer(id: number): Promise<Customer | undefined> {
-    return this.customers.get(id);
+    try {
+      return this.customers.get(id);
+    } catch (error) {
+      console.error('Error getting customer:', error);
+      throw error;
+    }
   }
 
   async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
