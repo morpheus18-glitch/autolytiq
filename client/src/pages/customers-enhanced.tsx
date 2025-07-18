@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { apiRequest } from '@/lib/queryClient';
 import EnhancedCustomerSearch from '@/components/enhanced-customer-search';
+import CustomerModal from '@/components/customer-modal';
 import { 
   SlidersHorizontal, 
   List, 
@@ -158,6 +159,23 @@ export default function Customers() {
           </Card>
         )}
       </div>
+
+      {/* Customer Modal */}
+      {isAddModalOpen && (
+        <CustomerModal
+          open={isAddModalOpen}
+          onOpenChange={setIsAddModalOpen}
+          customer={null}
+        />
+      )}
+      
+      {isEditModalOpen && (
+        <CustomerModal
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          customer={selectedCustomer}
+        />
+      )}
     </div>
   );
 }
