@@ -187,14 +187,14 @@ export default function AdvancedSearch({
                   
                   {filter.type === "select" && (
                     <Select
-                      value={activeFilters[filter.id] || ""}
-                      onValueChange={(value) => handleFilterChange(filter.id, value)}
+                      value={activeFilters[filter.id] || "all"}
+                      onValueChange={(value) => handleFilterChange(filter.id, value === "all" ? undefined : value)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All</SelectItem>
+                        <SelectItem value="all">All</SelectItem>
                         {filter.options?.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
