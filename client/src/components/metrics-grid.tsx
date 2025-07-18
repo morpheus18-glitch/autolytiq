@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Car, DollarSign, UserPlus, Clock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 
 interface MetricsData {
   totalInventory: number;
@@ -48,6 +49,7 @@ export default function MetricsGrid() {
       color: "bg-blue-100 text-primary",
       change: "+5.2%",
       changeColor: "text-green-600",
+      href: "/inventory",
     },
     {
       title: "Monthly Sales",
@@ -56,6 +58,7 @@ export default function MetricsGrid() {
       color: "bg-green-100 text-green-600",
       change: "+12.1%",
       changeColor: "text-green-600",
+      href: "/sales",
     },
     {
       title: "Active Leads",
@@ -64,6 +67,7 @@ export default function MetricsGrid() {
       color: "bg-orange-100 text-orange-600",
       change: "+3.8%",
       changeColor: "text-orange-600",
+      href: "/sales",
     },
     {
       title: "Avg. Days to Sale",
@@ -72,6 +76,7 @@ export default function MetricsGrid() {
       color: "bg-purple-100 text-purple-600",
       change: "-2.3 days",
       changeColor: "text-green-600",
+      href: "/analytics",
     },
   ];
 
@@ -80,25 +85,27 @@ export default function MetricsGrid() {
       {metricItems.map((metric, index) => {
         const Icon = metric.icon;
         return (
-          <Card key={index} className="shadow-sm border border-gray-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">{metric.title}</p>
-                  <p className="text-3xl font-bold text-gray-900">{metric.value}</p>
+          <Link key={index} href={metric.href}>
+            <Card className="shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">{metric.title}</p>
+                    <p className="text-3xl font-bold text-gray-900">{metric.value}</p>
+                  </div>
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${metric.color}`}>
+                    <Icon className="text-xl" />
+                  </div>
                 </div>
-                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${metric.color}`}>
-                  <Icon className="text-xl" />
+                <div className="mt-4 flex items-center">
+                  <span className={`text-sm font-medium ${metric.changeColor}`}>
+                    {metric.change}
+                  </span>
+                  <span className="text-gray-500 text-sm ml-2">from last month</span>
                 </div>
-              </div>
-              <div className="mt-4 flex items-center">
-                <span className={`text-sm font-medium ${metric.changeColor}`}>
-                  {metric.change}
-                </span>
-                <span className="text-gray-500 text-sm ml-2">from last month</span>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
         );
       })}
     </div>
