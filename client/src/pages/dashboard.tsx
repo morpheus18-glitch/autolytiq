@@ -6,9 +6,21 @@ import ActivityFeed from "@/components/activity-feed";
 import CompetitiveInsights from "@/components/competitive-insights";
 import { useState } from "react";
 import VehicleModal from "@/components/vehicle-modal";
+import { useToast } from "@/hooks/use-toast";
+import { usePixelTracker } from "@/hooks/use-pixel-tracker";
 
 export default function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { toast } = useToast();
+  const { trackInteraction } = usePixelTracker();
+
+  const handleNotificationClick = () => {
+    trackInteraction('notification_click', 'dashboard-bell');
+    toast({
+      title: "Notifications",
+      description: "You have 3 new notifications: 2 new leads and 1 inventory alert",
+    });
+  };
 
   return (
     <div className="flex-1 overflow-hidden">
@@ -28,7 +40,10 @@ export default function Dashboard() {
               Add Vehicle
             </Button>
             <div className="relative">
-              <Bell className="text-gray-400 text-xl cursor-pointer hover:text-gray-600" />
+              <Bell 
+                className="text-gray-400 text-xl cursor-pointer hover:text-gray-600" 
+                onClick={handleNotificationClick}
+              />
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                 3
               </span>
