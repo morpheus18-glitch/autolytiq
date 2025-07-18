@@ -157,12 +157,12 @@ export default function CustomerModal({ open, onOpenChange, customer }: Customer
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl w-[95vw] md:w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-lg md:text-xl">
             {customer ? 'Edit Customer' : 'Add New Customer'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm md:text-base">
             {customer ? 'Update customer information' : 'Create a new customer record'}
           </DialogDescription>
         </DialogHeader>
@@ -170,26 +170,28 @@ export default function CustomerModal({ open, onOpenChange, customer }: Customer
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Personal Information */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Personal Information</h3>
+            <h3 className="font-semibold text-base md:text-lg">Personal Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="firstName">First Name *</Label>
+                <Label htmlFor="firstName" className="text-sm md:text-base">First Name *</Label>
                 <Input
                   id="firstName"
                   value={formData.firstName}
                   onChange={(e) => handleChange('firstName', e.target.value)}
                   placeholder="John"
                   required
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label htmlFor="lastName">Last Name *</Label>
+                <Label htmlFor="lastName" className="text-sm md:text-base">Last Name *</Label>
                 <Input
                   id="lastName"
                   value={formData.lastName}
                   onChange={(e) => handleChange('lastName', e.target.value)}
                   placeholder="Doe"
                   required
+                  className="mt-1"
                 />
               </div>
             </div>
@@ -197,10 +199,10 @@ export default function CustomerModal({ open, onOpenChange, customer }: Customer
 
           {/* Contact Information */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Contact Information</h3>
+            <h3 className="font-semibold text-base md:text-lg">Contact Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email" className="text-sm md:text-base">Email *</Label>
                 <Input
                   id="email"
                   type="email"
@@ -208,20 +210,22 @@ export default function CustomerModal({ open, onOpenChange, customer }: Customer
                   onChange={(e) => handleChange('email', e.target.value)}
                   placeholder="john@example.com"
                   required
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label htmlFor="phone">Phone *</Label>
+                <Label htmlFor="phone" className="text-sm md:text-base">Phone *</Label>
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => handleChange('phone', e.target.value)}
                   placeholder="(555) 123-4567"
                   required
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label htmlFor="cellPhone">Cell Phone</Label>
+                <Label htmlFor="cellPhone" className="text-sm md:text-base">Cell Phone</Label>
                 <Input
                   id="cellPhone"
                   value={formData.cellPhone}
@@ -234,30 +238,32 @@ export default function CustomerModal({ open, onOpenChange, customer }: Customer
 
           {/* Address Information */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Address Information</h3>
+            <h3 className="font-semibold text-base md:text-lg">Address Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="address" className="text-sm md:text-base">Address</Label>
                 <Input
                   id="address"
                   value={formData.address}
                   onChange={(e) => handleChange('address', e.target.value)}
                   placeholder="123 Main St"
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label htmlFor="city">City</Label>
+                <Label htmlFor="city" className="text-sm md:text-base">City</Label>
                 <Input
                   id="city"
                   value={formData.city}
                   onChange={(e) => handleChange('city', e.target.value)}
                   placeholder="Austin"
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label htmlFor="state">State</Label>
+                <Label htmlFor="state" className="text-sm md:text-base">State</Label>
                 <Select value={formData.state} onValueChange={(value) => handleChange('state', value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select state" />
                   </SelectTrigger>
                   <SelectContent>
@@ -270,12 +276,13 @@ export default function CustomerModal({ open, onOpenChange, customer }: Customer
                 </Select>
               </div>
               <div>
-                <Label htmlFor="zipCode">Zip Code</Label>
+                <Label htmlFor="zipCode" className="text-sm md:text-base">Zip Code</Label>
                 <Input
                   id="zipCode"
                   value={formData.zipCode}
                   onChange={(e) => handleChange('zipCode', e.target.value)}
                   placeholder="12345"
+                  className="mt-1"
                 />
               </div>
             </div>
@@ -283,10 +290,10 @@ export default function CustomerModal({ open, onOpenChange, customer }: Customer
 
           {/* Financial Information */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Financial Information</h3>
+            <h3 className="font-semibold text-base md:text-lg">Financial Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="creditScore">Credit Score</Label>
+                <Label htmlFor="creditScore" className="text-sm md:text-base">Credit Score</Label>
                 <Input
                   id="creditScore"
                   type="number"
@@ -295,10 +302,11 @@ export default function CustomerModal({ open, onOpenChange, customer }: Customer
                   placeholder="720"
                   min="300"
                   max="850"
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label htmlFor="income">Annual Income</Label>
+                <Label htmlFor="income" className="text-sm md:text-base">Annual Income</Label>
                 <Input
                   id="income"
                   type="number"
@@ -306,6 +314,7 @@ export default function CustomerModal({ open, onOpenChange, customer }: Customer
                   onChange={(e) => handleChange('income', e.target.value)}
                   placeholder="50000"
                   min="0"
+                  className="mt-1"
                 />
               </div>
             </div>
@@ -371,33 +380,35 @@ export default function CustomerModal({ open, onOpenChange, customer }: Customer
 
           {/* Notes */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Notes</h3>
+            <h3 className="font-semibold text-base md:text-lg">Notes</h3>
             <div>
-              <Label htmlFor="notes">Additional Notes</Label>
+              <Label htmlFor="notes" className="text-sm md:text-base">Additional Notes</Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => handleChange('notes', e.target.value)}
                 placeholder="Any additional notes about this customer..."
                 rows={3}
+                className="mt-1"
               />
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex flex-col md:flex-row justify-end space-y-2 md:space-y-0 md:space-x-2 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
+              className="w-full md:w-auto"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-primary hover:bg-blue-700"
+              className="w-full md:w-auto bg-primary hover:bg-blue-700"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {customer ? 'Update Customer' : 'Create Customer'}

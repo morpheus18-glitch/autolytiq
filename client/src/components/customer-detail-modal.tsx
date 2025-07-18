@@ -204,73 +204,78 @@ export default function CustomerDetailModal({ customer, open, onOpenChange }: Cu
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-6xl max-h-[90vh] w-[95vw] md:w-full overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-lg md:text-xl">
             <User className="w-5 h-5" />
-            Customer Details - {customer.firstName} {customer.lastName}
+            <span className="truncate">Customer Details - {customer.firstName} {customer.lastName}</span>
           </DialogTitle>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="credit" className="flex items-center gap-1">
-              <CreditCard className="w-4 h-4" />
-              Credit App
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 gap-1 h-auto md:h-10">
+            <TabsTrigger value="overview" className="text-xs md:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="credit" className="flex items-center gap-1 text-xs md:text-sm">
+              <CreditCard className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="hidden md:inline">Credit App</span>
+              <span className="md:hidden">Credit</span>
             </TabsTrigger>
-            <TabsTrigger value="trade" className="flex items-center gap-1">
-              <Car className="w-4 h-4" />
-              Trade Vehicle
+            <TabsTrigger value="trade" className="flex items-center gap-1 text-xs md:text-sm">
+              <Car className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="hidden md:inline">Trade Vehicle</span>
+              <span className="md:hidden">Trade</span>
             </TabsTrigger>
-            <TabsTrigger value="co-applicant" className="flex items-center gap-1">
-              <Users className="w-4 h-4" />
-              Co-Applicant
+            <TabsTrigger value="co-applicant" className="flex items-center gap-1 text-xs md:text-sm">
+              <Users className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="hidden md:inline">Co-Applicant</span>
+              <span className="md:hidden">Co-App</span>
             </TabsTrigger>
-            <TabsTrigger value="showroom" className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              Showroom Log
+            <TabsTrigger value="showroom" className="flex items-center gap-1 text-xs md:text-sm">
+              <Calendar className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="hidden md:inline">Showroom Log</span>
+              <span className="md:hidden">Showroom</span>
             </TabsTrigger>
-            <TabsTrigger value="notes" className="flex items-center gap-1">
-              <MessageCircle className="w-4 h-4" />
-              Notes
+            <TabsTrigger value="notes" className="flex items-center gap-1 text-xs md:text-sm">
+              <MessageCircle className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="hidden md:inline">Notes</span>
+              <span className="md:hidden">Notes</span>
             </TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="h-[600px] w-full">
-            <TabsContent value="overview" className="space-y-4">
+          <ScrollArea className="h-[50vh] md:h-[600px] w-full">
+            <TabsContent value="overview" className="space-y-4 p-2 md:p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <User className="w-5 h-5" />
+                  <CardHeader className="p-4 md:p-6">
+                    <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                      <User className="w-4 h-4 md:w-5 md:h-5" />
                       Personal Information
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="grid grid-cols-2 gap-2">
+                  <CardContent className="space-y-3 p-4 md:p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       <div>
-                        <Label className="text-sm font-medium">Name</Label>
-                        <p className="text-sm">{customer.firstName} {customer.lastName}</p>
+                        <Label className="text-xs md:text-sm font-medium">Name</Label>
+                        <p className="text-sm md:text-base">{customer.firstName} {customer.lastName}</p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium">Status</Label>
+                        <Label className="text-xs md:text-sm font-medium">Status</Label>
                         <Badge className={getStatusColor(customer.status)}>{customer.status}</Badge>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       <div>
-                        <Label className="text-sm font-medium">Email</Label>
-                        <p className="text-sm">{customer.email || "Not provided"}</p>
+                        <Label className="text-xs md:text-sm font-medium">Email</Label>
+                        <p className="text-sm md:text-base break-all">{customer.email || "Not provided"}</p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium">Phone</Label>
-                        <p className="text-sm">{customer.phone || "Not provided"}</p>
+                        <Label className="text-xs md:text-sm font-medium">Phone</Label>
+                        <p className="text-sm md:text-base">{customer.phone || "Not provided"}</p>
                       </div>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium">Address</Label>
-                      <p className="text-sm">{customer.address || "Not provided"}</p>
+                      <Label className="text-xs md:text-sm font-medium">Address</Label>
+                      <p className="text-sm md:text-base">{customer.address || "Not provided"}</p>
                     </div>
                   </CardContent>
                 </Card>
