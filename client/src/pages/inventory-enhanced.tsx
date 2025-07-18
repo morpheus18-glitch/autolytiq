@@ -73,7 +73,8 @@ export default function Inventory() {
 
   const handleView = (vehicle: Vehicle) => {
     trackInteraction('vehicle_view', `vehicle-${vehicle.id}`, vehicle.id);
-    // Could open a detailed view modal here
+    // Navigate to vehicle detail page
+    window.location.href = `/inventory/${vehicle.id}`;
   };
 
   const handleDelete = (id: number) => {
