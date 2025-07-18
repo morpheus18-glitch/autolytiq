@@ -30,7 +30,8 @@ import {
   Clock,
   User,
   TrendingUp,
-  RefreshCw
+  RefreshCw,
+  BarChart3
 } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Vehicle } from '@shared/schema';
@@ -188,178 +189,338 @@ export default function VehicleDetail() {
   const currentMedia = mediaItems[currentImageIndex];
 
   return (
-    <div className="flex-1 overflow-auto">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/inventory')}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Inventory
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {vehicle.year} {vehicle.make} {vehicle.model}
-              </h1>
-              <p className="text-sm text-gray-500">VIN: {vehicle.vin}</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Professional Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-4">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/inventory')}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Inventory
+              </Button>
+              <div className="border-l border-gray-300 pl-4">
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {vehicle.year} {vehicle.make} {vehicle.model}
+                </h1>
+                <div className="flex items-center space-x-4 mt-1">
+                  <p className="text-sm text-gray-500 font-mono">VIN: {vehicle.vin}</p>
+                  <Badge 
+                    variant={vehicle.status === 'available' ? 'default' : 'secondary'}
+                    className="uppercase text-xs"
+                  >
+                    {vehicle.status}
+                  </Badge>
+                  <span className="text-lg font-bold text-green-600">
+                    ${vehicle.price?.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              {!isEditing ? (
+                <>
+                  <Button variant="outline" size="sm">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload Media
+                  </Button>
+                  <Button onClick={() => setIsEditing(true)} className="bg-blue-600 hover:bg-blue-700">
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Vehicle
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleCancel}
+                    className="border-gray-300"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleSave} 
+                    disabled={updateVehicleMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {updateVehicleMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </>
+              )}
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            {!isEditing ? (
-              <Button onClick={() => setIsEditing(true)}>
-                <Edit className="w-4 h-4 mr-2" />
-                Edit
-              </Button>
-            ) : (
-              <>
-                <Button onClick={handleSave} disabled={updateVehicleMutation.isPending}>
-                  <Save className="w-4 h-4 mr-2" />
-                  {updateVehicleMutation.isPending ? 'Saving...' : 'Save'}
-                </Button>
-                <Button variant="outline" onClick={handleCancel}>
-                  <X className="w-4 h-4 mr-2" />
-                  Cancel
-                </Button>
-              </>
-            )}
-          </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
-      <div className="p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Left Column - Vehicle Details */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Vehicle Metadata */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Vehicle Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <Label>Make</Label>
-                    {isEditing ? (
-                      <Input
-                        value={editData.make || ''}
-                        onChange={(e) => setEditData({ ...editData, make: e.target.value })}
-                      />
-                    ) : (
-                      <p className="text-lg font-medium">{vehicle.make}</p>
-                    )}
+          <div className="lg:col-span-3 space-y-6">
+            {/* Quick Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <Card className="bg-gradient-to-r from-blue-50 to-blue-100">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-blue-600">Mileage</p>
+                      <p className="text-2xl font-bold text-blue-900">
+                        {vehicle.mileage?.toLocaleString() || 'N/A'}
+                      </p>
+                    </div>
+                    <TrendingUp className="h-8 w-8 text-blue-600" />
                   </div>
-                  <div>
-                    <Label>Model</Label>
-                    {isEditing ? (
-                      <Input
-                        value={editData.model || ''}
-                        onChange={(e) => setEditData({ ...editData, model: e.target.value })}
-                      />
-                    ) : (
-                      <p className="text-lg font-medium">{vehicle.model}</p>
-                    )}
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-r from-green-50 to-green-100">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-green-600">List Price</p>
+                      <p className="text-2xl font-bold text-green-900">
+                        ${vehicle.price?.toLocaleString()}
+                      </p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-green-600" />
                   </div>
-                  <div>
-                    <Label>Year</Label>
-                    {isEditing ? (
-                      <Input
-                        type="number"
-                        value={editData.year || ''}
-                        onChange={(e) => setEditData({ ...editData, year: parseInt(e.target.value) })}
-                      />
-                    ) : (
-                      <p className="text-lg font-medium">{vehicle.year}</p>
-                    )}
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-r from-purple-50 to-purple-100">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-purple-600">Days on Lot</p>
+                      <p className="text-2xl font-bold text-purple-900">
+                        {vehicle.createdAt ? Math.floor((Date.now() - new Date(vehicle.createdAt).getTime()) / (1000 * 60 * 60 * 24)) : 0}
+                      </p>
+                    </div>
+                    <Calendar className="h-8 w-8 text-purple-600" />
                   </div>
-                  <div>
-                    <Label>Trim</Label>
-                    {isEditing ? (
-                      <Input
-                        value={editData.trim || ''}
-                        onChange={(e) => setEditData({ ...editData, trim: e.target.value })}
-                      />
-                    ) : (
-                      <p className="text-lg font-medium">{vehicle.trim || 'N/A'}</p>
-                    )}
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-r from-orange-50 to-orange-100">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-orange-600">Market Value</p>
+                      <p className="text-2xl font-bold text-orange-900">
+                        ${valuations?.kbb?.toLocaleString() || 'Loading...'}
+                      </p>
+                    </div>
+                    <BarChart3 className="h-8 w-8 text-orange-600" />
                   </div>
-                </div>
-                
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label>Mileage</Label>
-                    {isEditing ? (
-                      <Input
-                        type="number"
-                        value={editData.mileage || ''}
-                        onChange={(e) => setEditData({ ...editData, mileage: parseInt(e.target.value) })}
-                      />
-                    ) : (
-                      <p className="text-lg font-medium">{vehicle.mileage?.toLocaleString() || 'N/A'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <Label>Price</Label>
-                    {isEditing ? (
-                      <Input
-                        type="number"
-                        value={editData.price || ''}
-                        onChange={(e) => setEditData({ ...editData, price: parseInt(e.target.value) })}
-                      />
-                    ) : (
-                      <p className="text-lg font-medium">${vehicle.price?.toLocaleString()}</p>
-                    )}
-                  </div>
-                  <div>
-                    <Label>Status</Label>
-                    {isEditing ? (
-                      <select
-                        value={editData.status || ''}
-                        onChange={(e) => setEditData({ ...editData, status: e.target.value })}
-                        className="w-full p-2 border rounded"
-                      >
-                        <option value="available">Available</option>
-                        <option value="pending">Pending</option>
-                        <option value="sold">Sold</option>
-                        <option value="maintenance">Maintenance</option>
-                      </select>
-                    ) : (
-                      <Badge variant={vehicle.status === 'available' ? 'default' : 'secondary'}>
-                        {vehicle.status}
-                      </Badge>
-                    )}
-                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Professional Tabbed Interface */}
+            <div className="bg-white rounded-lg shadow-sm border">
+              <Tabs defaultValue="details" className="w-full">
+                <div className="border-b border-gray-200 bg-gray-50 rounded-t-lg">
+                  <TabsList className="grid w-full grid-cols-5 bg-transparent h-auto p-0">
+                    <TabsTrigger 
+                      value="details" 
+                      className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-4 px-6 font-medium"
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Vehicle Details
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="valuations"
+                      className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-4 px-6 font-medium"
+                    >
+                      <DollarSign className="w-4 h-4 mr-2" />
+                      Market Valuations
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="history"
+                      className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-4 px-6 font-medium"
+                    >
+                      <Clock className="w-4 h-4 mr-2" />
+                      Price History
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="media"
+                      className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-4 px-6 font-medium"
+                    >
+                      <Image className="w-4 h-4 mr-2" />
+                      Media Gallery
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="notes"
+                      className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 py-4 px-6 font-medium"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Notes & History
+                    </TabsTrigger>
+                  </TabsList>
                 </div>
 
-                <div>
-                  <Label>Description</Label>
-                  {isEditing ? (
-                    <Textarea
-                      value={editData.description || ''}
-                      onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                      rows={3}
-                    />
-                  ) : (
-                    <p className="text-gray-600">{vehicle.description || 'No description available'}</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                <TabsContent value="details" className="p-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Basic Information */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h3 className="font-semibold text-gray-900 mb-3">Basic Information</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Make</Label>
+                          {isEditing ? (
+                            <Input
+                              value={editData.make || ''}
+                              onChange={(e) => setEditData({ ...editData, make: e.target.value })}
+                              className="mt-1"
+                            />
+                          ) : (
+                            <p className="text-lg font-semibold text-gray-900 mt-1">{vehicle.make}</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Model</Label>
+                          {isEditing ? (
+                            <Input
+                              value={editData.model || ''}
+                              onChange={(e) => setEditData({ ...editData, model: e.target.value })}
+                              className="mt-1"
+                            />
+                          ) : (
+                            <p className="text-lg font-semibold text-gray-900 mt-1">{vehicle.model}</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Year</Label>
+                          {isEditing ? (
+                            <Input
+                              type="number"
+                              value={editData.year || ''}
+                              onChange={(e) => setEditData({ ...editData, year: parseInt(e.target.value) })}
+                              className="mt-1"
+                            />
+                          ) : (
+                            <p className="text-lg font-semibold text-gray-900 mt-1">{vehicle.year}</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">VIN</Label>
+                          <p className="text-sm font-mono text-gray-900 mt-1 bg-white p-2 rounded border">
+                            {vehicle.vin}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
-            {/* Tabbed Content */}
-            <Tabs defaultValue="valuations" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="valuations">Market Valuations</TabsTrigger>
-                <TabsTrigger value="history">Price History</TabsTrigger>
-                <TabsTrigger value="media">Media</TabsTrigger>
-                <TabsTrigger value="notes">Notes</TabsTrigger>
-              </TabsList>
+                    {/* Vehicle Specifications */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h3 className="font-semibold text-gray-900 mb-3">Specifications</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Mileage</Label>
+                          {isEditing ? (
+                            <Input
+                              type="number"
+                              value={editData.mileage || ''}
+                              onChange={(e) => setEditData({ ...editData, mileage: parseInt(e.target.value) })}
+                              className="mt-1"
+                            />
+                          ) : (
+                            <p className="text-lg font-semibold text-gray-900 mt-1">
+                              {vehicle.mileage?.toLocaleString() || 'N/A'} miles
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Transmission</Label>
+                          <p className="text-lg font-semibold text-gray-900 mt-1">
+                            {vehicle.transmission || 'Automatic'}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Fuel Type</Label>
+                          <p className="text-lg font-semibold text-gray-900 mt-1">
+                            {vehicle.fuelType || 'Gasoline'}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Body Style</Label>
+                          <p className="text-lg font-semibold text-gray-900 mt-1">
+                            {vehicle.bodyStyle || 'Sedan'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
-              <TabsContent value="valuations" className="space-y-4">
+                    {/* Pricing & Status */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h3 className="font-semibold text-gray-900 mb-3">Pricing & Status</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">List Price</Label>
+                          {isEditing ? (
+                            <Input
+                              type="number"
+                              value={editData.price || ''}
+                              onChange={(e) => setEditData({ ...editData, price: parseInt(e.target.value) })}
+                              className="mt-1"
+                            />
+                          ) : (
+                            <p className="text-2xl font-bold text-green-600 mt-1">
+                              ${vehicle.price?.toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Status</Label>
+                          {isEditing ? (
+                            <select
+                              value={editData.status || ''}
+                              onChange={(e) => setEditData({ ...editData, status: e.target.value })}
+                              className="w-full p-2 border rounded mt-1"
+                            >
+                              <option value="available">Available</option>
+                              <option value="pending">Pending</option>
+                              <option value="sold">Sold</option>
+                              <option value="maintenance">Maintenance</option>
+                            </select>
+                          ) : (
+                            <div className="mt-1">
+                              <Badge 
+                                variant={vehicle.status === 'available' ? 'default' : 'secondary'}
+                                className="text-sm uppercase"
+                              >
+                                {vehicle.status}
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
+                        <div className="col-span-2">
+                          <Label className="text-sm font-medium text-gray-600">Description</Label>
+                          {isEditing ? (
+                            <Textarea
+                              value={editData.description || ''}
+                              onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                              rows={3}
+                              className="mt-1"
+                            />
+                          ) : (
+                            <p className="text-gray-700 mt-1 p-3 bg-white rounded border">
+                              {vehicle.description || 'No description available'}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="valuations" className="p-6 space-y-6">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle>Market Valuations</CardTitle>
@@ -522,11 +683,12 @@ export default function VehicleDetail() {
                   </CardContent>
                 </Card>
               </TabsContent>
-            </Tabs>
+              </Tabs>
+            </div>
           </div>
 
           {/* Right Column - Tags and Quick Actions */}
-          <div className="space-y-6">
+          <div className="lg:col-span-1 space-y-6">
             {/* Tags */}
             <Card>
               <CardHeader>
