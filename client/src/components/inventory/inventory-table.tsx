@@ -38,7 +38,7 @@ export default function InventoryTable({
   onGeneratePricing, 
   showActions = true 
 }: InventoryTableProps) {
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -65,7 +65,7 @@ export default function InventoryTable({
   const paginatedVehicles = filteredVehicles.slice(startIndex, startIndex + itemsPerPage);
 
   const handleRowClick = (vehicle: Vehicle) => {
-    navigate(`/inventory/${vehicle.id}`);
+    setLocation(`/inventory/${vehicle.id}`);
   };
 
   const getStatusColor = (status: string) => {
