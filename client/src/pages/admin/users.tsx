@@ -30,11 +30,11 @@ export default function UsersPage() {
     defaultValues: {
       username: selectedUser?.username || "",
       email: selectedUser?.email || "",
-      firstName: selectedUser?.firstName || "",
-      lastName: selectedUser?.lastName || "",
+      name: selectedUser?.name || "",
       phone: selectedUser?.phone || "",
-      department: selectedUser?.department || "",
-      role: selectedUser?.role || "sales_consultant",
+      password: "", // Required for creation but hidden field
+      roleId: selectedUser?.roleId || undefined,
+      departmentId: selectedUser?.departmentId || undefined,
     },
   });
 
@@ -88,11 +88,11 @@ export default function UsersPage() {
     form.reset({
       username: user.username,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      name: user.name,
       phone: user.phone,
-      department: user.department,
-      role: user.role,
+      password: "", // Don't show existing password
+      roleId: user.roleId,
+      departmentId: user.departmentId,
     });
     setShowDialog(true);
   };
@@ -102,11 +102,11 @@ export default function UsersPage() {
     form.reset({
       username: "",
       email: "",
-      firstName: "",
-      lastName: "",
+      name: "",
       phone: "",
-      department: "",
-      role: "sales_consultant",
+      password: "",
+      roleId: undefined,
+      departmentId: undefined,
     });
     setShowDialog(true);
   };
@@ -126,25 +126,32 @@ export default function UsersPage() {
   };
 
   const filteredUsers = users?.filter(user =>
-    user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.username?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "bg-red-100 text-red-800";
-      case "manager":
-        return "bg-blue-100 text-blue-800";
-      case "sales_consultant":
-        return "bg-green-100 text-green-800";
-      case "service_advisor":
-        return "bg-yellow-100 text-yellow-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+  const getDepartmentName = (id: number | null) => {
+    const departments = {
+      1: "Sales",
+      2: "Service", 
+      3: "Parts",
+      4: "Finance",
+      5: "Management"
+    };
+    return id ? departments[id as keyof typeof departments] || "Unknown" : "Not assigned";
+  };
+
+  const getRoleName = (id: number | null) => {
+    const roles = {
+      1: "Admin",
+      2: "Manager",
+      3: "Sales Consultant", 
+      4: "Service Advisor",
+      5: "Parts Specialist",
+      6: "Finance Manager"
+    };
+    return id ? roles[id as keyof typeof roles] || "Unknown" : "Not assigned";
   };
 
   if (isLoading) {
@@ -182,79 +189,90 @@ export default function UsersPage() {
               <DialogTitle>{selectedUser ? "Edit User" : "Add New User"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div>
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  {...form.register("name")}
+                  placeholder="John Doe"
+                  required
+                />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="username">Username</Label>
                   <Input
-                    id="firstName"
-                    {...form.register("firstName")}
-                    placeholder="John"
+                    id="username"
+                    {...form.register("username")}
+                    placeholder="johndoe"
+                    required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="email">Email</Label>
                   <Input
-                    id="lastName"
-                    {...form.register("lastName")}
-                    placeholder="Doe"
+                    id="email"
+                    type="email"
+                    {...form.register("email")}
+                    placeholder="john@example.com"
+                    required
                   />
                 </div>
               </div>
-              <div>
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  {...form.register("username")}
-                  placeholder="johndoe"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    {...form.register("phone")}
+                    placeholder="+1 (555) 123-4567"
+                  />
+                </div>
+                {!selectedUser && (
+                  <div>
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      {...form.register("password")}
+                      placeholder="Temporary password will be generated"
+                      disabled
+                    />
+                  </div>
+                )}
               </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  {...form.register("email")}
-                  placeholder="john@example.com"
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  {...form.register("phone")}
-                  placeholder="(555) 123-4567"
-                />
-              </div>
-              <div>
-                <Label htmlFor="department">Department</Label>
-                <Select value={form.watch("department")} onValueChange={(value) => form.setValue("department", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sales">Sales</SelectItem>
-                    <SelectItem value="service">Service</SelectItem>
-                    <SelectItem value="parts">Parts</SelectItem>
-                    <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="management">Management</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="role">Role</Label>
-                <Select value={form.watch("role")} onValueChange={(value) => form.setValue("role", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
-                    <SelectItem value="sales_consultant">Sales Consultant</SelectItem>
-                    <SelectItem value="service_advisor">Service Advisor</SelectItem>
-                    <SelectItem value="parts_specialist">Parts Specialist</SelectItem>
-                    <SelectItem value="finance_manager">Finance Manager</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="departmentId">Department</Label>
+                  <Select value={form.watch("departmentId")?.toString()} onValueChange={(value) => form.setValue("departmentId", parseInt(value))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Sales</SelectItem>
+                      <SelectItem value="2">Service</SelectItem>
+                      <SelectItem value="3">Parts</SelectItem>
+                      <SelectItem value="4">Finance</SelectItem>
+                      <SelectItem value="5">Management</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="roleId">Role</Label>
+                  <Select value={form.watch("roleId")?.toString()} onValueChange={(value) => form.setValue("roleId", parseInt(value))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Admin</SelectItem>
+                      <SelectItem value="2">Manager</SelectItem>
+                      <SelectItem value="3">Sales Consultant</SelectItem>
+                      <SelectItem value="4">Service Advisor</SelectItem>
+                      <SelectItem value="5">Parts Specialist</SelectItem>
+                      <SelectItem value="6">Finance Manager</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="flex justify-end space-x-2">
                 <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>
@@ -297,10 +315,10 @@ export default function UsersPage() {
                   </div>
                   <div>
                     <div className="flex items-center space-x-2">
-                      <h3 className="font-medium">{user.firstName} {user.lastName}</h3>
-                      <Badge className={getRoleColor(user.role || "")}>
+                      <h3 className="font-medium">{user.name}</h3>
+                      <Badge className={user.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
                         <Shield className="w-3 h-3 mr-1" />
-                        {user.role}
+                        {user.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </div>
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
@@ -320,7 +338,7 @@ export default function UsersPage() {
                       )}
                     </div>
                     <div className="text-sm text-gray-500">
-                      Department: {user.department}
+                      {getRoleName(user.roleId)} • {getDepartmentName(user.departmentId)}
                     </div>
                   </div>
                 </div>
