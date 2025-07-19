@@ -141,7 +141,7 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(users);
   }
 
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
@@ -156,13 +156,51 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUser(id: number, updates: Partial<User>): Promise<User> {
+  async updateUser(id: string, updates: Partial<User>): Promise<User> {
     const [user] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
     return user;
   }
 
-  async deleteUser(id: number): Promise<void> {
+  async deleteUser(id: string): Promise<void> {
     await db.delete(users).where(eq(users.id, id));
+  }
+
+  async upsertUser(userData: any): Promise<User> {
+    try {
+      console.log('DatabaseStorage: Upserting user with data:', userData);
+      
+      const [user] = await db
+        .insert(users)
+        .values({
+          id: userData.id,
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          profileImageUrl: userData.profileImageUrl,
+          provider: userData.provider,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: users.id,
+          set: {
+            email: userData.email,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            profileImageUrl: userData.profileImageUrl,
+            provider: userData.provider,
+            updatedAt: new Date(),
+            lastLogin: new Date(),
+          },
+        })
+        .returning();
+        
+      console.log('DatabaseStorage: User upserted successfully:', user);
+      return user;
+    } catch (error) {
+      console.error('DatabaseStorage: Error upserting user:', error);
+      throw error;
+    }
   }
 
   // Employee operations
