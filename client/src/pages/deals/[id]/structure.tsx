@@ -15,6 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import VinDecoder from '../../../components/vin-decoder';
+import WorkADeal from '../../../components/work-a-deal';
 import { insertDealSchema, type Deal, type Vehicle, type Customer } from '@shared/schema';
 import { 
   Car, User, DollarSign, CreditCard, MapPin, Phone, Mail, 
@@ -184,9 +185,10 @@ export default function DealStructureTab({ deal }: DealStructureTabProps) {
       </div>
 
       <Tabs defaultValue="customer" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1">
           <TabsTrigger value="customer" className="text-xs sm:text-sm">Customer</TabsTrigger>
           <TabsTrigger value="vehicle" className="text-xs sm:text-sm">Vehicle</TabsTrigger>
+          <TabsTrigger value="work-deal" className="text-xs sm:text-sm">Work Deal</TabsTrigger>
           <TabsTrigger value="trade" className="text-xs sm:text-sm">Trade-In</TabsTrigger>
           <TabsTrigger value="payoff" className="text-xs sm:text-sm">Payoff</TabsTrigger>
           <TabsTrigger value="insurance" className="text-xs sm:text-sm">Insurance</TabsTrigger>
@@ -321,6 +323,19 @@ export default function DealStructureTab({ deal }: DealStructureTabProps) {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Work Deal Tab */}
+        <TabsContent value="work-deal" className="space-y-4">
+          <WorkADeal 
+            selectedVehicle={selectedVehicle}
+            selectedCustomer={selectedCustomer}
+            onDealUpdate={(dealData) => {
+              Object.keys(dealData).forEach(key => {
+                form.setValue(key as any, dealData[key]);
+              });
+            }}
+          />
         </TabsContent>
 
         {/* Trade-In Tab */}
