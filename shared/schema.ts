@@ -50,13 +50,14 @@ export const rolePermissions = pgTable("role_permissions", {
   pk: primaryKey({ columns: [table.roleId, table.permissionId] }),
 }));
 
-// Updated users table for Replit Auth compatibility
+// Updated users table for Multi-Provider OAuth Auth compatibility
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().notNull(), // Changed to varchar for Replit Auth
+  id: varchar("id").primaryKey().notNull(), // Changed to varchar for OAuth Auth
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  provider: varchar("provider").default("replit"), // oauth provider: replit, google, github, apple
   // Legacy fields for backward compatibility
   username: text("username").unique(),
   password: text("password"),

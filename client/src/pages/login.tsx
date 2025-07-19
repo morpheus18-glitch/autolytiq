@@ -1,213 +1,121 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Shield, Lock, User, AlertTriangle } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { useLocation } from 'wouter';
-
-const loginSchema = z.object({
-  username: z.string().min(1, 'Username is required'),
-  password: z.string().min(1, 'Password is required'),
-  twoFactorCode: z.string().optional(),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Link } from "wouter";
+import { 
+  Car, 
+  Lock, 
+  UserPlus, 
+  ArrowLeft,
+  Github,
+  Chrome,
+  Apple
+} from "lucide-react";
 
 export default function Login() {
-  const [, setLocation] = useLocation();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [showPassword, setShowPassword] = useState(false);
-  const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
-
-  const form = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      username: '',
-      password: '',
-      twoFactorCode: '',
-    },
-  });
-
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginForm) => {
-      const response = await apiRequest('POST', '/api/auth/login', data);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
-      }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data.requiresTwoFactor && !form.watch('twoFactorCode')) {
-        setRequiresTwoFactor(true);
-        toast({
-          title: 'Two-Factor Authentication Required',
-          description: 'Please enter your 2FA code to continue.',
-        });
-      } else {
-        toast({
-          title: 'Login Successful',
-          description: `Welcome back, ${data.user.username}!`,
-        });
-        // Invalidate the auth session query to refresh authentication state
-        queryClient.invalidateQueries({ queryKey: ['/api/auth/session'] });
-        setLocation('/');
-      }
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Login Failed',
-        description: error.message || 'Invalid credentials. Please try again.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  const onSubmit = (data: LoginForm) => {
-    loginMutation.mutate(data);
+  const handleProviderLogin = (provider: string) => {
+    window.location.href = `/api/auth/${provider}`;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
-        {/* Header */}
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-blue-600 rounded-full">
-              <Shield className="h-8 w-8 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <Card className="shadow-xl border-0">
+          <CardHeader className="space-y-4 pb-6">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Car className="h-8 w-8 text-blue-600" />
+                <h1 className="text-2xl font-bold text-gray-900">AutolytiQ</h1>
+              </div>
+              <p className="text-gray-600">Dealership Management System</p>
             </div>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">AutolytiQ</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">Secure Dealership Management</p>
-        </div>
-
-        {/* Login Form */}
-        <Card className="border-0 shadow-xl">
-          <CardHeader className="text-center pb-4">
-            <CardTitle className="flex items-center justify-center gap-2">
-              <Lock className="h-5 w-5" />
-              Sign In
-            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="username"
-                    placeholder="Enter your username"
-                    className="pl-10"
-                    {...form.register('username')}
-                  />
-                </div>
-                {form.formState.errors.username && (
-                  <p className="text-sm text-red-600">{form.formState.errors.username.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
-                    className="pl-10 pr-10"
-                    {...form.register('password')}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
-                    )}
-                  </Button>
-                </div>
-                {form.formState.errors.password && (
-                  <p className="text-sm text-red-600">{form.formState.errors.password.message}</p>
-                )}
-              </div>
-
-              {requiresTwoFactor && (
-                <div className="space-y-2">
-                  <Label htmlFor="twoFactorCode">Two-Factor Authentication Code</Label>
-                  <Input
-                    id="twoFactorCode"
-                    placeholder="Enter 6-digit code"
-                    maxLength={6}
-                    className="text-center text-lg tracking-widest"
-                    {...form.register('twoFactorCode')}
-                  />
-                  <p className="text-xs text-gray-500">Enter the code from your authenticator app</p>
-                </div>
-              )}
-
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-center text-gray-800 mb-4">
+                Choose Your Sign-In Method
+              </h2>
+              
+              {/* Replit OAuth */}
               <Button
-                type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700"
-                disabled={loginMutation.isPending}
+                onClick={() => handleProviderLogin('replit')}
+                className="w-full bg-[#F26207] hover:bg-[#E55100] text-white py-3 text-base font-medium"
+                size="lg"
               >
-                {loginMutation.isPending ? 'Signing In...' : 'Sign In'}
+                <div className="w-5 h-5 mr-3 bg-white rounded-sm flex items-center justify-center">
+                  <span className="text-[#F26207] font-bold text-xs">R</span>
+                </div>
+                Continue with Replit
               </Button>
-            </form>
+
+              <Separator className="my-4" />
+
+              {/* Google OAuth */}
+              <Button
+                onClick={() => handleProviderLogin('google')}
+                variant="outline"
+                className="w-full py-3 text-base font-medium border-gray-300 hover:bg-gray-50"
+                size="lg"
+              >
+                <Chrome className="w-5 h-5 mr-3 text-red-500" />
+                Continue with Google
+              </Button>
+
+              {/* GitHub OAuth */}
+              <Button
+                onClick={() => handleProviderLogin('github')}
+                variant="outline"
+                className="w-full py-3 text-base font-medium border-gray-300 hover:bg-gray-50"
+                size="lg"
+              >
+                <Github className="w-5 h-5 mr-3 text-gray-800" />
+                Continue with GitHub
+              </Button>
+
+              {/* Apple OAuth */}
+              <Button
+                onClick={() => handleProviderLogin('apple')}
+                variant="outline"
+                className="w-full py-3 text-base font-medium border-gray-300 hover:bg-gray-50"
+                size="lg"
+              >
+                <Apple className="w-5 h-5 mr-3 text-gray-800" />
+                Continue with Apple
+              </Button>
+            </div>
 
             <Separator className="my-6" />
 
-            {/* Hidden Master Account Access */}
-            <div className="text-center">
-              <p className="text-xs text-gray-500">
-                For initial setup assistance, contact system administrator
-              </p>
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-gray-700 text-center mb-3">
+                Legacy Authentication
+              </h3>
+              
+              <Button
+                onClick={() => window.location.href = '/api/login'}
+                variant="ghost"
+                className="w-full py-2 text-sm font-medium text-gray-600 hover:text-gray-800"
+              >
+                <Lock className="w-4 h-4 mr-2" />
+                Staff Login (Master Credentials)
+              </Button>
+            </div>
+
+            <div className="text-center pt-4">
+              <Link href="/">
+                <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Back to Home
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
 
-        {/* Security Features */}
-        <Card className="border-green-200 bg-green-50 dark:bg-green-900/20">
-          <CardContent className="pt-6">
-            <h3 className="font-semibold text-green-800 dark:text-green-200 mb-3">Security Features</h3>
-            <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
-              <li>• SSL/TLS encryption for all data transmission</li>
-              <li>• Two-factor authentication support</li>
-              <li>• Session timeout protection</li>
-              <li>• Secure password requirements</li>
-              <li>• Login attempt monitoring</li>
-            </ul>
-          </CardContent>
-        </Card>
-
-        {/* Initial Setup Instructions */}
-        <Card>
-          <CardContent className="pt-6">
-            <h3 className="font-semibold mb-3">Initial Login Steps</h3>
-            <ol className="text-sm text-gray-600 dark:text-gray-300 space-y-2">
-              <li>1. Use the master account credentials above for first-time access</li>
-              <li>2. Navigate to Settings → User Management after login</li>
-              <li>3. Create your personal admin account with strong credentials</li>
-              <li>4. Enable two-factor authentication for enhanced security</li>
-              <li>5. Change or disable the master account after setup</li>
-            </ol>
-          </CardContent>
-        </Card>
+        <div className="text-center mt-6 text-sm text-gray-500">
+          <p>Secure OAuth authentication powered by industry-leading providers</p>
+          <p className="mt-1">© 2025 AutolytiQ. All rights reserved.</p>
+        </div>
       </div>
     </div>
   );
