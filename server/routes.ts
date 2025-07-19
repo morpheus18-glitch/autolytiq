@@ -8,8 +8,35 @@ import { decodeVINHandler } from "./services/vin-decoder";
 import { mlBackend } from "./ml-integration";
 import { valuationService } from './services/valuation-service';
 import { photoService } from './services/photo-service';
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      // If Replit Auth is not configured, return a default user
+      if (!process.env.REPLIT_DOMAINS || !process.env.REPL_ID) {
+        const defaultUser = {
+          id: "default-admin",
+          email: "admin@autolytiq.com",
+          firstName: "Admin",
+          lastName: "User",
+          profileImageUrl: null
+        };
+        return res.json(defaultUser);
+      }
+
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
   // Vehicle routes
   app.get("/api/vehicles", async (req, res) => {
     try {

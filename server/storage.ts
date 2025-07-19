@@ -1,13 +1,14 @@
 import { 
   users, vehicles, customers, leads, sales, activities, visitorSessions, pageViews, customerInteractions, competitorAnalytics, competitivePricing, pricingInsights, merchandisingStrategies, marketTrends, deals, dealDocuments, dealApprovals, creditApplications, coApplicants, tradeVehicles, showroomVisits, salespersonNotes, showroomSessions,
   type User, type Vehicle, type Customer, type Lead, type Sale, type Activity, type VisitorSession, type PageView, type CustomerInteraction, type CompetitorAnalytics, type CompetitivePricing, type PricingInsights, type MerchandisingStrategies, type MarketTrends, type Deal, type DealDocument, type DealApproval, type CreditApplication, type CoApplicant, type TradeVehicle, type ShowroomVisit, type SalespersonNote, type ShowroomSession,
-  type InsertUser, type InsertVehicle, type InsertCustomer, type InsertLead, type InsertSale, type InsertActivity, type InsertVisitorSession, type InsertPageView, type InsertCustomerInteraction, type InsertCompetitorAnalytics, type InsertCompetitivePricing, type InsertPricingInsights, type InsertMerchandisingStrategies, type InsertMarketTrends, type InsertDeal, type InsertDealDocument, type InsertDealApproval
+  type InsertUser, type InsertVehicle, type InsertCustomer, type InsertLead, type InsertSale, type InsertActivity, type InsertVisitorSession, type InsertPageView, type InsertCustomerInteraction, type InsertCompetitorAnalytics, type InsertCompetitivePricing, type InsertPricingInsights, type InsertMerchandisingStrategies, type InsertMarketTrends, type InsertDeal, type InsertDealDocument, type InsertDealApproval, type UpsertUser
 } from "@shared/schema";
 
 export interface IStorage {
   // User operations
   getUsers(): Promise<User[]>;
-  getUser(id: number): Promise<User | undefined>;
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User>;
@@ -713,8 +714,50 @@ export class MemStorage implements IStorage {
   }
 
   // User operations
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+  async getUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
+  async getUser(id: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.id === id);
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const existingUser = await this.getUser(userData.id);
+    
+    if (existingUser) {
+      // Update existing user
+      const updatedUser = {
+        ...existingUser,
+        ...userData,
+        updatedAt: new Date(),
+      };
+      // Remove old entry if ID type changed
+      Array.from(this.users.entries()).forEach(([key, value]) => {
+        if (value.id === userData.id) {
+          this.users.delete(key);
+        }
+      });
+      this.users.set(userData.id as any, updatedUser);
+      return updatedUser;
+    } else {
+      // Create new user
+      const newUser = {
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isActive: true,
+        lastLogin: null,
+        roleId: null,
+        departmentId: null,
+        phone: null,
+        username: null,
+        password: null,
+        name: null,
+        ...userData,
+      };
+      this.users.set(userData.id as any, newUser);
+      return newUser;
+    }
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
@@ -725,7 +768,7 @@ export class MemStorage implements IStorage {
     const id = this.currentUserId++;
     const user: User = { 
       ...insertUser, 
-      id,
+      id: String(id),
       phone: insertUser.phone || null,
       departmentId: insertUser.departmentId || null,
       roleId: insertUser.roleId || null,
@@ -736,6 +779,25 @@ export class MemStorage implements IStorage {
     };
     this.users.set(id, user);
     return user;
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User> {
+    const user = this.users.get(id);
+    if (!user) {
+      throw new Error(`User with id ${id} not found`);
+    }
+    
+    const updatedUser = { 
+      ...user, 
+      ...updates,
+      updatedAt: new Date()
+    };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    this.users.delete(id);
   }
 
   // Vehicle operations
