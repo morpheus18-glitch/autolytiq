@@ -162,23 +162,40 @@ export default function ShowroomManagerClean() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/showroom-sessions'] });
       setIsCreateDialogOpen(false);
-      toast({ title: 'Session created successfully' });
+      setFormData({
+        customerId: '',
+        vehicleId: '',
+        eventStatus: 'working',
+        dealStage: 'vehicle_selection',
+        notes: ''
+      });
+      toast({ title: 'Customer visit created successfully' });
     },
     onError: (error) => {
       toast({ title: 'Error creating session', description: error.message, variant: 'destructive' });
     }
   });
 
-  const handleCreateSession = (formData: FormData) => {
+  const [formData, setFormData] = useState({
+    customerId: '',
+    vehicleId: '',
+    eventStatus: 'working',
+    dealStage: 'vehicle_selection',
+    notes: ''
+  });
+
+  const handleCreateSession = () => {
+    if (!formData.customerId) {
+      toast({ title: 'Error', description: 'Please select a customer', variant: 'destructive' });
+      return;
+    }
+
     const data = {
-      customerId: parseInt(formData.get('customerId') as string),
-      vehicleId: formData.get('vehicleId') ? parseInt(formData.get('vehicleId') as string) : undefined,
-      stockNumber: formData.get('stockNumber') as string || undefined,
-      salespersonId: formData.get('salespersonId') ? parseInt(formData.get('salespersonId') as string) : undefined,
-      leadSource: formData.get('leadSource') as string || undefined,
-      eventStatus: formData.get('eventStatus') as string || 'working',
-      dealStage: formData.get('dealStage') as string || 'vehicle_selection',
-      notes: formData.get('notes') as string || undefined,
+      customerId: parseInt(formData.customerId),
+      vehicleId: formData.vehicleId ? parseInt(formData.vehicleId) : undefined,
+      eventStatus: formData.eventStatus || 'working',
+      dealStage: formData.dealStage || 'vehicle_selection',
+      notes: formData.notes || undefined,
       timeEntered: new Date().toISOString(),
       sessionDate: format(selectedDate, 'yyyy-MM-dd'),
     };
@@ -318,14 +335,14 @@ export default function ShowroomManagerClean() {
               <DialogHeader>
                 <DialogTitle>Create New Customer Visit</DialogTitle>
               </DialogHeader>
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                handleCreateSession(new FormData(e.currentTarget));
-              }} className="space-y-4">
+              <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="customerId">Customer</Label>
-                    <Select name="customerId" required>
+                    <Select 
+                      value={formData.customerId} 
+                      onValueChange={(value) => setFormData(prev => ({...prev, customerId: value}))}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select customer" />
                       </SelectTrigger>
@@ -341,7 +358,10 @@ export default function ShowroomManagerClean() {
                   
                   <div>
                     <Label htmlFor="vehicleId">Vehicle (Optional)</Label>
-                    <Select name="vehicleId">
+                    <Select 
+                      value={formData.vehicleId} 
+                      onValueChange={(value) => setFormData(prev => ({...prev, vehicleId: value}))}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select vehicle" />
                       </SelectTrigger>
@@ -357,7 +377,10 @@ export default function ShowroomManagerClean() {
 
                   <div>
                     <Label htmlFor="eventStatus">Status</Label>
-                    <Select name="eventStatus" defaultValue="working">
+                    <Select 
+                      value={formData.eventStatus} 
+                      onValueChange={(value) => setFormData(prev => ({...prev, eventStatus: value}))}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -373,7 +396,10 @@ export default function ShowroomManagerClean() {
 
                   <div>
                     <Label htmlFor="dealStage">Deal Stage</Label>
-                    <Select name="dealStage" defaultValue="vehicle_selection">
+                    <Select 
+                      value={formData.dealStage} 
+                      onValueChange={(value) => setFormData(prev => ({...prev, dealStage: value}))}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -390,18 +416,39 @@ export default function ShowroomManagerClean() {
 
                 <div>
                   <Label htmlFor="notes">Notes</Label>
-                  <Textarea name="notes" placeholder="Add any relevant notes..." />
+                  <Textarea 
+                    value={formData.notes} 
+                    onChange={(e) => setFormData(prev => ({...prev, notes: e.target.value}))}
+                    placeholder="Add any relevant notes..." 
+                  />
                 </div>
 
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsCreateDialogOpen(false);
+                      setFormData({
+                        customerId: '',
+                        vehicleId: '',
+                        eventStatus: 'working',
+                        dealStage: 'vehicle_selection',
+                        notes: ''
+                      });
+                    }}
+                  >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={createSessionMutation.isPending}>
+                  <Button 
+                    type="button" 
+                    disabled={createSessionMutation.isPending || !formData.customerId}
+                    onClick={handleCreateSession}
+                  >
                     {createSessionMutation.isPending ? 'Creating...' : 'Create Visit'}
                   </Button>
                 </DialogFooter>
-              </form>
+              </div>
             </DialogContent>
           </Dialog>
         </div>
