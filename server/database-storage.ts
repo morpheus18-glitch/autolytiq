@@ -7,7 +7,7 @@ import {
   leads, sales, activities, visitorSessions, pageViews,
   customerInteractions, competitorAnalytics,
   competitivePricing, pricingInsights, merchandisingStrategies,
-  marketTrends
+  marketTrends, showroomSessions
 } from "@shared/schema";
 import type { 
   User, InsertUser, 
@@ -24,6 +24,7 @@ import type {
   PricingInsights, InsertPricingInsights,
   MerchandisingStrategies, InsertMerchandisingStrategies,
   MarketTrends, InsertMarketTrends,
+  ShowroomSession, InsertShowroomSession,
   Department, InsertDepartment,
   Role, InsertRole,
   Permission, InsertPermission,
@@ -572,5 +573,111 @@ export class DatabaseStorage implements IStorage {
       pageViews,
       interactions,
     };
+  }
+
+  // Showroom session operations
+  async getShowroomSessions(date?: string): Promise<ShowroomSession[]> {
+    try {
+      let query = db.select().from(showroomSessions);
+      
+      if (date) {
+        query = query.where(sql`DATE(${showroomSessions.sessionDate}) = ${date}`);
+      }
+      
+      return await query;
+    } catch (error) {
+      console.error('Error fetching showroom sessions:', error);
+      throw error;
+    }
+  }
+
+  async getShowroomSession(id: number): Promise<ShowroomSession | undefined> {
+    try {
+      const [session] = await db.select().from(showroomSessions).where(eq(showroomSessions.id, id));
+      return session;
+    } catch (error) {
+      console.error('Error fetching showroom session:', error);
+      throw error;
+    }
+  }
+
+  async createShowroomSession(sessionData: any): Promise<ShowroomSession> {
+    try {
+      console.log('Creating showroom session with data:', sessionData);
+      
+      const [session] = await db
+        .insert(showroomSessions)
+        .values({
+          customerId: sessionData.customerId,
+          vehicleId: sessionData.vehicleId,
+          stockNumber: sessionData.stockNumber,
+          salespersonId: sessionData.salespersonId,
+          leadSource: sessionData.leadSource,
+          eventStatus: sessionData.eventStatus || 'pending',
+          dealStage: sessionData.dealStage || 'vehicle_selection',
+          notes: sessionData.notes,
+          sessionDate: sessionData.sessionDate || new Date(),
+          timeEntered: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
+        
+      console.log('Showroom session created successfully:', session);
+      return session;
+    } catch (error) {
+      console.error('Error creating showroom session:', error);
+      throw error;
+    }
+  }
+
+  async updateShowroomSession(id: number, updates: any): Promise<ShowroomSession | undefined> {
+    try {
+      console.log('Updating showroom session:', id, updates);
+      
+      const [session] = await db
+        .update(showroomSessions)
+        .set({
+          ...updates,
+          updatedAt: new Date(),
+        })
+        .where(eq(showroomSessions.id, id))
+        .returning();
+        
+      console.log('Showroom session updated successfully:', session);
+      return session;
+    } catch (error) {
+      console.error('Error updating showroom session:', error);
+      throw error;
+    }
+  }
+
+  async deleteShowroomSession(id: number): Promise<void> {
+    try {
+      await db.delete(showroomSessions).where(eq(showroomSessions.id, id));
+      console.log('Showroom session deleted:', id);
+    } catch (error) {
+      console.error('Error deleting showroom session:', error);
+      throw error;
+    }
+  }
+
+  async endShowroomSession(id: number): Promise<ShowroomSession | undefined> {
+    try {
+      const [session] = await db
+        .update(showroomSessions)
+        .set({
+          timeExited: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(showroomSessions.id, id))
+        .returning();
+        
+      console.log('Showroom session ended:', session);
+      return session;
+    } catch (error) {
+      console.error('Error ending showroom session:', error);
+      throw error;
+    }
   }
 }
