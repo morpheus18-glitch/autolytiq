@@ -1,7 +1,18 @@
-import { pgTable, text, serial, integer, boolean, timestamp, varchar, decimal, json, primaryKey, unique, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, varchar, decimal, json, primaryKey, unique, date, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
+
+// Session storage table for Replit Auth
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
 
 // Departments table
 export const departments = pgTable("departments", {
@@ -39,20 +50,24 @@ export const rolePermissions = pgTable("role_permissions", {
   pk: primaryKey({ columns: [table.roleId, table.permissionId] }),
 }));
 
-// Updated users table
+// Updated users table for Replit Auth compatibility
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
+  id: varchar("id").primaryKey().notNull(), // Changed to varchar for Replit Auth
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  // Legacy fields for backward compatibility
+  username: text("username").unique(),
+  password: text("password"),
+  name: text("name"),
   phone: text("phone"),
   roleId: integer("role_id").references(() => roles.id),
   departmentId: integer("department_id").references(() => departments.id),
   isActive: boolean("is_active").default(true).notNull(),
   lastLogin: timestamp("last_login"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const vehicles = pgTable("vehicles", {
@@ -962,6 +977,7 @@ export type InsertRole = z.infer<typeof insertRoleSchema>;
 export type InsertPermission = z.infer<typeof insertPermissionSchema>;
 export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpsertUser = typeof users.$inferInsert;
 export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
 export type InsertServicePart = z.infer<typeof insertServicePartSchema>;
 export type InsertServiceOrder = z.infer<typeof insertServiceOrderSchema>;
