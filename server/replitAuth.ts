@@ -254,10 +254,14 @@ export async function setupAuth(app: Express) {
 
   // Setup Google OAuth
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    // Get the current domain from Replit environment or use localhost
+    const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000';
+    const protocol = domain.includes('localhost') ? 'http' : 'https';
+    
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/api/auth/google/callback"
+      callbackURL: `${protocol}://${domain}/api/auth/google/callback`
     }, async (accessToken, refreshToken, profile, done) => {
       try {
         const userId = `google_${profile.id}`;
@@ -287,10 +291,14 @@ export async function setupAuth(app: Express) {
 
   // Setup GitHub OAuth
   if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+    // Get the current domain from Replit environment or use localhost
+    const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000';
+    const protocol = domain.includes('localhost') ? 'http' : 'https';
+    
     passport.use(new GitHubStrategy({
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: "/api/auth/github/callback"
+      callbackURL: `${protocol}://${domain}/api/auth/github/callback`
     }, async (accessToken, refreshToken, profile, done) => {
       try {
         const userId = `github_${profile.id}`;
