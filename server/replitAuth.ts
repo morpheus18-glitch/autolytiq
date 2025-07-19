@@ -39,22 +39,25 @@ export function getSession() {
       sessionStore = new pgStore({
         conString: process.env.DATABASE_URL,
         createTableIfMissing: true,
-        ttl: sessionTtl,
+        ttl: sessionTtl / 1000, // Convert to seconds
         tableName: "sessions",
       });
+      console.log("Using PostgreSQL session store");
+    } else {
+      console.log("Using memory session store");
     }
   } catch (error) {
-    console.warn("Database session store failed, using memory store");
+    console.warn("Database session store failed, using memory store:", error);
   }
 
   return session({
-    secret: process.env.SESSION_SECRET || "fallback-secret-key",
+    secret: process.env.SESSION_SECRET!,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Set to false for development
       maxAge: sessionTtl,
     },
   });
@@ -74,16 +77,38 @@ async function upsertUser(
   claims: any,
   provider?: string
 ) {
-  const userId = provider ? `${provider}_${claims.id || claims.sub}` : claims.sub;
+  console.log('Upserting user:', { claims, provider });
   
-  await storage.upsertUser({
+  // Extract ID properly based on provider
+  let baseId;
+  if (provider === 'google') {
+    baseId = claims.sub || claims.id;
+  } else if (provider === 'github') {
+    baseId = claims.sub || claims.id;
+  } else {
+    baseId = claims.sub;
+  }
+  
+  const userId = provider ? `${provider}_${baseId}` : claims.sub;
+  
+  const userData = {
     id: userId,
     email: claims.email,
-    firstName: claims.first_name || claims.given_name || claims.firstName,
-    lastName: claims.last_name || claims.family_name || claims.lastName,
+    firstName: claims.first_name || claims.given_name || claims.firstName || claims.givenName,
+    lastName: claims.last_name || claims.family_name || claims.lastName || claims.familyName,
     profileImageUrl: claims.profile_image_url || claims.picture || claims.avatar_url,
     provider: provider || 'replit',
-  });
+  };
+  
+  console.log('Creating user with data:', userData);
+  
+  try {
+    await storage.upsertUser(userData);
+    console.log('User upserted successfully');
+  } catch (error) {
+    console.error('Error upserting user:', error);
+    throw error;
+  }
 }
 
 function setupAuthRoutes(app: Express) {
@@ -113,6 +138,7 @@ function setupAuthRoutes(app: Express) {
     app.get("/api/auth/google/callback",
       passport.authenticate("google", { failureRedirect: "/login" }),
       (req, res) => {
+        console.log("Google auth successful, redirecting to dashboard");
         res.redirect("/");
       }
     );
@@ -127,6 +153,7 @@ function setupAuthRoutes(app: Express) {
     app.get("/api/auth/github/callback",
       passport.authenticate("github", { failureRedirect: "/login" }),
       (req, res) => {
+        console.log("GitHub auth successful, redirecting to dashboard");
         res.redirect("/");
       }
     );
@@ -319,8 +346,15 @@ export async function setupAuth(app: Express) {
     }));
   }
 
-  passport.serializeUser((user: any, cb) => cb(null, user));
-  passport.deserializeUser((user: any, cb) => cb(null, user));
+  passport.serializeUser((user: any, cb) => {
+    console.log('Serializing user:', user);
+    cb(null, user);
+  });
+  
+  passport.deserializeUser((user: any, cb) => {
+    console.log('Deserializing user:', user);
+    cb(null, user);
+  });
 
   // Setup all auth routes
   setupAuthRoutes(app);
