@@ -1082,10 +1082,10 @@ export default function ShowroomManager() {
 
       {/* Quick Status Update Dialog */}
       <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
-        <DialogContent>
+        <DialogContent aria-describedby="status-dialog-description">
           <DialogHeader>
             <DialogTitle>Update Status</DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="status-dialog-description">
               {selectedSession && `Update status for ${getCustomerName(selectedSession.customerId)}`}
             </DialogDescription>
           </DialogHeader>
@@ -1126,10 +1126,10 @@ export default function ShowroomManager() {
 
       {/* Quick Stage Update Dialog */}
       <Dialog open={isStageDialogOpen} onOpenChange={setIsStageDialogOpen}>
-        <DialogContent>
+        <DialogContent aria-describedby="stage-dialog-description">
           <DialogHeader>
             <DialogTitle>Update Stage</DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="stage-dialog-description">
               {selectedSession && `Update stage for ${getCustomerName(selectedSession.customerId)}`}
             </DialogDescription>
           </DialogHeader>
