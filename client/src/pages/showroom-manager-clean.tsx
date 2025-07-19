@@ -83,7 +83,46 @@ export default function ShowroomManagerClean() {
   const { toast } = useToast();
   const { trackInteraction } = usePixelTracker();
   const queryClient = useQueryClient();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
+
+  const [formData, setFormData] = useState({
+    customerId: '',
+    vehicleId: '',
+    eventStatus: 'working',
+    dealStage: 'vehicle_selection',
+    notes: ''
+  });
+
+  // Check for URL parameters to auto-create session
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const createSessionParam = urlParams.get('createSession');
+    
+    if (createSessionParam) {
+      try {
+        const sessionData = JSON.parse(decodeURIComponent(createSessionParam));
+        // Auto-populate form and open dialog
+        setFormData({
+          customerId: sessionData.customerId.toString(),
+          vehicleId: '',
+          eventStatus: sessionData.eventStatus || 'working',
+          dealStage: sessionData.dealStage || 'vehicle_selection',
+          notes: sessionData.notes || ''
+        });
+        setIsCreateDialogOpen(true);
+        
+        // Clear the URL parameter
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } catch (error) {
+        console.error('Error parsing session data from URL:', error);
+        toast({ 
+          title: 'Error', 
+          description: 'Invalid session data in URL', 
+          variant: 'destructive' 
+        });
+      }
+    }
+  }, [location, toast]);
 
   // Fetch showroom sessions
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery({
@@ -174,14 +213,6 @@ export default function ShowroomManagerClean() {
     onError: (error) => {
       toast({ title: 'Error creating session', description: error.message, variant: 'destructive' });
     }
-  });
-
-  const [formData, setFormData] = useState({
-    customerId: '',
-    vehicleId: '',
-    eventStatus: 'working',
-    dealStage: 'vehicle_selection',
-    notes: ''
   });
 
   const handleCreateSession = () => {
