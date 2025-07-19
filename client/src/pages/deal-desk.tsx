@@ -1061,6 +1061,88 @@ export default function DealDesk() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Check for pending deal data from showroom session on component load
+  useEffect(() => {
+    const pendingDealData = localStorage.getItem('pendingDeal');
+    if (pendingDealData) {
+      try {
+        const dealData = JSON.parse(pendingDealData);
+        
+        // Update deal state with the incoming data
+        setDeal(prevDeal => ({
+          ...prevDeal,
+          dealNumber: dealData.dealNumber,
+          notes: dealData.notes,
+        }));
+
+        // If customer ID is provided, find and set the customer
+        if (dealData.customerId && customers) {
+          const customer = customers.find(c => c.id === dealData.customerId);
+          if (customer) {
+            setSelectedCustomer({
+              ...customer,
+              creditScore: customer.creditScore || 650,
+              monthlyIncome: customer.monthlyIncome || 5000,
+              employmentStatus: customer.employmentStatus || 'full-time',
+              employmentYears: customer.employmentYears || 2,
+              residenceStatus: customer.residenceStatus || 'own',
+              residenceYears: customer.residenceYears || 3
+            });
+            setActiveTab('customer-info');
+          }
+        }
+
+        // If vehicle ID is provided, find and add the vehicle
+        if (dealData.vehicleId && vehicles) {
+          const vehicle = vehicles.find(v => v.id === dealData.vehicleId);
+          if (vehicle) {
+            const dealVehicle: DealVehicle = {
+              ...vehicle,
+              dealType: 'retail',
+              sellingPrice: vehicle.price,
+              discount: 0,
+              rebate: 0,
+              tradeAllowance: 0,
+              warranties: [],
+              addOns: [],
+              financing: {
+                downPayment: 0,
+                tradeValue: 0,
+                rebates: 0,
+                netTradeValue: 0,
+                cashDown: 0,
+                financeAmount: vehicle.price,
+                salesTax: Math.round(vehicle.price * 0.0875),
+                fees: 999,
+                totalAmount: vehicle.price + Math.round(vehicle.price * 0.0875) + 999
+              }
+            };
+            setSelectedVehicles([dealVehicle]);
+            setActiveTab('vehicle-selection');
+          }
+        }
+
+        // Clear the localStorage data after processing
+        localStorage.removeItem('pendingDeal');
+        
+        // Show success message
+        toast({
+          title: 'Deal Loaded Successfully',
+          description: `Deal ${dealData.dealNumber} has been loaded from the showroom session.`,
+        });
+
+      } catch (error) {
+        console.error('Error parsing pending deal data:', error);
+        localStorage.removeItem('pendingDeal'); // Clear invalid data
+        toast({
+          title: 'Error Loading Deal',
+          description: 'Failed to load deal data from showroom session.',
+          variant: 'destructive'
+        });
+      }
+    }
+  }, [customers, vehicles, toast]);
+
   // Calculate payment and deal metrics
   const calculatePayment = (principal: number, rate: number, term: number): PaymentCalculation => {
     const monthlyRate = rate / 100 / 12;
