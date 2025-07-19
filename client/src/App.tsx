@@ -18,7 +18,7 @@ import CompetitivePricing from "@/pages/competitive-pricing";
 import ProfessionalDealDesk from "@/pages/professional-deal-desk";
 import Reports from "@/pages/reports";
 import MLDashboard from "@/pages/ml-dashboard";
-import ShowroomManager from "@/pages/showroom-manager";
+import ShowroomManager from "@/pages/showroom-manager-clean";
 // Deal Pages
 import DealsPage from "@/pages/deals/index";
 import DealDetailPage from "@/pages/deals/[id]/index";
