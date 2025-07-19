@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, Car, FileText, Timer, CheckCircle, AlertCircle, XCircle, ArrowRight, Receipt, Search, Filter, MoreHorizontal, Edit, Eye } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, Car, FileText, Timer, CheckCircle, AlertCircle, XCircle, ArrowRight, Receipt, Search, Filter, MoreHorizontal, Edit, Eye, ExternalLink, Edit3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { format, addDays, subDays } from 'date-fns';
 import { apiRequest } from '@/lib/queryClient';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 
 interface ShowroomSession {
   id: number;
@@ -80,6 +80,7 @@ export default function ShowroomManagerClean() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<ShowroomSession | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
   const { toast } = useToast();
   const { trackInteraction } = usePixelTracker();
   const queryClient = useQueryClient();
@@ -233,6 +234,32 @@ export default function ShowroomManagerClean() {
     };
 
     createSessionMutation.mutate(data);
+  };
+
+  // Update session status or stage
+  const updateSessionMutation = useMutation({
+    mutationFn: async ({ sessionId, field, value }: { sessionId: number; field: 'eventStatus' | 'dealStage'; value: string }) => {
+      const response = await apiRequest(`/api/showroom-sessions/${sessionId}`, {
+        method: 'PUT',
+        body: { [field]: value },
+      });
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/showroom-sessions'] });
+      toast({ title: 'Session updated successfully' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error updating session', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  const handleStatusChange = (sessionId: number, newStatus: string) => {
+    updateSessionMutation.mutate({ sessionId, field: 'eventStatus', value: newStatus });
+  };
+
+  const handleStageChange = (sessionId: number, newStage: string) => {
+    updateSessionMutation.mutate({ sessionId, field: 'dealStage', value: newStage });
   };
 
   const handleCreateDeal = async (session: ShowroomSession) => {
@@ -516,9 +543,10 @@ export default function ShowroomManagerClean() {
                       <div className="flex items-center">
                         <User className="h-4 w-4 text-gray-400 mr-2 flex-shrink-0" />
                         <div className="min-w-0">
-                          <div className="text-sm font-medium text-gray-900 truncate">
+                          <Link href="/customers" className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer truncate">
                             {getCustomerName(session.customerId)}
-                          </div>
+                            <ExternalLink className="h-3 w-3 inline ml-1" />
+                          </Link>
                         </div>
                       </div>
                     </td>
@@ -527,7 +555,10 @@ export default function ShowroomManagerClean() {
                         {session.vehicleId ? (
                           <div className="flex items-center">
                             <Car className="h-4 w-4 text-gray-400 mr-2 flex-shrink-0" />
-                            {getVehicleInfo(session.vehicleId)}
+                            <Link href="/inventory" className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">
+                              {getVehicleInfo(session.vehicleId)}
+                              <ExternalLink className="h-3 w-3 inline ml-1" />
+                            </Link>
                           </div>
                         ) : (
                           <span className="text-gray-400">No vehicle selected</span>
@@ -545,14 +576,40 @@ export default function ShowroomManagerClean() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge className={`text-xs ${statusColors[session.eventStatus]}`}>
-                        {eventStatuses.find(s => s.value === session.eventStatus)?.label}
-                      </Badge>
+                      <Select value={session.eventStatus} onValueChange={(value) => handleStatusChange(session.id, value)}>
+                        <SelectTrigger className="w-32 h-8 text-xs">
+                          <div className="flex items-center gap-1">
+                            <Edit3 className="h-3 w-3" />
+                            <SelectValue />
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {eventStatuses.map(status => (
+                            <SelectItem key={status.value} value={status.value}>
+                              <Badge className={`text-xs ${statusColors[status.value]}`}>
+                                {status.label}
+                              </Badge>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-sm text-gray-900">
-                        {dealStages.find(s => s.value === session.dealStage)?.label}
-                      </div>
+                      <Select value={session.dealStage} onValueChange={(value) => handleStageChange(session.id, value)}>
+                        <SelectTrigger className="w-36 h-8 text-xs">
+                          <div className="flex items-center gap-1">
+                            <Edit3 className="h-3 w-3" />
+                            <SelectValue />
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {dealStages.map(stage => (
+                            <SelectItem key={stage.value} value={stage.value}>
+                              {stage.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
@@ -561,9 +618,10 @@ export default function ShowroomManagerClean() {
                           variant="outline"
                           onClick={() => {
                             setSelectedSession(session);
-                            setIsEditDialogOpen(true);
+                            setIsDetailViewOpen(true);
                           }}
                           className="h-7 px-2"
+                          title="View Session Details"
                         >
                           <Eye className="h-3 w-3" />
                         </Button>
@@ -584,6 +642,143 @@ export default function ShowroomManagerClean() {
           </table>
         </div>
       </div>
+
+      {/* Session Detail View Dialog */}
+      <Dialog open={isDetailViewOpen} onOpenChange={setIsDetailViewOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Session Details</DialogTitle>
+            <DialogDescription>
+              Complete information about this customer visit
+            </DialogDescription>
+          </DialogHeader>
+          {selectedSession && (
+            <div className="space-y-6">
+              {/* Customer Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    Customer Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium">Customer Name</Label>
+                      <div className="mt-1 text-sm text-gray-900">{getCustomerName(selectedSession.customerId)}</div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Customer ID</Label>
+                      <div className="mt-1 text-sm text-gray-900">#{selectedSession.customerId}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Vehicle Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Car className="h-5 w-5" />
+                    Vehicle Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium">Vehicle</Label>
+                      <div className="mt-1 text-sm text-gray-900">
+                        {selectedSession.vehicleId ? getVehicleInfo(selectedSession.vehicleId) : 'No vehicle selected'}
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Stock Number</Label>
+                      <div className="mt-1 text-sm text-gray-900">
+                        {selectedSession.stockNumber || 'N/A'}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Session Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    Session Timeline
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium">Time Entered</Label>
+                      <div className="mt-1 text-sm text-gray-900">
+                        {format(new Date(selectedSession.timeEntered), 'MMM d, yyyy h:mm a')}
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Duration</Label>
+                      <div className="mt-1 text-sm text-gray-900">
+                        {getSessionDuration(selectedSession)}
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Status</Label>
+                      <div className="mt-1">
+                        <Badge className={`text-xs ${statusColors[selectedSession.eventStatus]}`}>
+                          {eventStatuses.find(s => s.value === selectedSession.eventStatus)?.label}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Deal Stage</Label>
+                      <div className="mt-1 text-sm text-gray-900">
+                        {dealStages.find(s => s.value === selectedSession.dealStage)?.label}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Notes */}
+              {selectedSession.notes && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Notes
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-sm text-gray-900 whitespace-pre-wrap">
+                      {selectedSession.notes}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-4">
+                <Button
+                  onClick={() => handleCreateDeal(selectedSession)}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Receipt className="h-4 w-4 mr-2" />
+                  Create Deal
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDetailViewOpen(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
