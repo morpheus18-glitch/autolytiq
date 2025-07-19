@@ -102,7 +102,8 @@ export default function Customers() {
       method: 'POST',
       body: sessionData,
     })
-    .then((newSession) => {
+    .then(async (response) => {
+      const newSession = await response.json();
       setIsStartingSession(false);
       toast({ title: 'Customer visit started successfully' });
       // Navigate to showroom manager
