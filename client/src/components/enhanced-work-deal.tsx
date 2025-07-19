@@ -95,12 +95,24 @@ export default function EnhancedWorkADeal({ selectedVehicle, selectedCustomer, o
       salesTax: 0,
       titleFee: 0,
       totalTaxAmount: 0,
+      // Finance fields
       term: 60,
       apr: 6.99,
       payment: 0,
       totalFinanced: 0,
       financeCharge: 0,
       totalOfPayments: 0,
+      // Lease fields
+      leaseResidual: selectedVehicle?.price ? selectedVehicle.price * 0.55 : 0,
+      residualPercent: 55,
+      moneyFactor: 0.00125,
+      leasePayment: 0,
+      totalLeasePayments: 0,
+      totalCapCost: 0,
+      capCostReduction: 0,
+      adjustedCapCost: 0,
+      // Cash deal totals
+      totalCashDue: 0,
     }
   });
 
@@ -158,7 +170,12 @@ export default function EnhancedWorkADeal({ selectedVehicle, selectedCustomer, o
   const watchedValues = form.watch();
   useEffect(() => {
     calculateTotals();
-  }, [watchedValues.cashPrice, watchedValues.rebate, watchedValues.cashDown, watchedValues.aftermarketProducts, watchedValues.salesTax, watchedValues.docFee, watchedValues.titleFee, watchedValues.apr, watchedValues.term]);
+  }, [
+    watchedValues.cashPrice, watchedValues.rebate, watchedValues.cashDown, 
+    watchedValues.aftermarketProducts, watchedValues.salesTax, watchedValues.docFee, 
+    watchedValues.titleFee, watchedValues.apr, watchedValues.term, 
+    watchedValues.residualPercent, watchedValues.moneyFactor, dealType
+  ]);
 
   const calculateTotals = () => {
     const cashPrice = form.getValues('cashPrice') || 0;
@@ -170,29 +187,60 @@ export default function EnhancedWorkADeal({ selectedVehicle, selectedCustomer, o
     const titleFee = form.getValues('titleFee') || 0;
     
     const netPrice = cashPrice - rebate;
-    const totalFinanced = netPrice - cashDown + aftermarket + salesTax + docFee + titleFee;
     
-    form.setValue('totalFinanced', Math.round(totalFinanced * 100) / 100);
-    form.setValue('totalDown', cashDown + rebate);
-    
-    // Calculate payment
-    const principal = totalFinanced;
-    const rate = (form.getValues('apr') || 0) / 100 / 12;
-    const term = form.getValues('term') || 60;
-    
-    let payment = 0;
-    if (rate === 0) {
-      payment = principal / term;
-    } else {
-      payment = principal * (rate * Math.pow(1 + rate, term)) / (Math.pow(1 + rate, term) - 1);
+    if (dealType === 'finance') {
+      // Finance calculations
+      const totalFinanced = netPrice - cashDown + aftermarket + salesTax + docFee + titleFee;
+      form.setValue('totalFinanced', Math.round(totalFinanced * 100) / 100);
+      form.setValue('totalDown', cashDown + rebate);
+      
+      const principal = totalFinanced;
+      const rate = (form.getValues('apr') || 0) / 100 / 12;
+      const term = form.getValues('term') || 60;
+      
+      let payment = 0;
+      if (rate === 0) {
+        payment = principal / term;
+      } else {
+        payment = principal * (rate * Math.pow(1 + rate, term)) / (Math.pow(1 + rate, term) - 1);
+      }
+      
+      const totalOfPayments = payment * term;
+      const financeCharge = totalOfPayments - principal;
+      
+      form.setValue('payment', Math.round(payment * 100) / 100);
+      form.setValue('totalOfPayments', Math.round(totalOfPayments * 100) / 100);
+      form.setValue('financeCharge', Math.round(financeCharge * 100) / 100);
+      
+    } else if (dealType === 'lease') {
+      // Lease calculations
+      const residualPercent = form.getValues('residualPercent') || 55;
+      const moneyFactor = form.getValues('moneyFactor') || 0.00125;
+      const term = form.getValues('term') || 36;
+      
+      const residualValue = cashPrice * (residualPercent / 100);
+      const capCostReduction = cashDown + rebate;
+      const adjustedCapCost = cashPrice - capCostReduction + aftermarket;
+      const totalCapCost = adjustedCapCost + salesTax + docFee + titleFee;
+      
+      // Lease payment calculation: (Cap Cost - Residual) / Term + (Cap Cost + Residual) * Money Factor
+      const depreciationPayment = (totalCapCost - residualValue) / term;
+      const financePayment = (totalCapCost + residualValue) * moneyFactor;
+      const leasePayment = depreciationPayment + financePayment;
+      
+      form.setValue('leaseResidual', Math.round(residualValue * 100) / 100);
+      form.setValue('capCostReduction', Math.round(capCostReduction * 100) / 100);
+      form.setValue('adjustedCapCost', Math.round(adjustedCapCost * 100) / 100);
+      form.setValue('totalCapCost', Math.round(totalCapCost * 100) / 100);
+      form.setValue('leasePayment', Math.round(leasePayment * 100) / 100);
+      form.setValue('totalLeasePayments', Math.round(leasePayment * term * 100) / 100);
+      
+    } else if (dealType === 'cash') {
+      // Cash deal calculations - same as finance but no financing
+      const totalCashDue = netPrice + aftermarket + salesTax + docFee + titleFee;
+      form.setValue('totalCashDue', Math.round(totalCashDue * 100) / 100);
+      form.setValue('totalDown', rebate); // Only rebate counts as "down" in cash deal
     }
-    
-    const totalOfPayments = payment * term;
-    const financeCharge = totalOfPayments - principal;
-    
-    form.setValue('payment', Math.round(payment * 100) / 100);
-    form.setValue('totalOfPayments', Math.round(totalOfPayments * 100) / 100);
-    form.setValue('financeCharge', Math.round(financeCharge * 100) / 100);
   };
 
   const getCreditTier = (creditScore: number) => {
@@ -558,44 +606,462 @@ export default function EnhancedWorkADeal({ selectedVehicle, selectedCustomer, o
           )}
 
           {dealType === 'cash' && (
-            <div className="bg-blue-50 p-6 rounded-lg">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">Cash Price:</Label>
-                  <div className="text-2xl font-bold text-blue-900">
-                    {formatCurrency(form.watch('cashPrice') || 0)}
+            <div className="space-y-6">
+              {/* Cash Deal Layout - Similar to Finance but no loan terms */}
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                {/* Left Column - Input Fields */}
+                <div className="xl:col-span-2 space-y-6">
+                  {/* Basic Information */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">1. Deal Number:</Label>
+                      <Input {...form.register('dealNumber')} className="text-sm" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">2. Contract Date:</Label>
+                      <Input type="date" {...form.register('contractDate')} className="text-sm" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">3. Payment Method:</Label>
+                      <Select value="cash" disabled>
+                        <SelectTrigger className="text-sm">
+                          <SelectValue placeholder="Cash Payment" />
+                        </SelectTrigger>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">4. Stock Number:</Label>
+                      <Input {...form.register('stockNumber')} className="text-sm" readOnly />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Pricing Information */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">5. M.S.R.P.:</Label>
+                      <Input 
+                        type="number" 
+                        {...form.register('msrp', { valueAsNumber: true })} 
+                        className="text-sm font-semibold"
+                        readOnly 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">6. Cash Price:</Label>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        {...form.register('cashPrice', { valueAsNumber: true })} 
+                        className="text-sm font-semibold"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">7. Rebate:</Label>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        {...form.register('rebate', { valueAsNumber: true })} 
+                        className="text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">8. Net Price:</Label>
+                      <Input 
+                        value={formatCurrency((form.watch('cashPrice') || 0) - (form.watch('rebate') || 0))}
+                        className="text-sm font-semibold bg-gray-50"
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Taxes and Fees */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600 flex items-center gap-2">
+                        9. Sales Tax:
+                        <div className="flex items-center gap-1">
+                          <Checkbox 
+                            checked={taxOverride} 
+                            onCheckedChange={setTaxOverride}
+                            className="h-3 w-3"
+                          />
+                          <Settings className="h-3 w-3 text-gray-400" />
+                        </div>
+                      </Label>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        {...form.register('salesTax', { valueAsNumber: true })} 
+                        disabled={!taxOverride}
+                        className={`text-sm ${taxOverride ? 'bg-yellow-50 border-yellow-300' : ''}`}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600 flex items-center gap-2">
+                        10. Title Fee:
+                        <div className="flex items-center gap-1">
+                          <Checkbox 
+                            checked={titleFeeOverride} 
+                            onCheckedChange={setTitleFeeOverride}
+                            className="h-3 w-3"
+                          />
+                          <Settings className="h-3 w-3 text-gray-400" />
+                        </div>
+                      </Label>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        {...form.register('titleFee', { valueAsNumber: true })} 
+                        disabled={!titleFeeOverride}
+                        className={`text-sm ${titleFeeOverride ? 'bg-yellow-50 border-yellow-300' : ''}`}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">11. Doc Fee:</Label>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        {...form.register('docFee', { valueAsNumber: true })} 
+                        className="text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">12. Products:</Label>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        {...form.register('aftermarketProducts', { valueAsNumber: true })} 
+                        className="text-sm"
+                      />
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <Label className="text-sm font-medium">Sales Tax:</Label>
-                  <div className="text-xl font-semibold">
-                    {formatCurrency(form.watch('salesTax') || 0)}
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Fees:</Label>
-                  <div className="text-xl font-semibold">
-                    {formatCurrency((form.watch('titleFee') || 0) + (form.watch('docFee') || 0))}
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Total Due:</Label>
-                  <div className="text-2xl font-bold text-green-900">
-                    {formatCurrency((form.watch('cashPrice') || 0) + (form.watch('salesTax') || 0) + (form.watch('titleFee') || 0) + (form.watch('docFee') || 0))}
-                  </div>
+
+                {/* Right Column - Cash Summary */}
+                <div className="space-y-4">
+                  <Card className="bg-gradient-to-br from-blue-50 to-sky-50 border-blue-200">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base text-blue-800 flex items-center gap-2">
+                        <PiggyBank className="h-4 w-4" />
+                        Cash Deal Summary
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-sm text-gray-600">Vehicle Price:</span>
+                        <span className="font-semibold">{formatCurrency(form.watch('cashPrice') || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-sm text-gray-600">Rebate:</span>
+                        <span className="font-semibold text-green-600">-{formatCurrency(form.watch('rebate') || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-sm text-gray-600">Products:</span>
+                        <span className="font-semibold">{formatCurrency(form.watch('aftermarketProducts') || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-sm text-gray-600">Sales Tax:</span>
+                        <span className="font-semibold">{formatCurrency(form.watch('salesTax') || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-sm text-gray-600">Doc Fee:</span>
+                        <span className="font-semibold">{formatCurrency(form.watch('docFee') || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-sm text-gray-600">Title Fee:</span>
+                        <span className="font-semibold">{formatCurrency(form.watch('titleFee') || 0)}</span>
+                      </div>
+                      <Separator className="my-2" />
+                      <div className="flex justify-between items-center py-2 bg-white rounded-lg px-3">
+                        <span className="text-sm font-medium">Total Cash Due:</span>
+                        <span className="text-xl font-bold text-blue-800">{formatCurrency(form.watch('totalCashDue') || 0)}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
             </div>
           )}
 
           {dealType === 'lease' && (
-            <div className="bg-purple-50 p-6 rounded-lg">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-purple-900 mb-2">Lease Structure</h3>
-                <p className="text-purple-700">Lease calculations and terms will be configured here</p>
+            <div className="space-y-6">
+              {/* Lease Deal Layout */}
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                {/* Left Column - Input Fields */}
+                <div className="xl:col-span-2 space-y-6">
+                  {/* Basic Information */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">1. Deal Number:</Label>
+                      <Input {...form.register('dealNumber')} className="text-sm" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">2. Contract Date:</Label>
+                      <Input type="date" {...form.register('contractDate')} className="text-sm" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">3. Lease Company:</Label>
+                      <Select value={selectedLender} onValueChange={handleLenderChange}>
+                        <SelectTrigger className="text-sm">
+                          <SelectValue placeholder="Select Lease Company" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PRESELECTED_LENDERS.map((lender) => (
+                            <SelectItem key={lender.id} value={lender.id}>
+                              {lender.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">4. Stock Number:</Label>
+                      <Input {...form.register('stockNumber')} className="text-sm" readOnly />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Pricing Information */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">5. M.S.R.P.:</Label>
+                      <Input 
+                        type="number" 
+                        {...form.register('msrp', { valueAsNumber: true })} 
+                        className="text-sm font-semibold"
+                        readOnly 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">6. Cap Cost (Price):</Label>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        {...form.register('cashPrice', { valueAsNumber: true })} 
+                        className="text-sm font-semibold"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">7. Rebate:</Label>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        {...form.register('rebate', { valueAsNumber: true })} 
+                        className="text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">8. Cap Cost Reduction:</Label>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        {...form.register('cashDown', { valueAsNumber: true })} 
+                        className="text-sm font-semibold"
+                      />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Lease Terms */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600 flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        9. Lease Term (months):
+                      </Label>
+                      <Select value={String(form.watch('term'))} onValueChange={(value) => form.setValue('term', parseInt(value))}>
+                        <SelectTrigger className="text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="24">24 months</SelectItem>
+                          <SelectItem value="36">36 months</SelectItem>
+                          <SelectItem value="39">39 months</SelectItem>
+                          <SelectItem value="48">48 months</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600 flex items-center gap-1">
+                        <Percent className="h-3 w-3" />
+                        10. Residual %:
+                      </Label>
+                      <Input 
+                        type="number" 
+                        step="0.1"
+                        {...form.register('residualPercent', { valueAsNumber: true })} 
+                        className="text-sm font-semibold"
+                        placeholder="55.0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">11. Money Factor:</Label>
+                      <Input 
+                        type="number" 
+                        step="0.00001"
+                        {...form.register('moneyFactor', { valueAsNumber: true })} 
+                        className="text-sm font-semibold"
+                        placeholder="0.00125"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">12. Residual Value:</Label>
+                      <Input 
+                        value={formatCurrency(form.watch('leaseResidual') || 0)}
+                        className="text-sm font-semibold bg-gray-50"
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Taxes and Fees */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600 flex items-center gap-2">
+                        13. Sales Tax:
+                        <div className="flex items-center gap-1">
+                          <Checkbox 
+                            checked={taxOverride} 
+                            onCheckedChange={setTaxOverride}
+                            className="h-3 w-3"
+                          />
+                          <Settings className="h-3 w-3 text-gray-400" />
+                        </div>
+                      </Label>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        {...form.register('salesTax', { valueAsNumber: true })} 
+                        disabled={!taxOverride}
+                        className={`text-sm ${taxOverride ? 'bg-yellow-50 border-yellow-300' : ''}`}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600 flex items-center gap-2">
+                        14. Title Fee:
+                        <div className="flex items-center gap-1">
+                          <Checkbox 
+                            checked={titleFeeOverride} 
+                            onCheckedChange={setTitleFeeOverride}
+                            className="h-3 w-3"
+                          />
+                          <Settings className="h-3 w-3 text-gray-400" />
+                        </div>
+                      </Label>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        {...form.register('titleFee', { valueAsNumber: true })} 
+                        disabled={!titleFeeOverride}
+                        className={`text-sm ${titleFeeOverride ? 'bg-yellow-50 border-yellow-300' : ''}`}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">15. Doc Fee:</Label>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        {...form.register('docFee', { valueAsNumber: true })} 
+                        className="text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-gray-600">16. Products:</Label>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        {...form.register('aftermarketProducts', { valueAsNumber: true })} 
+                        className="text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column - Lease Summary */}
+                <div className="space-y-4">
+                  <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base text-purple-800 flex items-center gap-2">
+                        <Car className="h-4 w-4" />
+                        Lease Summary
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-sm text-gray-600">Gross Cap Cost:</span>
+                        <span className="font-semibold">{formatCurrency(form.watch('cashPrice') || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-sm text-gray-600">Cap Cost Reduction:</span>
+                        <span className="font-semibold text-green-600">-{formatCurrency(form.watch('capCostReduction') || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-sm text-gray-600">Adjusted Cap Cost:</span>
+                        <span className="font-semibold">{formatCurrency(form.watch('adjustedCapCost') || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-sm text-gray-600">Residual Value:</span>
+                        <span className="font-semibold">{formatCurrency(form.watch('leaseResidual') || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-sm text-gray-600">Depreciation:</span>
+                        <span className="font-semibold text-orange-600">{formatCurrency((form.watch('adjustedCapCost') || 0) - (form.watch('leaseResidual') || 0))}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-sm text-gray-600">Money Factor:</span>
+                        <span className="font-semibold">{form.watch('moneyFactor') || 0} ({((form.watch('moneyFactor') || 0) * 2400).toFixed(1)}% APR)</span>
+                      </div>
+                      <Separator className="my-2" />
+                      <div className="flex justify-between items-center py-2 bg-white rounded-lg px-3">
+                        <span className="text-sm font-medium">Monthly Payment:</span>
+                        <span className="text-xl font-bold text-purple-800">{formatCurrency(form.watch('leasePayment') || 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-sm text-gray-600">Total Payments ({form.watch('term')} mo):</span>
+                        <span className="font-semibold">{formatCurrency(form.watch('totalLeasePayments') || 0)}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Lease Terms Info */}
+                  <Card className="border-indigo-200">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm text-indigo-800">Lease Terms</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Lease Term:</span>
+                          <span className="font-medium">{form.watch('term')} months</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Annual Mileage:</span>
+                          <span className="font-medium">12,000 miles</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Excess Mileage:</span>
+                          <span className="font-medium">$0.25/mile</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Disposition Fee:</span>
+                          <span className="font-medium">$395</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </div>
           )}
+
         </CardContent>
       </Card>
     </div>
