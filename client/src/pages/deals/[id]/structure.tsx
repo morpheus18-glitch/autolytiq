@@ -15,7 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import VinDecoder from '../../../components/vin-decoder';
-import WorkADeal from '../../../components/work-a-deal';
+import EnhancedWorkADeal from '../../../components/enhanced-work-deal';
 import { insertDealSchema, type Deal, type Vehicle, type Customer } from '@shared/schema';
 import { 
   Car, User, DollarSign, CreditCard, MapPin, Phone, Mail, 
@@ -327,7 +327,7 @@ export default function DealStructureTab({ deal }: DealStructureTabProps) {
 
         {/* Work Deal Tab */}
         <TabsContent value="work-deal" className="space-y-4">
-          <WorkADeal 
+          <EnhancedWorkADeal 
             selectedVehicle={selectedVehicle}
             selectedCustomer={selectedCustomer}
             onDealUpdate={(dealData) => {
