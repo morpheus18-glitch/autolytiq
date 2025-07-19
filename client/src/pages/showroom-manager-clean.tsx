@@ -126,7 +126,7 @@ export default function ShowroomManagerClean() {
 
   // Fetch showroom sessions
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery({
-    queryKey: ['/api/showroom-sessions', format(selectedDate, 'yyyy-MM-dd')],
+    queryKey: ['/api/showroom-sessions', `?date=${format(selectedDate, 'yyyy-MM-dd')}`],
   });
 
   // Fetch customers
@@ -193,10 +193,11 @@ export default function ShowroomManagerClean() {
   // Create session mutation
   const createSessionMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest('/api/showroom-sessions', {
+      const response = await apiRequest('/api/showroom-sessions', {
         method: 'POST',
         body: data,
       });
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/showroom-sessions'] });
@@ -256,10 +257,11 @@ export default function ShowroomManagerClean() {
 
       const response = await apiRequest('/api/deals', {
         method: 'POST',
-        body: JSON.stringify(dealData),
+        body: dealData,
       });
 
-      localStorage.setItem('dealData', JSON.stringify(response));
+      const dealResult = await response.json();
+      localStorage.setItem('dealData', JSON.stringify(dealResult));
       navigate('/deal-desk');
       
       toast({ title: 'Deal created', description: 'Redirecting to Deal Desk...' });
