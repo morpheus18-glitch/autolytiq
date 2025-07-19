@@ -80,7 +80,12 @@ export default function Customers() {
     toast({ title: 'Import ready', description: 'Select a file to import customer data...' });
   };
 
+  const [isStartingSession, setIsStartingSession] = useState(false);
+
   const handleStartShowroomSession = (customer: Customer) => {
+    if (isStartingSession) return; // Prevent multiple clicks
+    
+    setIsStartingSession(true);
     trackInteraction('showroom_session_start', `customer-${customer.id}`, customer.id);
     
     // Create showroom session data
@@ -92,8 +97,10 @@ export default function Customers() {
       sessionDate: new Date().toISOString().split('T')[0],
     };
 
-    // Navigate to showroom manager and create session
-    window.location.href = `/showroom-manager?createSession=${encodeURIComponent(JSON.stringify(sessionData))}`;
+    // Add a small delay to show loading state then navigate
+    setTimeout(() => {
+      window.location.href = `/showroom-manager?createSession=${encodeURIComponent(JSON.stringify(sessionData))}`;
+    }, 100);
   };
 
   return (

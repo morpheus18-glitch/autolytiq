@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, Car, FileText, Timer, CheckCircle, AlertCircle, XCircle, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -105,6 +105,7 @@ export default function ShowroomManager() {
   const { toast } = useToast();
   const { trackInteraction } = usePixelTracker();
   const queryClient = useQueryClient();
+  const urlProcessedRef = useRef(false);
 
   const dateString = format(selectedDate, 'yyyy-MM-dd');
 
@@ -301,37 +302,44 @@ export default function ShowroomManager() {
     });
   }, [selectedSession, endSessionMutation]);
 
-  // Handle URL parameter for automatic session creation from customer pages
+  // Handle URL parameter for automatic session creation from customer pages (once only)
   useEffect(() => {
     trackInteraction('showroom_page_view', 'showroom-manager-page');
+    
+    if (urlProcessedRef.current) return;
     
     const urlParams = new URLSearchParams(window.location.search);
     const createSessionParam = urlParams.get('createSession');
     
     if (createSessionParam) {
+      urlProcessedRef.current = true;
+      
+      // Clear the URL parameter immediately to prevent duplicate calls
+      const newUrl = window.location.pathname;
+      window.history.replaceState(null, '', newUrl);
+      
       try {
         const sessionData = JSON.parse(decodeURIComponent(createSessionParam));
         
-        // Create the session
-        createSessionMutation.mutate(sessionData, {
-          onSuccess: () => {
-            toast({
-              title: "Success",
-              description: "Showroom visit started successfully!",
-            });
-            
-            // Clear the URL parameter
-            const newUrl = window.location.pathname;
-            window.history.replaceState(null, '', newUrl);
-          },
-          onError: () => {
-            toast({
-              title: "Error",
-              description: "Failed to start showroom visit.",
-              variant: "destructive",
-            });
-          }
-        });
+        // Create the session with a slight delay to ensure mutations are ready
+        setTimeout(() => {
+          createSessionMutation.mutate(sessionData, {
+            onSuccess: () => {
+              toast({
+                title: "Success",
+                description: "Showroom visit started successfully!",
+              });
+            },
+            onError: (error) => {
+              console.error('Session creation error:', error);
+              toast({
+                title: "Error",
+                description: "Failed to start showroom visit.",
+                variant: "destructive",
+              });
+            }
+          });
+        }, 100);
       } catch (error) {
         console.error('Error parsing session data from URL:', error);
         toast({
@@ -341,7 +349,7 @@ export default function ShowroomManager() {
         });
       }
     }
-  }, [createSessionMutation, trackInteraction]);
+  }, [createSessionMutation, trackInteraction, toast]);
 
   // Memoize expensive calculations to prevent unnecessary re-renders
   const getSessionDuration = useCallback((session: ShowroomSession) => {
