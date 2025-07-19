@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -98,6 +98,9 @@ export default function ShowroomManager() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<ShowroomSession | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isEndDialogOpen, setIsEndDialogOpen] = useState(false);
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const [isStageDialogOpen, setIsStageDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const { toast } = useToast();
   const { trackInteraction } = usePixelTracker();
@@ -186,17 +189,49 @@ export default function ShowroomManager() {
     },
   });
 
-  // End session mutation with confirmation
+  // End session mutation with notes and reason
   const endSessionMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/showroom-sessions/${id}/end`, { method: 'PUT' }),
+    mutationFn: ({ id, endNotes, endReason }: { id: number, endNotes?: string, endReason?: string }) => 
+      apiRequest(`/api/showroom-sessions/${id}/end`, { 
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endNotes, endReason })
+      }),
     onSuccess: () => {
       toast({ title: 'Session ended successfully' });
+      setIsEndDialogOpen(false);
+      setSelectedSession(null);
       queryClient.invalidateQueries({ queryKey: ['/api/showroom-sessions', dateString] });
     },
     onError: (error: any) => {
       console.error('Session end error:', error);
       toast({ 
         title: 'Error ending session', 
+        description: error.message || 'Please try again',
+        variant: 'destructive' 
+      });
+    },
+  });
+
+  // Quick update mutations
+  const quickUpdateMutation = useMutation({
+    mutationFn: ({ id, field, value }: { id: number, field: string, value: string }) => 
+      apiRequest(`/api/showroom-sessions/${id}/quick-update`, { 
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ field, value })
+      }),
+    onSuccess: () => {
+      toast({ title: 'Session updated successfully' });
+      setIsStatusDialogOpen(false);
+      setIsStageDialogOpen(false);
+      setSelectedSession(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/showroom-sessions', dateString] });
+    },
+    onError: (error: any) => {
+      console.error('Quick update error:', error);
+      toast({ 
+        title: 'Error updating session', 
         description: error.message || 'Please try again',
         variant: 'destructive' 
       });
@@ -237,10 +272,76 @@ export default function ShowroomManager() {
     updateSessionMutation.mutate({ id: selectedSession.id, data });
   }, [selectedSession, updateSessionMutation, trackInteraction]);
 
-  const handleEndSession = useCallback((sessionId: number) => {
-    trackInteraction('session_end', `session-${sessionId}`, sessionId);
-    endSessionMutation.mutate(sessionId);
-  }, [endSessionMutation, trackInteraction]);
+  const handleEndSession = useCallback((session: ShowroomSession) => {
+    trackInteraction('session_end', `session-${session.id}`, session.id);
+    setSelectedSession(session);
+    setIsEndDialogOpen(true);
+  }, [trackInteraction]);
+
+  const handleQuickStatusUpdate = useCallback((session: ShowroomSession) => {
+    setSelectedSession(session);
+    setIsStatusDialogOpen(true);
+  }, []);
+
+  const handleQuickStageUpdate = useCallback((session: ShowroomSession) => {
+    setSelectedSession(session);
+    setIsStageDialogOpen(true);
+  }, []);
+
+  const handleEndSessionSubmit = useCallback((formData: FormData) => {
+    if (!selectedSession) return;
+    
+    const endNotes = formData.get('endNotes') as string;
+    const endReason = formData.get('endReason') as string;
+    
+    endSessionMutation.mutate({ 
+      id: selectedSession.id, 
+      endNotes, 
+      endReason 
+    });
+  }, [selectedSession, endSessionMutation]);
+
+  // Handle URL parameter for automatic session creation from customer pages
+  useEffect(() => {
+    trackInteraction('showroom_page_view', 'showroom-manager-page');
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const createSessionParam = urlParams.get('createSession');
+    
+    if (createSessionParam) {
+      try {
+        const sessionData = JSON.parse(decodeURIComponent(createSessionParam));
+        
+        // Create the session
+        createSessionMutation.mutate(sessionData, {
+          onSuccess: () => {
+            toast({
+              title: "Success",
+              description: "Showroom visit started successfully!",
+            });
+            
+            // Clear the URL parameter
+            const newUrl = window.location.pathname;
+            window.history.replaceState(null, '', newUrl);
+          },
+          onError: () => {
+            toast({
+              title: "Error",
+              description: "Failed to start showroom visit.",
+              variant: "destructive",
+            });
+          }
+        });
+      } catch (error) {
+        console.error('Error parsing session data from URL:', error);
+        toast({
+          title: "Error",
+          description: "Invalid session data in URL.",
+          variant: "destructive",
+        });
+      }
+    }
+  }, [createSessionMutation, trackInteraction]);
 
   // Memoize expensive calculations to prevent unnecessary re-renders
   const getSessionDuration = useCallback((session: ShowroomSession) => {
@@ -621,12 +722,18 @@ export default function ShowroomManager() {
                             )}
                           </td>
                           <td className="p-3">
-                            <Badge className={statusColors[session.eventStatus]}>
+                            <Badge 
+                              className={`${statusColors[session.eventStatus]} cursor-pointer hover:opacity-80 transition-opacity`}
+                              onClick={() => handleQuickStatusUpdate(session)}
+                            >
                               {eventStatuses.find(s => s.value === session.eventStatus)?.label}
                             </Badge>
                           </td>
                           <td className="p-3 hidden sm:table-cell">
-                            <Badge className={stageColors[session.dealStage]}>
+                            <Badge 
+                              className={`${stageColors[session.dealStage]} cursor-pointer hover:opacity-80 transition-opacity`}
+                              onClick={() => handleQuickStageUpdate(session)}
+                            >
                               {dealStages.find(s => s.value === session.dealStage)?.label}
                             </Badge>
                           </td>
@@ -646,7 +753,7 @@ export default function ShowroomManager() {
                                 size="sm"
                                 variant="destructive"
                                 disabled={endSessionMutation.isPending}
-                                onClick={() => handleEndSession(session.id)}
+                                onClick={() => handleEndSession(session)}
                               >
                                 {endSessionMutation.isPending ? 'Ending...' : 'End'}
                               </Button>
@@ -891,6 +998,162 @@ export default function ShowroomManager() {
               </div>
             </form>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* End Visit Dialog */}
+      <Dialog open={isEndDialogOpen} onOpenChange={setIsEndDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>End Visit</DialogTitle>
+            <DialogDescription>
+              {selectedSession && `End visit for ${getCustomerName(selectedSession.customerId)}`}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            handleEndSessionSubmit(formData);
+          }}>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="endNotes" className="text-right">
+                  Visit Notes
+                </Label>
+                <Textarea
+                  id="endNotes"
+                  name="endNotes"
+                  placeholder="What happened during this visit? Customer feedback, concerns, next steps..."
+                  className="mt-1"
+                  rows={4}
+                />
+              </div>
+              <div>
+                <Label htmlFor="endReason" className="text-right">
+                  Visit Outcome
+                </Label>
+                <Select name="endReason">
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select visit outcome" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="purchase_completed">Purchase Completed</SelectItem>
+                    <SelectItem value="test_drive_only">Test Drive Only</SelectItem>
+                    <SelectItem value="information_gathering">Information Gathering</SelectItem>
+                    <SelectItem value="pricing_concerns">Pricing Concerns</SelectItem>
+                    <SelectItem value="credit_issues">Credit Issues</SelectItem>
+                    <SelectItem value="needs_time_to_decide">Needs Time to Decide</SelectItem>
+                    <SelectItem value="looking_at_other_dealers">Looking at Other Dealers</SelectItem>
+                    <SelectItem value="trade_value_concerns">Trade Value Concerns</SelectItem>
+                    <SelectItem value="financing_concerns">Financing Concerns</SelectItem>
+                    <SelectItem value="spouse_approval_needed">Spouse Approval Needed</SelectItem>
+                    <SelectItem value="will_return_later">Will Return Later</SelectItem>
+                    <SelectItem value="not_interested">Not Interested</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEndDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={endSessionMutation.isPending}>
+                {endSessionMutation.isPending ? 'Ending Visit...' : 'End Visit'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Quick Status Update Dialog */}
+      <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Status</DialogTitle>
+            <DialogDescription>
+              {selectedSession && `Update status for ${getCustomerName(selectedSession.customerId)}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              {eventStatuses.map(status => (
+                <Button
+                  key={status.value}
+                  variant={selectedSession?.eventStatus === status.value ? "default" : "outline"}
+                  className="w-full justify-start"
+                  onClick={() => {
+                    if (selectedSession) {
+                      quickUpdateMutation.mutate({
+                        id: selectedSession.id,
+                        field: 'eventStatus',
+                        value: status.value
+                      });
+                    }
+                  }}
+                  disabled={quickUpdateMutation.isPending}
+                >
+                  {status.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsStatusDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Quick Stage Update Dialog */}
+      <Dialog open={isStageDialogOpen} onOpenChange={setIsStageDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Stage</DialogTitle>
+            <DialogDescription>
+              {selectedSession && `Update stage for ${getCustomerName(selectedSession.customerId)}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              {dealStages.map(stage => (
+                <Button
+                  key={stage.value}
+                  variant={selectedSession?.dealStage === stage.value ? "default" : "outline"}
+                  className="w-full justify-start"
+                  onClick={() => {
+                    if (selectedSession) {
+                      quickUpdateMutation.mutate({
+                        id: selectedSession.id,
+                        field: 'dealStage',
+                        value: stage.value
+                      });
+                    }
+                  }}
+                  disabled={quickUpdateMutation.isPending}
+                >
+                  {stage.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsStageDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
