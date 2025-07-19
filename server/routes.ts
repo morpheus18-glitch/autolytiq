@@ -1514,7 +1514,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const { field, value } = req.body;
       
+      console.log('Quick update request received:', { id, field, value, body: req.body });
+      
       if (!field || value === undefined) {
+        console.log('Bad request - missing field or value:', { field, value });
         return res.status(400).json({ error: 'Field and value are required' });
       }
 
@@ -1522,11 +1525,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         [field]: value,
       };
 
+      console.log('Updating session with data:', updateData);
       const session = await storage.updateShowroomSession(id, updateData);
       if (!session) {
+        console.log('Session not found for id:', id);
         return res.status(404).json({ error: 'Showroom session not found' });
       }
       
+      console.log('Session updated successfully:', session);
       res.json(session);
     } catch (error) {
       console.error('Error updating showroom session:', error);

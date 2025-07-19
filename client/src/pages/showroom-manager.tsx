@@ -216,12 +216,14 @@ export default function ShowroomManager() {
 
   // Quick update mutations
   const quickUpdateMutation = useMutation({
-    mutationFn: ({ id, field, value }: { id: number, field: string, value: string }) => 
-      apiRequest(`/api/showroom-sessions/${id}/quick-update`, { 
+    mutationFn: ({ id, field, value }: { id: number, field: string, value: string }) => {
+      console.log('Sending quick update request:', { id, field, value });
+      return apiRequest(`/api/showroom-sessions/${id}/quick-update`, { 
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ field, value })
-      }),
+      });
+    },
     onSuccess: () => {
       toast({ title: 'Session updated successfully' });
       setIsStatusDialogOpen(false);
@@ -231,6 +233,7 @@ export default function ShowroomManager() {
     },
     onError: (error: any) => {
       console.error('Quick update error:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       toast({ 
         title: 'Error updating session', 
         description: error.message || 'Please try again',
