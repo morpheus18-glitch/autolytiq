@@ -1476,14 +1476,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/showroom-sessions/:id/end", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const session = await storage.endShowroomSession(id);
-      if (!session) {
+      const { endNotes, endReason } = req.body;
+      
+      // Get the existing session to preserve notes
+      const existingSession = await storage.getShowroomSession(id);
+      if (!existingSession) {
         return res.status(404).json({ error: 'Showroom session not found' });
       }
+
+      // Combine existing notes with end visit notes
+      let combinedNotes = existingSession.notes || '';
+      if (endNotes) {
+        combinedNotes += (combinedNotes ? '\n\n' : '') + `End Visit Notes: ${endNotes}`;
+      }
+      if (endReason) {
+        combinedNotes += (combinedNotes ? '\n' : '') + `Visit Outcome: ${endReason}`;
+      }
+
+      // Update the session with exit time and notes
+      const updateData = {
+        timeExited: new Date().toISOString(),
+        eventStatus: 'completed' as const,
+        notes: combinedNotes,
+      };
+
+      const session = await storage.updateShowroomSession(id, updateData);
       res.json(session);
     } catch (error) {
       console.error('Error ending showroom session:', error);
       res.status(500).json({ error: 'Failed to end showroom session' });
+    }
+  });
+
+  // Quick update showroom session field
+  app.put("/api/showroom-sessions/:id/quick-update", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { field, value } = req.body;
+      
+      if (!field || value === undefined) {
+        return res.status(400).json({ error: 'Field and value are required' });
+      }
+
+      const updateData = {
+        [field]: value,
+      };
+
+      const session = await storage.updateShowroomSession(id, updateData);
+      if (!session) {
+        return res.status(404).json({ error: 'Showroom session not found' });
+      }
+      
+      res.json(session);
+    } catch (error) {
+      console.error('Error updating showroom session:', error);
+      res.status(500).json({ error: 'Failed to update showroom session' });
     }
   });
 

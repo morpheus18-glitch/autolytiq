@@ -13,6 +13,7 @@ interface EnhancedCustomerSearchProps {
   onEdit?: (customer: Customer) => void;
   onDelete?: (id: number) => void;
   onView?: (customer: Customer) => void;
+  onStartShowroomSession?: (customer: Customer) => void;
   showAddButton?: boolean;
   onAdd?: () => void;
 }
@@ -21,6 +22,7 @@ export default function EnhancedCustomerSearch({
   onEdit,
   onDelete,
   onView,
+  onStartShowroomSession,
   showAddButton = true,
   onAdd
 }: EnhancedCustomerSearchProps) {
@@ -448,12 +450,13 @@ export default function EnhancedCustomerSearch({
                             {customer.status}
                           </Badge>
                         </div>
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 flex-wrap">
                           {onView && (
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => onView(customer)}
+                              title="View Customer Details"
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -463,8 +466,20 @@ export default function EnhancedCustomerSearch({
                               variant="outline"
                               size="sm"
                               onClick={() => onEdit(customer)}
+                              title="Edit Customer"
                             >
                               <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {onStartShowroomSession && (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => onStartShowroomSession(customer)}
+                              className="bg-blue-600 hover:bg-blue-700"
+                              title="Start Showroom Visit"
+                            >
+                              <User className="h-4 w-4" />
                             </Button>
                           )}
                           {onDelete && (
@@ -472,6 +487,7 @@ export default function EnhancedCustomerSearch({
                               variant="destructive"
                               size="sm"
                               onClick={() => onDelete(customer.id)}
+                              title="Delete Customer"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

@@ -80,6 +80,22 @@ export default function Customers() {
     toast({ title: 'Import ready', description: 'Select a file to import customer data...' });
   };
 
+  const handleStartShowroomSession = (customer: Customer) => {
+    trackInteraction('showroom_session_start', `customer-${customer.id}`, customer.id);
+    
+    // Create showroom session data
+    const sessionData = {
+      customerId: customer.id,
+      eventStatus: 'working',
+      dealStage: 'vehicle_selection',
+      notes: `Started showroom visit for ${customer.firstName} ${customer.lastName}`,
+      sessionDate: new Date().toISOString().split('T')[0],
+    };
+
+    // Navigate to showroom manager and create session
+    window.location.href = `/showroom-manager?createSession=${encodeURIComponent(JSON.stringify(sessionData))}`;
+  };
+
   return (
     <div className="p-4 md:p-6 space-y-6">
       {/* Header */}
@@ -143,6 +159,7 @@ export default function Customers() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onView={handleView}
+            onStartShowroomSession={handleStartShowroomSession}
             onAdd={handleAdd}
             showAddButton={true}
           />
