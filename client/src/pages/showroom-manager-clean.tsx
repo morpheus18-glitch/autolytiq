@@ -195,7 +195,7 @@ export default function ShowroomManagerClean() {
     mutationFn: async (data: any) => {
       return await apiRequest('/api/showroom-sessions', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: data,
       });
     },
     onSuccess: () => {
