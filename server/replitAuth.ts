@@ -85,11 +85,14 @@ async function upsertUser(
     baseId = claims.sub || claims.id;
   } else if (provider === 'github') {
     baseId = claims.sub || claims.id;
+  } else if (provider === 'replit') {
+    baseId = claims.sub;
   } else {
     baseId = claims.sub;
   }
   
-  const userId = provider ? `${provider}_${baseId}` : claims.sub;
+  // For replit, keep the original ID format, for others prefix with provider
+  const userId = (provider && provider !== 'replit') ? `${provider}_${baseId}` : baseId;
   
   const userData = {
     id: userId,
@@ -229,10 +232,24 @@ export async function setupAuth(app: Express) {
         tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
         verified: passport.AuthenticateCallback
       ) => {
-        const user = { provider: 'replit' };
-        updateUserSession(user, tokens);
-        await upsertUser(tokens.claims(), 'replit');
-        verified(null, user);
+        try {
+          const claims = tokens.claims();
+          console.log('Replit OAuth claims:', claims);
+          
+          const user = { 
+            provider: 'replit',
+            claims: claims,
+            id: claims.sub
+          };
+          updateUserSession(user, tokens);
+          await upsertUser(claims, 'replit');
+          
+          console.log('Replit user verified successfully:', user);
+          verified(null, user);
+        } catch (error) {
+          console.error('Replit auth verification error:', error);
+          verified(error, null);
+        }
       };
 
       for (const domain of process.env.REPLIT_DOMAINS.split(",")) {
