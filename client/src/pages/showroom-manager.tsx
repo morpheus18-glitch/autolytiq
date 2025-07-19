@@ -220,8 +220,7 @@ export default function ShowroomManager() {
       console.log('Sending quick update request:', { id, field, value });
       return apiRequest(`/api/showroom-sessions/${id}/quick-update`, { 
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ field, value })
+        body: { field, value }
       });
     },
     onSuccess: () => {
@@ -1082,20 +1081,20 @@ export default function ShowroomManager() {
 
       {/* Quick Status Update Dialog */}
       <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
-        <DialogContent aria-describedby="status-dialog-description">
+        <DialogContent aria-describedby="status-dialog-description" className="w-11/12 max-w-md mx-auto">
           <DialogHeader>
-            <DialogTitle>Update Status</DialogTitle>
-            <DialogDescription id="status-dialog-description">
+            <DialogTitle className="text-lg font-semibold">Update Status</DialogTitle>
+            <DialogDescription id="status-dialog-description" className="text-sm text-gray-600">
               {selectedSession && `Update status for ${getCustomerName(selectedSession.customerId)}`}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-3 py-4">
             <div className="space-y-2">
               {eventStatuses.map(status => (
                 <Button
                   key={status.value}
                   variant={selectedSession?.eventStatus === status.value ? "default" : "outline"}
-                  className="w-full justify-start"
+                  className="w-full justify-start text-sm py-3 h-auto"
                   onClick={() => {
                     if (selectedSession) {
                       quickUpdateMutation.mutate({
@@ -1112,11 +1111,12 @@ export default function ShowroomManager() {
               ))}
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsStatusDialogOpen(false)}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -1126,20 +1126,20 @@ export default function ShowroomManager() {
 
       {/* Quick Stage Update Dialog */}
       <Dialog open={isStageDialogOpen} onOpenChange={setIsStageDialogOpen}>
-        <DialogContent aria-describedby="stage-dialog-description">
+        <DialogContent aria-describedby="stage-dialog-description" className="w-11/12 max-w-md mx-auto">
           <DialogHeader>
-            <DialogTitle>Update Stage</DialogTitle>
-            <DialogDescription id="stage-dialog-description">
+            <DialogTitle className="text-lg font-semibold">Update Stage</DialogTitle>
+            <DialogDescription id="stage-dialog-description" className="text-sm text-gray-600">
               {selectedSession && `Update stage for ${getCustomerName(selectedSession.customerId)}`}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-3 py-4">
             <div className="space-y-2">
               {dealStages.map(stage => (
                 <Button
                   key={stage.value}
                   variant={selectedSession?.dealStage === stage.value ? "default" : "outline"}
-                  className="w-full justify-start"
+                  className="w-full justify-start text-sm py-3 h-auto"
                   onClick={() => {
                     if (selectedSession) {
                       quickUpdateMutation.mutate({
@@ -1156,11 +1156,12 @@ export default function ShowroomManager() {
               ))}
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsStageDialogOpen(false)}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
