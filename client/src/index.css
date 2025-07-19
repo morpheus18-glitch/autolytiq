@@ -2,6 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Professional Navigation Enhancements - RouteOne Style */
+.top-nav-tab {
+  position: relative;
+  transition: all 0.2s ease-in-out;
+}
+
+.top-nav-tab.active {
+  background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+  border-bottom: 2px solid #2563eb;
+}
+
+.top-nav-tab:hover {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* Professional Search Input */
+.search-input {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease-in-out;
+}
+
+.search-input:focus {
+  background: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Professional Dropdown Styling */
+.nav-dropdown {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Enhanced Mobile Navigation */
+.mobile-nav-overlay {
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* Professional Badge Styling */
+.notification-badge {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+/* Brand Logo Animation */
+.brand-logo {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transition: transform 0.2s ease-in-out;
+}
+
+.brand-logo:hover {
+  transform: scale(1.05);
+}
+
 /* Responsive layout styles */
 .layout {
   display: flex;
