@@ -11,8 +11,8 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUser(id: number, updates: Partial<User>): Promise<User>;
-  deleteUser(id: number): Promise<void>;
+  updateUser(id: string, updates: Partial<User>): Promise<User>;
+  deleteUser(id: string): Promise<void>;
   
   // Vehicle operations
   getVehicles(): Promise<Vehicle[]>;
