@@ -35,21 +35,20 @@ export default function VinDecoder({ onVinDecoded, initialVin = '' }: VinDecoder
 
     setIsDecoding(true);
     try {
-      // Use NHTSA vPIC API (free government service)
-      const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/${vin}?format=json`);
+      // Use backend VIN decoder API (proxies to NHTSA)
+      const response = await fetch(`/api/decode-vin/${vin}`);
       const data = await response.json();
 
-      if (data.Results && data.Results.length > 0) {
-        const results = data.Results;
+      if (response.ok && data.decoded) {
         const vehicleInfo = {
-          year: parseInt(results.find((r: any) => r.Variable === 'Model Year')?.Value) || 0,
-          make: results.find((r: any) => r.Variable === 'Make')?.Value || '',
-          model: results.find((r: any) => r.Variable === 'Model')?.Value || '',
-          trim: results.find((r: any) => r.Variable === 'Trim')?.Value || '',
-          bodyClass: results.find((r: any) => r.Variable === 'Body Class')?.Value || '',
-          engineSize: results.find((r: any) => r.Variable === 'Engine Number of Cylinders')?.Value || '',
-          fuelType: results.find((r: any) => r.Variable === 'Fuel Type - Primary')?.Value || '',
-          transmission: results.find((r: any) => r.Variable === 'Transmission Style')?.Value || '',
+          year: data.decoded.year || 0,
+          make: data.decoded.make || '',
+          model: data.decoded.model || '',
+          trim: data.decoded.trim || '',
+          bodyClass: data.decoded.bodyType || '',
+          engineSize: data.decoded.engine || '',
+          fuelType: data.decoded.fuelType || '',
+          transmission: data.decoded.transmission || '',
         };
 
         setDecodedInfo(vehicleInfo);
@@ -65,7 +64,7 @@ export default function VinDecoder({ onVinDecoded, initialVin = '' }: VinDecoder
           description: `${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}`,
         });
       } else {
-        throw new Error('Unable to decode VIN');
+        throw new Error(data.message || 'Unable to decode VIN');
       }
     } catch (error) {
       console.error('VIN decoding error:', error);
