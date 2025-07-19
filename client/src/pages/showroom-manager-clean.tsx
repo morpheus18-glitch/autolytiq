@@ -1,0 +1,509 @@
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, Car, FileText, Timer, CheckCircle, AlertCircle, XCircle, ArrowRight, Receipt, Search, Filter, MoreHorizontal, Edit, Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { usePixelTracker } from '@/hooks/use-pixel-tracker';
+import { format, addDays, subDays } from 'date-fns';
+import { apiRequest } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
+
+interface ShowroomSession {
+  id: number;
+  customerId: number;
+  vehicleId?: number;
+  stockNumber?: string;
+  salespersonId?: number;
+  leadSource?: string;
+  eventStatus: 'sold' | 'dead' | 'working' | 'pending' | 'sent_to_finance';
+  dealStage: 'vehicle_selection' | 'test_drive' | 'numbers' | 'closed_deal' | 'finalized';
+  notes?: string;
+  timeEntered: string;
+  timeExited?: string;
+  sessionDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Customer {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
+
+interface Vehicle {
+  id: number;
+  year: number;
+  make: string;
+  model: string;
+  stockNumber: string;
+  price: number;
+}
+
+const statusColors = {
+  sold: 'bg-green-500 text-white',
+  dead: 'bg-red-500 text-white',
+  working: 'bg-blue-500 text-white',
+  pending: 'bg-yellow-500 text-white',
+  sent_to_finance: 'bg-purple-500 text-white'
+};
+
+const eventStatuses = [
+  { value: 'working', label: 'Working' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'sent_to_finance', label: 'Sent to Finance' },
+  { value: 'sold', label: 'Sold' },
+  { value: 'dead', label: 'Dead' }
+];
+
+const dealStages = [
+  { value: 'vehicle_selection', label: 'Vehicle Selection' },
+  { value: 'test_drive', label: 'Test Drive' },
+  { value: 'numbers', label: 'Numbers' },
+  { value: 'closed_deal', label: 'Closed Deal' },
+  { value: 'finalized', label: 'Finalized' }
+];
+
+export default function ShowroomManagerClean() {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<ShowroomSession | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const { toast } = useToast();
+  const { trackInteraction } = usePixelTracker();
+  const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
+
+  // Fetch showroom sessions
+  const { data: sessions = [], isLoading: sessionsLoading } = useQuery({
+    queryKey: ['/api/showroom-sessions', format(selectedDate, 'yyyy-MM-dd')],
+  });
+
+  // Fetch customers
+  const { data: customers = [], isLoading: customersLoading } = useQuery({
+    queryKey: ['/api/customers'],
+  });
+
+  // Fetch vehicles
+  const { data: vehicles = [], isLoading: vehiclesLoading } = useQuery({
+    queryKey: ['/api/vehicles'],
+  });
+
+  const safeSessions = Array.isArray(sessions) ? sessions : [];
+  const safeCustomers = Array.isArray(customers) ? customers : [];
+  const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
+
+  // Helper functions
+  const getCustomerName = (customerId: number) => {
+    const customer = safeCustomers.find(c => c.id === customerId);
+    return customer ? `${customer.firstName} ${customer.lastName}` : 'Unknown Customer';
+  };
+
+  const getVehicleInfo = (vehicleId: number) => {
+    const vehicle = safeVehicles.find(v => v.id === vehicleId);
+    return vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'No Vehicle';
+  };
+
+  const getSessionDuration = (session: ShowroomSession) => {
+    const start = new Date(session.timeEntered);
+    const end = session.timeExited ? new Date(session.timeExited) : new Date();
+    const diff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60));
+    return `${diff}m`;
+  };
+
+  // Filter sessions
+  const filteredSessions = useMemo(() => {
+    return safeSessions.filter(session => {
+      const customerName = getCustomerName(session.customerId).toLowerCase();
+      const vehicleInfo = session.vehicleId ? getVehicleInfo(session.vehicleId).toLowerCase() : '';
+      const searchMatch = searchTerm === '' || 
+        customerName.includes(searchTerm.toLowerCase()) ||
+        vehicleInfo.includes(searchTerm.toLowerCase());
+      
+      const statusMatch = statusFilter === 'all' || session.eventStatus === statusFilter;
+      
+      return searchMatch && statusMatch;
+    });
+  }, [safeSessions, searchTerm, statusFilter, safeCustomers, safeVehicles]);
+
+  // Statistics
+  const sessionStats = useMemo(() => {
+    const active = safeSessions.filter(s => !s.timeExited).length;
+    const completed = safeSessions.filter(s => s.timeExited).length;
+    const sold = safeSessions.filter(s => s.eventStatus === 'sold').length;
+    const working = safeSessions.filter(s => s.eventStatus === 'working').length;
+    
+    return { active, completed, sold, working, total: safeSessions.length };
+  }, [safeSessions]);
+
+  // Navigation
+  const goToPreviousDay = () => setSelectedDate(prev => subDays(prev, 1));
+  const goToNextDay = () => setSelectedDate(prev => addDays(prev, 1));
+
+  // Create session mutation
+  const createSessionMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest('/api/showroom-sessions', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/showroom-sessions'] });
+      setIsCreateDialogOpen(false);
+      toast({ title: 'Session created successfully' });
+    },
+    onError: (error) => {
+      toast({ title: 'Error creating session', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  const handleCreateSession = (formData: FormData) => {
+    const data = {
+      customerId: parseInt(formData.get('customerId') as string),
+      vehicleId: formData.get('vehicleId') ? parseInt(formData.get('vehicleId') as string) : undefined,
+      stockNumber: formData.get('stockNumber') as string || undefined,
+      salespersonId: formData.get('salespersonId') ? parseInt(formData.get('salespersonId') as string) : undefined,
+      leadSource: formData.get('leadSource') as string || undefined,
+      eventStatus: formData.get('eventStatus') as string || 'working',
+      dealStage: formData.get('dealStage') as string || 'vehicle_selection',
+      notes: formData.get('notes') as string || undefined,
+      timeEntered: new Date().toISOString(),
+      sessionDate: format(selectedDate, 'yyyy-MM-dd'),
+    };
+
+    createSessionMutation.mutate(data);
+  };
+
+  const handleCreateDeal = async (session: ShowroomSession) => {
+    try {
+      const customer = safeCustomers.find(c => c.id === session.customerId);
+      const vehicle = session.vehicleId ? safeVehicles.find(v => v.id === session.vehicleId) : null;
+
+      if (!customer) {
+        toast({ title: 'Error', description: 'Customer not found', variant: 'destructive' });
+        return;
+      }
+
+      const dealData = {
+        customerId: customer.id,
+        customerName: `${customer.firstName} ${customer.lastName}`,
+        vehicleId: vehicle?.id,
+        vehicleName: vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : undefined,
+        stockNumber: vehicle?.stockNumber,
+        salePrice: vehicle?.price,
+        showroomSessionId: session.id
+      };
+
+      const response = await apiRequest('/api/deals', {
+        method: 'POST',
+        body: JSON.stringify(dealData),
+      });
+
+      localStorage.setItem('dealData', JSON.stringify(response));
+      navigate('/deal-desk');
+      
+      toast({ title: 'Deal created', description: 'Redirecting to Deal Desk...' });
+    } catch (error: any) {
+      toast({ title: 'Error creating deal', description: error.message, variant: 'destructive' });
+    }
+  };
+
+  if (sessionsLoading || customersLoading || vehiclesLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading showroom data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900">Showroom Manager</h1>
+            <p className="text-sm text-gray-600">Track customer visits and manage the sales floor</p>
+          </div>
+          
+          {/* Date Navigation */}
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={goToPreviousDay}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="px-3 py-1 bg-gray-100 rounded text-sm font-medium">
+              {format(selectedDate, 'MMM d, yyyy')}
+            </div>
+            <Button variant="outline" size="sm" onClick={goToNextDay}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Bar */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-blue-600">{sessionStats.active}</div>
+            <div className="text-xs text-gray-600">Active Now</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-600">{sessionStats.sold}</div>
+            <div className="text-xs text-gray-600">Sold Today</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-yellow-600">{sessionStats.working}</div>
+            <div className="text-xs text-gray-600">Working</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-gray-600">{sessionStats.total}</div>
+            <div className="text-xs text-gray-600">Total Today</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Toolbar */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3">
+        <div className="flex flex-col lg:flex-row gap-3 lg:items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-3 flex-1">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search customers or vehicles..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 h-9"
+              />
+            </div>
+            
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-48 h-9">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                {eventStatuses.map(status => (
+                  <SelectItem key={status.value} value={status.value}>
+                    {status.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white h-9">
+                <Plus className="h-4 w-4 mr-2" />
+                New Visit
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Create New Customer Visit</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                handleCreateSession(new FormData(e.currentTarget));
+              }} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="customerId">Customer</Label>
+                    <Select name="customerId" required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select customer" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {safeCustomers.map(customer => (
+                          <SelectItem key={customer.id} value={customer.id.toString()}>
+                            {customer.firstName} {customer.lastName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="vehicleId">Vehicle (Optional)</Label>
+                    <Select name="vehicleId">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select vehicle" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {safeVehicles.map(vehicle => (
+                          <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                            {vehicle.year} {vehicle.make} {vehicle.model} - {vehicle.stockNumber}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="eventStatus">Status</Label>
+                    <Select name="eventStatus" defaultValue="working">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {eventStatuses.map(status => (
+                          <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="dealStage">Deal Stage</Label>
+                    <Select name="dealStage" defaultValue="vehicle_selection">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {dealStages.map(stage => (
+                          <SelectItem key={stage.value} value={stage.value}>
+                            {stage.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea name="notes" placeholder="Add any relevant notes..." />
+                </div>
+
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={createSessionMutation.isPending}>
+                    {createSessionMutation.isPending ? 'Creating...' : 'Create Visit'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time In</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stage</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredSessions.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                    {searchTerm || statusFilter !== 'all' ? 'No sessions match your filters' : 'No customer sessions today'}
+                  </td>
+                </tr>
+              ) : (
+                filteredSessions.map((session) => (
+                  <tr key={session.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center">
+                        <User className="h-4 w-4 text-gray-400 mr-2 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">
+                            {getCustomerName(session.customerId)}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-sm text-gray-900">
+                        {session.vehicleId ? (
+                          <div className="flex items-center">
+                            <Car className="h-4 w-4 text-gray-400 mr-2 flex-shrink-0" />
+                            {getVehicleInfo(session.vehicleId)}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">No vehicle selected</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-sm text-gray-900">
+                        {format(new Date(session.timeEntered), 'h:mm a')}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-sm text-gray-900">
+                        {getSessionDuration(session)}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge className={`text-xs ${statusColors[session.eventStatus]}`}>
+                        {eventStatuses.find(s => s.value === session.eventStatus)?.label}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-sm text-gray-900">
+                        {dealStages.find(s => s.value === session.dealStage)?.label}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedSession(session);
+                            setIsEditDialogOpen(true);
+                          }}
+                          className="h-7 px-2"
+                        >
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleCreateDeal(session)}
+                          className="bg-green-600 hover:bg-green-700 text-white h-7 px-2"
+                        >
+                          <Receipt className="h-3 w-3 mr-1" />
+                          Deal
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
