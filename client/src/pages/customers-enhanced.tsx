@@ -97,10 +97,29 @@ export default function Customers() {
       sessionDate: new Date().toISOString().split('T')[0],
     };
 
-    // Add a small delay to show loading state then navigate
-    setTimeout(() => {
-      window.location.href = `/showroom-manager?createSession=${encodeURIComponent(JSON.stringify(sessionData))}`;
-    }, 100);
+    // Create the session directly via API instead of URL parameters
+    const createSessionMutation = {
+      mutationFn: async (data: any) => {
+        return await apiRequest('POST', '/api/showroom-sessions', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        });
+      },
+      onSuccess: (newSession: any) => {
+        setIsStartingSession(false);
+        toast({ title: 'Customer visit started successfully' });
+        // Navigate to showroom manager
+        window.location.href = '/showroom-manager';
+      },
+      onError: (error: any) => {
+        setIsStartingSession(false);
+        console.error('Error creating session:', error);
+        toast({ title: 'Error starting showroom session', description: error.message, variant: 'destructive' });
+      }
+    };
+
+    // Create the session immediately
+    createSessionMutation.mutationFn(sessionData).then(createSessionMutation.onSuccess).catch(createSessionMutation.onError);
   };
 
   return (
