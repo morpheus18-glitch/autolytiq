@@ -233,19 +233,26 @@ export async function setupAuth(app: Express) {
       callbackURL: "/api/auth/google/callback"
     }, async (accessToken, refreshToken, profile, done) => {
       try {
+        const userId = `google_${profile.id}`;
+        const claims = {
+          sub: userId,
+          email: profile.emails?.[0]?.value,
+          first_name: profile.name?.givenName,
+          last_name: profile.name?.familyName,
+          profile_image_url: profile.photos?.[0]?.value
+        };
+        
+        await upsertUser(claims, 'google');
+        
         const user = { 
           provider: 'google',
-          claims: {
-            sub: `google_${profile.id}`,
-            email: profile.emails?.[0]?.value,
-            first_name: profile.name?.givenName,
-            last_name: profile.name?.familyName,
-            profile_image_url: profile.photos?.[0]?.value
-          }
+          claims: claims,
+          id: userId
         };
-        await upsertUser(user.claims, 'google');
+        
         done(null, user);
       } catch (error) {
+        console.error('Google auth error:', error);
         done(error, null);
       }
     }));
@@ -259,19 +266,26 @@ export async function setupAuth(app: Express) {
       callbackURL: "/api/auth/github/callback"
     }, async (accessToken, refreshToken, profile, done) => {
       try {
+        const userId = `github_${profile.id}`;
+        const claims = {
+          sub: userId,
+          email: profile.emails?.[0]?.value,
+          first_name: profile.displayName?.split(' ')[0] || profile.username,
+          last_name: profile.displayName?.split(' ').slice(1).join(' ') || '',
+          profile_image_url: profile.photos?.[0]?.value
+        };
+        
+        await upsertUser(claims, 'github');
+        
         const user = {
           provider: 'github',
-          claims: {
-            sub: `github_${profile.id}`,
-            email: profile.emails?.[0]?.value,
-            first_name: profile.displayName?.split(' ')[0] || profile.username,
-            last_name: profile.displayName?.split(' ').slice(1).join(' ') || '',
-            profile_image_url: profile.photos?.[0]?.value
-          }
+          claims: claims,
+          id: userId
         };
-        await upsertUser(user.claims, 'github');
+        
         done(null, user);
       } catch (error) {
+        console.error('GitHub auth error:', error);
         done(error, null);
       }
     }));
@@ -313,14 +327,20 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  // If Replit Auth is not configured, allow all requests to pass through
-  if (!process.env.REPLIT_DOMAINS || !process.env.REPL_ID) {
+  const user = req.user as any;
+
+  // Check if user is authenticated through any provider
+  if (!req.isAuthenticated() || !user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  // For non-Replit providers, just check if user is authenticated
+  if (user.provider !== 'replit') {
     return next();
   }
 
-  const user = req.user as any;
-
-  if (!req.isAuthenticated() || !user.expires_at) {
+  // For Replit users, check token expiration and refresh if needed
+  if (!user.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 

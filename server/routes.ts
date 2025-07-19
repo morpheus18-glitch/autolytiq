@@ -17,21 +17,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      // If Replit Auth is not configured, return a default user
-      if (!process.env.REPLIT_DOMAINS || !process.env.REPL_ID) {
-        const defaultUser = {
-          id: "default-admin",
-          email: "admin@autolytiq.com",
-          firstName: "Admin",
-          lastName: "User",
-          profileImageUrl: null
-        };
-        return res.json(defaultUser);
+      const user = req.user;
+      
+      if (!user) {
+        return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      // Get user ID based on provider
+      let userId: string;
+      if (user.provider === 'replit') {
+        userId = user.claims?.sub;
+      } else {
+        userId = user.id || user.claims?.sub;
+      }
+
+      if (!userId) {
+        return res.status(401).json({ message: "User ID not found" });
+      }
+
+      const dbUser = await storage.getUser(userId);
+      if (!dbUser) {
+        return res.status(404).json({ message: "User not found in database" });
+      }
+
+      res.json(dbUser);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
