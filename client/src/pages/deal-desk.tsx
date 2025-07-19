@@ -1063,7 +1063,8 @@ export default function DealDesk() {
 
   // Check for pending deal data from showroom session on component load
   useEffect(() => {
-    const pendingDealData = localStorage.getItem('pendingDeal');
+    // Check for both new and legacy localStorage keys
+    const pendingDealData = localStorage.getItem('pendingDeal') || localStorage.getItem('dealData');
     if (pendingDealData) {
       try {
         const dealData = JSON.parse(pendingDealData);
@@ -1122,8 +1123,9 @@ export default function DealDesk() {
           }
         }
 
-        // Clear the localStorage data after processing
+        // Clear both possible localStorage keys after processing
         localStorage.removeItem('pendingDeal');
+        localStorage.removeItem('dealData');
         
         // Show success message
         toast({

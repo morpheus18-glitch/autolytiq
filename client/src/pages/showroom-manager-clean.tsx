@@ -261,7 +261,7 @@ export default function ShowroomManagerClean() {
       });
 
       const dealResult = await response.json();
-      localStorage.setItem('dealData', JSON.stringify(dealResult));
+      localStorage.setItem('pendingDeal', JSON.stringify(dealResult));
       navigate('/deal-desk');
       
       toast({ title: 'Deal created', description: 'Redirecting to Deal Desk...' });
