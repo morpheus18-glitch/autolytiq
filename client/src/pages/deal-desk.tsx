@@ -837,7 +837,7 @@ const generatePaymentSpreads = (financeAmount: number, baseRate: number) => {
 };
 
 export default function DealDesk() {
-  const [activeTab, setActiveTab] = useState("inventory-search");
+  const [activeTab, setActiveTab] = useState("summary");
   const [isMobileView, setIsMobileView] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchType, setSearchType] = useState<'stock' | 'vin' | 'general'>('stock');
@@ -1352,16 +1352,134 @@ export default function DealDesk() {
   });
 
   return (
-    <div className="flex-1 overflow-hidden">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Deal Desk</h2>
-            <p className="text-gray-500">Comprehensive deal structuring and analysis</p>
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar Navigation */}
+      <div className="w-64 bg-white border-r border-gray-200 shadow-sm">
+        <div className="p-4 border-b border-gray-200">
+          <h1 className="text-lg font-semibold text-gray-900">Deal Desk</h1>
+          <p className="text-sm text-gray-600">Deal #{deal.dealNumber}</p>
+        </div>
+        
+        <nav className="mt-2">
+          <div className="px-2 space-y-1">
+            <button
+              onClick={() => setActiveTab('summary')}
+              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'summary' 
+                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <FileText className="w-4 h-4 mr-3" />
+              Summary
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('customer-info')}
+              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'customer-info' 
+                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <User className="w-4 h-4 mr-3" />
+              Customer
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('vehicle-selection')}
+              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'vehicle-selection' 
+                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Car className="w-4 h-4 mr-3" />
+              Vehicle Selection
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('deal-structure')}
+              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'deal-structure' 
+                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Calculator className="w-4 h-4 mr-3" />
+              Deal Structure
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('financing')}
+              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'financing' 
+                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <CreditCard className="w-4 h-4 mr-3" />
+              Financing
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('f-and-i')}
+              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'f-and-i' 
+                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Shield className="w-4 h-4 mr-3" />
+              F&I Products
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('documents')}
+              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'documents' 
+                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <FileText className="w-4 h-4 mr-3" />
+              Documents
+            </button>
           </div>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => {
+        </nav>
+        
+        <div className="absolute bottom-4 left-4 right-4">
+          <Button 
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            onClick={() => saveDeal.mutate(deal)}
+            disabled={saveDeal.isPending}
+          >
+            {saveDeal.isPending ? 'Saving...' : 'Save Deal'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Header */}
+        <header className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">
+                {activeTab === 'summary' && 'Deal Summary'}
+                {activeTab === 'customer-info' && 'Customer Information'}
+                {activeTab === 'vehicle-selection' && 'Vehicle Selection'}
+                {activeTab === 'deal-structure' && 'Deal Structure'}
+                {activeTab === 'financing' && 'Financing & Credit'}
+                {activeTab === 'f-and-i' && 'F&I Products'}
+                {activeTab === 'documents' && 'Documents'}
+              </h2>
+              <p className="text-sm text-gray-500">
+                {selectedCustomer ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}` : 'Select customer to continue'}
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => {
               setDeal({
                 dealNumber: generateDealNumber(),
                 status: 'draft',
@@ -1463,376 +1581,318 @@ export default function DealDesk() {
             }}>
               New Deal
             </Button>
-            <Button 
-              className="bg-green-600 hover:bg-green-700"
-              onClick={() => saveDeal.mutate(deal)}
-              disabled={saveDeal.isPending}
-            >
-              {saveDeal.isPending ? 'Saving...' : 'Save Deal'}
-            </Button>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto p-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className={`grid w-full ${isMobileView ? 'grid-cols-2' : 'grid-cols-5'}`}>
-            <TabsTrigger value="inventory-search">Inventory Search</TabsTrigger>
-            <TabsTrigger value="deal-structure">Deal Structure</TabsTrigger>
-            <TabsTrigger value="payment-calc">Payment Calculator</TabsTrigger>
-            <TabsTrigger value="profit-analysis">Profit Analysis</TabsTrigger>
-            <TabsTrigger value="f-and-i">F&I Products</TabsTrigger>
-          </TabsList>
-
-          {/* Inventory Search Tab */}
-          <TabsContent value="inventory-search" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Search Panel */}
-              <div className="lg:col-span-1">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Search className="w-5 h-5" />
-                      Vehicle Search
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto p-6 bg-gray-50">
+          {/* Summary Tab */}
+          {activeTab === 'summary' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Deal Overview</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Deal Number</label>
+                    <div className="p-2 bg-gray-50 rounded border">{deal.dealNumber}</div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <div className="p-2 bg-gray-50 rounded border">{deal.status}</div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                    <div className="p-2 bg-gray-50 rounded border">{deal.priority}</div>
+                  </div>
+                </div>
+              </div>
+              
+              {selectedCustomer && (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Customer Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="searchType">Search Type</Label>
-                      <Select value={searchType} onValueChange={(value: 'stock' | 'vin' | 'general') => setSearchType(value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select search type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="stock">Stock Number</SelectItem>
-                          <SelectItem value="vin">VIN</SelectItem>
-                          <SelectItem value="general">General Search</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <label className="block text-sm font-medium text-gray-700">Name</label>
+                      <p className="text-gray-900">{selectedCustomer.firstName} {selectedCustomer.lastName}</p>
                     </div>
-                    
                     <div>
-                      <Label htmlFor="searchTerm">Search Term</Label>
-                      <Input
-                        id="searchTerm"
-                        placeholder={`Enter ${searchType === 'stock' ? 'stock number' : searchType === 'vin' ? 'VIN' : 'search term'}`}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
+                      <label className="block text-sm font-medium text-gray-700">Email</label>
+                      <p className="text-gray-900">{selectedCustomer.email}</p>
                     </div>
-                    
                     <div>
-                      <Label htmlFor="zipCode">Customer Zip Code</Label>
-                      <Input
-                        id="zipCode"
-                        placeholder="Enter zip code for tax calculation"
-                        value={zipCode}
-                        onChange={(e) => setZipCode(e.target.value)}
-                      />
+                      <label className="block text-sm font-medium text-gray-700">Phone</label>
+                      <p className="text-gray-900">{selectedCustomer.phone}</p>
                     </div>
-                    
                     <div>
-                      <Label htmlFor="customerState">Customer State</Label>
-                      <Select value={customerState} onValueChange={setCustomerState}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select state" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.keys(TAX_RATES_BY_STATE).map(state => (
-                            <SelectItem key={state} value={state}>{state}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <label className="block text-sm font-medium text-gray-700">Credit Score</label>
+                      <p className="text-gray-900">{selectedCustomer.creditScore || 'Not available'}</p>
                     </div>
-                    
-                    <div className="bg-blue-50 p-3 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Calculator className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm font-medium text-blue-900">Tax Information</span>
+                  </div>
+                </div>
+              )}
+              
+              {selectedVehicles.length > 0 && (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Selected Vehicle</h3>
+                  {selectedVehicles.map((vehicle, index) => (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Vehicle</label>
+                          <p className="text-gray-900">{vehicle.year} {vehicle.make} {vehicle.model}</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Stock Number</label>
+                          <p className="text-gray-900">{vehicle.stockNumber}</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Price</label>
+                          <p className="text-gray-900">${vehicle.price.toLocaleString()}</p>
+                        </div>
                       </div>
-                      <p className="text-sm text-blue-700">
-                        Tax Rate: {formatPercent(TAX_RATES_BY_STATE[customerState] || 0.06)}
-                      </p>
-                      <p className="text-sm text-blue-700">
-                        State Fee: {formatCurrency(STATE_FEES[customerState] || 25)}
-                      </p>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Vehicle Results */}
-              <div className="lg:col-span-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Car className="w-5 h-5" />
-                      Available Vehicles
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {searchVehicles()?.map(vehicle => (
-                        <div key={vehicle.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <h3 className="font-semibold text-lg">
-                                  {vehicle.year} {vehicle.make} {vehicle.model}
-                                </h3>
-                                <Badge variant="outline">{vehicle.category}</Badge>
-                                <Badge variant={vehicle.status === 'available' ? 'default' : 'secondary'}>
-                                  {vehicle.status}
-                                </Badge>
-                              </div>
-                              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                                <div>Stock #: {vehicle.id}</div>
-                                <div>Mileage: {vehicle.mileage.toLocaleString()} miles</div>
-                                <div>Color: {vehicle.color}</div>
-                                <div>Price: {formatCurrency(vehicle.price)}</div>
-                              </div>
-                            </div>
-                            <div className="flex flex-col gap-2">
-                              <Button 
-                                size="sm" 
-                                onClick={() => addVehicleToDeal(vehicle)}
-                                disabled={selectedVehicles.some(v => v.id === vehicle.id)}
-                              >
-                                <Plus className="w-4 h-4 mr-1" />
-                                Add to Deal
-                              </Button>
-                              <Button size="sm" variant="outline">
-                                <Eye className="w-4 h-4 mr-1" />
-                                View Details
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
-            
-            {/* Selected Vehicles */}
-            {selectedVehicles.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    Selected Vehicles ({selectedVehicles.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {selectedVehicles.map(vehicle => (
-                      <div key={vehicle.id} className="border rounded-lg p-4 bg-green-50">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium">
-                            {vehicle.year} {vehicle.make} {vehicle.model}
-                          </h4>
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            onClick={() => {
-                              setSelectedVehicles(prev => prev.filter(v => v.id !== vehicle.id));
-                              setDeal(prev => ({
-                                ...prev,
-                                vehicles: prev.vehicles?.filter(v => v.id !== vehicle.id) || [],
-                                pricing: {
-                                  ...prev.pricing!,
-                                  totalVehiclePrice: (prev.pricing?.totalVehiclePrice || 0) - vehicle.price
-                                }
-                              }));
-                            }}
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                        <p className="text-sm text-gray-600">Stock: {vehicle.stockNumber}</p>
-                        <p className="text-sm text-gray-600">Price: {formatCurrency(vehicle.price)}</p>
-                        <p className="text-sm text-gray-600">Mileage: {vehicle.mileage.toLocaleString()}</p>
+          )}
+
+          {/* Customer Info Tab */}
+          {activeTab === 'customer-info' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Select Customer</h3>
+                <div className="space-y-4">
+                  <Input
+                    placeholder="Search customers..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="max-w-md"
+                  />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                    {customers?.filter(customer =>
+                      `${customer.firstName} ${customer.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      customer.phone.includes(searchTerm)
+                    ).map(customer => (
+                      <div
+                        key={customer.id}
+                        className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                          selectedCustomer?.id === customer.id 
+                            ? 'border-blue-500 bg-blue-50' 
+                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        }`}
+                        onClick={() => {
+                          setSelectedCustomer({
+                            ...customer,
+                            creditScore: customer.creditScore || 650,
+                            monthlyIncome: customer.monthlyIncome || 5000,
+                            employmentStatus: customer.employmentStatus || 'full-time',
+                            employmentYears: customer.employmentYears || 2,
+                            residenceStatus: customer.residenceStatus || 'own',
+                            residenceYears: customer.residenceYears || 3
+                          });
+                        }}
+                      >
+                        <div className="font-medium text-gray-900">{customer.firstName} {customer.lastName}</div>
+                        <div className="text-sm text-gray-600">{customer.email}</div>
+                        <div className="text-sm text-gray-600">{customer.phone}</div>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Vehicle Selection Tab */}
+          {activeTab === 'vehicle-selection' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Select Vehicle</h3>
+                <div className="space-y-4">
+                  <Input
+                    placeholder="Search vehicles by stock number, make, model..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="max-w-md"
+                  />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                    {vehicles?.filter(vehicle =>
+                      `${vehicle.year} ${vehicle.make} ${vehicle.model}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      vehicle.stockNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      vehicle.vin?.toLowerCase().includes(searchTerm.toLowerCase())
+                    ).map(vehicle => (
+                      <div
+                        key={vehicle.id}
+                        className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                          selectedVehicles.some(v => v.id === vehicle.id)
+                            ? 'border-blue-500 bg-blue-50' 
+                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        }`}
+                        onClick={() => {
+                          const dealVehicle: DealVehicle = {
+                            ...vehicle,
+                            dealType: 'retail',
+                            sellingPrice: vehicle.price,
+                            discount: 0,
+                            rebate: 0,
+                            tradeAllowance: 0,
+                            warranties: [],
+                            addOns: [],
+                            financing: {
+                              downPayment: 0,
+                              tradeValue: 0,
+                              rebates: 0,
+                              netTradeValue: 0,
+                              cashDown: 0,
+                              financeAmount: vehicle.price,
+                              salesTax: Math.round(vehicle.price * 0.0875),
+                              fees: 999,
+                              totalAmount: vehicle.price + Math.round(vehicle.price * 0.0875) + 999
+                            }
+                          };
+                          setSelectedVehicles([dealVehicle]);
+                        }}
+                      >
+                        <div className="font-medium text-gray-900">{vehicle.year} {vehicle.make} {vehicle.model}</div>
+                        <div className="text-sm text-gray-600">Stock: {vehicle.stockNumber}</div>
+                        <div className="text-sm text-gray-600">Price: ${vehicle.price.toLocaleString()}</div>
+                        {vehicle.vin && <div className="text-xs text-gray-500">VIN: {vehicle.vin}</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Deal Structure Tab */}
-          <TabsContent value="deal-structure" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Deal Summary */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
-                    Deal Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-sm font-medium">Deal Number</Label>
-                      <p className="text-sm text-gray-600">{deal.dealNumber}</p>
+          {activeTab === 'deal-structure' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Deal Structure & Pricing</h3>
+                {selectedVehicles.length > 0 && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <Label htmlFor="sellingPrice">Selling Price</Label>
+                        <Input
+                          id="sellingPrice"
+                          type="number"
+                          value={selectedVehicles[0]?.sellingPrice || 0}
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value) || 0;
+                            setSelectedVehicles(prev => prev.map(v => ({
+                              ...v,
+                              sellingPrice: value
+                            })));
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="discount">Discount</Label>
+                        <Input
+                          id="discount"
+                          type="number"
+                          value={selectedVehicles[0]?.discount || 0}
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value) || 0;
+                            setSelectedVehicles(prev => prev.map(v => ({
+                              ...v,
+                              discount: value
+                            })));
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="tradeValue">Trade Value</Label>
+                        <Input
+                          id="tradeValue"
+                          type="number"
+                          value={selectedVehicles[0]?.financing?.tradeValue || 0}
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value) || 0;
+                            setSelectedVehicles(prev => prev.map(v => ({
+                              ...v,
+                              financing: {
+                                ...v.financing,
+                                tradeValue: value
+                              }
+                            })));
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="downPayment">Down Payment</Label>
+                        <Input
+                          id="downPayment"
+                          type="number"
+                          value={selectedVehicles[0]?.financing?.downPayment || 0}
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value) || 0;
+                            setSelectedVehicles(prev => prev.map(v => ({
+                              ...v,
+                              financing: {
+                                ...v.financing,
+                                downPayment: value
+                              }
+                            })));
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Label className="text-sm font-medium">Status</Label>
-                      <Badge variant={deal.status === 'draft' ? 'secondary' : 'default'}>
-                        {deal.status}
-                      </Badge>
-                    </div>
                   </div>
-                  
-                  <div className="border-t pt-4">
-                    <h4 className="font-medium mb-2">Pricing Breakdown</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Vehicle Price:</span>
-                        <span>{formatCurrency(deal.pricing?.totalVehiclePrice || 0)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Trade Value:</span>
-                        <span>-{formatCurrency(deal.pricing?.totalTradeValue || 0)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Cash Down:</span>
-                        <span>-{formatCurrency(deal.pricing?.cashDown || 0)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Sales Tax:</span>
-                        <span>{formatCurrency(deal.pricing?.salesTax || 0)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>State Fees:</span>
-                        <span>{formatCurrency(deal.pricing?.stateFees || 0)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Doc Fee:</span>
-                        <span>{formatCurrency(deal.pricing?.documentationFee || 0)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Processing Fee:</span>
-                        <span>{formatCurrency(deal.pricing?.processingFee || 0)}</span>
-                      </div>
-                      <Separator />
-                      <div className="flex justify-between font-semibold">
-                        <span>Amount to Finance:</span>
-                        <span>{formatCurrency(deal.pricing?.amountToFinance || 0)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Pricing Inputs */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5" />
-                    Pricing Structure
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="tradeValue">Trade-In Value</Label>
-                    <Input
-                      id="tradeValue"
-                      type="number"
-                      value={deal.pricing?.totalTradeValue || 0}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value) || 0;
-                        setDeal(prev => ({
-                          ...prev,
-                          pricing: {
-                            ...prev.pricing!,
-                            totalTradeValue: value
-                          }
-                        }));
-                      }}
-                      onBlur={updateDealCalculations}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="cashDown">Cash Down</Label>
-                    <Input
-                      id="cashDown"
-                      type="number"
-                      value={deal.pricing?.cashDown || 0}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value) || 0;
-                        setDeal(prev => ({
-                          ...prev,
-                          pricing: {
-                            ...prev.pricing!,
-                            cashDown: value
-                          }
-                        }));
-                      }}
-                      onBlur={updateDealCalculations}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="docFee">Documentation Fee</Label>
-                    <Input
-                      id="docFee"
-                      type="number"
-                      value={deal.pricing?.documentationFee || 0}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value) || 0;
-                        setDeal(prev => ({
-                          ...prev,
-                          pricing: {
-                            ...prev.pricing!,
-                            documentationFee: value
-                          }
-                        }));
-                      }}
-                      onBlur={updateDealCalculations}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="processingFee">Processing Fee</Label>
-                    <Input
-                      id="processingFee"
-                      type="number"
-                      value={deal.pricing?.processingFee || 0}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value) || 0;
-                        setDeal(prev => ({
-                          ...prev,
-                          pricing: {
-                            ...prev.pricing!,
-                            processingFee: value
-                          }
-                        }));
-                      }}
-                      onBlur={updateDealCalculations}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+                )}
+                {selectedVehicles.length === 0 && (
+                  <p className="text-gray-500">Please select a vehicle to configure deal structure.</p>
+                )}
+              </div>
             </div>
-          </TabsContent>
+          )}
 
-          {/* Payment Calculator Tab */}
-          <TabsContent value="payment-calc" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Financing Terms */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calculator className="w-5 h-5" />
-                    Financing Terms
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+          {/* Financing Tab */}
+          {activeTab === 'financing' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Financing Options</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="lender">Lender</Label>
+                    <Input
+                      id="lender"
+                      value={deal.financing?.lender || ''}
+                      onChange={(e) => {
+                        setDeal(prev => ({
+                          ...prev,
+                          financing: {
+                            ...prev.financing!,
+                            lender: e.target.value
+                          }
+                        }));
+                      }}
+                      placeholder="Enter lender name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="program">Program</Label>
+                    <Input
+                      id="program"
+                      value={deal.financing?.program || ''}
+                      onChange={(e) => {
+                        setDeal(prev => ({
+                          ...prev,
+                          financing: {
+                            ...prev.financing!,
+                            program: e.target.value
+                          }
+                        }));
+                      }}
+                      placeholder="Enter financing program"
+                    />
+                  </div>
                   <div>
                     <Label htmlFor="term">Term (months)</Label>
                     <Select 
@@ -1845,7 +1905,6 @@ export default function DealDesk() {
                             term: parseInt(value)
                           }
                         }));
-                        updateDealCalculations();
                       }}
                     >
                       <SelectTrigger>
@@ -1861,7 +1920,6 @@ export default function DealDesk() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
                   <div>
                     <Label htmlFor="apr">APR (%)</Label>
                     <Input
@@ -1879,268 +1937,95 @@ export default function DealDesk() {
                           }
                         }));
                       }}
-                      onBlur={updateDealCalculations}
                     />
                   </div>
-                  
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span className="text-sm font-medium text-green-900">Calculated Payment</span>
-                    </div>
-                    <p className="text-2xl font-bold text-green-900">
-                      {formatCurrency(deal.financing?.payment || 0)}/month
-                    </p>
-                    <p className="text-sm text-green-700">
-                      Total Interest: {formatCurrency(deal.financing?.totalInterest || 0)}
-                    </p>
-                    <p className="text-sm text-green-700">
-                      Total of Payments: {formatCurrency(deal.financing?.totalOfPayments || 0)}
-                    </p>
-                  </div>
-                  
-                  <Button 
-                    className="w-full" 
-                    onClick={generatePaymentOptions}
-                    disabled={!deal.pricing?.amountToFinance}
-                  >
-                    <BarChart3 className="w-4 h-4 mr-2" />
-                    Generate Payment Spreads
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Payment Spreads */}
-              {showPaymentSpreads && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5" />
-                      Payment Options
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3 max-h-80 overflow-y-auto">
-                      {deal.payments?.paymentSpread?.options?.slice(0, 12).map((option, index) => (
-                        <div 
-                          key={index}
-                          className="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer"
-                          onClick={() => {
-                            setDeal(prev => ({
-                              ...prev,
-                              financing: {
-                                ...prev.financing!,
-                                term: option.term,
-                                apr: option.apr,
-                                payment: option.payment,
-                                totalInterest: option.totalInterest
-                              }
-                            }));
-                          }}
-                        >
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <div className="font-medium">
-                                {formatCurrency(option.payment)}/month
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                {option.term} months @ {formatPercent(option.apr)}
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm font-medium">{option.bankName}</div>
-                              <div className="text-sm text-gray-600">{option.program}</div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                </div>
+              </div>
             </div>
-          </TabsContent>
-
-          {/* Profit Analysis Tab */}
-          <TabsContent value="profit-analysis" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <PiggyBank className="w-5 h-5" />
-                    Front End Gross
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">
-                    {formatCurrency(deal.pricing?.frontEndGross || 0)}
-                  </div>
-                  <p className="text-sm text-gray-600 mt-1">Vehicle profit margin</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="w-5 h-5" />
-                    Back End Gross
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {formatCurrency(deal.pricing?.backEndGross || 0)}
-                  </div>
-                  <p className="text-sm text-gray-600 mt-1">F&I product profit</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="w-5 h-5" />
-                    Total Gross
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-purple-600">
-                    {formatCurrency(deal.pricing?.totalGross || 0)}
-                  </div>
-                  <p className="text-sm text-gray-600 mt-1">Combined profit</p>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+          )}
 
           {/* F&I Products Tab */}
-          <TabsContent value="f-and-i" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="w-5 h-5" />
-                    Protection Products
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+          {activeTab === 'f-and-i' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">F&I Products & Services</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="extendedWarranty"
-                      checked={deal.products?.extendedWarranty?.selected || false}
-                      onChange={(e) => {
-                        setDeal(prev => ({
-                          ...prev,
-                          products: {
-                            ...prev.products!,
-                            extendedWarranty: {
-                              ...prev.products?.extendedWarranty!,
-                              selected: e.target.checked
-                            }
-                          }
-                        }));
-                      }}
-                    />
-                    <label htmlFor="extendedWarranty">Extended Warranty</label>
+                    <input type="checkbox" id="extendedWarranty" className="rounded" />
+                    <Label htmlFor="extendedWarranty">Extended Warranty</Label>
                   </div>
-                  
                   <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="gapInsurance"
-                      checked={deal.products?.gapInsurance?.selected || false}
-                      onChange={(e) => {
-                        setDeal(prev => ({
-                          ...prev,
-                          products: {
-                            ...prev.products!,
-                            gapInsurance: {
-                              ...prev.products?.gapInsurance!,
-                              selected: e.target.checked
-                            }
-                          }
-                        }));
-                      }}
-                    />
-                    <label htmlFor="gapInsurance">GAP Insurance</label>
+                    <input type="checkbox" id="gapInsurance" className="rounded" />
+                    <Label htmlFor="gapInsurance">GAP Insurance</Label>
                   </div>
-                  
                   <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="paintProtection"
-                      checked={deal.products?.paintProtection?.selected || false}
-                      onChange={(e) => {
-                        setDeal(prev => ({
-                          ...prev,
-                          products: {
-                            ...prev.products!,
-                            paintProtection: {
-                              ...prev.products?.paintProtection!,
-                              selected: e.target.checked
-                            }
-                          }
-                        }));
-                      }}
-                    />
-                    <label htmlFor="paintProtection">Paint Protection</label>
+                    <input type="checkbox" id="paintProtection" className="rounded" />
+                    <Label htmlFor="paintProtection">Paint Protection</Label>
                   </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Receipt className="w-5 h-5" />
-                    Product Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Extended Warranty:</span>
-                      <span>
-                        {deal.products?.extendedWarranty?.selected ? 
-                          formatCurrency(deal.products?.extendedWarranty?.cost || 0) : 
-                          'Not selected'
-                        }
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>GAP Insurance:</span>
-                      <span>
-                        {deal.products?.gapInsurance?.selected ? 
-                          formatCurrency(deal.products?.gapInsurance?.cost || 0) : 
-                          'Not selected'
-                        }
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Paint Protection:</span>
-                      <span>
-                        {deal.products?.paintProtection?.selected ? 
-                          formatCurrency(deal.products?.paintProtection?.cost || 0) : 
-                          'Not selected'
-                        }
-                      </span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between font-semibold">
-                      <span>Total F&I:</span>
-                      <span>
-                        {formatCurrency(
-                          (deal.products?.extendedWarranty?.selected ? deal.products?.extendedWarranty?.cost || 0 : 0) +
-                          (deal.products?.gapInsurance?.selected ? deal.products?.gapInsurance?.cost || 0 : 0) +
-                          (deal.products?.paintProtection?.selected ? deal.products?.paintProtection?.cost || 0 : 0)
-                        )}
-                      </span>
-                    </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="fabricProtection" className="rounded" />
+                    <Label htmlFor="fabricProtection">Fabric Protection</Label>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="wheelTire" className="rounded" />
+                    <Label htmlFor="wheelTire">Wheel & Tire Protection</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="maintenance" className="rounded" />
+                    <Label htmlFor="maintenance">Maintenance Package</Label>
+                  </div>
+                </div>
+              </div>
             </div>
-          </TabsContent>
-        </Tabs>
-      </main>
-    </div>
-  );
-}
+          )}
+
+          {/* Documents Tab */}
+          {activeTab === 'documents' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Deal Documents</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <div className="flex items-center space-x-3">
+                      <FileText className="w-5 h-5 text-gray-400" />
+                      <span className="text-sm font-medium">Purchase Agreement</span>
+                    </div>
+                  </div>
+                  <div className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <div className="flex items-center space-x-3">
+                      <FileText className="w-5 h-5 text-gray-400" />
+                      <span className="text-sm font-medium">Financing Application</span>
+                    </div>
+                  </div>
+                  <div className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <div className="flex items-center space-x-3">
+                      <FileText className="w-5 h-5 text-gray-400" />
+                      <span className="text-sm font-medium">Trade Appraisal</span>
+                    </div>
+                  </div>
+                  <div className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <div className="flex items-center space-x-3">
+                      <FileText className="w-5 h-5 text-gray-400" />
+                      <span className="text-sm font-medium">Insurance Information</span>
+                    </div>
+                  </div>
+                  <div className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <div className="flex items-center space-x-3">
+                      <FileText className="w-5 h-5 text-gray-400" />
+                      <span className="text-sm font-medium">Title & Registration</span>
+                    </div>
+                  </div>
+                  <div className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <div className="flex items-center space-x-3">
+                      <FileText className="w-5 h-5 text-gray-400" />
+                      <span className="text-sm font-medium">Delivery Checklist</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+    );
+  }
