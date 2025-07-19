@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, Car, FileText, Timer, CheckCircle, AlertCircle, XCircle, ArrowRight, Receipt } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, Car, FileText, Timer, CheckCircle, AlertCircle, XCircle, ArrowRight, Receipt, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -103,6 +103,7 @@ export default function ShowroomManager() {
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [isStageDialogOpen, setIsStageDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('live-dashboard');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { toast } = useToast();
   const { trackInteraction } = usePixelTracker();
   const queryClient = useQueryClient();
@@ -428,16 +429,38 @@ export default function ShowroomManager() {
 
   return (
     <div className="flex h-screen bg-gray-50">
+      {/* Mobile Overlay for Sidebar */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+      
       {/* Professional Sidebar Navigation */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+      <div className={`${
+        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-72 lg:w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out`}>
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-gray-900">Showroom Manager</h1>
-          <p className="text-sm text-gray-600 mt-1">Live command center</p>
+        <div className="p-4 lg:p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg lg:text-xl font-bold text-gray-900">Showroom Manager</h1>
+              <p className="text-xs lg:text-sm text-gray-600 mt-1">Live command center</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <XCircle className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="p-4 space-y-2">
+        <div className="p-3 lg:p-4 space-y-2">
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white justify-start">
@@ -445,9 +468,9 @@ export default function ShowroomManager() {
                 New Customer Visit
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 lg:mx-auto">
               <DialogHeader>
-                <DialogTitle>Create New Customer Visit</DialogTitle>
+                <DialogTitle className="text-lg lg:text-xl">Create New Customer Visit</DialogTitle>
               </DialogHeader>
               <form onSubmit={(e) => {
                 e.preventDefault();
@@ -575,49 +598,58 @@ export default function ShowroomManager() {
         </div>
 
         {/* Navigation Menu */}
-        <nav className="flex-1 p-4">
+        <nav className="flex-1 p-3 lg:p-4">
           <div className="space-y-1">
             <button
-              onClick={() => handleTabChange('live-dashboard')}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              onClick={() => {
+                handleTabChange('live-dashboard');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full text-left px-2 lg:px-3 py-2 rounded-lg text-xs lg:text-sm font-medium transition-colors ${
                 activeTab === 'live-dashboard' 
                   ? 'bg-blue-50 text-blue-700 border border-blue-200' 
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               <div className="flex items-center">
-                <Timer className="h-4 w-4 mr-3" />
-                Live Dashboard
+                <Timer className="h-3 w-3 lg:h-4 lg:w-4 mr-2 lg:mr-3 flex-shrink-0" />
+                <span className="truncate">Live Dashboard</span>
               </div>
             </button>
             
             <button
-              onClick={() => handleTabChange('active-customers')}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              onClick={() => {
+                handleTabChange('active-customers');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full text-left px-2 lg:px-3 py-2 rounded-lg text-xs lg:text-sm font-medium transition-colors ${
                 activeTab === 'active-customers' 
                   ? 'bg-blue-50 text-blue-700 border border-blue-200' 
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               <div className="flex items-center">
-                <User className="h-4 w-4 mr-3" />
-                Active Customers
-                <Badge className="ml-auto bg-blue-100 text-blue-800">{activeSessions.length}</Badge>
+                <User className="h-3 w-3 lg:h-4 lg:w-4 mr-2 lg:mr-3 flex-shrink-0" />
+                <span className="truncate">Active Customers</span>
+                <Badge className="ml-auto bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5 h-4">{activeSessions.length}</Badge>
               </div>
             </button>
             
             <button
-              onClick={() => handleTabChange('completed-today')}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              onClick={() => {
+                handleTabChange('completed-today');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full text-left px-2 lg:px-3 py-2 rounded-lg text-xs lg:text-sm font-medium transition-colors ${
                 activeTab === 'completed-today' 
                   ? 'bg-blue-50 text-blue-700 border border-blue-200' 
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               <div className="flex items-center">
-                <CheckCircle className="h-4 w-4 mr-3" />
-                Completed Today
-                <Badge className="ml-auto bg-green-100 text-green-800">{completedSessions.length}</Badge>
+                <CheckCircle className="h-3 w-3 lg:h-4 lg:w-4 mr-2 lg:mr-3 flex-shrink-0" />
+                <span className="truncate">Completed Today</span>
+                <Badge className="ml-auto bg-green-100 text-green-800 text-xs px-1.5 py-0.5 h-4">{completedSessions.length}</Badge>
               </div>
             </button>
           </div>
@@ -655,8 +687,33 @@ export default function ShowroomManager() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header Bar */}
-        <div className="bg-white border-b border-gray-200 p-4">
+        {/* Mobile Header Bar */}
+        <div className="lg:hidden bg-white border-b border-gray-200 px-3 py-2">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="h-8 w-8 p-0"
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+            <div className="text-center flex-1">
+              <h2 className="text-sm font-semibold text-gray-900 truncate">
+                {activeTab === 'live-dashboard' && 'Live Dashboard'}
+                {activeTab === 'active-customers' && 'Active Customers'}
+                {activeTab === 'completed-today' && 'Completed Today'}
+              </h2>
+              <p className="text-xs text-gray-600 truncate">{format(selectedDate, 'MMM d, yyyy')}</p>
+            </div>
+            <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-5">
+              {sessionStats.total}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Desktop Header Bar */}
+        <div className="hidden lg:block bg-white border-b border-gray-200 p-4">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">
@@ -675,58 +732,58 @@ export default function ShowroomManager() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto p-3 lg:p-6">
           {/* Live Dashboard Content */}
           {activeTab === 'live-dashboard' && (
             <div className="space-y-6">
               {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card>
-                  <CardContent className="p-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+                <Card className="border-l-4 border-l-blue-500">
+                  <CardContent className="p-3 lg:p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-600">Active Sessions</p>
-                        <p className="text-2xl font-bold">{activeSessions.length}</p>
+                        <p className="text-xs lg:text-sm text-gray-600">Active Sessions</p>
+                        <p className="text-xl lg:text-2xl font-bold">{activeSessions.length}</p>
                       </div>
-                      <Timer className="h-8 w-8 text-blue-500" />
+                      <Timer className="h-6 w-6 lg:h-8 lg:w-8 text-blue-500" />
                     </div>
                   </CardContent>
                 </Card>
                 
-                <Card>
-                  <CardContent className="p-4">
+                <Card className="border-l-4 border-l-green-500">
+                  <CardContent className="p-3 lg:p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-600">Completed</p>
-                        <p className="text-2xl font-bold">{completedSessions.length}</p>
+                        <p className="text-xs lg:text-sm text-gray-600">Completed</p>
+                        <p className="text-xl lg:text-2xl font-bold">{completedSessions.length}</p>
                       </div>
-                      <CheckCircle className="h-8 w-8 text-green-500" />
+                      <CheckCircle className="h-6 w-6 lg:h-8 lg:w-8 text-green-500" />
                     </div>
                   </CardContent>
                 </Card>
                 
-                <Card>
-                  <CardContent className="p-4">
+                <Card className="border-l-4 border-l-emerald-500">
+                  <CardContent className="p-3 lg:p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-600">Sold Today</p>
-                        <p className="text-2xl font-bold">{sessionStats.sold}</p>
+                        <p className="text-xs lg:text-sm text-gray-600">Sold Today</p>
+                        <p className="text-xl lg:text-2xl font-bold">{sessionStats.sold}</p>
                       </div>
-                      <Car className="h-8 w-8 text-green-500" />
+                      <Car className="h-6 w-6 lg:h-8 lg:w-8 text-emerald-500" />
                     </div>
                   </CardContent>
                 </Card>
                 
-                <Card>
-                  <CardContent className="p-4">
+                <Card className="border-l-4 border-l-orange-500">
+                  <CardContent className="p-3 lg:p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-600">Conversion Rate</p>
-                        <p className="text-2xl font-bold">
+                        <p className="text-xs lg:text-sm text-gray-600">Conv. Rate</p>
+                        <p className="text-xl lg:text-2xl font-bold">
                           {sessionStats.total > 0 ? Math.round((sessionStats.sold / sessionStats.total) * 100) : 0}%
                         </p>
                       </div>
-                      <AlertCircle className="h-8 w-8 text-orange-500" />
+                      <AlertCircle className="h-6 w-6 lg:h-8 lg:w-8 text-orange-500" />
                     </div>
                   </CardContent>
                 </Card>
@@ -829,30 +886,30 @@ export default function ShowroomManager() {
                       {activeSessions.map(session => (
                         <div 
                           key={session.id} 
-                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                          className="flex flex-col lg:flex-row lg:items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50 transition-colors gap-3 lg:gap-0"
                         >
-                          <div className="flex items-center gap-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-3 lg:gap-4 min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <User className="h-5 w-5 text-blue-600" />
-                              <div>
-                                <div className="font-medium">{getCustomerName(session.customerId)}</div>
-                                <div className="text-sm text-gray-600">
+                              <User className="h-4 w-4 lg:h-5 lg:w-5 text-blue-600 flex-shrink-0" />
+                              <div className="min-w-0">
+                                <div className="font-medium text-sm lg:text-base truncate">{getCustomerName(session.customerId)}</div>
+                                <div className="text-xs lg:text-sm text-gray-600">
                                   {format(new Date(session.timeEntered), 'h:mm a')} - {getSessionDuration(session)}
                                 </div>
                               </div>
                             </div>
                             
                             {session.vehicleId && (
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Car className="h-4 w-4" />
-                                <span>{getVehicleInfo(session.vehicleId)}</span>
+                              <div className="flex items-center gap-2 text-xs lg:text-sm text-gray-600 ml-6 sm:ml-0">
+                                <Car className="h-3 w-3 lg:h-4 lg:w-4 flex-shrink-0" />
+                                <span className="truncate">{getVehicleInfo(session.vehicleId)}</span>
                               </div>
                             )}
                           </div>
                           
-                          <div className="flex items-center gap-3">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 lg:gap-3">
                             <Badge 
-                              className={`${statusColors[session.eventStatus]} cursor-pointer hover:opacity-80 transition-opacity`}
+                              className={`${statusColors[session.eventStatus]} cursor-pointer hover:opacity-80 transition-opacity text-xs self-start sm:self-center`}
                               onClick={() => handleQuickStatusUpdate(session)}
                             >
                               {eventStatuses.find(s => s.value === session.eventStatus)?.label}
@@ -862,6 +919,7 @@ export default function ShowroomManager() {
                               <Button
                                 size="sm"
                                 variant="outline"
+                                className="h-7 px-2 lg:h-8 lg:px-3 text-xs"
                                 onClick={() => {
                                   setSelectedSession(session);
                                   setIsEditDialogOpen(true);
@@ -872,10 +930,10 @@ export default function ShowroomManager() {
                               <Button
                                 size="sm"
                                 variant="default"
-                                className="bg-green-600 hover:bg-green-700 text-white"
+                                className="bg-green-600 hover:bg-green-700 text-white h-7 px-2 lg:h-8 lg:px-3 text-xs"
                                 onClick={() => handleCreateDeal(session)}
                               >
-                                <Receipt className="h-4 w-4 mr-1" />
+                                <Receipt className="h-3 w-3 lg:h-4 lg:w-4 mr-1" />
                                 Deal
                               </Button>
                             </div>
