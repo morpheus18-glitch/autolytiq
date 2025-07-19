@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, Car, FileText, Timer, CheckCircle, AlertCircle, XCircle, ArrowRight } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, Car, FileText, Timer, CheckCircle, AlertCircle, XCircle, ArrowRight, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { format, addDays, subDays } from 'date-fns';
 import { apiRequest } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
 
 interface ShowroomSession {
   id: number;
@@ -105,6 +106,7 @@ export default function ShowroomManager() {
   const { toast } = useToast();
   const { trackInteraction } = usePixelTracker();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   const urlProcessedRef = useRef(false);
 
   const dateString = format(selectedDate, 'yyyy-MM-dd');
@@ -303,6 +305,43 @@ export default function ShowroomManager() {
       endReason 
     });
   }, [selectedSession, endSessionMutation]);
+
+  // Create deal from session
+  const handleCreateDeal = useCallback((session: ShowroomSession) => {
+    // Generate deal number based on current date and session ID
+    const dealNumber = `D${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}-${String(session.id).padStart(3, '0')}`;
+    
+    // Create deal data structure based on session information
+    const dealData = {
+      dealNumber,
+      customerId: session.customerId,
+      vehicleId: session.vehicleId,
+      stockNumber: session.stockNumber,
+      salespersonId: session.salespersonId,
+      leadSource: session.leadSource,
+      notes: `Created from showroom session #${session.id}. Original notes: ${session.notes || 'None'}`,
+      sessionId: session.id, // Reference to original session
+      dealStage: session.dealStage,
+      eventStatus: session.eventStatus
+    };
+
+    // Store deal data in localStorage for transfer to deal desk
+    localStorage.setItem('pendingDeal', JSON.stringify(dealData));
+    
+    // Track the action
+    trackInteraction('deal_creation', 'showroom-to-deal', session.customerId);
+    
+    // Show success message
+    toast({
+      title: 'Deal Created Successfully',
+      description: `Deal ${dealNumber} created. Redirecting to Deal Desk...`,
+    });
+    
+    // Navigate to deal desk after a brief delay
+    setTimeout(() => {
+      navigate('/deal-desk');
+    }, 1500);
+  }, [trackInteraction, toast, navigate]);
 
   // Handle URL parameter for automatic session creation from customer pages (once only)
   useEffect(() => {
@@ -748,7 +787,7 @@ export default function ShowroomManager() {
                             </Badge>
                           </td>
                           <td className="p-3">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -758,6 +797,15 @@ export default function ShowroomManager() {
                                 }}
                               >
                                 Edit
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="default"
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                                onClick={() => handleCreateDeal(session)}
+                              >
+                                <Receipt className="h-4 w-4 mr-1" />
+                                Create Deal
                               </Button>
                               <Button
                                 size="sm"
