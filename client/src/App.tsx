@@ -50,6 +50,7 @@ import CommunicationDemo from "@/pages/communication-demo";
 import AISmartSearch from "@/pages/ai-smart-search";
 import WorkflowAssistant from "@/pages/workflow-assistant";
 import EnterpriseHeader from "@/components/enterprise-header";
+import MobileNavigation from "@/components/mobile-navigation";
 
 function Router() {
   // Initialize pixel tracking for the entire app
@@ -99,7 +100,7 @@ function Router() {
       {/* Main content area */}
       <div className="content flex-1 min-w-0 overflow-hidden flex flex-col">
         <EnterpriseHeader />
-        <div className="h-full overflow-auto bg-gray-50">
+        <div className="h-full overflow-auto bg-gray-50 pb-16 md:pb-0">
           <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/inventory" component={Inventory} />
@@ -148,6 +149,9 @@ function Router() {
           </Switch>
         </div>
       </div>
+
+      {/* Mobile Navigation */}
+      <MobileNavigation />
     </div>
   );
 }

@@ -128,50 +128,42 @@ export default function EnterpriseHeader() {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-50">
+    <header className="bg-white border-b border-gray-200 px-3 sm:px-4 py-2 sm:py-3 sticky top-0 z-50">
       <div className="flex items-center justify-between">
         {/* Left Section - Logo & Page Title */}
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden"
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
-          
-          <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
+          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
             <Link href="/">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">A</span>
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-bold text-xs sm:text-sm">A</span>
                 </div>
-                <span className="hidden sm:block font-bold text-xl text-gray-900">AutolytiQ</span>
+                <span className="hidden sm:block font-bold text-lg sm:text-xl text-gray-900">AutolytiQ</span>
+                <span className="sm:hidden font-bold text-sm text-gray-900">AutolytiQ</span>
               </div>
             </Link>
-            <div className="hidden md:block">
+            <div className="hidden lg:block">
               <span className="text-gray-400">/</span>
-              <span className="ml-2 text-gray-700 font-medium">{currentPageTitle()}</span>
+              <span className="ml-2 text-gray-700 font-medium text-sm">{currentPageTitle()}</span>
             </div>
           </div>
         </div>
 
         {/* Center Section - Global Search */}
-        <div className="flex-1 max-w-xl mx-4">
+        <div className="flex-1 max-w-sm sm:max-w-xl mx-2 sm:mx-4">
           <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
             <DialogTrigger asChild>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
                 <Input
-                  placeholder="Search customers, inventory, or ask AI..."
-                  className="pl-10 pr-4 py-2 w-full bg-gray-50 border-gray-200 focus:bg-white"
+                  placeholder="Search or ask AI..."
+                  className="pl-7 sm:pl-10 pr-8 sm:pr-12 py-1.5 sm:py-2 w-full bg-gray-50 border-gray-200 focus:bg-white text-sm"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setSearchOpen(true)}
                   onKeyPress={(e) => e.key === 'Enter' && handleGlobalSearch()}
                 />
-                <Badge variant="secondary" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs px-2">
+                <Badge variant="secondary" className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-xs px-1 sm:px-2">
                   AI
                 </Badge>
               </div>
@@ -221,9 +213,9 @@ export default function EnterpriseHeader() {
         </div>
 
         {/* Right Section - Actions & User Menu */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-1 sm:space-x-3 flex-shrink-0">
           {/* Quick Action Buttons */}
-          <div className="hidden md:flex items-center space-x-2">
+          <div className="hidden lg:flex items-center space-x-2">
             <Link href="/communication-demo">
               <Button variant="outline" size="sm" className="flex items-center space-x-1">
                 <MessageSquare className="w-4 h-4" />
@@ -241,10 +233,10 @@ export default function EnterpriseHeader() {
           {/* Notifications */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="relative">
-                <Bell className="w-4 h-4" />
+              <Button variant="outline" size="sm" className="relative p-1.5 sm:p-2">
+                <Bell className="w-3 h-3 sm:w-4 sm:h-4" />
                 {unreadCount > 0 && (
-                  <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center text-xs bg-red-500 text-white">
+                  <Badge className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center text-xs bg-red-500 text-white">
                     {unreadCount}
                   </Badge>
                 )}
@@ -285,10 +277,10 @@ export default function EnterpriseHeader() {
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="flex items-center space-x-2">
-                <User className="w-4 h-4" />
-                <span className="hidden sm:block">{user?.firstName || 'User'}</span>
-                <ChevronDown className="w-3 h-3" />
+              <Button variant="outline" size="sm" className="flex items-center space-x-1 sm:space-x-2 p-1.5 sm:p-2">
+                <User className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden md:block text-sm">{user?.firstName || 'User'}</span>
+                <ChevronDown className="w-2 h-2 sm:w-3 sm:h-3" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">

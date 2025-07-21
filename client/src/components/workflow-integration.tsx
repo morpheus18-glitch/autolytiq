@@ -509,6 +509,17 @@ function CommunicationStep({ onComplete }: { onComplete: (data: any) => void }) 
 }
 
 function GenericStep({ step, onComplete }: { step: WorkflowStep; onComplete: (data: any) => void }) {
+  const getStepIcon = (type: string) => {
+    switch (type) {
+      case 'customer': return <User className="w-8 h-8 mx-auto text-blue-500" />;
+      case 'communication': return <MessageSquare className="w-8 h-8 mx-auto text-green-500" />;
+      case 'ai': return <Brain className="w-8 h-8 mx-auto text-purple-500" />;
+      case 'deal': return <Target className="w-8 h-8 mx-auto text-orange-500" />;
+      case 'followup': return <Clock className="w-8 h-8 mx-auto text-gray-500" />;
+      default: return <CheckCircle className="w-8 h-8 mx-auto text-green-500" />;
+    }
+  };
+
   return (
     <div className="space-y-4 text-center">
       {getStepIcon(step.type)}
