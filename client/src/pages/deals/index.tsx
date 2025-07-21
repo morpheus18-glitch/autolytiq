@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -73,6 +73,49 @@ export default function DealsPage() {
       status: 'open',
     });
   };
+
+  // Handle pending deal from showroom sessions
+  useEffect(() => {
+    const pendingDeal = localStorage.getItem('pendingDeal');
+    if (pendingDeal) {
+      try {
+        const dealData = JSON.parse(pendingDeal);
+        localStorage.removeItem('pendingDeal');
+        
+        // Fetch customer name for the deal
+        const customerName = `Customer #${dealData.customerId}`;
+        
+        // Create deal from showroom session data
+        createDealMutation.mutate({
+          buyerName: customerName,
+          dealNumber: dealData.dealNumber,
+          dealType: 'finance',
+          salePrice: dealData.salePrice || 0,
+          status: 'open',
+          customerId: dealData.customerId,
+          vehicleId: dealData.vehicleId,
+          stockNumber: dealData.stockNumber,
+          salespersonId: dealData.salespersonId,
+          leadSource: dealData.leadSource,
+          notes: dealData.notes,
+          sessionId: dealData.sessionId,
+        });
+        
+        toast({
+          title: 'Deal Created from Showroom',
+          description: `Deal ${dealData.dealNumber} has been created from showroom session.`,
+        });
+      } catch (error) {
+        console.error('Error processing pending deal:', error);
+        localStorage.removeItem('pendingDeal');
+        toast({
+          title: 'Error',
+          description: 'Failed to create deal from showroom session.',
+          variant: 'destructive',
+        });
+      }
+    }
+  }, [createDealMutation, toast]);
 
   const filteredDeals = deals.filter(deal => {
     const matchesSearch = deal.buyerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -335,12 +335,12 @@ export default function ShowroomManager() {
     // Show success message
     toast({
       title: 'Deal Created Successfully',
-      description: `Deal ${dealNumber} created. Redirecting to Deal Desk...`,
+      description: `Deal ${dealNumber} created. Redirecting to Deals...`,
     });
     
-    // Navigate to deal desk after a brief delay
+    // Navigate to deals page after a brief delay
     setTimeout(() => {
-      navigate('/deal-desk');
+      navigate('/deals');
     }, 1500);
   }, [trackInteraction, toast, navigate]);
 

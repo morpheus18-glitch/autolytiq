@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +26,7 @@ export default function Customers() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { trackInteraction } = usePixelTracker();
+  const [, navigate] = useLocation();
   
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -107,7 +109,7 @@ export default function Customers() {
       setIsStartingSession(false);
       toast({ title: 'Customer visit started successfully' });
       // Navigate to showroom manager
-      window.location.href = '/showroom-manager';
+      navigate('/showroom-manager');
     })
     .catch((error) => {
       setIsStartingSession(false);
