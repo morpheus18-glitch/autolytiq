@@ -48,6 +48,8 @@ import PhoneCalls from "@/pages/customers/phone-calls";
 import CommunicationSettings from "@/pages/admin/communication-settings";
 import CommunicationDemo from "@/pages/communication-demo";
 import AISmartSearch from "@/pages/ai-smart-search";
+import WorkflowAssistant from "@/pages/workflow-assistant";
+import EnterpriseHeader from "@/components/enterprise-header";
 
 function Router() {
   // Initialize pixel tracking for the entire app
@@ -95,8 +97,9 @@ function Router() {
       />
       
       {/* Main content area */}
-      <div className="content flex-1 min-w-0 overflow-hidden">
-        <div className="h-full overflow-auto">
+      <div className="content flex-1 min-w-0 overflow-hidden flex flex-col">
+        <EnterpriseHeader />
+        <div className="h-full overflow-auto bg-gray-50">
           <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/inventory" component={Inventory} />
@@ -129,6 +132,7 @@ function Router() {
           <Route path="/customers/:id/calls" component={PhoneCalls} />
           <Route path="/communication-demo" component={CommunicationDemo} />
           <Route path="/ai-smart-search" component={AISmartSearch} />
+          <Route path="/workflow-assistant" component={WorkflowAssistant} />
           
           {/* Service Routes */}
           <Route path="/service/orders" component={ServiceOrdersPage} />
