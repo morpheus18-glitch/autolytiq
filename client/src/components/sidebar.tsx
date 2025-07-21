@@ -70,7 +70,9 @@ const navigation = [
       { name: "Departments", href: "/admin/departments", icon: Building },
       { name: "Roles & Permissions", href: "/admin/roles", icon: Shield },
       { name: "User Management", href: "/admin/users", icon: Users },
-      { name: "Settings", href: "/settings", icon: Settings },
+      { name: "Lead Distribution", href: "/admin/lead-distribution", icon: Target },
+      { name: "System Settings", href: "/admin/settings", icon: Settings },
+      { name: "User Settings", href: "/settings", icon: Settings },
     ]
   },
 ];

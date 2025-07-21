@@ -1894,6 +1894,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // System Configuration Routes
+  app.get("/api/system-settings", async (req, res) => {
+    try {
+      // Mock system settings for demo
+      const mockSettings = {
+        general: {
+          defaultTimeZone: "America/New_York",
+          defaultCurrency: "USD",
+          businessHours: {
+            start: "08:00",
+            end: "18:00",
+            workDays: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+          }
+        },
+        leadDefaults: {
+          defaultPriority: "medium",
+          autoAssignment: true,
+          followUpDays: 3,
+          maxLeadsPerRep: 10,
+          distributionMethod: "round_robin"
+        },
+        salesConfig: {
+          requireManagerApproval: true,
+          discountLimit: 15,
+          holdPeriod: 24,
+          financingRequired: false,
+          tradeInRequired: false
+        },
+        notifications: {
+          emailEnabled: true,
+          smsEnabled: false,
+          pushEnabled: true,
+          reminderHours: [24, 4, 1]
+        },
+        roleHierarchy: {
+          autoEscalation: true,
+          escalationTime: 2,
+          managerOverride: true,
+          departmentIsolation: false
+        }
+      };
+      res.json(mockSettings);
+    } catch (error) {
+      console.error("Error fetching system settings:", error);
+      res.status(500).json({ message: "Failed to fetch system settings" });
+    }
+  });
+
+  app.put("/api/system-settings", async (req, res) => {
+    try {
+      // Mock response - in production would save to database
+      const updatedSettings = {
+        ...req.body,
+        updatedAt: new Date().toISOString()
+      };
+      
+      res.json(updatedSettings);
+    } catch (error) {
+      console.error("Error updating system settings:", error);
+      res.status(500).json({ message: "Failed to update system settings" });
+    }
+  });
+
   // System Roles Routes
   app.get("/api/system-roles", async (req, res) => {
     try {
