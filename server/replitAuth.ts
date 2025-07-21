@@ -134,9 +134,11 @@ function setupAuthRoutes(app: Express) {
 
   // Google OAuth routes
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    app.get("/api/auth/google", 
-      passport.authenticate("google", { scope: ["profile", "email"] })
-    );
+    console.log("Setting up Google OAuth routes");
+    app.get("/api/auth/google", (req, res, next) => {
+      console.log("Google OAuth route accessed");
+      passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
+    });
 
     app.get("/api/auth/google/callback",
       passport.authenticate("google", { failureRedirect: "/login" }),
