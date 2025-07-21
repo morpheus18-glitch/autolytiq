@@ -80,6 +80,16 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // CRITICAL: Register API routes with absolute priority before static serving
+  if (process.env.NODE_ENV !== "development") {
+    // Add API route protection middleware FIRST in production
+    app.use('/api/*', (req, res, next) => {
+      console.log(`Production API route intercepted: ${req.method} ${req.path}`);
+      // Let it pass through to the actual API handlers
+      next();
+    });
+  }
+
   const server = await registerRoutes(app);
   
   // Seed default data on startup
@@ -102,6 +112,13 @@ app.use((req, res, next) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
+    // Add explicit API route logging before static serving
+    app.use((req, res, next) => {
+      if (req.path.startsWith('/api/')) {
+        console.log(`API request in production: ${req.method} ${req.path}`);
+      }
+      next();
+    });
     serveStatic(app);
   }
 
