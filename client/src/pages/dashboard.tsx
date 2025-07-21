@@ -1,80 +1,143 @@
 import { Button } from "@/components/ui/button";
-import { Bell, Plus } from "lucide-react";
-import MetricsGrid from "@/components/metrics-grid";
-import InventoryTable from "@/components/inventory-table";
-import ActivityFeed from "@/components/activity-feed";
-import CompetitiveInsights from "@/components/competitive-insights";
-import { useState } from "react";
-import VehicleModal from "@/components/vehicle-modal";
-import { useToast } from "@/hooks/use-toast";
-import { usePixelTracker } from "@/hooks/use-pixel-tracker";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Brain, Target, Workflow } from "lucide-react";
+import { Link } from "wouter";
+import UnifiedDashboard from "@/components/unified-dashboard";
+import WorkflowIntegration from "@/components/workflow-integration";
 
 export default function Dashboard() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const { toast } = useToast();
-  const { trackInteraction } = usePixelTracker();
+  return (
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Executive Dashboard</h1>
+          <p className="text-gray-600 mt-1">Comprehensive view of your dealership operations</p>
+        </div>
+        <div className="flex items-center space-x-3">
+          <Button className="flex items-center space-x-2">
+            <Workflow className="w-4 h-4" />
+            <span>Smart Workflows</span>
+          </Button>
+        </div>
+      </div>
 
-  const handleNotificationClick = () => {
-    trackInteraction('notification_click', 'dashboard-bell');
-    toast({
-      title: "Notifications",
-      description: "You have 3 new notifications: 2 new leads and 1 inventory alert",
-    });
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="workflows">Smart Workflows</TabsTrigger>
+          <TabsTrigger value="insights">AI Insights</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          <UnifiedDashboard />
+        </TabsContent>
+
+        <TabsContent value="workflows">
+          <WorkflowIntegration />
+        </TabsContent>
+
+        <TabsContent value="insights">
+          <AIInsightsDashboard />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+// AI Insights Component
+function AIInsightsDashboard() {
+  const insightsData = {
+    customerSegments: [
+      { name: "High-Value Prospects", count: 23, score: 95, trend: "+12%" },
+      { name: "Ready to Buy", count: 47, score: 88, trend: "+5%" },
+      { name: "Price Sensitive", count: 89, score: 72, trend: "-2%" },
+      { name: "Luxury Seekers", count: 31, score: 91, trend: "+8%" }
+    ],
+    inventoryInsights: [
+      { category: "SUVs", demand: 92, supply: 76, recommendation: "Increase inventory" },
+      { category: "Sedans", demand: 67, supply: 89, recommendation: "Price adjustment needed" },
+      { category: "Trucks", demand: 84, supply: 82, recommendation: "Well balanced" },
+      { category: "Hybrids", demand: 95, supply: 45, recommendation: "High demand, low supply" }
+    ]
   };
 
   return (
-    <div className="flex-1 overflow-hidden">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Dashboard</h2>
-            <p className="text-gray-500 text-sm sm:text-base hidden sm:block">Welcome back, here's what's happening at your dealership</p>
-          </div>
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <Button 
-              onClick={() => setIsModalOpen(true)}
-              className="bg-primary text-white hover:bg-blue-700 text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
-              size="sm"
-            >
-              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Add Vehicle</span>
-              <span className="sm:hidden">Add</span>
-            </Button>
-            <div className="relative">
-              <Bell 
-                className="text-gray-400 text-lg sm:text-xl cursor-pointer hover:text-gray-600" 
-                onClick={handleNotificationClick}
-              />
-              <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
-                3
-              </span>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="w-5 h-5" />
+              Customer Intelligence
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {insightsData.customerSegments.map((segment, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <h4 className="font-medium">{segment.name}</h4>
+                    <p className="text-sm text-gray-600">{segment.count} customers</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline">Score: {segment.score}</Badge>
+                      <Badge 
+                        variant={segment.trend.startsWith('+') ? 'default' : 'secondary'}
+                        className="text-xs"
+                      >
+                        {segment.trend}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-        </div>
-      </header>
+          </CardContent>
+        </Card>
 
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-auto p-3 sm:p-6">
-        <MetricsGrid />
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <InventoryTable showAddButton={false} limit={10} />
-          </div>
-          
-          <div className="space-y-6">
-            <ActivityFeed />
-            <CompetitiveInsights />
-          </div>
-        </div>
-      </main>
-
-      <VehicleModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        vehicle={null}
-      />
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="w-5 h-5" />
+              Inventory Intelligence
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {insightsData.inventoryInsights.map((insight, index) => (
+                <div key={index} className="p-3 border rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium">{insight.category}</h4>
+                    <Badge 
+                      variant={
+                        insight.recommendation.includes('Increase') ? 'default' : 
+                        insight.recommendation.includes('adjustment') ? 'secondary' : 
+                        'outline'
+                      }
+                      className="text-xs"
+                    >
+                      {insight.recommendation}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Demand:</span>
+                      <span className="ml-2 font-medium">{insight.demand}%</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Supply:</span>
+                      <span className="ml-2 font-medium">{insight.supply}%</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
