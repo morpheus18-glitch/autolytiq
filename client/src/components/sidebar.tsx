@@ -29,6 +29,7 @@ const navigation = [
     children: [
       { name: "Inventory", href: "/inventory", icon: Car },
       { name: "Sales & Leads", href: "/sales", icon: Handshake },
+      { name: "Mobile Sales", href: "/sales-mobile", icon: Handshake },
       { name: "Customers", href: "/customers", icon: Users },
       { name: "Deal Desk", href: "/deals", icon: Calculator },
       { name: "Showroom Manager", href: "/showroom-manager", icon: Timer },

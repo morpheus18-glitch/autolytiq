@@ -10,6 +10,45 @@ import { valuationService } from './services/valuation-service';
 import { photoService } from './services/photo-service';
 import { setupAuth, isAuthenticated } from "./replitAuth";
 
+// XML Lead parsing utility
+function parseXmlLead(xmlString: string) {
+  try {
+    // Simple XML parsing for demo - in production would use proper XML parser
+    const customerName = xmlString.match(/<Name>(.*?)<\/Name>/)?.[1] || '';
+    const email = xmlString.match(/<Email>(.*?)<\/Email>/)?.[1] || '';
+    const phone = xmlString.match(/<Phone>(.*?)<\/Phone>/)?.[1] || '';
+    const year = xmlString.match(/<Year>(.*?)<\/Year>/)?.[1] || '';
+    const make = xmlString.match(/<Make>(.*?)<\/Make>/)?.[1] || '';
+    const model = xmlString.match(/<Model>(.*?)<\/Model>/)?.[1] || '';
+    const trim = xmlString.match(/<Trim>(.*?)<\/Trim>/)?.[1] || '';
+    const comments = xmlString.match(/<Comments>(.*?)<\/Comments>/)?.[1] || '';
+    
+    // Format phone number
+    const formattedPhone = phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+    
+    return {
+      customerName,
+      customerEmail: email,
+      customerPhone: formattedPhone,
+      interestedIn: `${year} ${make} ${model}`.trim(),
+      vehicleOfInterest: `${year} ${make} ${model} ${trim}`.trim(),
+      message: comments,
+      appointmentRequested: xmlString.includes('<RequestDate>'),
+      financingPreferred: comments.toLowerCase().includes('financing'),
+      tradeInVehicle: xmlString.includes('<TradeIn>') ? 'Trade-in available' : null
+    };
+  } catch (error) {
+    console.error('Error parsing XML:', error);
+    return {
+      customerName: 'Unknown',
+      customerEmail: '',
+      customerPhone: '',
+      interestedIn: '',
+      message: 'XML parsing error'
+    };
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
@@ -1737,6 +1776,174 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating salesperson note:', error);
       res.status(500).json({ error: 'Failed to update salesperson note' });
+    }
+  });
+
+  // XML Lead Processing Routes
+  app.get("/api/xml-leads", async (req, res) => {
+    try {
+      // Mock XML leads for demo - in production would fetch from database
+      const mockXmlLeads = [
+        {
+          id: 1,
+          customerName: "John Smith",
+          customerEmail: "john.smith@email.com",
+          customerPhone: "(555) 123-4567",
+          interestedIn: "2023 Honda Civic",
+          status: "new",
+          priority: "high",
+          source: "AutoTrader",
+          leadType: "inquiry",
+          vehicleOfInterest: "2023 Honda Civic LX",
+          appointmentRequested: true,
+          createdAt: "2025-01-21T14:30:00Z",
+          rawXml: `<?xml version="1.0" encoding="UTF-8"?>
+<ADF>
+  <Prospect>
+    <Customer>
+      <Name>John Smith</Name>
+      <Email>john.smith@email.com</Email>
+      <Phone>5551234567</Phone>
+    </Customer>
+    <Vehicle interest="buy" status="new">
+      <Year>2023</Year>
+      <Make>Honda</Make>
+      <Model>Civic</Model>
+      <Trim>LX</Trim>
+    </Vehicle>
+    <Comments>Looking for financing options. Interested in test drive this weekend.</Comments>
+  </Prospect>
+</ADF>`
+        }
+      ];
+      res.json(mockXmlLeads);
+    } catch (error) {
+      console.error("Error fetching XML leads:", error);
+      res.status(500).json({ message: "Failed to fetch XML leads" });
+    }
+  });
+
+  app.post("/api/xml-leads", async (req, res) => {
+    try {
+      const { rawXml, source } = req.body;
+      
+      // Parse XML and extract lead information
+      const parsedLead = parseXmlLead(rawXml);
+      
+      // Mock response - in production would save to database
+      const lead = {
+        id: Date.now(),
+        ...parsedLead,
+        rawXml,
+        source: source || 'Unknown',
+        status: 'new',
+        priority: 'medium',
+        createdAt: new Date().toISOString(),
+        processedAt: new Date().toISOString()
+      };
+      
+      res.status(201).json(lead);
+    } catch (error) {
+      console.error("Error processing XML lead:", error);
+      res.status(500).json({ message: "Failed to process XML lead" });
+    }
+  });
+
+  // Lead Distribution Rules Routes
+  app.get("/api/lead-distribution-rules", async (req, res) => {
+    try {
+      // Mock distribution rules for demo
+      const mockRules = [
+        {
+          id: 1,
+          ruleName: "High Priority AutoTrader",
+          source: "AutoTrader",
+          leadType: "inquiry",
+          priority: "high",
+          vehicleType: "new",
+          assignmentMethod: "skill_based",
+          assignToRole: "Senior Sales Rep",
+          maxLeadsPerUser: 5,
+          businessHoursOnly: true,
+          weekendsIncluded: false,
+          isActive: true,
+          createdAt: "2025-01-21T08:00:00Z"
+        }
+      ];
+      res.json(mockRules);
+    } catch (error) {
+      console.error("Error fetching distribution rules:", error);
+      res.status(500).json({ message: "Failed to fetch distribution rules" });
+    }
+  });
+
+  app.post("/api/lead-distribution-rules", async (req, res) => {
+    try {
+      // Mock response - in production would save to database
+      const rule = {
+        id: Date.now(),
+        ...req.body,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      res.status(201).json(rule);
+    } catch (error) {
+      console.error("Error creating distribution rule:", error);
+      res.status(500).json({ message: "Failed to create distribution rule" });
+    }
+  });
+
+  // System Roles Routes
+  app.get("/api/system-roles", async (req, res) => {
+    try {
+      // Mock system roles for demo
+      const mockRoles = [
+        {
+          id: 1,
+          name: "super_admin",
+          displayName: "Super Administrator",
+          description: "Full system access with all administrative privileges",
+          permissions: ["*"],
+          hierarchy: 100,
+          isSystem: true,
+          userCount: 2,
+          createdAt: "2025-01-21T08:00:00Z"
+        },
+        {
+          id: 2,
+          name: "sales_manager",
+          displayName: "Sales Manager",
+          description: "Manages sales team, leads, and deals",
+          permissions: ["leads.view", "leads.assign", "deals.edit", "reports.view", "team.manage"],
+          hierarchy: 80,
+          isSystem: false,
+          userCount: 3,
+          createdAt: "2025-01-20T14:30:00Z"
+        }
+      ];
+      res.json(mockRoles);
+    } catch (error) {
+      console.error("Error fetching system roles:", error);
+      res.status(500).json({ message: "Failed to fetch system roles" });
+    }
+  });
+
+  app.post("/api/system-roles", async (req, res) => {
+    try {
+      // Mock response - in production would save to database
+      const role = {
+        id: Date.now(),
+        ...req.body,
+        userCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      res.status(201).json(role);
+    } catch (error) {
+      console.error("Error creating system role:", error);
+      res.status(500).json({ message: "Failed to create system role" });
     }
   });
 

@@ -1036,3 +1036,151 @@ export interface AuditLogEntry {
   timestamp: string;
   details?: string;
 }
+
+// XML Leads and Lead Distribution System
+export const xmlLeads = pgTable("xml_leads", {
+  id: serial("id").primaryKey(),
+  rawXml: text("raw_xml").notNull(), // Original XML data
+  source: varchar("source", { length: 100 }).notNull(), // AutoTrader, Cars.com, etc
+  leadId: varchar("lead_id", { length: 100 }), // External lead ID
+  customerName: varchar("customer_name", { length: 200 }),
+  customerEmail: varchar("customer_email", { length: 200 }),
+  customerPhone: varchar("customer_phone", { length: 50 }),
+  interestedIn: varchar("interested_in", { length: 500 }),
+  message: text("message"),
+  vehicleOfInterest: varchar("vehicle_of_interest", { length: 200 }),
+  appointmentRequested: boolean("appointment_requested").default(false),
+  tradeInVehicle: varchar("trade_in_vehicle", { length: 200 }),
+  financingPreferred: boolean("financing_preferred").default(false),
+  leadType: varchar("lead_type", { length: 50 }).default("inquiry"), // inquiry, appointment, service, etc
+  priority: varchar("priority", { length: 20 }).default("medium"), // high, medium, low
+  status: varchar("status", { length: 50 }).default("new"), // new, assigned, contacted, qualified, lost, converted
+  assignedTo: varchar("assigned_to", { length: 100 }),
+  assignedBy: varchar("assigned_by", { length: 100 }),
+  processedAt: timestamp("processed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Lead Distribution Rules
+export const leadDistributionRules = pgTable("lead_distribution_rules", {
+  id: serial("id").primaryKey(),
+  ruleName: varchar("rule_name", { length: 100 }).notNull(),
+  source: varchar("source", { length: 100 }), // AutoTrader, Cars.com, etc
+  leadType: varchar("lead_type", { length: 50 }), // inquiry, appointment, service
+  priority: varchar("priority", { length: 20 }), // high, medium, low
+  vehicleType: varchar("vehicle_type", { length: 50 }), // new, used, certified
+  assignmentMethod: varchar("assignment_method", { length: 50 }).default("round_robin"), // round_robin, random, skill_based, territory
+  assignToRole: varchar("assign_to_role", { length: 100 }),
+  assignToUser: varchar("assign_to_user", { length: 100 }),
+  maxLeadsPerUser: integer("max_leads_per_user").default(10),
+  businessHoursOnly: boolean("business_hours_only").default(true),
+  weekendsIncluded: boolean("weekends_included").default(false),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Enhanced Role-Based Access Control
+export const systemRoles = pgTable("system_roles", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  displayName: varchar("display_name", { length: 100 }).notNull(),
+  description: text("description"),
+  permissions: text("permissions").array().notNull(), // ['leads.view', 'leads.assign', 'deals.edit']
+  hierarchy: integer("hierarchy").default(0), // Higher number = higher authority
+  isSystem: boolean("is_system").default(false), // System roles can't be deleted
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User Role Assignments
+export const userSystemRoles = pgTable("user_system_roles", {
+  userId: varchar("user_id").notNull().references(() => users.id),
+  roleId: integer("role_id").notNull().references(() => systemRoles.id),
+  assignedBy: varchar("assigned_by", { length: 100 }),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.userId, table.roleId] }),
+}));
+
+// Module Configuration
+export const moduleConfigs = pgTable("module_configs", {
+  id: serial("id").primaryKey(),
+  moduleName: varchar("module_name", { length: 100 }).notNull(), // 'leads', 'inventory', 'deals', etc
+  isEnabled: boolean("is_enabled").default(true),
+  settings: jsonb("settings").notNull().default({}), // Module-specific settings
+  permissions: jsonb("permissions").notNull().default({}), // Permission overrides
+  workflows: jsonb("workflows").notNull().default({}), // Workflow configurations
+  integrations: jsonb("integrations").notNull().default({}), // API keys and integration settings
+  notifications: jsonb("notifications").notNull().default({}), // Notification rules
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Audit Log for Configuration Changes
+export const systemConfigAuditLog = pgTable("system_config_audit_log", {
+  id: serial("id").primaryKey(),
+  entityType: varchar("entity_type", { length: 100 }).notNull(), // 'role', 'user', 'module_config', etc
+  entityId: varchar("entity_id", { length: 100 }).notNull(),
+  action: varchar("action", { length: 50 }).notNull(), // 'create', 'update', 'delete', 'assign'
+  changes: jsonb("changes").notNull(), // What changed
+  performedBy: varchar("performed_by", { length: 100 }).notNull(),
+  performedAt: timestamp("performed_at").defaultNow(),
+  ipAddress: varchar("ip_address", { length: 50 }),
+  userAgent: text("user_agent"),
+});
+
+// Lead Assignment History
+export const leadAssignmentHistory = pgTable("lead_assignment_history", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").notNull().references(() => xmlLeads.id),
+  assignedFrom: varchar("assigned_from", { length: 100 }),
+  assignedTo: varchar("assigned_to", { length: 100 }).notNull(),
+  assignedBy: varchar("assigned_by", { length: 100 }).notNull(),
+  reason: varchar("reason", { length: 200 }), // "Auto-assigned", "Manual reassignment", etc
+  assignedAt: timestamp("assigned_at").defaultNow(),
+});
+
+// Lead Communication Log
+export const leadCommunications = pgTable("lead_communications", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").notNull().references(() => xmlLeads.id),
+  communicationType: varchar("communication_type", { length: 50 }).notNull(), // 'call', 'email', 'sms', 'appointment'
+  direction: varchar("direction", { length: 10 }).notNull(), // 'inbound', 'outbound'
+  subject: varchar("subject", { length: 200 }),
+  content: text("content"),
+  performedBy: varchar("performed_by", { length: 100 }),
+  scheduledFor: timestamp("scheduled_for"),
+  completedAt: timestamp("completed_at"),
+  outcome: varchar("outcome", { length: 100 }), // 'no_answer', 'voicemail', 'connected', 'appointment_set'
+  nextFollowUp: timestamp("next_follow_up"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// XML Lead Processing Schema and Types
+export const insertXmlLeadSchema = createInsertSchema(xmlLeads);
+export const insertLeadDistributionRuleSchema = createInsertSchema(leadDistributionRules);
+export const insertSystemRoleSchema = createInsertSchema(systemRoles);
+export const insertUserSystemRoleSchema = createInsertSchema(userSystemRoles);
+export const insertModuleConfigSchema = createInsertSchema(moduleConfigs);
+export const insertSystemConfigAuditLogSchema = createInsertSchema(systemConfigAuditLog);
+export const insertLeadAssignmentHistorySchema = createInsertSchema(leadAssignmentHistory);
+export const insertLeadCommunicationSchema = createInsertSchema(leadCommunications);
+
+export type XmlLead = typeof xmlLeads.$inferSelect;
+export type InsertXmlLead = typeof xmlLeads.$inferInsert;
+export type LeadDistributionRule = typeof leadDistributionRules.$inferSelect;
+export type InsertLeadDistributionRule = typeof leadDistributionRules.$inferInsert;
+export type SystemRole = typeof systemRoles.$inferSelect;
+export type InsertSystemRole = typeof systemRoles.$inferInsert;
+export type UserSystemRole = typeof userSystemRoles.$inferSelect;
+export type InsertUserSystemRole = typeof userSystemRoles.$inferInsert;
+export type ModuleConfig = typeof moduleConfigs.$inferSelect;
+export type InsertModuleConfig = typeof moduleConfigs.$inferInsert;
+export type SystemConfigAuditLog = typeof systemConfigAuditLog.$inferSelect;
+export type InsertSystemConfigAuditLog = typeof systemConfigAuditLog.$inferInsert;
+export type LeadAssignmentHistory = typeof leadAssignmentHistory.$inferSelect;
+export type InsertLeadAssignmentHistory = typeof leadAssignmentHistory.$inferInsert;
+export type LeadCommunication = typeof leadCommunications.$inferSelect;
+export type InsertLeadCommunication = typeof leadCommunications.$inferInsert;
