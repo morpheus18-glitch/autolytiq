@@ -94,14 +94,18 @@ export default function SystemSettings() {
 
       {/* Settings Tabs */}
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
-          <TabsTrigger value="general" className="text-xs md:text-sm">General</TabsTrigger>
-          <TabsTrigger value="leads" className="text-xs md:text-sm">Leads</TabsTrigger>
-          <TabsTrigger value="sales" className="text-xs md:text-sm">Sales</TabsTrigger>
-          <TabsTrigger value="notifications" className="text-xs md:text-sm">Notify</TabsTrigger>
-          <TabsTrigger value="hierarchy" className="text-xs md:text-sm">Roles</TabsTrigger>
-          <TabsTrigger value="integrations" className="text-xs md:text-sm">Integrations</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-8 min-w-max">
+            <TabsTrigger value="general" className="text-xs md:text-sm px-2">General</TabsTrigger>
+            <TabsTrigger value="leads" className="text-xs md:text-sm px-2">Leads</TabsTrigger>
+            <TabsTrigger value="sales" className="text-xs md:text-sm px-2">Sales</TabsTrigger>
+            <TabsTrigger value="finance" className="text-xs md:text-sm px-2">Finance</TabsTrigger>
+            <TabsTrigger value="inventory" className="text-xs md:text-sm px-2">Inventory</TabsTrigger>
+            <TabsTrigger value="marketing" className="text-xs md:text-sm px-2">Marketing</TabsTrigger>
+            <TabsTrigger value="notifications" className="text-xs md:text-sm px-2">Notify</TabsTrigger>
+            <TabsTrigger value="integrations" className="text-xs md:text-sm px-2">Integration</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* General Settings */}
         <TabsContent value="general" className="space-y-6">
