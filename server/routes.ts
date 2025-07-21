@@ -50,33 +50,145 @@ function parseXmlLead(xmlString: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Register explicit OAuth routes FIRST before any other middleware
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    console.log("Registering Google OAuth routes in main router");
+    
+    // Direct route registration to ensure highest priority
+    app.get("/api/auth/google", (req, res) => {
+      console.log("Direct Google OAuth route hit");
+      const redirectUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&redirect_uri=${encodeURIComponent('https://autolytiq.com/api/auth/google/callback')}&scope=profile%20email&client_id=${process.env.GOOGLE_CLIENT_ID}`;
+      console.log("Redirecting to:", redirectUrl);
+      res.redirect(redirectUrl);
+    });
+    
+    app.get("/api/auth/google/callback", async (req, res) => {
+      console.log("Direct Google OAuth callback hit");
+      console.log("Query params:", req.query);
+      
+      const { code, error } = req.query;
+      
+      if (error) {
+        console.error("Google OAuth error:", error);
+        return res.redirect("/login?error=oauth_failed");
+      }
+      
+      if (!code) {
+        console.error("No authorization code received");
+        return res.redirect("/login?error=no_code");
+      }
+      
+      try {
+        // Exchange code for access token
+        const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            client_id: process.env.GOOGLE_CLIENT_ID!,
+            client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+            code: code as string,
+            grant_type: 'authorization_code',
+            redirect_uri: 'https://autolytiq.com/api/auth/google/callback',
+          }),
+        });
+        
+        const tokenData = await tokenResponse.json();
+        
+        if (!tokenData.access_token) {
+          console.error("Failed to get access token:", tokenData);
+          return res.redirect("/login?error=token_failed");
+        }
+        
+        // Get user info from Google
+        const userResponse = await fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${tokenData.access_token}`);
+        const userData = await userResponse.json();
+        
+        console.log("Google user data:", userData);
+        
+        // Create user session (simplified for testing)
+        const user = {
+          id: `google_${userData.id}`,
+          email: userData.email,
+          firstName: userData.given_name,
+          lastName: userData.family_name,
+          profileImageUrl: userData.picture,
+          provider: 'google'
+        };
+        
+        // Store in session
+        (req.session as any).user = user;
+        
+        console.log("Google OAuth successful, redirecting to dashboard");
+        res.redirect("/");
+        
+      } catch (error) {
+        console.error("Google OAuth callback error:", error);
+        res.redirect("/login?error=callback_failed");
+      }
+    });
+  }
+
   // Auth middleware
   await setupAuth(app);
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', async (req: any, res) => {
     try {
-      const user = req.user;
+      // Check both Passport authentication and direct session
+      const passportUser = req.user;
+      const sessionUser = (req.session as any)?.user;
+      
+      const user = passportUser || sessionUser;
       
       if (!user) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      // Get user ID based on provider
+      // Handle different authentication formats
       let userId: string;
-      if (user.provider === 'replit') {
+      let userData: any;
+      
+      if (sessionUser) {
+        // Direct session authentication (like our Google OAuth)
+        userId = sessionUser.id;
+        userData = sessionUser;
+      } else if (user.provider === 'replit') {
         userId = user.claims?.sub;
+        userData = user;
       } else {
         userId = user.id || user.claims?.sub;
+        userData = user;
       }
 
       if (!userId) {
         return res.status(401).json({ message: "User ID not found" });
       }
 
-      const dbUser = await storage.getUser(userId);
+      // Try to get user from storage, if not found use session data
+      let dbUser;
+      try {
+        dbUser = await storage.getUser(userId);
+      } catch (error) {
+        console.log("User not in storage, using session data");
+      }
+      
+      if (!dbUser && sessionUser) {
+        // Return session user data directly for OAuth users not yet in storage
+        res.json({
+          id: sessionUser.id,
+          email: sessionUser.email,
+          firstName: sessionUser.firstName,
+          lastName: sessionUser.lastName,
+          profileImageUrl: sessionUser.profileImageUrl,
+          provider: sessionUser.provider
+        });
+        return;
+      }
+      
       if (!dbUser) {
-        return res.status(404).json({ message: "User not found in database" });
+        return res.status(404).json({ message: "User not found" });
       }
 
       res.json(dbUser);
