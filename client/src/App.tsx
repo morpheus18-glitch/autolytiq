@@ -11,6 +11,7 @@ import Dashboard from "@/pages/dashboard";
 import Inventory from "@/pages/inventory-enhanced";
 import VehicleDetail from "@/pages/vehicle-detail";
 import Sales from "@/pages/sales-enhanced";
+import SalesMobileEnhanced from "@/pages/sales-mobile-enhanced";
 import Customers from "@/pages/customers-enhanced";
 import Analytics from "@/pages/analytics";
 import Settings from "@/pages/settings";
@@ -90,6 +91,7 @@ function Router() {
           <Route path="/inventory" component={Inventory} />
           <Route path="/inventory/:id" component={VehicleDetail} />
           <Route path="/sales" component={Sales} />
+          <Route path="/sales-mobile" component={SalesMobileEnhanced} />
           <Route path="/customers" component={Customers} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/competitive-pricing" component={CompetitivePricing} />
