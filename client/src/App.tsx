@@ -42,6 +42,10 @@ import Sidebar from "@/components/sidebar";
 import { usePixelTracker } from "@/hooks/use-pixel-tracker";
 import { useState } from "react";
 import AuthTest from "@/pages/auth-test";
+// Communication Pages
+import TextingPortal from "@/pages/customers/texting-portal";
+import PhoneCalls from "@/pages/customers/phone-calls";
+import CommunicationSettings from "@/pages/admin/communication-settings";
 
 function Router() {
   // Initialize pixel tracking for the entire app
@@ -115,7 +119,12 @@ function Router() {
           <Route path="/admin/settings" component={SystemSettings} />
           <Route path="/admin/comprehensive-settings" component={ComprehensiveSettings} />
           <Route path="/admin/lead-distribution" component={LeadDistribution} />
+          <Route path="/admin/communication-settings" component={CommunicationSettings} />
           <Route path="/auth-test" component={AuthTest} />
+          
+          {/* Communication Routes */}
+          <Route path="/customers/:id/texting" component={TextingPortal} />
+          <Route path="/customers/:id/calls" component={PhoneCalls} />
           
           {/* Service Routes */}
           <Route path="/service/orders" component={ServiceOrdersPage} />

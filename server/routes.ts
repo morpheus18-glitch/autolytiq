@@ -9,6 +9,7 @@ import { mlBackend } from "./ml-integration";
 import { valuationService } from './services/valuation-service';
 import { photoService } from './services/photo-service';
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { db } from "./db";
 
 // XML Lead parsing utility
 function parseXmlLead(xmlString: string) {
@@ -2183,6 +2184,165 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register admin routes
   registerAdminRoutes(app);
+
+  // Communication API Routes - Text Messages
+  app.get('/api/customers/:id/messages', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const result = await db.execute({
+        sql: 'SELECT * FROM text_messages WHERE customer_id = ? ORDER BY created_at DESC',
+        args: [customerId]
+      });
+      res.json(result.rows || []);
+    } catch (error) {
+      console.error('Error fetching text messages:', error);
+      res.status(500).json({ error: 'Failed to fetch text messages' });
+    }
+  });
+
+  app.post('/api/customers/:id/messages', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const { direction, phoneNumber, messageBody, messageType = 'sms', senderId } = req.body;
+      
+      const result = await db.execute({
+        sql: `INSERT INTO text_messages 
+              (customer_id, sender_id, direction, phone_number, message_body, message_type, status, created_at) 
+              VALUES (?, ?, ?, ?, ?, ?, 'sent', NOW()) RETURNING *`,
+        args: [customerId, senderId, direction, phoneNumber, messageBody, messageType]
+      });
+      
+      res.status(201).json(result.rows?.[0] || {});
+    } catch (error) {
+      console.error('Error sending text message:', error);
+      res.status(500).json({ error: 'Failed to send text message' });
+    }
+  });
+
+  // Communication API Routes - Phone Calls
+  app.get('/api/customers/:id/calls', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const result = await db.execute({
+        sql: 'SELECT * FROM phone_calls WHERE customer_id = ? ORDER BY created_at DESC',
+        args: [customerId]
+      });
+      res.json(result.rows || []);
+    } catch (error) {
+      console.error('Error fetching phone calls:', error);
+      res.status(500).json({ error: 'Failed to fetch phone calls' });
+    }
+  });
+
+  app.post('/api/customers/:id/calls', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const { 
+        direction, phoneNumber, status, duration, callNotes, 
+        followUpRequired = false, followUpDate, callPurpose, outcome, userId 
+      } = req.body;
+      
+      const result = await db.execute({
+        sql: `INSERT INTO phone_calls 
+              (customer_id, user_id, direction, phone_number, status, duration, call_notes, 
+               follow_up_required, follow_up_date, call_purpose, outcome, started_at, created_at) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW()) RETURNING *`,
+        args: [customerId, userId, direction, phoneNumber, status, duration, callNotes, 
+               followUpRequired, followUpDate, callPurpose, outcome]
+      });
+      
+      res.status(201).json(result.rows?.[0] || {});
+    } catch (error) {
+      console.error('Error logging phone call:', error);
+      res.status(500).json({ error: 'Failed to log phone call' });
+    }
+  });
+
+  // Message Templates
+  app.get('/api/message-templates', async (req, res) => {
+    try {
+      const { category } = req.query;
+      let sql = 'SELECT * FROM message_templates WHERE is_active = true';
+      const args = [];
+      
+      if (category) {
+        sql += ' AND category = ?';
+        args.push(category);
+      }
+      
+      sql += ' ORDER BY name';
+      
+      const result = await db.execute({ sql, args });
+      res.json(result.rows || []);
+    } catch (error) {
+      console.error('Error fetching message templates:', error);
+      res.status(500).json({ error: 'Failed to fetch message templates' });
+    }
+  });
+
+  app.post('/api/message-templates', async (req, res) => {
+    try {
+      const { name, category, subject, body, variables, createdBy } = req.body;
+      
+      const result = await db.execute({
+        sql: `INSERT INTO message_templates 
+              (name, category, subject, body, variables, created_by, created_at, updated_at) 
+              VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW()) RETURNING *`,
+        args: [name, category, subject, body, JSON.stringify(variables || {}), createdBy]
+      });
+      
+      res.status(201).json(result.rows?.[0] || {});
+    } catch (error) {
+      console.error('Error creating message template:', error);
+      res.status(500).json({ error: 'Failed to create message template' });
+    }
+  });
+
+  // Communication Settings
+  app.get('/api/communication-settings', async (req, res) => {
+    try {
+      const { category } = req.query;
+      let sql = 'SELECT * FROM communication_settings WHERE is_active = true';
+      const args = [];
+      
+      if (category) {
+        sql += ' AND category = ?';
+        args.push(category);
+      }
+      
+      sql += ' ORDER BY category, setting_key';
+      
+      const result = await db.execute({ sql, args });
+      res.json(result.rows || []);
+    } catch (error) {
+      console.error('Error fetching communication settings:', error);
+      res.status(500).json({ error: 'Failed to fetch communication settings' });
+    }
+  });
+
+  app.post('/api/communication-settings', async (req, res) => {
+    try {
+      const { settingKey, settingValue, displayName, description, category, dataType, isRequired } = req.body;
+      
+      const result = await db.execute({
+        sql: `INSERT INTO communication_settings 
+              (setting_key, setting_value, display_name, description, category, data_type, is_required, created_at, updated_at) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW()) 
+              ON CONFLICT (setting_key) DO UPDATE SET 
+              setting_value = EXCLUDED.setting_value, 
+              display_name = EXCLUDED.display_name,
+              description = EXCLUDED.description,
+              updated_at = NOW() 
+              RETURNING *`,
+        args: [settingKey, JSON.stringify(settingValue), displayName, description, category, dataType, isRequired]
+      });
+      
+      res.status(201).json(result.rows?.[0] || {});
+    } catch (error) {
+      console.error('Error saving communication setting:', error);
+      res.status(500).json({ error: 'Failed to save communication setting' });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

@@ -1184,3 +1184,90 @@ export type LeadAssignmentHistory = typeof leadAssignmentHistory.$inferSelect;
 export type InsertLeadAssignmentHistory = typeof leadAssignmentHistory.$inferInsert;
 export type LeadCommunication = typeof leadCommunications.$inferSelect;
 export type InsertLeadCommunication = typeof leadCommunications.$inferInsert;
+
+// Customer Text Messages System
+export const textMessages = pgTable("text_messages", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  senderId: varchar("sender_id").references(() => users.id), // varchar to match users.id
+  direction: text("direction").notNull(), // inbound, outbound
+  phoneNumber: text("phone_number").notNull(),
+  messageBody: text("message_body").notNull(),
+  status: text("status").default("sent").notNull(), // sent, delivered, failed, pending
+  messageType: text("message_type").default("sms").notNull(), // sms, mms
+  attachments: jsonb("attachments"), // media files, images, documents
+  campaignId: integer("campaign_id"),
+  threadId: text("thread_id"), // for message threading/conversations
+  cost: decimal("cost", { precision: 8, scale: 4 }),
+  deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Phone Call Management System
+export const phoneCalls = pgTable("phone_calls", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  userId: varchar("user_id").references(() => users.id), // varchar to match users.id
+  direction: text("direction").notNull(), // inbound, outbound
+  phoneNumber: text("phone_number").notNull(),
+  status: text("status").notNull(), // completed, missed, busy, no_answer, failed
+  duration: integer("duration"), // in seconds
+  recordingUrl: text("recording_url"), // URL to call recording
+  callNotes: text("call_notes"),
+  followUpRequired: boolean("follow_up_required").default(false),
+  followUpDate: timestamp("follow_up_date"),
+  callPurpose: text("call_purpose"), // sales, service, follow_up, support
+  outcome: text("outcome"), // sale, appointment, callback, no_interest, etc.
+  tags: jsonb("tags"), // categorization tags
+  cost: decimal("cost", { precision: 8, scale: 4 }),
+  externalCallId: text("external_call_id"), // third-party phone system ID
+  startedAt: timestamp("started_at"),
+  endedAt: timestamp("ended_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Text Message Templates
+export const messageTemplates = pgTable("message_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  category: text("category").notNull(), // greeting, follow_up, appointment, promotional, service
+  subject: text("subject"),
+  body: text("body").notNull(),
+  variables: jsonb("variables"), // placeholder variables like {customerName}, {dealerName}
+  isActive: boolean("is_active").default(true),
+  createdBy: varchar("created_by").references(() => users.id), // varchar to match users.id
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Communication Settings and Configuration
+export const communicationSettings = pgTable("communication_settings", {
+  id: serial("id").primaryKey(),
+  settingKey: text("setting_key").notNull().unique(),
+  settingValue: jsonb("setting_value"),
+  displayName: text("display_name"),
+  description: text("description"),
+  category: text("category").notNull(), // sms, phone, email, general
+  dataType: text("data_type").notNull(), // string, number, boolean, json
+  isRequired: boolean("is_required").default(false),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Insert schemas for communication tables
+export const insertTextMessageSchema = createInsertSchema(textMessages).omit({ id: true, createdAt: true });
+export const insertPhoneCallSchema = createInsertSchema(phoneCalls).omit({ id: true, createdAt: true });
+export const insertMessageTemplateSchema = createInsertSchema(messageTemplates).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCommunicationSettingSchema = createInsertSchema(communicationSettings).omit({ id: true, createdAt: true, updatedAt: true });
+
+// Types for communication tables
+export type TextMessage = typeof textMessages.$inferSelect;
+export type InsertTextMessage = typeof textMessages.$inferInsert;
+export type PhoneCall = typeof phoneCalls.$inferSelect;
+export type InsertPhoneCall = typeof phoneCalls.$inferInsert;
+export type MessageTemplate = typeof messageTemplates.$inferSelect;
+export type InsertMessageTemplate = typeof messageTemplates.$inferInsert;
+export type CommunicationSetting = typeof communicationSettings.$inferSelect;
+export type InsertCommunicationSetting = typeof communicationSettings.$inferInsert;

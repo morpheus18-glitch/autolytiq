@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Edit, Trash2, Eye, Phone, Mail, MapPin, User, TrendingUp, CreditCard, Users } from "lucide-react";
+import { Edit, Trash2, Eye, Phone, Mail, MapPin, User, TrendingUp, CreditCard, Users, MessageSquare, PhoneCall } from "lucide-react";
+import { Link } from "wouter";
 import type { Customer } from "@shared/schema";
 
 interface EnhancedCustomerSearchProps {
@@ -482,6 +483,27 @@ export default function EnhancedCustomerSearch({
                               <User className="h-4 w-4" />
                             </Button>
                           )}
+                          
+                          {/* Communication Actions */}
+                          <Link href={`/customers/${customer.id}/texting`}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              title="Text Message Portal"
+                            >
+                              <MessageSquare className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          
+                          <Link href={`/customers/${customer.id}/calls`}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              title="Phone Call Management"
+                            >
+                              <PhoneCall className="h-4 w-4" />
+                            </Button>
+                          </Link>
                           {onDelete && (
                             <Button
                               variant="destructive"
