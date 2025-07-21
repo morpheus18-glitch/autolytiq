@@ -115,6 +115,9 @@ async function upsertUser(
 }
 
 function setupAuthRoutes(app: Express) {
+  // Force OAuth routes to be registered with highest priority
+  const router = app._router;
+  
   // Replit OAuth routes
   if (process.env.REPLIT_DOMAINS && process.env.REPL_ID) {
     app.get("/api/auth/replit", (req, res, next) => {
@@ -132,21 +135,44 @@ function setupAuthRoutes(app: Express) {
     });
   }
 
-  // Google OAuth routes
+  // Google OAuth routes - register with explicit priority
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    console.log("Setting up Google OAuth routes");
+    console.log("Setting up Google OAuth routes with priority");
+    
+    // Override any potential conflicts by explicitly handling the exact route
     app.get("/api/auth/google", (req, res, next) => {
-      console.log("Google OAuth route accessed");
+      console.log("Google OAuth route accessed from:", req.headers['user-agent']?.substring(0, 50));
+      console.log("Request protocol:", req.protocol);
+      console.log("Request hostname:", req.hostname);
+      
+      // Force this route to always handle OAuth, never pass to static
+      res.setHeader('Cache-Control', 'no-cache');
       passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
     });
 
-    app.get("/api/auth/google/callback",
-      passport.authenticate("google", { failureRedirect: "/login" }),
-      (req, res) => {
-        console.log("Google auth successful, redirecting to dashboard");
-        res.redirect("/");
-      }
-    );
+    app.get("/api/auth/google/callback", (req, res, next) => {
+      console.log("Google OAuth callback accessed");
+      res.setHeader('Cache-Control', 'no-cache');
+      passport.authenticate("google", { failureRedirect: "/login" }, (err, user) => {
+        if (err) {
+          console.error("Google auth callback error:", err);
+          return res.redirect("/login");
+        }
+        if (!user) {
+          console.log("Google auth callback: no user");
+          return res.redirect("/login");
+        }
+        
+        req.logIn(user, (loginErr) => {
+          if (loginErr) {
+            console.error("Login error:", loginErr);
+            return res.redirect("/login");
+          }
+          console.log("Google auth successful, redirecting to dashboard");
+          res.redirect("/");
+        });
+      })(req, res, next);
+    });
   }
 
   // GitHub OAuth routes

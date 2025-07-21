@@ -14,6 +14,7 @@ import {
 
 export default function Login() {
   const handleProviderLogin = (provider: string) => {
+    console.log(`Redirecting to: /api/auth/${provider}`);
     window.location.href = `/api/auth/${provider}`;
   };
 
