@@ -27,6 +27,8 @@ import DealDetailPage from "@/pages/deals/[id]/index";
 import RolesPage from "@/pages/admin/roles";
 import DepartmentsPage from "@/pages/admin/departments";
 import UsersPage from "@/pages/admin/users";
+import SystemSettings from "@/pages/admin/system-settings";
+import LeadDistribution from "@/pages/admin/lead-distribution";
 // Service Pages
 import ServiceOrdersPage from "@/pages/service/service-orders";
 import PartsInventoryPage from "@/pages/service/parts";
@@ -107,6 +109,8 @@ function Router() {
           <Route path="/admin/roles" component={RolesPage} />
           <Route path="/admin/departments" component={DepartmentsPage} />
           <Route path="/admin/users" component={UsersPage} />
+          <Route path="/admin/settings" component={SystemSettings} />
+          <Route path="/admin/lead-distribution" component={LeadDistribution} />
           
           {/* Service Routes */}
           <Route path="/service/orders" component={ServiceOrdersPage} />
