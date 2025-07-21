@@ -46,6 +46,8 @@ import AuthTest from "@/pages/auth-test";
 import TextingPortal from "@/pages/customers/texting-portal";
 import PhoneCalls from "@/pages/customers/phone-calls";
 import CommunicationSettings from "@/pages/admin/communication-settings";
+import CommunicationDemo from "@/pages/communication-demo";
+import AISmartSearch from "@/pages/ai-smart-search";
 
 function Router() {
   // Initialize pixel tracking for the entire app
@@ -125,6 +127,8 @@ function Router() {
           {/* Communication Routes */}
           <Route path="/customers/:id/texting" component={TextingPortal} />
           <Route path="/customers/:id/calls" component={PhoneCalls} />
+          <Route path="/communication-demo" component={CommunicationDemo} />
+          <Route path="/ai-smart-search" component={AISmartSearch} />
           
           {/* Service Routes */}
           <Route path="/service/orders" component={ServiceOrdersPage} />

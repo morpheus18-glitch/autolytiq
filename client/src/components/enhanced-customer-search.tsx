@@ -220,7 +220,7 @@ export default function EnhancedCustomerSearch({
       : 0;
 
     const avgIncome = filteredData.filter(c => c.income).length > 0
-      ? filteredData.reduce((sum, c) => sum + (c.income || 0), 0) / filteredData.filter(c => c.income).length
+      ? filteredData.reduce((sum, c) => sum + Number(c.income || 0), 0) / filteredData.filter(c => c.income).length
       : 0;
 
     const consultantBreakdown = filteredData.reduce((acc, customer) => {
