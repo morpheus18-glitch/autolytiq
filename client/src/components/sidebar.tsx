@@ -15,7 +15,8 @@ import {
   Menu,
   X,
   Brain,
-  Timer
+  Timer,
+  Cog
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -72,6 +73,7 @@ const navigation = [
       { name: "User Management", href: "/admin/users", icon: Users },
       { name: "Lead Distribution", href: "/admin/lead-distribution", icon: Target },
       { name: "System Settings", href: "/admin/settings", icon: Settings },
+      { name: "Enterprise Config", href: "/admin/comprehensive-settings", icon: Settings },
       { name: "User Settings", href: "/settings", icon: Settings },
     ]
   },
