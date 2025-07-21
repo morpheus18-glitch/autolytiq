@@ -73,19 +73,19 @@ export default function SystemSettings() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-8">
+    <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Enterprise System Settings</h1>
-          <p className="text-gray-600 mt-2">Configure system-wide defaults, presets, and enterprise policies</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">System Settings</h1>
+          <p className="text-sm md:text-base text-gray-600 mt-1">Configure enterprise defaults and policies</p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" size="sm">
             <RefreshCw className="w-4 h-4 mr-2" />
-            Reset to Defaults
+            Reset Defaults
           </Button>
-          <Button onClick={saveSettings}>
+          <Button onClick={saveSettings} size="sm">
             <Save className="w-4 h-4 mr-2" />
             Save Changes
           </Button>
@@ -94,13 +94,13 @@ export default function SystemSettings() {
 
       {/* Settings Tabs */}
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="leads">Lead Management</TabsTrigger>
-          <TabsTrigger value="sales">Sales Config</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="hierarchy">Role Hierarchy</TabsTrigger>
-          <TabsTrigger value="integrations">Integrations</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
+          <TabsTrigger value="general" className="text-xs md:text-sm">General</TabsTrigger>
+          <TabsTrigger value="leads" className="text-xs md:text-sm">Leads</TabsTrigger>
+          <TabsTrigger value="sales" className="text-xs md:text-sm">Sales</TabsTrigger>
+          <TabsTrigger value="notifications" className="text-xs md:text-sm">Notify</TabsTrigger>
+          <TabsTrigger value="hierarchy" className="text-xs md:text-sm">Roles</TabsTrigger>
+          <TabsTrigger value="integrations" className="text-xs md:text-sm">Integrations</TabsTrigger>
         </TabsList>
 
         {/* General Settings */}
