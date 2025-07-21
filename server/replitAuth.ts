@@ -271,9 +271,11 @@ export async function setupAuth(app: Express) {
 
   // Setup Google OAuth
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    // Use autolytiq.com for Google OAuth callback
-    const domain = 'autolytiq.com';
-    const protocol = 'https';
+    // Use autolytiq.com for production, but allow flexibility for development
+    const domain = process.env.GOOGLE_OAUTH_DOMAIN || 'autolytiq.com';
+    const protocol = domain.includes('localhost') ? 'http' : 'https';
+    
+    console.log(`Google OAuth callback URL: ${protocol}://${domain}/api/auth/google/callback`);
     
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
