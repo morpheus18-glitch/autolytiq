@@ -41,6 +41,7 @@ import TransactionsPage from "@/pages/accounting/transactions";
 import Sidebar from "@/components/sidebar";
 import { usePixelTracker } from "@/hooks/use-pixel-tracker";
 import { useState } from "react";
+import AuthTest from "@/pages/auth-test";
 
 function Router() {
   // Initialize pixel tracking for the entire app
@@ -64,6 +65,7 @@ function Router() {
     return (
       <Switch>
         <Route path="/login" component={Login} />
+        <Route path="/auth-test" component={AuthTest} />
         <Route component={Landing} />
       </Switch>
     );
@@ -113,6 +115,7 @@ function Router() {
           <Route path="/admin/settings" component={SystemSettings} />
           <Route path="/admin/comprehensive-settings" component={ComprehensiveSettings} />
           <Route path="/admin/lead-distribution" component={LeadDistribution} />
+          <Route path="/auth-test" component={AuthTest} />
           
           {/* Service Routes */}
           <Route path="/service/orders" component={ServiceOrdersPage} />
