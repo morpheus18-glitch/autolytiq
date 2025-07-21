@@ -72,6 +72,7 @@ const navigation = [
       { name: "Roles & Permissions", href: "/admin/roles", icon: Shield },
       { name: "User Management", href: "/admin/users", icon: Users },
       { name: "Lead Distribution", href: "/admin/lead-distribution", icon: Target },
+      { name: "Communication Settings", href: "/admin/communication-settings", icon: Settings },
       { name: "System Settings", href: "/admin/settings", icon: Settings },
       { name: "Enterprise Config", href: "/admin/comprehensive-settings", icon: Settings },
       { name: "User Settings", href: "/settings", icon: Settings },
