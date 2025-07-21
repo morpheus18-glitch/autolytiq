@@ -90,28 +90,28 @@ export default function UnifiedDashboard() {
       title: 'Add New Customer',
       description: 'Create customer profile',
       icon: Users,
-      href: '/customers?action=create',
+      href: '/customers',
       color: 'bg-blue-500'
     },
     {
-      title: 'Smart Customer Search',
-      description: 'AI-powered search',
-      icon: Brain,
-      href: '/ai-smart-search',
+      title: 'Smart Workflows',
+      description: 'Automated processes',
+      icon: Target,
+      href: '/workflow-assistant',
       color: 'bg-purple-500'
     },
     {
-      title: 'Send Bulk Messages',
-      description: 'Mass communication',
+      title: 'Send Messages',
+      description: 'Customer communication',
       icon: MessageSquare,
       href: '/communication-demo',
       color: 'bg-green-500'
     },
     {
-      title: 'Update Inventory',
+      title: 'Manage Inventory',
       description: 'Add/edit vehicles',
       icon: Car,
-      href: '/inventory?action=create',
+      href: '/inventory',
       color: 'bg-orange-500'
     }
   ];
@@ -177,25 +177,25 @@ export default function UnifiedDashboard() {
   return (
     <div className="space-y-6">
       {/* Executive Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card className="border-l-4 border-l-blue-500">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Customers</p>
-                <div className="flex items-baseline space-x-2">
-                  <p className="text-2xl font-bold">{metrics?.customers.total.toLocaleString()}</p>
-                  <Badge variant="secondary" className="text-xs">
-                    +{metrics?.customers.newThisWeek} this week
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Customers</p>
+                <div className="flex items-baseline space-x-1 sm:space-x-2 mt-1">
+                  <p className="text-lg sm:text-2xl font-bold">{metrics?.customers.total.toLocaleString()}</p>
+                  <Badge variant="secondary" className="text-xs px-1">
+                    +{metrics?.customers.newThisWeek}
                   </Badge>
                 </div>
               </div>
-              <Users className="h-8 w-8 text-blue-500" />
+              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 flex-shrink-0" />
             </div>
-            <div className="mt-2 flex items-center text-sm">
-              <span className="text-red-600 font-medium">{metrics?.customers.hotLeads} hot leads</span>
-              <ArrowRight className="w-3 h-3 mx-1" />
-              <Link href="/customers?filter=hot_leads" className="text-blue-600 hover:underline">
+            <div className="mt-2 flex items-center text-xs sm:text-sm">
+              <span className="text-red-600 font-medium">{metrics?.customers.hotLeads} hot</span>
+              <ArrowRight className="w-3 h-3 mx-1 flex-shrink-0" />
+              <Link href="/customers" className="text-blue-600 hover:underline truncate">
                 View all
               </Link>
             </div>
@@ -203,23 +203,23 @@ export default function UnifiedDashboard() {
         </Card>
 
         <Card className="border-l-4 border-l-green-500">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Active Inventory</p>
-                <div className="flex items-baseline space-x-2">
-                  <p className="text-2xl font-bold">{metrics?.inventory.available}</p>
-                  <Badge variant="outline" className="text-xs">
-                    {metrics?.inventory.sold} sold this month
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Active Inventory</p>
+                <div className="flex items-baseline space-x-1 sm:space-x-2 mt-1">
+                  <p className="text-lg sm:text-2xl font-bold">{metrics?.inventory.available}</p>
+                  <Badge variant="outline" className="text-xs px-1">
+                    {metrics?.inventory.sold} sold
                   </Badge>
                 </div>
               </div>
-              <Car className="h-8 w-8 text-green-500" />
+              <Car className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 flex-shrink-0" />
             </div>
-            <div className="mt-2 flex items-center text-sm">
-              <span className="text-gray-600">Avg: {metrics?.inventory.avgDaysOnLot} days on lot</span>
-              <ArrowRight className="w-3 h-3 mx-1" />
-              <Link href="/inventory" className="text-green-600 hover:underline">
+            <div className="mt-2 flex items-center text-xs sm:text-sm">
+              <span className="text-gray-600">{metrics?.inventory.avgDaysOnLot} days avg</span>
+              <ArrowRight className="w-3 h-3 mx-1 flex-shrink-0" />
+              <Link href="/inventory" className="text-green-600 hover:underline truncate">
                 Manage
               </Link>
             </div>
@@ -227,23 +227,23 @@ export default function UnifiedDashboard() {
         </Card>
 
         <Card className="border-l-4 border-l-purple-500">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">AI Performance</p>
-                <div className="flex items-baseline space-x-2">
-                  <p className="text-2xl font-bold">{metrics?.ml.accuracy}%</p>
-                  <Badge variant="secondary" className="text-xs">
-                    {metrics?.ml.searchQueries} searches today
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">AI Performance</p>
+                <div className="flex items-baseline space-x-1 sm:space-x-2 mt-1">
+                  <p className="text-lg sm:text-2xl font-bold">{metrics?.ml.accuracy}%</p>
+                  <Badge variant="secondary" className="text-xs px-1">
+                    {metrics?.ml.searchQueries} searches
                   </Badge>
                 </div>
               </div>
-              <Brain className="h-8 w-8 text-purple-500" />
+              <Brain className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500 flex-shrink-0" />
             </div>
-            <div className="mt-2 flex items-center text-sm">
-              <span className="text-purple-600 font-medium">{metrics?.ml.recommendations} recommendations</span>
-              <ArrowRight className="w-3 h-3 mx-1" />
-              <Link href="/ai-smart-search" className="text-purple-600 hover:underline">
+            <div className="mt-2 flex items-center text-xs sm:text-sm">
+              <span className="text-purple-600 font-medium">{metrics?.ml.recommendations} recs</span>
+              <ArrowRight className="w-3 h-3 mx-1 flex-shrink-0" />
+              <Link href="/ai-smart-search" className="text-purple-600 hover:underline truncate">
                 AI Search
               </Link>
             </div>
@@ -251,23 +251,23 @@ export default function UnifiedDashboard() {
         </Card>
 
         <Card className="border-l-4 border-l-orange-500">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Communications</p>
-                <div className="flex items-baseline space-x-2">
-                  <p className="text-2xl font-bold">{metrics?.communication.responseRate}%</p>
-                  <Badge variant="secondary" className="text-xs">
-                    {metrics?.communication.callsToday} calls today
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Communications</p>
+                <div className="flex items-baseline space-x-1 sm:space-x-2 mt-1">
+                  <p className="text-lg sm:text-2xl font-bold">{metrics?.communication.responseRate}%</p>
+                  <Badge variant="secondary" className="text-xs px-1">
+                    {metrics?.communication.callsToday} calls
                   </Badge>
                 </div>
               </div>
-              <MessageSquare className="h-8 w-8 text-orange-500" />
+              <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500 flex-shrink-0" />
             </div>
-            <div className="mt-2 flex items-center text-sm">
-              <span className="text-orange-600 font-medium">{metrics?.communication.avgResponseTime} avg response</span>
-              <ArrowRight className="w-3 h-3 mx-1" />
-              <Link href="/communication-demo" className="text-orange-600 hover:underline">
+            <div className="mt-2 flex items-center text-xs sm:text-sm">
+              <span className="text-orange-600 font-medium">{metrics?.communication.avgResponseTime} avg</span>
+              <ArrowRight className="w-3 h-3 mx-1 flex-shrink-0" />
+              <Link href="/communication-demo" className="text-orange-600 hover:underline truncate">
                 Messaging
               </Link>
             </div>
@@ -275,27 +275,27 @@ export default function UnifiedDashboard() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Quick Actions */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="w-5 h-5" />
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
               Quick Actions
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2 sm:space-y-3">
             {quickActions.map((action, index) => (
               <Link key={index} href={action.href}>
-                <div className="flex items-center p-3 rounded-lg border hover:bg-gray-50 transition-colors group cursor-pointer">
-                  <div className={`p-2 rounded-lg ${action.color} text-white`}>
-                    <action.icon className="w-4 h-4" />
+                <div className="flex items-center p-2 sm:p-3 rounded-lg border hover:bg-gray-50 transition-colors group cursor-pointer">
+                  <div className={`p-1.5 sm:p-2 rounded-lg ${action.color} text-white flex-shrink-0`}>
+                    <action.icon className="w-3 h-3 sm:w-4 sm:h-4" />
                   </div>
-                  <div className="ml-3 flex-1">
-                    <p className="font-medium">{action.title}</p>
-                    <p className="text-sm text-gray-600">{action.description}</p>
+                  <div className="ml-2 sm:ml-3 flex-1 min-w-0">
+                    <p className="font-medium text-sm sm:text-base truncate">{action.title}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 truncate">{action.description}</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+                  <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 group-hover:text-gray-600 flex-shrink-0" />
                 </div>
               </Link>
             ))}
@@ -304,46 +304,46 @@ export default function UnifiedDashboard() {
 
         {/* Recent Activity Feed */}
         <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="w-5 h-5" />
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Activity className="w-4 h-4 sm:w-5 sm:h-5" />
               Live Activity Feed
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start p-3 rounded-lg border hover:bg-gray-50 transition-colors">
-                  <div className={`p-2 rounded-full bg-gray-100 ${getActivityColor(activity.type)}`}>
+                <div key={activity.id} className="flex items-start p-2 sm:p-3 rounded-lg border hover:bg-gray-50 transition-colors">
+                  <div className={`p-1.5 sm:p-2 rounded-full bg-gray-100 ${getActivityColor(activity.type)} flex-shrink-0`}>
                     {getActivityIcon(activity.type)}
                   </div>
-                  <div className="ml-3 flex-1">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">{activity.title}</h4>
-                      <span className="text-xs text-gray-500">{activity.timestamp}</span>
+                  <div className="ml-2 sm:ml-3 flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="font-medium text-sm sm:text-base line-clamp-1">{activity.title}</h4>
+                      <span className="text-xs text-gray-500 flex-shrink-0">{activity.timestamp}</span>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2">{activity.description}</p>
                     
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center space-x-3">
+                    <div className="flex items-center justify-between mt-2 gap-2">
+                      <div className="flex items-center space-x-1 sm:space-x-3 flex-wrap">
                         {activity.score && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs px-1">
                             Score: {activity.score}%
                           </Badge>
                         )}
                         {activity.accuracy && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs px-1">
                             Accuracy: {activity.accuracy}%
                           </Badge>
                         )}
                         {activity.amount && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="secondary" className="text-xs px-1">
                             {activity.amount}
                           </Badge>
                         )}
                       </div>
                       
-                      <Button variant="ghost" size="sm" className="text-xs">
+                      <Button variant="ghost" size="sm" className="text-xs flex-shrink-0 px-2">
                         {activity.action}
                       </Button>
                     </div>

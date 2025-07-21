@@ -9,25 +9,28 @@ import WorkflowIntegration from "@/components/workflow-integration";
 
 export default function Dashboard() {
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
-      <div className="flex items-center justify-between mb-6">
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-7xl">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3 sm:gap-0">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Executive Dashboard</h1>
-          <p className="text-gray-600 mt-1">Comprehensive view of your dealership operations</p>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Executive Dashboard</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Comprehensive view of your dealership operations</p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button className="flex items-center space-x-2">
-            <Workflow className="w-4 h-4" />
-            <span>Smart Workflows</span>
-          </Button>
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          <Link href="/workflow-assistant">
+            <Button className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2">
+              <Workflow className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Smart Workflows</span>
+              <span className="sm:hidden">Workflows</span>
+            </Button>
+          </Link>
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="workflows">Smart Workflows</TabsTrigger>
-          <TabsTrigger value="insights">AI Insights</TabsTrigger>
+      <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-3 h-9 sm:h-10">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm px-2">Overview</TabsTrigger>
+          <TabsTrigger value="workflows" className="text-xs sm:text-sm px-2">Workflows</TabsTrigger>
+          <TabsTrigger value="insights" className="text-xs sm:text-sm px-2">AI Insights</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
