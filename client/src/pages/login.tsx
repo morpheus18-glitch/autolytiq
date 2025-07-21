@@ -15,6 +15,17 @@ import {
 export default function Login() {
   const handleProviderLogin = (provider: string) => {
     console.log(`Redirecting to: /api/auth/${provider}`);
+    
+    // For Google OAuth, use direct URL construction to bypass any routing issues
+    if (provider === 'google') {
+      const clientId = '579226933513-3n3a1nd8c8ev3eafl1q9vr1f4aa7684v.apps.googleusercontent.com';
+      const redirectUri = encodeURIComponent('https://autolytiq.com/api/auth/google/callback');
+      const googleOAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&redirect_uri=${redirectUri}&scope=profile%20email&client_id=${clientId}`;
+      console.log('Direct Google OAuth redirect:', googleOAuthUrl);
+      window.location.href = googleOAuthUrl;
+      return;
+    }
+    
     window.location.href = `/api/auth/${provider}`;
   };
 
