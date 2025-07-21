@@ -1894,6 +1894,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Lead Sources API
+  app.get("/api/lead-sources", async (req, res) => {
+    try {
+      // Mock lead sources for demo
+      const mockSources = [
+        {
+          id: 1,
+          name: "AutoTrader",
+          type: "xml_feed",
+          isActive: true,
+          apiEndpoint: "https://api.autotrader.com/leads",
+          xmlFormat: "adf",
+          defaultPriority: "high",
+          averageLeadsPerDay: 45,
+          conversionRate: 12.5
+        },
+        {
+          id: 2,
+          name: "Cars.com",
+          type: "xml_feed", 
+          isActive: true,
+          apiEndpoint: "https://api.cars.com/leads",
+          xmlFormat: "adf",
+          defaultPriority: "medium",
+          averageLeadsPerDay: 32,
+          conversionRate: 10.8
+        },
+        {
+          id: 3,
+          name: "Website Forms",
+          type: "web_form",
+          isActive: true,
+          defaultPriority: "medium",
+          averageLeadsPerDay: 18,
+          conversionRate: 22.3
+        }
+      ];
+      res.json(mockSources);
+    } catch (error) {
+      console.error("Error fetching lead sources:", error);
+      res.status(500).json({ message: "Failed to fetch lead sources" });
+    }
+  });
+
+  app.post("/api/lead-sources", async (req, res) => {
+    try {
+      // Mock response for demo
+      const newSource = {
+        id: Math.floor(Math.random() * 10000),
+        ...req.body,
+        createdAt: new Date().toISOString()
+      };
+      res.status(201).json(newSource);
+    } catch (error) {
+      console.error("Error creating lead source:", error);
+      res.status(500).json({ message: "Failed to create lead source" });
+    }
+  });
+
   // System Configuration Routes
   app.get("/api/system-settings", async (req, res) => {
     try {
