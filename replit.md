@@ -181,3 +181,4 @@ The architecture follows a traditional full-stack pattern with modern tooling, e
 - **System-Wide Configuration**: Built complete system settings panel with general defaults, lead management policies, sales configuration, notification preferences, role hierarchy, and external integrations
 - **Customer-to-Deal Flow Fix**: Fixed the critical routing issue in customer → showroom → deal workflow; customers now properly navigate from customer page to showroom manager to deals page with correct data transfer
 - **Comprehensive Enterprise Settings**: Added 8-section enterprise configuration system matching VinSolutions/CDK standards with dealership information, prospects management, finance configuration, DSP automation, marketing settings, and internet lead processing
+- **OAuth Callback Domain Fix**: Updated Google, GitHub, and Apple OAuth callback URLs to use "autolytiq.com" domain for proper authentication redirects in production environment

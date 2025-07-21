@@ -271,9 +271,9 @@ export async function setupAuth(app: Express) {
 
   // Setup Google OAuth
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    // Get the current domain from Replit environment or use localhost
-    const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000';
-    const protocol = domain.includes('localhost') ? 'http' : 'https';
+    // Use autolytiq.com for Google OAuth callback
+    const domain = 'autolytiq.com';
+    const protocol = 'https';
     
     passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
@@ -308,9 +308,9 @@ export async function setupAuth(app: Express) {
 
   // Setup GitHub OAuth
   if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
-    // Get the current domain from Replit environment or use localhost
-    const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000';
-    const protocol = domain.includes('localhost') ? 'http' : 'https';
+    // Use autolytiq.com for GitHub OAuth callback
+    const domain = 'autolytiq.com';
+    const protocol = 'https';
     
     passport.use(new GitHubStrategy({
       clientID: process.env.GITHUB_CLIENT_ID,
@@ -350,7 +350,7 @@ export async function setupAuth(app: Express) {
       teamID: process.env.APPLE_TEAM_ID,
       keyID: process.env.APPLE_KEY_ID,
       privateKey: process.env.APPLE_PRIVATE_KEY,
-      callbackURL: "/api/auth/apple/callback"
+      callbackURL: "https://autolytiq.com/api/auth/apple/callback"
     }, async (accessToken, refreshToken, idToken, profile, done) => {
       try {
         const user = {
