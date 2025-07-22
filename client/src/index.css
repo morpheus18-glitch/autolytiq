@@ -68,8 +68,17 @@
   border-bottom: 2px solid #2563eb;
 }
 
+.dark .top-nav-tab.active {
+  background: linear-gradient(180deg, #1e293b 0%, #334155 100%);
+  border-bottom: 2px solid #3b82f6;
+}
+
 .top-nav-tab:hover {
   background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.dark .top-nav-tab:hover {
+  background: linear-gradient(180deg, #334155 0%, #475569 100%);
 }
 
 /* Professional Search Input */
