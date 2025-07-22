@@ -69,8 +69,9 @@ interface DealData {
 }
 
 export default function DealDesk() {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('active');
   const [selectedDeal, setSelectedDeal] = useState<DealData | null>(null);
+  const [showNewDealDialog, setShowNewDealDialog] = useState(false);
   const [newDeal, setNewDeal] = useState({
     id: crypto.randomUUID(),
     dealNumber: `DEAL-${Date.now()}`,
