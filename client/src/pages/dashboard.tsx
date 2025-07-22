@@ -6,6 +6,7 @@ import { Brain, Target, Workflow } from "lucide-react";
 import { Link } from "wouter";
 import UnifiedDashboard from "@/components/unified-dashboard";
 import WorkflowIntegration from "@/components/workflow-integration";
+import { EnterpriseDashboardIntegration } from "@/components/enterprise/enterprise-dashboard-integration";
 
 export default function Dashboard() {
   return (
@@ -27,10 +28,11 @@ export default function Dashboard() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
-        <TabsList className="grid w-full grid-cols-3 h-9 sm:h-10">
-          <TabsTrigger value="overview" className="text-xs sm:text-sm px-2">Overview</TabsTrigger>
-          <TabsTrigger value="workflows" className="text-xs sm:text-sm px-2">Workflows</TabsTrigger>
-          <TabsTrigger value="insights" className="text-xs sm:text-sm px-2">AI Insights</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 h-9 sm:h-10">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm px-1 sm:px-2">Overview</TabsTrigger>
+          <TabsTrigger value="workflows" className="text-xs sm:text-sm px-1 sm:px-2">Workflows</TabsTrigger>
+          <TabsTrigger value="enterprise" className="text-xs sm:text-sm px-1 sm:px-2">Enterprise</TabsTrigger>
+          <TabsTrigger value="insights" className="text-xs sm:text-sm px-1 sm:px-2">AI Insights</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -39,6 +41,10 @@ export default function Dashboard() {
 
         <TabsContent value="workflows">
           <WorkflowIntegration />
+        </TabsContent>
+
+        <TabsContent value="enterprise">
+          <EnterpriseDashboardIntegration />
         </TabsContent>
 
         <TabsContent value="insights">
