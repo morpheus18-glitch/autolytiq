@@ -134,7 +134,7 @@ export default function Customers() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">AiQ - Customer Management</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">AutolytiQ - Customer Management</h1>
           <p className="text-gray-600">Advanced CRM with comprehensive customer analytics</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
