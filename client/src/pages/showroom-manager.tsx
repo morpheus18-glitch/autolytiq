@@ -86,8 +86,8 @@ export default function ShowroomManager() {
     trackInteraction('showroom_page_view', 'showroom-manager-page');
   }, [trackInteraction]);
 
-  // Mock data for demonstration
-  const mockSessions: ShowroomSession[] = [
+  // Use actual sessions data from API, fallback to mock only if empty
+  const sessionsData = sessions && sessions.length > 0 ? sessions : [
     {
       id: 'session-1',
       customerId: 1,
@@ -185,14 +185,14 @@ export default function ShowroomManager() {
     }
   ];
 
-  const activeSessions = mockSessions.filter(s => s.status === 'active');
-  const completedToday = mockSessions.filter(s => s.status === 'completed');
-  const soldToday = mockSessions.filter(s => s.status === 'sold');
-  const conversionRate = mockSessions.length > 0 ? 
-    ((soldToday.length / mockSessions.length) * 100).toFixed(1) : '0';
+  const activeSessions = sessionsData.filter(s => s.status === 'active');
+  const completedToday = sessionsData.filter(s => s.status === 'completed');
+  const soldToday = sessionsData.filter(s => s.status === 'sold');
+  const conversionRate = sessionsData.length > 0 ? 
+    ((soldToday.length / sessionsData.length) * 100).toFixed(1) : '0';
 
   const getFilteredSessions = () => {
-    let filtered = mockSessions;
+    let filtered = sessionsData;
     
     if (selectedFilter !== 'all') {
       filtered = filtered.filter(session => session.status === selectedFilter);
