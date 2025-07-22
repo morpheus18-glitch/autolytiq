@@ -13,6 +13,7 @@ import VehicleDetail from "@/pages/vehicle-detail";
 import Sales from "@/pages/sales-enhanced";
 import SalesMobileEnhanced from "@/pages/sales-mobile-enhanced";
 import Customers from "@/pages/customers-enhanced";
+import CustomerDetail from "@/pages/customers/customer-detail";
 import Analytics from "@/pages/analytics";
 import Settings from "@/pages/settings";
 import CompetitivePricing from "@/pages/competitive-pricing";
@@ -92,6 +93,7 @@ function Router() {
           <Route path="/sales" component={Sales} />
           <Route path="/sales-mobile" component={SalesMobileEnhanced} />
           <Route path="/customers" component={Customers} />
+          <Route path="/customers/:id" component={CustomerDetail} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/competitive-pricing" component={CompetitivePricing} />
           <Route path="/deals" component={DealsPage} />
