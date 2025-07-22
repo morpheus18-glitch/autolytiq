@@ -182,7 +182,7 @@ export default function UnifiedDashboard() {
           <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Customers</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Total Customers</p>
                 <div className="flex items-baseline space-x-1 sm:space-x-2 mt-1">
                   <p className="text-lg sm:text-2xl font-bold">{metrics?.customers.total.toLocaleString()}</p>
                   <Badge variant="secondary" className="text-xs px-1">
@@ -206,7 +206,7 @@ export default function UnifiedDashboard() {
           <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Active Inventory</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Active Inventory</p>
                 <div className="flex items-baseline space-x-1 sm:space-x-2 mt-1">
                   <p className="text-lg sm:text-2xl font-bold">{metrics?.inventory.available}</p>
                   <Badge variant="outline" className="text-xs px-1">
@@ -230,7 +230,7 @@ export default function UnifiedDashboard() {
           <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">AI Performance</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">AI Performance</p>
                 <div className="flex items-baseline space-x-1 sm:space-x-2 mt-1">
                   <p className="text-lg sm:text-2xl font-bold">{metrics?.ml.accuracy}%</p>
                   <Badge variant="secondary" className="text-xs px-1">
@@ -254,7 +254,7 @@ export default function UnifiedDashboard() {
           <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Communications</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Communications</p>
                 <div className="flex items-baseline space-x-1 sm:space-x-2 mt-1">
                   <p className="text-lg sm:text-2xl font-bold">{metrics?.communication.responseRate}%</p>
                   <Badge variant="secondary" className="text-xs px-1">
