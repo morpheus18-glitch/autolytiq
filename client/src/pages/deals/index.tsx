@@ -174,38 +174,39 @@ export default function DealsPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Deal Desk</h1>
-          <p className="text-gray-600 mt-1">Manage all vehicle deals and transactions</p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+          <div className="mb-4 sm:mb-0">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Deal Desk</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">Manage all vehicle deals and transactions</p>
+          </div>
+          <Button 
+            onClick={handleCreateDeal}
+            disabled={createDealMutation.isPending}
+            className="btn-aiq-primary w-full sm:w-auto"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Deal
+          </Button>
         </div>
-        <Button 
-          onClick={handleCreateDeal}
-          disabled={createDealMutation.isPending}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          New Deal
-        </Button>
-      </div>
 
-      {/* Deal Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <FileText className="h-5 w-5 text-blue-600" />
+        {/* Deal Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+          <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+            <CardContent className="p-4">
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                  <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Deals</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{dealStats.total}</p>
+                </div>
               </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-600">Total Deals</p>
-                <p className="text-2xl font-bold">{dealStats.total}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
         <Card>
           <CardContent className="p-4">
@@ -276,9 +277,9 @@ export default function DealsPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
 
-      {/* Filters and Search */}
+        {/* Filters and Search */}
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
@@ -420,7 +421,7 @@ export default function DealsPage() {
                           </td>
                           <td className="py-4 px-6">
                             <div className="text-sm text-gray-600">
-                              {new Date(deal.createdAt).toLocaleDateString()}
+                              {deal.createdAt ? new Date(deal.createdAt).toLocaleDateString() : '-'}
                             </div>
                           </td>
                           <td className="py-4 px-6">
@@ -452,6 +453,7 @@ export default function DealsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }

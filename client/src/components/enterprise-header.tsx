@@ -165,13 +165,15 @@ export default function EnterpriseHeader() {
   const currentPageTitle = () => {
     if (location === '/') return 'Dashboard';
     if (location.includes('customers')) return 'Customer Management';
-    if (location.includes('inventory')) return 'Inventory Management';
+    if (location.includes('inventory')) return 'Inventory Management'; 
     if (location.includes('deals')) return 'Deal Desk';
     if (location.includes('ai-smart-search')) return 'AI Smart Search';
     if (location.includes('communication')) return 'Communications';
     if (location.includes('competitive-pricing')) return 'Competitive Pricing';
     if (location.includes('analytics')) return 'Analytics & Reports';
     if (location.includes('admin')) return 'Administration';
+    if (location.includes('sales')) return 'Sales Management';
+    if (location.includes('showroom')) return 'Showroom Manager';
     return 'AutolytiQ';
   };
 
