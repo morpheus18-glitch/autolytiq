@@ -21,21 +21,43 @@ import {
 
 interface Deal {
   id: string;
-  customerName: string;
-  vehicleDescription: string;
-  totalAmount: number;
+  dealNumber: string;
   status: string;
+  vehicleId: string;
+  vin: string;
+  msrp: number;
+  salePrice: number;
+  customerId: string;
+  buyerName: string;
+  coBuyerName?: string;
+  tradeVin?: string;
+  tradeYear?: number;
+  tradeMake?: string;
+  tradeModel?: string;
+  tradeAllowance?: number;
+  dealType: string;
+  cashDown: number;
+  financeBalance: number;
+  creditStatus: string;
+  creditTier: string;
+  term: number;
+  rate: string;
   createdAt: string;
+  updatedAt: string;
+  salesPersonId: string;
+  financeManagerId: string;
 }
 
 const getStatusBadge = (status: string) => {
   switch (status) {
-    case 'pending':
-      return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Pending</Badge>;
-    case 'in_progress':
-      return <Badge className="bg-blue-100 text-blue-800 border-blue-200">In Progress</Badge>;
-    case 'completed':
-      return <Badge className="bg-green-100 text-green-800 border-green-200">Completed</Badge>;
+    case 'structuring':
+      return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Structuring</Badge>;
+    case 'credit_pending':
+      return <Badge className="bg-blue-100 text-blue-800 border-blue-200">Credit Pending</Badge>;
+    case 'funded':
+      return <Badge className="bg-green-100 text-green-800 border-green-200">Funded</Badge>;
+    case 'delivered':
+      return <Badge className="bg-purple-100 text-purple-800 border-purple-200">Delivered</Badge>;
     default:
       return <Badge className="bg-gray-100 text-gray-800 border-gray-200">{status}</Badge>;
   }
@@ -55,18 +77,21 @@ export default function DealsList() {
   // Filter deals
   const filteredDeals = deals.filter(deal => {
     const matchesSearch = 
-      deal.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      deal.vehicleDescription?.toLowerCase().includes(searchTerm.toLowerCase());
+      deal.buyerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      deal.dealNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      deal.vin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (deal.tradeMake && deal.tradeModel && 
+       `${deal.tradeMake} ${deal.tradeModel}`.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || deal.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const handleNewDeal = () => {
-    navigate('/deals-desk?new=true');
+    navigate('/showroom-manager');
   };
 
   const handleViewDeal = (dealId: string) => {
-    navigate(`/deals-desk?dealId=${dealId}`);
+    navigate(`/showroom-manager?dealId=${dealId}`);
   };
 
   if (isLoading) {
@@ -112,7 +137,7 @@ export default function DealsList() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
-                    placeholder="Search deals by customer or vehicle..."
+                    placeholder="Search by deal number, customer, or VIN..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -125,9 +150,10 @@ export default function DealsList() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="structuring">Structuring</SelectItem>
+                  <SelectItem value="credit_pending">Credit Pending</SelectItem>
+                  <SelectItem value="funded">Funded</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -152,9 +178,9 @@ export default function DealsList() {
               <div className="flex items-center">
                 <FileSignature className="w-8 h-8 text-yellow-600 mr-3" />
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Pending</p>
+                  <p className="text-sm font-medium text-gray-600">Structuring</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {deals.filter(d => d.status === 'pending').length}
+                    {deals.filter(d => d.status === 'structuring').length}
                   </p>
                 </div>
               </div>
@@ -165,9 +191,9 @@ export default function DealsList() {
               <div className="flex items-center">
                 <DollarSign className="w-8 h-8 text-green-600 mr-3" />
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Completed</p>
+                  <p className="text-sm font-medium text-gray-600">Funded</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {deals.filter(d => d.status === 'completed').length}
+                    {deals.filter(d => d.status === 'funded').length}
                   </p>
                 </div>
               </div>
@@ -219,26 +245,57 @@ export default function DealsList() {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center gap-4 mb-3">
-                          <div className="flex items-center text-gray-900">
-                            <User className="w-4 h-4 mr-2 text-gray-500" />
-                            <span className="font-semibold">{deal.customerName}</span>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center text-gray-900">
+                              <span className="font-bold text-blue-600 mr-3">{deal.dealNumber}</span>
+                              <User className="w-4 h-4 mr-2 text-gray-500" />
+                              <span className="font-semibold">{deal.buyerName}</span>
+                              {deal.coBuyerName && (
+                                <span className="text-gray-500 ml-2">& {deal.coBuyerName}</span>
+                              )}
+                            </div>
                           </div>
                           {getStatusBadge(deal.status)}
                         </div>
                         
-                        <div className="flex items-center gap-6 text-sm text-gray-600 mb-3">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">
                           <div className="flex items-center">
                             <Car className="w-4 h-4 mr-2" />
-                            {deal.vehicleDescription}
+                            <span>VIN: {deal.vin?.slice(-8) || 'N/A'}</span>
                           </div>
                           <div className="flex items-center">
                             <DollarSign className="w-4 h-4 mr-2" />
-                            ${deal.totalAmount?.toLocaleString()}
+                            <span>MSRP: ${deal.msrp?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <DollarSign className="w-4 h-4 mr-2 text-green-600" />
+                            <span>Sale: ${deal.salePrice?.toLocaleString()}</span>
                           </div>
                           <div className="flex items-center">
                             <Calendar className="w-4 h-4 mr-2" />
                             {new Date(deal.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                        
+                        {/* Trade Information */}
+                        {deal.tradeVin && (
+                          <div className="flex items-center text-sm text-orange-600 mb-2">
+                            <Car className="w-4 h-4 mr-2" />
+                            <span>Trade: {deal.tradeYear} {deal.tradeMake} {deal.tradeModel} - ${deal.tradeAllowance?.toLocaleString()}</span>
+                          </div>
+                        )}
+                        
+                        {/* Financial Summary */}
+                        <div className="flex items-center gap-6 text-sm text-gray-600">
+                          <div className="flex items-center">
+                            <span className="font-medium">Finance: ${deal.financeBalance?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <span className="font-medium">{deal.term}mo @ {deal.rate}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <span className="font-medium">Tier {deal.creditTier}</span>
                           </div>
                         </div>
                       </div>
