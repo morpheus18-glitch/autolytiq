@@ -180,6 +180,7 @@ The architecture follows a traditional full-stack pattern with modern tooling, e
 - **Centralized Lead Distribution**: Created comprehensive lead distribution configuration system under admin section with role assignment workflows and enterprise-grade rule management
 - **System-Wide Configuration**: Built complete system settings panel with general defaults, lead management policies, sales configuration, notification preferences, role hierarchy, and external integrations
 - **Customer-to-Deal Flow Fix**: Fixed the critical routing issue in customer → showroom → deal workflow; customers now properly navigate from customer page to showroom manager to deals page with correct data transfer
+- **Showroom Session Creation Fix**: Resolved customer to showroom workflow issues by fixing API request format, trackInteraction function calls, and database schema mismatches for notifications table
 - **Comprehensive Enterprise Settings**: Added 8-section enterprise configuration system matching VinSolutions/CDK standards with dealership information, prospects management, finance configuration, DSP automation, marketing settings, and internet lead processing
 - **OAuth Callback Domain Fix**: Updated Google, GitHub, and Apple OAuth callback URLs to use "autolytiq.com" domain for proper authentication redirects in production environment
 - **Enterprise-Grade Component Integration**: Created comprehensive enterprise SaaS platform with unified dashboard, smart workflows, and seamless component integration

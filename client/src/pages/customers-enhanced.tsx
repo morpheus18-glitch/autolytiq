@@ -48,27 +48,29 @@ export default function Customers() {
     },
   });
 
+  const { trackInteraction } = usePixelTracker();
+
   const handleEdit = (customer: Customer) => {
-    trackInteraction('customer_edit', { customerId: customer.id, customerName: customer.name });
+    trackInteraction('customer_edit', 'edit-button', customer.id);
     setSelectedCustomer(customer);
     setIsEditModalOpen(true);
   };
 
   const handleAdd = () => {
-    trackInteraction('customer_add', { elementId: 'add-customer-button' });
+    trackInteraction('customer_add', 'add-customer-button');
     setSelectedCustomer(null);
     setIsAddModalOpen(true);
   };
 
   const handleView = (customer: Customer) => {
-    trackInteraction('customer_view', { customerId: customer.id, customerName: customer.name });
+    trackInteraction('customer_view', 'view-button', customer.id);
     setSelectedCustomer(customer);
     setIsDetailModalOpen(true);
   };
 
   const handleDelete = (id: number) => {
     if (confirm('Are you sure you want to delete this customer?')) {
-      trackInteraction('customer_delete', { customerId: id });
+      trackInteraction('customer_delete', 'delete-button', id);
       deleteCustomerMutation.mutate(id);
     }
   };
@@ -85,38 +87,46 @@ export default function Customers() {
 
   const [isStartingSession, setIsStartingSession] = useState(false);
 
-  const handleStartShowroomSession = (customer: Customer) => {
+  const handleStartShowroomSession = async (customer: Customer) => {
     if (isStartingSession) return; // Prevent multiple clicks
     
     setIsStartingSession(true);
-    trackInteraction('showroom_session_start', `customer-${customer.id}`, customer.id);
+    trackInteraction('showroom_session_start', `customer-${customer.id}`);
     
-    // Create showroom session data
-    const sessionData = {
-      customerId: customer.id,
-      eventStatus: 'working',
-      dealStage: 'vehicle_selection',
-      notes: `Started showroom visit for ${customer.firstName} ${customer.lastName}`,
-      sessionDate: new Date().toISOString().split('T')[0],
-    };
+    try {
+      // Create showroom session data
+      const sessionData = {
+        customerId: customer.id,
+        eventStatus: 'working',
+        dealStage: 'vehicle_selection',
+        notes: `Started showroom visit for ${customer.firstName} ${customer.lastName}`,
+        sessionDate: new Date().toISOString().split('T')[0],
+      };
 
-    // Create the session directly via API
-    apiRequest('/api/showroom-sessions', {
-      method: 'POST',
-      body: sessionData,
-    })
-    .then(async (response) => {
+      // Create the session directly via API
+      const response = await apiRequest('/api/showroom-sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sessionData),
+      });
+      
       const newSession = await response.json();
       setIsStartingSession(false);
-      toast({ title: 'Customer visit started successfully' });
+      toast({ 
+        title: 'Customer visit started successfully',
+        description: `Session ${newSession.id} created for ${customer.firstName} ${customer.lastName}`
+      });
       // Navigate to showroom manager
       navigate('/showroom-manager');
-    })
-    .catch((error) => {
+    } catch (error) {
       setIsStartingSession(false);
       console.error('Error creating session:', error);
-      toast({ title: 'Error starting showroom session', description: error.message || 'Failed to create session', variant: 'destructive' });
-    });
+      toast({ 
+        title: 'Error starting showroom session', 
+        description: error instanceof Error ? error.message : 'Failed to create session', 
+        variant: 'destructive' 
+      });
+    }
   };
 
   return (
