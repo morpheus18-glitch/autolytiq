@@ -132,9 +132,11 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
         <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 md:space-x-3">
-              <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Car className="text-white text-sm md:text-lg" />
-              </div>
+              <img 
+                src="/attached_assets/60460DF2-3086-47E0-AF52-CED6FEB5E75C_1753166830119.png" 
+                alt="AiQ Logo" 
+                className="w-8 h-8 md:w-10 md:h-10 object-contain flex-shrink-0"
+              />
               <div>
                 <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100">AutolytiQ</h1>
                 <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">Dealership Management</p>
