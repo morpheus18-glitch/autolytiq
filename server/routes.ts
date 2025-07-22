@@ -2373,6 +2373,152 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Showroom session routes
+  app.get("/api/showroom/sessions", async (req, res) => {
+    try {
+      // Mock showroom sessions data for now
+      const mockSessions = [
+        {
+          id: 'session-1',
+          customerId: 1,
+          status: 'active',
+          startTime: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+          salesConsultant: 'Mike Johnson',
+          interestLevel: 'high',
+          vehiclesViewed: ['2024 Toyota Camry', '2024 Honda Accord'],
+          notes: 'Very interested in hybrid options, discussing financing',
+          estimatedValue: 28000,
+          nextAction: 'Schedule test drive',
+          customerName: 'John Smith'
+        },
+        {
+          id: 'session-2',
+          customerId: 2,
+          status: 'active',
+          startTime: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+          salesConsultant: 'Sarah Wilson',
+          interestLevel: 'medium',
+          vehiclesViewed: ['2023 Ford F-150'],
+          notes: 'Looking for work truck, price sensitive',
+          estimatedValue: 35000,
+          nextAction: 'Review trade-in value',
+          customerName: 'David Johnson'
+        },
+        {
+          id: 'session-3',
+          customerId: 8,
+          status: 'active',
+          startTime: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+          salesConsultant: 'Tom Mitchell',
+          interestLevel: 'high',
+          vehiclesViewed: ['2024 Lexus RX'],
+          notes: 'Ready to purchase, just finalizing details',
+          estimatedValue: 52000,
+          nextAction: 'Complete paperwork',
+          customerName: 'Maria Garcia'
+        },
+        {
+          id: 'session-4',
+          customerId: 3,
+          status: 'completed',
+          startTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          endTime: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
+          salesConsultant: 'David Chen',
+          interestLevel: 'high',
+          vehiclesViewed: ['2024 BMW X5', '2024 Audi Q7'],
+          notes: 'Completed visit, scheduling follow-up',
+          estimatedValue: 65000,
+          nextAction: 'Follow up tomorrow',
+          customerName: 'Robert Williams'
+        },
+        {
+          id: 'session-5',
+          customerId: 5,
+          status: 'completed',
+          startTime: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+          endTime: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+          salesConsultant: 'Jennifer Walsh',
+          interestLevel: 'medium',
+          vehiclesViewed: ['2024 Subaru Outback'],
+          notes: 'Customer needs time to think',
+          estimatedValue: 32000,
+          nextAction: 'Call back in 3 days',
+          customerName: 'Lisa Brown'
+        },
+        {
+          id: 'session-6',
+          customerId: 4,
+          status: 'sold',
+          startTime: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+          endTime: new Date(Date.now() - 2.5 * 60 * 60 * 1000).toISOString(),
+          salesConsultant: 'Lisa Rodriguez',
+          interestLevel: 'high',
+          vehiclesViewed: ['2024 Mercedes C-Class'],
+          notes: 'SOLD! Customer purchased Mercedes C-Class',
+          estimatedValue: 45000,
+          nextAction: 'Schedule delivery',
+          customerName: 'Michael Davis'
+        },
+        {
+          id: 'session-7',
+          customerId: 6,
+          status: 'sold',
+          startTime: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+          endTime: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+          salesConsultant: 'Mark Stevens',
+          interestLevel: 'high',
+          vehiclesViewed: ['2024 Chevrolet Silverado'],
+          notes: 'SOLD! Excellent deal on Silverado',
+          estimatedValue: 38000,
+          nextAction: 'Delivery scheduled for Friday',
+          customerName: 'Jennifer Wilson'
+        }
+      ];
+      
+      res.json(mockSessions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch showroom sessions" });
+    }
+  });
+
+  app.patch("/api/showroom/sessions/:id", async (req, res) => {
+    try {
+      const sessionId = req.params.id;
+      const updateData = req.body;
+      
+      console.log(`Updating showroom session ${sessionId}:`, updateData);
+      
+      // Mock response for now - in production this would update the database
+      res.json({ 
+        id: sessionId, 
+        ...updateData,
+        updated: true 
+      });
+    } catch (error) {
+      console.error('Error updating showroom session:', error);
+      res.status(500).json({ message: "Failed to update session" });
+    }
+  });
+
+  app.post("/api/showroom/sessions/:id/close", async (req, res) => {
+    try {
+      const sessionId = req.params.id;
+      
+      console.log(`Closing showroom session ${sessionId}`);
+      
+      // Mock response for now - in production this would update the database
+      res.json({ 
+        id: sessionId, 
+        status: 'completed',
+        endTime: new Date().toISOString(),
+        closed: true 
+      });
+    } catch (error) {
+      console.error('Error closing showroom session:', error);
+      res.status(500).json({ message: "Failed to close session" });
+    }
+  });
+
   // Communication API Routes - Phone Calls
   app.get('/api/customers/:id/calls', async (req, res) => {
     try {
