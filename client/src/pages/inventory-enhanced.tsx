@@ -3,6 +3,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
+import { trackInteraction } from '@/lib/pixel-tracker';
 import { apiRequest } from '@/lib/queryClient';
 import EnhancedInventorySearch from '@/components/enhanced-inventory-search';
 import InventoryTable from '@/components/inventory/inventory-table';
@@ -17,7 +18,7 @@ import type { Vehicle } from '@shared/schema';
 export default function Inventory() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { trackInteraction } = usePixelTracker();
+  usePixelTracker(); // Initialize pixel tracking
   const [, setLocation] = useLocation();
   
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
@@ -62,43 +63,43 @@ export default function Inventory() {
   });
 
   const handleEdit = (vehicle: Vehicle) => {
-    trackInteraction('vehicle_edit', `vehicle-${vehicle.id}`, vehicle.id);
+    trackInteraction('vehicle_edit', { vehicleId: vehicle.id, make: vehicle.make, model: vehicle.model });
     setSelectedVehicle(vehicle);
     setIsModalOpen(true);
   };
 
   const handleAdd = () => {
-    trackInteraction('vehicle_add', 'add-vehicle-button');
+    trackInteraction('vehicle_add', { elementId: 'add-vehicle-button' });
     setSelectedVehicle(null);
     setIsModalOpen(true);
   };
 
   const handleView = (vehicle: Vehicle) => {
-    trackInteraction('vehicle_view', `vehicle-${vehicle.id}`, vehicle.id);
+    trackInteraction('vehicle_view', { vehicleId: vehicle.id, make: vehicle.make, model: vehicle.model });
     // Navigate to vehicle detail page using wouter
     setLocation(`/inventory/${vehicle.id}`);
   };
 
   const handleDelete = (id: number) => {
     if (confirm('Are you sure you want to delete this vehicle?')) {
-      trackInteraction('vehicle_delete', `vehicle-${id}`, id);
+      trackInteraction('vehicle_delete', { vehicleId: id });
       deleteMutation.mutate(id);
     }
   };
 
   const handleGeneratePricing = (vehicle: Vehicle) => {
-    trackInteraction('pricing_insights', `vehicle-${vehicle.id}`, vehicle.id);
+    trackInteraction('pricing_insights', { vehicleId: vehicle.id, make: vehicle.make, model: vehicle.model });
     generatePricingMutation.mutate(vehicle);
   };
 
   const handleExport = () => {
-    trackInteraction('inventory_export', 'export-button');
+    trackInteraction('inventory_export', { elementId: 'export-button' });
     // Export functionality
     toast({ title: 'Export started', description: 'Your inventory data is being exported...' });
   };
 
   const handleImport = () => {
-    trackInteraction('inventory_import', 'import-button');
+    trackInteraction('inventory_import', { elementId: 'import-button' });
     // Import functionality
     toast({ title: 'Import ready', description: 'Select a file to import inventory data...' });
   };

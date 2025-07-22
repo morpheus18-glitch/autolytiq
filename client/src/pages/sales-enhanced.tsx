@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
+import { trackInteraction } from '@/lib/pixel-tracker';
 import { apiRequest } from '@/lib/queryClient';
 import EnhancedSalesSearch from '@/components/enhanced-sales-search';
 import LeadModal from '@/components/lead-modal';
@@ -25,7 +26,7 @@ import type { Lead } from '@shared/schema';
 export default function Sales() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { trackInteraction } = usePixelTracker();
+  usePixelTracker(); // Initialize pixel tracking
   
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -46,36 +47,36 @@ export default function Sales() {
   });
 
   const handleEdit = (lead: Lead) => {
-    trackInteraction('lead_edit', `lead-${lead.id}`, lead.id);
+    trackInteraction('lead_edit', { leadId: lead.id, leadNumber: lead.leadNumber });
     setSelectedLead(lead);
     setIsEditModalOpen(true);
   };
 
   const handleAdd = () => {
-    trackInteraction('lead_add', 'add-lead-button');
+    trackInteraction('lead_add', { elementId: 'add-lead-button' });
     setSelectedLead(null);
     setIsAddModalOpen(true);
   };
 
   const handleView = (lead: Lead) => {
-    trackInteraction('lead_view', `lead-${lead.id}`, lead.id);
+    trackInteraction('lead_view', { leadId: lead.id, leadNumber: lead.leadNumber });
     // Could open a detailed view modal here
   };
 
   const handleDelete = (id: number) => {
     if (confirm('Are you sure you want to delete this lead?')) {
-      trackInteraction('lead_delete', `lead-${id}`, id);
+      trackInteraction('lead_delete', { leadId: id });
       deleteLeadMutation.mutate(id);
     }
   };
 
   const handleExport = () => {
-    trackInteraction('sales_export', 'export-button');
+    trackInteraction('sales_export', { elementId: 'export-button' });
     toast({ title: 'Export started', description: 'Your sales data is being exported...' });
   };
 
   const handleImport = () => {
-    trackInteraction('sales_import', 'import-button');
+    trackInteraction('sales_import', { elementId: 'import-button' });
     toast({ title: 'Import ready', description: 'Select a file to import sales data...' });
   };
 
