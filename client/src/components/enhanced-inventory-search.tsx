@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Edit, Trash2, Eye, Target, Car, DollarSign, Calendar, MapPin } from "lucide-react";
+import { Link } from "wouter";
 import type { Vehicle } from "@shared/schema";
 
 interface EnhancedInventorySearchProps {
@@ -317,9 +318,9 @@ export default function EnhancedInventorySearch({
                   <TableRow key={vehicle.id}>
                     <TableCell>
                       <div>
-                        <div className="font-medium">
+                        <Link href={`/inventory/${vehicle.id}`} className="font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">
                           {vehicle.year} {vehicle.make} {vehicle.model}
-                        </div>
+                        </Link>
                         <div className="text-sm text-gray-500">
                           {vehicle.color} • {vehicle.transmission} • {vehicle.fuelType}
                         </div>
