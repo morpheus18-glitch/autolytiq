@@ -35,9 +35,8 @@ import ServiceReportsPage from "@/pages/service/reports";
 import FinancialReportsPage from "@/pages/accounting/reports";
 import PayrollPage from "@/pages/accounting/payroll";
 import TransactionsPage from "@/pages/accounting/transactions";
-import Sidebar from "@/components/sidebar";
+import SidebarManager from "@/components/sidebar-manager";
 import { usePixelTracker } from "@/hooks/use-pixel-tracker";
-import { useState } from "react";
 import AuthTest from "@/pages/auth-test";
 // Communication Pages
 import TextingPortal from "@/pages/customers/texting-portal";
@@ -59,7 +58,6 @@ function Router() {
   // Initialize pixel tracking for the entire app
   usePixelTracker();
   
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -84,26 +82,9 @@ function Router() {
   }
   
   return (
-    <div className="layout h-screen bg-background flex flex-col md:flex-row">
-      {/* Mobile overlay for sidebar */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-      
-      {/* Sidebar */}
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onClose={() => setIsSidebarOpen(false)}
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-      />
-      
-      {/* Main content area */}
-      <div className="content flex-1 min-w-0 overflow-hidden flex flex-col">
-        <EnterpriseHeader />
-        <div className="h-full overflow-auto bg-background pb-16 md:pb-0 pt-2">
+    <SidebarManager>
+      <EnterpriseHeader />
+      <div className="h-full overflow-auto bg-background pb-16 md:pb-0 pt-2">
           <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/inventory" component={Inventory} />
@@ -152,13 +133,9 @@ function Router() {
           <Route path="/accounting/transactions" component={TransactionsPage} />
           
           <Route component={NotFound} />
-          </Switch>
-        </div>
+        </Switch>
       </div>
-
-      {/* Mobile Navigation */}
-      <MobileNavigation />
-    </div>
+    </SidebarManager>
   );
 }
 
