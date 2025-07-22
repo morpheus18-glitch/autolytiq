@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MobileDeskingTool as MobileDeskingToolComponent } from "./mobile-desking-tool";
 import { 
   Calculator, 
   DollarSign, 
@@ -26,6 +27,20 @@ interface DeskingToolProps {
 }
 
 export function FunctionalDeskingTool({ dealId, onSave }: DeskingToolProps) {
+  // Check if we're on mobile
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const [formData, setFormData] = useState({
     // Vehicle Information
     stockNumber: "KM5543",
@@ -182,38 +197,43 @@ export function FunctionalDeskingTool({ dealId, onSave }: DeskingToolProps) {
   const financeCompanies = ["Toyota Financial", "Honda Finance", "Ford Credit", "Chase Auto", "Wells Fargo", "Capital One", "Ally Financial"];
   const termOptions = [24, 36, 48, 60, 72, 84];
 
+  // Return mobile version on small screens
+  if (isMobile) {
+    return <MobileDeskingToolComponent dealId={dealId} onSave={onSave} />;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
+    <div className="min-h-screen bg-gray-100 p-2 md:p-4">
       <div className="max-w-7xl mx-auto">
         {/* Professional Header */}
         <div className="bg-white border border-gray-300 rounded-t-lg shadow-sm">
-          <div className="bg-blue-600 text-white px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center space-x-6 text-sm">
-              <span className="font-medium">Deal Desk Manager</span>
-              <span>Deal #{dealId}</span>
-              <span className="bg-green-600 px-3 py-1 rounded">Active</span>
+          <div className="bg-blue-600 text-white px-3 md:px-6 py-3 flex items-center justify-between">
+            <div className="flex items-center space-x-2 md:space-x-6 text-xs md:text-sm">
+              <span className="font-medium">Deal Desk</span>
+              <span className="hidden sm:inline">Deal #{dealId}</span>
+              <span className="bg-green-600 px-2 md:px-3 py-1 rounded text-xs">Active</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <Button size="sm" variant="outline" className="text-white border-white hover:bg-white hover:text-blue-600">
-                <Printer className="w-4 h-4 mr-1" />
-                Print
+            <div className="flex items-center space-x-1 md:space-x-2">
+              <Button size="sm" variant="outline" className="text-white border-white hover:bg-white hover:text-blue-600 h-8 px-2 md:px-3">
+                <Printer className="w-4 h-4 md:mr-1" />
+                <span className="hidden md:inline">Print</span>
               </Button>
-              <Button size="sm" variant="outline" className="text-white border-white hover:bg-white hover:text-blue-600">
-                <Save className="w-4 h-4 mr-1" />
-                Save Deal
+              <Button size="sm" variant="outline" className="text-white border-white hover:bg-white hover:text-blue-600 h-8 px-2 md:px-3">
+                <Save className="w-4 h-4 md:mr-1" />
+                <span className="hidden md:inline">Save</span>
               </Button>
-              <Button size="sm" onClick={handleSave} className="bg-green-600 hover:bg-green-700">
-                <Calculator className="w-4 h-4 mr-1" />
-                Calculate
+              <Button size="sm" onClick={handleSave} className="bg-green-600 hover:bg-green-700 h-8 px-2 md:px-3">
+                <Calculator className="w-4 h-4 md:mr-1" />
+                <span className="hidden md:inline">Calculate</span>
               </Button>
             </div>
           </div>
 
           {/* Main Content Grid */}
-          <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="p-2 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-2 md:gap-6">
             
             {/* Left Column - Vehicle & Customer Info */}
-            <div className="space-y-6">
+            <div className="space-y-3 md:space-y-6">
               {/* Vehicle Information */}
               <Card>
                 <CardHeader className="pb-3">
@@ -222,20 +242,20 @@ export function FunctionalDeskingTool({ dealId, onSave }: DeskingToolProps) {
                     Vehicle Information
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-2 md:space-y-4">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label className="text-sm font-medium">Stock Number</Label>
                       <Input 
                         value={formData.stockNumber}
                         onChange={(e) => updateField('stockNumber', e.target.value)}
-                        className="h-8"
+                        className="h-10 md:h-8 text-base md:text-sm"
                       />
                     </div>
                     <div>
                       <Label className="text-sm font-medium">Year</Label>
                       <Select value={formData.year} onValueChange={(value) => updateField('year', value)}>
-                        <SelectTrigger className="h-8">
+                        <SelectTrigger className="h-10 md:h-8 text-base md:text-sm">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -315,7 +335,7 @@ export function FunctionalDeskingTool({ dealId, onSave }: DeskingToolProps) {
                     Customer Information
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-2 md:space-y-4">
                   <div>
                     <Label className="text-sm font-medium">Customer Name</Label>
                     <Input 
@@ -365,7 +385,7 @@ export function FunctionalDeskingTool({ dealId, onSave }: DeskingToolProps) {
             </div>
 
             {/* Center Column - Pricing & Trade */}
-            <div className="space-y-6">
+            <div className="space-y-3 md:space-y-6">
               {/* Pricing Information */}
               <Card>
                 <CardHeader className="pb-3">
@@ -374,7 +394,7 @@ export function FunctionalDeskingTool({ dealId, onSave }: DeskingToolProps) {
                     Pricing Structure
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-2 md:space-y-4">
                   <div>
                     <Label className="text-sm font-medium">MSRP</Label>
                     <Input 
@@ -416,7 +436,7 @@ export function FunctionalDeskingTool({ dealId, onSave }: DeskingToolProps) {
                     Trade Information
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-2 md:space-y-4">
                   <div className="grid grid-cols-3 gap-3">
                     <div>
                       <Label className="text-sm font-medium">Year</Label>
@@ -535,7 +555,7 @@ export function FunctionalDeskingTool({ dealId, onSave }: DeskingToolProps) {
             </div>
 
             {/* Right Column - Finance & Calculations */}
-            <div className="space-y-6">
+            <div className="space-y-3 md:space-y-6">
               {/* Finance Information */}
               <Card>
                 <CardHeader className="pb-3">
@@ -544,7 +564,7 @@ export function FunctionalDeskingTool({ dealId, onSave }: DeskingToolProps) {
                     Finance Details
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-2 md:space-y-4">
                   <div>
                     <Label className="text-sm font-medium">Finance Company</Label>
                     <Select value={formData.financeCompany} onValueChange={(value) => updateField('financeCompany', value)}>
@@ -660,16 +680,16 @@ export function FunctionalDeskingTool({ dealId, onSave }: DeskingToolProps) {
 
               {/* Action Buttons */}
               <div className="space-y-3">
-                <Button onClick={handleSave} className="w-full bg-blue-600 hover:bg-blue-700">
-                  <Save className="w-4 h-4 mr-2" />
+                <Button onClick={handleSave} className="w-full h-12 md:h-10 bg-blue-600 hover:bg-blue-700 text-base md:text-sm">
+                  <Save className="w-5 h-5 md:w-4 md:h-4 mr-2" />
                   Save Deal Structure
                 </Button>
-                <Button variant="outline" className="w-full">
-                  <Printer className="w-4 h-4 mr-2" />
+                <Button variant="outline" className="w-full h-12 md:h-10 text-base md:text-sm">
+                  <Printer className="w-5 h-5 md:w-4 md:h-4 mr-2" />
                   Print Deal Sheet
                 </Button>
-                <Button variant="outline" className="w-full">
-                  <FileText className="w-4 h-4 mr-2" />
+                <Button variant="outline" className="w-full h-12 md:h-10 text-base md:text-sm">
+                  <FileText className="w-5 h-5 md:w-4 md:h-4 mr-2" />
                   Generate Paperwork
                 </Button>
               </div>
