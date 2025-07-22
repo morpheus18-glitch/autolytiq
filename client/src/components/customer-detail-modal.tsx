@@ -268,6 +268,76 @@ export default function CustomerDetailModal({ customer, open, onOpenChange }: Cu
     }
   };
 
+  // Lifecycle timeline helper functions
+  const getEventColor = (eventType: string) => {
+    switch (eventType) {
+      case 'page_view': return 'border-blue-500 text-blue-600';
+      case 'vehicle_view': return 'border-green-500 text-green-600';
+      case 'contact_form': return 'border-orange-500 text-orange-600';
+      case 'phone_call': return 'border-purple-500 text-purple-600';
+      case 'email_sent': return 'border-pink-500 text-pink-600';
+      case 'showroom_visit': return 'border-indigo-500 text-indigo-600';
+      case 'test_drive': return 'border-yellow-500 text-yellow-600';
+      case 'deal_created': return 'border-emerald-500 text-emerald-600';
+      case 'financing_app': return 'border-cyan-500 text-cyan-600';
+      case 'trade_appraisal': return 'border-teal-500 text-teal-600';
+      default: return 'border-gray-500 text-gray-600';
+    }
+  };
+
+  const getEventIcon = (eventType: string) => {
+    switch (eventType) {
+      case 'page_view': return <Eye className="w-4 h-4" />;
+      case 'vehicle_view': return <Car className="w-4 h-4" />;
+      case 'contact_form': return <Mail className="w-4 h-4" />;
+      case 'phone_call': return <Phone className="w-4 h-4" />;
+      case 'email_sent': return <Mail className="w-4 h-4" />;
+      case 'showroom_visit': return <MapPin className="w-4 h-4" />;
+      case 'test_drive': return <Car className="w-4 h-4" />;
+      case 'deal_created': return <ShoppingCart className="w-4 h-4" />;
+      case 'financing_app': return <CreditCard className="w-4 h-4" />;
+      case 'trade_appraisal': return <TrendingUp className="w-4 h-4" />;
+      default: return <Activity className="w-4 h-4" />;
+    }
+  };
+
+  const getEventTitle = (eventType: string, event: any) => {
+    switch (eventType) {
+      case 'page_view': return `Viewed ${event.pageTitle || 'Page'}`;
+      case 'vehicle_view': return `Viewed ${event.vehicleInfo || 'Vehicle'}`;
+      case 'contact_form': return 'Submitted Contact Form';
+      case 'phone_call': return 'Phone Call Made';
+      case 'email_sent': return 'Email Sent';
+      case 'showroom_visit': return 'Showroom Visit';
+      case 'test_drive': return 'Test Drive Scheduled';
+      case 'deal_created': return 'Deal Created';
+      case 'financing_app': return 'Financing Application';
+      case 'trade_appraisal': return 'Trade-in Appraisal';
+      default: return 'Customer Activity';
+    }
+  };
+
+  const getEventDescription = (event: any) => {
+    switch (event.type) {
+      case 'page_view': 
+        return `Spent ${Math.round((event.timeOnPage || 0) / 60)} minutes on ${event.pageUrl || 'this page'}`;
+      case 'vehicle_view': 
+        return `Interested in ${event.vehicleInfo || 'vehicle details'} - viewed for ${Math.round((event.timeOnPage || 0) / 60)} minutes`;
+      case 'contact_form': 
+        return `Form submitted with inquiry: ${event.message || 'No message provided'}`;
+      case 'phone_call': 
+        return `${event.duration || 'Unknown'} minute call with ${event.salesperson || 'sales team'}`;
+      case 'showroom_visit': 
+        return `In-person visit to showroom - ${event.status || 'status unknown'}`;
+      case 'test_drive': 
+        return `Test drive of ${event.vehicleInfo || 'vehicle'} - ${event.duration || 'duration unknown'}`;
+      case 'deal_created': 
+        return `Deal initiated for ${event.vehicleInfo || 'vehicle'} - $${event.amount || 'amount pending'}`;
+      default: 
+        return event.description || 'Customer engagement activity';
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh] w-[95vw] md:w-full overflow-hidden">
@@ -319,6 +389,154 @@ export default function CustomerDetailModal({ customer, open, onOpenChange }: Cu
           </TabsList>
 
           <ScrollArea className="h-[50vh] md:h-[600px] w-full">
+            <TabsContent value="lifecycle" className="space-y-4 p-2 md:p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Activity className="w-5 h-5" />
+                  Customer Lifecycle Timeline
+                </h3>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-xs">
+                    {lifecycle?.totalEvents || 0} Events Tracked
+                  </Badge>
+                  {(!lifecycle?.events || lifecycle.events.length === 0) && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        try {
+                          const response = await fetch(`/api/customers/${customer.id}/demo-tracking`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
+                          });
+                          if (response.ok) {
+                            queryClient.invalidateQueries({ queryKey: ["/api/customers", customer.id, "lifecycle"] });
+                            toast({ title: "Demo tracking data created successfully!", variant: "default" });
+                          }
+                        } catch (error) {
+                          toast({ title: "Failed to create demo data", variant: "destructive" });
+                        }
+                      }}
+                    >
+                      <Camera className="w-3 h-3 mr-1" />
+                      Generate Demo
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {loadingLifecycle ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-4 text-gray-500">Loading customer journey...</p>
+                </div>
+              ) : lifecycle && lifecycle.events?.length > 0 ? (
+                <div className="space-y-4">
+                  {/* Timeline Stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <Card className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-gray-500">Page Views</p>
+                          <p className="text-lg font-semibold">{lifecycle.stats?.totalPageViews || 0}</p>
+                        </div>
+                        <Eye className="w-4 h-4 text-blue-600" />
+                      </div>
+                    </Card>
+                    <Card className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-gray-500">Vehicle Views</p>
+                          <p className="text-lg font-semibold">{lifecycle.stats?.vehicleViews || 0}</p>
+                        </div>
+                        <Car className="w-4 h-4 text-green-600" />
+                      </div>
+                    </Card>
+                    <Card className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-gray-500">Session Duration</p>
+                          <p className="text-lg font-semibold">{Math.round((lifecycle.stats?.avgSessionDuration || 0) / 60)}m</p>
+                        </div>
+                        <Clock className="w-4 h-4 text-orange-600" />
+                      </div>
+                    </Card>
+                    <Card className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-gray-500">Interactions</p>
+                          <p className="text-lg font-semibold">{lifecycle.stats?.totalInteractions || 0}</p>
+                        </div>
+                        <MousePointer className="w-4 h-4 text-purple-600" />
+                      </div>
+                    </Card>
+                  </div>
+
+                  {/* Timeline Events */}
+                  <div className="relative">
+                    <div className="absolute left-6 top-0 h-full w-0.5 bg-gradient-to-b from-blue-500 to-purple-500"></div>
+                    
+                    {lifecycle.events.map((event: any, index: number) => (
+                      <div key={`${event.type}-${event.timestamp}-${index}`} className="relative flex items-start space-x-4 pb-6">
+                        <div className={`relative z-10 flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center border-2 ${getEventColor(event.type)} bg-white`}>
+                          {getEventIcon(event.type)}
+                        </div>
+                        
+                        <div className="flex-grow">
+                          <Card className="p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-grow">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h4 className="font-medium text-sm">{getEventTitle(event.type, event)}</h4>
+                                  <Badge variant="outline" className="text-xs">
+                                    {event.type.replace('_', ' ').toUpperCase()}
+                                  </Badge>
+                                </div>
+                                
+                                <p className="text-xs text-gray-600 mb-2">{getEventDescription(event)}</p>
+                                
+                                {event.metadata && (
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                                    {event.deviceType && (
+                                      <span className="text-gray-500">Device: {event.deviceType}</span>
+                                    )}
+                                    {event.pageUrl && (
+                                      <span className="text-gray-500">Page: {event.pageUrl.substring(event.pageUrl.lastIndexOf('/') + 1) || 'Home'}</span>
+                                    )}
+                                    {event.timeOnPage && (
+                                      <span className="text-gray-500">Time: {Math.round(event.timeOnPage / 60)}m {event.timeOnPage % 60}s</span>
+                                    )}
+                                    {event.vehicleInfo && (
+                                      <span className="text-gray-500">Vehicle: {event.vehicleInfo}</span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div className="text-xs text-gray-400 ml-4 flex-shrink-0">
+                                {new Date(event.timestamp).toLocaleString()}
+                              </div>
+                            </div>
+                          </Card>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Activity className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <h4 className="text-lg font-medium text-gray-500 mb-2">No Activity Tracked</h4>
+                  <p className="text-sm text-gray-400 mb-4">
+                    This customer's online activity will appear here once they start browsing your inventory
+                  </p>
+                  <Badge variant="outline" className="text-xs">
+                    Pixel tracking is active and ready
+                  </Badge>
+                </div>
+              )}
+            </TabsContent>
+
             <TabsContent value="overview" className="space-y-4 p-2 md:p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card>
