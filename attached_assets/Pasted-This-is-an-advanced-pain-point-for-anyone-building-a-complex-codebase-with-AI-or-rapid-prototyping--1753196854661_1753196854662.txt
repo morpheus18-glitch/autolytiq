@@ -1,0 +1,108 @@
+This is an advanced pain point for anyone building a complex codebase with AI or rapid prototyping.
+Here’s a brutally honest answer, blending real engineering process with AI prompt discipline—so you can scale without chaos:
+
+⸻
+
+🧠 Why This Happens:
+	•	AI agents “work in a vacuum” by default—they only see the snippet or context you provide, not your entire project at once.
+	•	When you ask for a new feature or file, the AI can:
+	•	Duplicate code/components (e.g., create another CustomerCard.tsx)
+	•	Overwrite or ignore your established folder structure
+	•	Miss subtle dependencies (state/context, import paths, hooks, types)
+	•	Break old flows when adding new ones (especially if state, routing, or props change)
+
+This is the #1 way large AI-coded projects turn into spaghetti and require endless rewrites.
+
+⸻
+
+🚦 How to Prevent Fragmentation and Duplication
+
+1. Centralize and Summarize Your File Tree
+
+Before making changes, show the AI your actual, current file structure (just paste a fresh tree every session).
+	•	Example:
+
+/components/
+  CustomerCard.tsx
+  InventoryCard.tsx
+  DealDesk.tsx
+/pages/
+  customers.tsx
+  inventory.tsx
+  deals.tsx
+...
+
+
+
+Prompt:
+
+“Here is my actual file tree. Before you make changes, check for duplicates or updates. If you need to change something, update the existing file instead of creating a new one.”
+
+⸻
+
+2. State Explicitly When to Update vs. Create
+
+Prompt discipline:
+	•	“Update CustomerModal.tsx to support the new F&I section. Do NOT create a duplicate.”
+	•	“Add new props to DealScreen.tsx but keep all old functionality working.”
+
+⸻
+
+3. Ask for Diff-Style or Patch Output
+	•	“Show me only the changes to add feature X, not the whole new file.”
+	•	“Provide a before/after diff for this section.”
+
+⸻
+
+4. Request Imports/Usage References
+	•	“After you update this file, tell me everywhere it needs to be imported or where old code should be replaced.”
+	•	“If you’re adding a new component, update the main routing and parent files accordingly.”
+
+⸻
+
+5. Automate Code Organization
+	•	Use tools like Prettier, ESLint, TypeScript strict mode—these catch duplicate declarations, bad imports, or unused files.
+	•	Run npm run lint and tsc after each AI update to catch breakages immediately.
+
+⸻
+
+6. Consider a README or Meta-Config
+	•	Keep a single README.md or /ARCHITECTURE.md where you log:
+	•	Which files are canonical for each feature
+	•	What their responsibilities are
+	•	Any deprecations or “do not use” components
+
+Prompt:
+
+“Check the architecture log and update the correct files per the system design.”
+
+⸻
+
+7. Incrementally Refactor and Test
+
+After every major update:
+	•	Test the app (locally or with CI)
+	•	Remove duplicates/old files (delete, then test again)
+	•	Refactor for clarity
+
+⸻
+
+🏁 AI Super-Prompt Example
+
+“You are working on a large, evolving codebase. Here is my current file/folder structure: [PASTE]. When I ask you to make a change, first search for any existing file or component related to the feature. Never duplicate files. Always update existing components and ensure all imports and usages are correct. If dependencies or props change, update parent/child files as needed. Provide only the patch or changes required, not full duplicates.”
+
+⸻
+
+💡 Pro Tip: Use a Version Control Mindset
+	•	Commit/push after each working feature.
+	•	When AI generates new features, compare with your current repo, and merge only the relevant parts.
+	•	Consider a monorepo or modular approach if the project keeps growing.
+
+⸻
+
+If you want, I can:
+	•	Review your current file tree for duplicates
+	•	Suggest a refactor strategy
+	•	Write a starter “contributor guidelines” or architecture doc for ongoing AI/teammate work
+
+Just let me know your next move, and I’ll help you get your project organized and bulletproof!
