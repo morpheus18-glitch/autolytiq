@@ -17,10 +17,11 @@ const quickNavItems = [
   { name: 'Dashboard', href: '/', icon: BarChart3, color: 'text-blue-600' },
   { name: 'Customers', href: '/customers', icon: Users, color: 'text-green-600' },
   { name: 'Inventory', href: '/inventory', icon: Car, color: 'text-orange-600' },
-  { name: 'Workflows', href: '/workflow-assistant', icon: Workflow, color: 'text-purple-600' },
+  { name: 'Sales', href: '/sales', icon: MessageSquare, color: 'text-emerald-600' },
   { name: 'AI Search', href: '/ai-smart-search', icon: Brain, color: 'text-indigo-600' },
-  { name: 'Messages', href: '/communication-demo', icon: MessageSquare, color: 'text-emerald-600' },
-  { name: 'Settings', href: '/settings', icon: Settings, color: 'text-gray-600' }
+  { name: 'Workflows', href: '/workflow-assistant', icon: Workflow, color: 'text-purple-600' },
+  { name: 'Settings', href: '/admin/user-management', icon: Settings, color: 'text-gray-600' },
+  { name: 'Deal Desk', href: '/deal-desk', icon: Settings, color: 'text-red-600' }
 ];
 
 export default function MobileNavigation() {
