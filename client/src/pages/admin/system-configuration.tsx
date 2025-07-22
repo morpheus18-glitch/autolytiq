@@ -63,6 +63,7 @@ import type {
   InsertFiProduct,
 } from "@shared/schema";
 
+
 interface Lender {
   id: number;
   name: string;
@@ -182,13 +183,12 @@ export default function SystemConfiguration() {
         </CardHeader>
         <CardContent>
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="dealership">Dealership</TabsTrigger>
-              <TabsTrigger value="fi-products">F&I Products</TabsTrigger>
-              <TabsTrigger value="lenders">Lenders</TabsTrigger>
-              <TabsTrigger value="communication">Communication</TabsTrigger>
-              <TabsTrigger value="integrations">Integrations</TabsTrigger>
-              <TabsTrigger value="system">System</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-1">
+              <TabsTrigger value="dealership" className="text-xs md:text-sm">Dealership</TabsTrigger>
+              <TabsTrigger value="fi-products" className="text-xs md:text-sm">F&I</TabsTrigger>
+              <TabsTrigger value="lenders" className="text-xs md:text-sm">Lenders</TabsTrigger>
+              <TabsTrigger value="communication" className="text-xs md:text-sm">Comms</TabsTrigger>
+              <TabsTrigger value="system" className="text-xs md:text-sm">System</TabsTrigger>
             </TabsList>
 
             {/* Dealership Information Tab */}

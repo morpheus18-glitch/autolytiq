@@ -1,15 +1,21 @@
 import { 
   users, vehicles, customers, leads, sales, activities, visitorSessions, pageViews, customerInteractions, competitorAnalytics, competitivePricing, pricingInsights, merchandisingStrategies, marketTrends, deals, dealDocuments, dealApprovals, creditApplications, coApplicants, tradeVehicles, showroomVisits, salespersonNotes, showroomSessions,
+  // User Management Tables
+  systemUsers, userSessions, systemRoles, activityLog,
   // Advanced Enterprise Tables
   customerTimeline, aiInsights, collaborationThreads, collaborationMessages, kpiMetrics, duplicateCustomers, workflowTemplates, workflowExecutions, predictiveScores, marketBenchmarks,
   // F&I Tables
   creditPulls, lenderApplications, fiProducts, financeMenus, fiAuditLog,
   type User, type Vehicle, type Customer, type Lead, type Sale, type Activity, type VisitorSession, type PageView, type CustomerInteraction, type CompetitorAnalytics, type CompetitivePricing, type PricingInsights, type MerchandisingStrategies, type MarketTrends, type Deal, type DealDocument, type DealApproval, type CreditApplication, type CoApplicant, type TradeVehicle, type ShowroomVisit, type SalespersonNote, type ShowroomSession,
+  // User Management Types
+  type SystemUser, type UserSession, type SystemRole, type ActivityLogEntry,
   // Advanced Enterprise Types
   type CustomerTimeline, type AiInsights, type CollaborationThreads, type CollaborationMessages, type KpiMetrics, type DuplicateCustomers, type WorkflowTemplates, type WorkflowExecutions, type PredictiveScores, type MarketBenchmarks,
   // F&I Types
   type CreditPull, type LenderApplication, type FiProduct, type FinanceMenu, type FiAuditLog,
   type InsertUser, type InsertVehicle, type InsertCustomer, type InsertLead, type InsertSale, type InsertActivity, type InsertVisitorSession, type InsertPageView, type InsertCustomerInteraction, type InsertCompetitorAnalytics, type InsertCompetitivePricing, type InsertPricingInsights, type InsertMerchandisingStrategies, type InsertMarketTrends, type InsertDeal, type InsertDealDocument, type InsertDealApproval, type UpsertUser,
+  // User Management Insert Types
+  type InsertSystemUser, type InsertUserSession, type InsertSystemRole, type InsertActivityLogEntry,
   // Advanced Enterprise Insert Types
   type InsertCustomerTimeline, type InsertAiInsights, type InsertCollaborationThreads, type InsertCollaborationMessages, type InsertKpiMetrics, type InsertDuplicateCustomers, type InsertWorkflowTemplates, type InsertWorkflowExecutions, type InsertPredictiveScores, type InsertMarketBenchmarks,
   // F&I Insert Types
@@ -17,7 +23,7 @@ import {
 } from "@shared/schema";
 
 export interface IStorage {
-  // User operations
+  // User operations (OAuth users)
   getUsers(): Promise<User[]>;
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
@@ -25,6 +31,31 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User>;
   deleteUser(id: string): Promise<void>;
+
+  // System User operations (password auth)
+  getAllSystemUsers(): Promise<SystemUser[]>;
+  getSystemUserById(id: string): Promise<SystemUser | undefined>;
+  getSystemUserByEmail(email: string): Promise<SystemUser | undefined>;
+  createSystemUser(user: InsertSystemUser & { passwordHash: string }): Promise<SystemUser>;
+  updateSystemUser(id: string, updates: Partial<SystemUser>): Promise<SystemUser | undefined>;
+  deleteSystemUser(id: string): Promise<void>;
+  updateSystemUserLastLogin(id: string): Promise<void>;
+
+  // User Session operations
+  createUserSession(userId: string, token: string): Promise<string>;
+  getUserSession(token: string): Promise<UserSession | undefined>;
+  invalidateUserSession(token: string): Promise<void>;
+
+  // Role operations
+  getAllRoles(): Promise<SystemRole[]>;
+  getRoleById(id: string): Promise<SystemRole | undefined>;
+  createRole(role: InsertSystemRole): Promise<SystemRole>;
+  updateRole(id: string, updates: Partial<SystemRole>): Promise<SystemRole | undefined>;
+  deleteRole(id: string): Promise<void>;
+
+  // Activity logging
+  logActivity(activity: InsertActivityLogEntry): Promise<ActivityLogEntry>;
+  getActivityLog(filters: { userId?: string; limit?: number; offset?: number }): Promise<ActivityLogEntry[]>;
   
   // Vehicle operations
   getVehicles(): Promise<Vehicle[]>;
@@ -276,6 +307,12 @@ export class MemStorage implements IStorage {
   private financeMenus: Map<number, FinanceMenu>;
   private fiAuditLogs: Map<number, FiAuditLog>;
   
+  // System User Management Storage
+  private systemUsers: Map<string, SystemUser>;
+  private userSessions: Map<string, UserSession>;
+  private systemRoles: Map<string, SystemRole>;
+  private activityLogs: Map<string, ActivityLogEntry>;
+  
   // Advanced Enterprise Feature Storage
   private customerTimeline: Map<number, CustomerTimeline>;
   private aiInsights: Map<number, AiInsights>;
@@ -351,6 +388,12 @@ export class MemStorage implements IStorage {
     this.dealGross = new Map();
     this.accountingEntries = new Map();
     
+    // System User Management Map Initialization
+    this.systemUsers = new Map();
+    this.userSessions = new Map();
+    this.systemRoles = new Map();
+    this.activityLogs = new Map();
+    
     // F&I Map Initialization
     this.creditPulls = new Map();
     this.lenderApplications = new Map();
@@ -386,6 +429,7 @@ export class MemStorage implements IStorage {
     this.currentFiAuditLogId = 1;
     
     this.initializeDefaultData();
+    this.initializeSystemUserData();
   }
 
   private initializeDefaultData() {
@@ -2642,6 +2686,217 @@ export class MemStorage implements IStorage {
         updatedAt: new Date(Date.now() - 14400000).toISOString()
       }
     ];
+  }
+
+  // System User Management Methods
+  private initializeSystemUserData() {
+    // Create default system users with password authentication
+    const defaultUsers: SystemUser[] = [
+      {
+        id: 'admin_001',
+        email: 'admin@autolytiq.com',
+        firstName: 'System',
+        lastName: 'Administrator',
+        username: 'admin',
+        passwordHash: '$2b$10$rJ6O7x5h8xP0d2V9L1uKHOt3gMvW8.N5cX4kL6hS9rE2wQ4mT6uYi', // "admin123"
+        role: 'Administrator',
+        department: 'IT',
+        phone: '(555) 123-0001',
+        address: null,
+        bio: 'System administrator with full access',
+        profileImage: null,
+        isActive: true,
+        permissions: ['*'], // Full permissions
+        preferences: {
+          theme: 'light',
+          notifications: true,
+          emailUpdates: true,
+          timezone: 'America/New_York'
+        },
+        lastLogin: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'sales_001',
+        email: 'sarah@autolytiq.com',
+        firstName: 'Sarah',
+        lastName: 'Johnson',
+        username: 'sarah.johnson',
+        passwordHash: '$2b$10$rJ6O7x5h8xP0d2V9L1uKHOt3gMvW8.N5cX4kL6hS9rE2wQ4mT6uYi', // "password123"
+        role: 'Sales Manager',
+        department: 'Sales',
+        phone: '(555) 123-0002',
+        address: null,
+        bio: 'Senior sales manager with 8 years of experience',
+        profileImage: null,
+        isActive: true,
+        permissions: ['sales.*', 'customers.*', 'leads.*'],
+        preferences: {
+          theme: 'light',
+          notifications: true,
+          emailUpdates: false,
+          timezone: 'America/New_York'
+        },
+        lastLogin: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+    
+    const defaultRoles: SystemRole[] = [
+      {
+        id: 'role_admin',
+        name: 'Administrator',
+        description: 'Full system access and management capabilities',
+        permissions: ['*'],
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'role_sales',
+        name: 'Sales Manager',
+        description: 'Sales operations and customer management',
+        permissions: ['sales.*', 'customers.*', 'leads.*', 'inventory.read'],
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+
+    defaultUsers.forEach(user => this.systemUsers.set(user.id, user));
+    defaultRoles.forEach(role => this.systemRoles.set(role.id, role));
+  }
+
+  async getAllSystemUsers(): Promise<SystemUser[]> {
+    return Array.from(this.systemUsers.values()).map(user => ({
+      ...user,
+      passwordHash: undefined // Don't return password hash
+    })) as SystemUser[];
+  }
+
+  async getSystemUserById(id: string): Promise<SystemUser | undefined> {
+    const user = this.systemUsers.get(id);
+    if (user) {
+      return { ...user, passwordHash: undefined } as SystemUser;
+    }
+    return undefined;
+  }
+
+  async getSystemUserByEmail(email: string): Promise<SystemUser | undefined> {
+    return Array.from(this.systemUsers.values()).find(user => user.email === email);
+  }
+
+  async createSystemUser(userData: InsertSystemUser & { passwordHash: string }): Promise<SystemUser> {
+    const user: SystemUser = {
+      ...userData,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.systemUsers.set(user.id, user);
+    return { ...user, passwordHash: undefined } as SystemUser;
+  }
+
+  async updateSystemUser(id: string, updates: Partial<SystemUser>): Promise<SystemUser | undefined> {
+    const user = this.systemUsers.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = { ...user, ...updates, updatedAt: new Date() };
+    this.systemUsers.set(id, updatedUser);
+    return { ...updatedUser, passwordHash: undefined } as SystemUser;
+  }
+
+  async deleteSystemUser(id: string): Promise<void> {
+    this.systemUsers.delete(id);
+  }
+
+  async updateSystemUserLastLogin(id: string): Promise<void> {
+    const user = this.systemUsers.get(id);
+    if (user) {
+      user.lastLogin = new Date();
+      this.systemUsers.set(id, user);
+    }
+  }
+
+  async createUserSession(userId: string, token: string): Promise<string> {
+    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    
+    const session: UserSession = {
+      id: sessionId,
+      userId,
+      sessionToken: token,
+      expiresAt,
+      createdAt: new Date()
+    };
+    
+    this.userSessions.set(token, session);
+    return sessionId;
+  }
+
+  async getUserSession(token: string): Promise<UserSession | undefined> {
+    return this.userSessions.get(token);
+  }
+
+  async invalidateUserSession(token: string): Promise<void> {
+    this.userSessions.delete(token);
+  }
+
+  async getAllRoles(): Promise<SystemRole[]> {
+    return Array.from(this.systemRoles.values());
+  }
+
+  async getRoleById(id: string): Promise<SystemRole | undefined> {
+    return this.systemRoles.get(id);
+  }
+
+  async createRole(roleData: InsertSystemRole): Promise<SystemRole> {
+    const role: SystemRole = {
+      ...roleData,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.systemRoles.set(role.id, role);
+    return role;
+  }
+
+  async updateRole(id: string, updates: Partial<SystemRole>): Promise<SystemRole | undefined> {
+    const role = this.systemRoles.get(id);
+    if (!role) return undefined;
+    
+    const updatedRole = { ...role, ...updates, updatedAt: new Date() };
+    this.systemRoles.set(id, updatedRole);
+    return updatedRole;
+  }
+
+  async deleteRole(id: string): Promise<void> {
+    this.systemRoles.delete(id);
+  }
+
+  async logActivity(activityData: InsertActivityLogEntry): Promise<ActivityLogEntry> {
+    const activity: ActivityLogEntry = {
+      ...activityData,
+      timestamp: new Date()
+    };
+    this.activityLogs.set(activity.id, activity);
+    return activity;
+  }
+
+  async getActivityLog(filters: { userId?: string; limit?: number; offset?: number }): Promise<ActivityLogEntry[]> {
+    let activities = Array.from(this.activityLogs.values());
+    
+    if (filters.userId) {
+      activities = activities.filter(activity => activity.userId === filters.userId);
+    }
+    
+    // Sort by timestamp descending
+    activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    // Apply pagination
+    const limit = filters.limit || 50;
+    const offset = filters.offset || 0;
+    return activities.slice(offset, offset + limit);
   }
 }
 

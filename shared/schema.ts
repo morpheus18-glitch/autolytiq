@@ -1099,6 +1099,75 @@ export type InsertPermission = z.infer<typeof insertPermissionSchema>;
 export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpsertUser = typeof users.$inferInsert;
+
+// System User Management Schema (Enhanced with password auth)
+export const systemUsers = pgTable("system_users", {
+  id: varchar("id").primaryKey().notNull(),
+  email: varchar("email").notNull().unique(),
+  firstName: varchar("first_name").notNull(),
+  lastName: varchar("last_name").notNull(),
+  username: varchar("username").notNull().unique(),
+  passwordHash: varchar("password_hash").notNull(),
+  role: varchar("role").notNull(),
+  department: varchar("department").notNull(),
+  phone: varchar("phone"),
+  address: text("address"),
+  bio: text("bio"),
+  profileImage: varchar("profile_image_url"),
+  isActive: boolean("is_active").default(true),
+  permissions: text("permissions").array().$type<string[]>(),
+  preferences: jsonb("preferences").$type<{
+    theme: string;
+    notifications: boolean;
+    emailUpdates: boolean;
+    timezone: string;
+  }>(),
+  lastLogin: timestamp("last_login"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const userSessions = pgTable("user_sessions", {
+  id: varchar("id").primaryKey().notNull(),
+  userId: varchar("user_id").notNull().references(() => systemUsers.id, { onDelete: 'cascade' }),
+  sessionToken: varchar("session_token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const systemRoles = pgTable("system_roles", {
+  id: varchar("id").primaryKey().notNull(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  permissions: text("permissions").array().$type<string[]>(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const activityLog = pgTable("activity_log", {
+  id: varchar("id").primaryKey().notNull(),
+  userId: varchar("user_id").notNull().references(() => systemUsers.id, { onDelete: 'cascade' }),
+  action: varchar("action").notNull(),
+  details: text("details"),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+// User Management Insert Schemas
+export const insertSystemUserSchema = createInsertSchema(systemUsers).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertUserSessionSchema = createInsertSchema(userSessions).omit({ id: true, createdAt: true });
+export const insertSystemRoleSchema = createInsertSchema(systemRoles).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertActivityLogSchema = createInsertSchema(activityLog).omit({ id: true, timestamp: true });
+
+// User Management Types
+export type SystemUser = typeof systemUsers.$inferSelect;
+export type InsertSystemUser = z.infer<typeof insertSystemUserSchema>;
+export type UserSession = typeof userSessions.$inferSelect;
+export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
+export type SystemRole = typeof systemRoles.$inferSelect;
+export type InsertSystemRole = z.infer<typeof insertSystemRoleSchema>;
+export type ActivityLogEntry = typeof activityLog.$inferSelect;
+export type InsertActivityLogEntry = z.infer<typeof insertActivityLogSchema>;
 export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
 export type InsertServicePart = z.infer<typeof insertServicePartSchema>;
 export type InsertServiceOrder = z.infer<typeof insertServiceOrderSchema>;
@@ -1201,8 +1270,8 @@ export const leadDistributionRules = pgTable("lead_distribution_rules", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Enhanced Role-Based Access Control
-export const systemRoles = pgTable("system_roles", {
+// Enhanced Role-Based Access Control (renamed to avoid conflict)
+export const enterpriseRoles = pgTable("enterprise_roles", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).notNull().unique(),
   displayName: varchar("display_name", { length: 100 }).notNull(),
@@ -1215,9 +1284,9 @@ export const systemRoles = pgTable("system_roles", {
 });
 
 // User Role Assignments
-export const userSystemRoles = pgTable("user_system_roles", {
+export const userEnterpriseRoles = pgTable("user_enterprise_roles", {
   userId: varchar("user_id").notNull().references(() => users.id),
-  roleId: integer("role_id").notNull().references(() => systemRoles.id),
+  roleId: integer("role_id").notNull().references(() => enterpriseRoles.id),
   assignedBy: varchar("assigned_by", { length: 100 }),
   assignedAt: timestamp("assigned_at").defaultNow(),
 }, (table) => ({
@@ -1452,8 +1521,8 @@ export const leadCommunications = pgTable("lead_communications", {
 // XML Lead Processing Schema and Types
 export const insertXmlLeadSchema = createInsertSchema(xmlLeads);
 export const insertLeadDistributionRuleSchema = createInsertSchema(leadDistributionRules);
-export const insertSystemRoleSchema = createInsertSchema(systemRoles);
-export const insertUserSystemRoleSchema = createInsertSchema(userSystemRoles);
+// Removed duplicate - using insertSystemRoleSchema from user management section above
+export const insertUserEnterpriseRoleSchema = createInsertSchema(userEnterpriseRoles);
 export const insertModuleConfigSchema = createInsertSchema(moduleConfigs);
 export const insertSystemConfigAuditLogSchema = createInsertSchema(systemConfigAuditLog);
 export const insertLeadAssignmentHistorySchema = createInsertSchema(leadAssignmentHistory);
@@ -1463,10 +1532,9 @@ export type XmlLead = typeof xmlLeads.$inferSelect;
 export type InsertXmlLead = typeof xmlLeads.$inferInsert;
 export type LeadDistributionRule = typeof leadDistributionRules.$inferSelect;
 export type InsertLeadDistributionRule = typeof leadDistributionRules.$inferInsert;
-export type SystemRole = typeof systemRoles.$inferSelect;
-export type InsertSystemRole = typeof systemRoles.$inferInsert;
-export type UserSystemRole = typeof userSystemRoles.$inferSelect;
-export type InsertUserSystemRole = typeof userSystemRoles.$inferInsert;
+// Removed duplicate - using types from user management section above
+export type UserEnterpriseRole = typeof userEnterpriseRoles.$inferSelect;
+export type InsertUserEnterpriseRole = typeof userEnterpriseRoles.$inferInsert;
 export type ModuleConfig = typeof moduleConfigs.$inferSelect;
 export type InsertModuleConfig = typeof moduleConfigs.$inferInsert;
 export type SystemConfigAuditLog = typeof systemConfigAuditLog.$inferSelect;
