@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { 
   Users, 
   Clock, 
@@ -18,10 +20,16 @@ import {
   Timer,
   Activity,
   Search,
-  Filter
+  Filter,
+  MoreVertical,
+  FileText,
+  X,
+  User,
+  Calculator
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { usePixelTracker } from "@/hooks/use-pixel-tracker";
+import { useLocation } from "wouter";
 
 interface Customer {
   id: number;
@@ -60,6 +68,7 @@ export default function ShowroomManager() {
   const { trackInteraction } = usePixelTracker();
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [, navigate] = useLocation();
   const queryClient = useQueryClient();
 
   // Fetch customers
@@ -207,6 +216,54 @@ export default function ShowroomManager() {
     setSelectedFilter(filter);
     trackInteraction('metric_box_click', filter);
   };
+
+  const handleCustomerClick = (customerId: number, customerName?: string) => {
+    trackInteraction('customer_detail_click', `customer-${customerId}`);
+    navigate(`/customers/${customerId}`);
+  };
+
+  const handleDeskClick = (sessionId: string, customerId: number) => {
+    trackInteraction('desk_session_start', `session-${sessionId}`);
+    navigate(`/deal-desk?customerId=${customerId}&sessionId=${sessionId}`);
+  };
+
+  const updateInterestLevel = useMutation({
+    mutationFn: async ({ sessionId, level }: { sessionId: string; level: string }) => {
+      trackInteraction('interest_level_update', `${sessionId}-${level}`);
+      return apiRequest(`/api/showroom/sessions/${sessionId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ interestLevel: level })
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/showroom/sessions'] });
+    }
+  });
+
+  const updateNextAction = useMutation({
+    mutationFn: async ({ sessionId, action }: { sessionId: string; action: string }) => {
+      trackInteraction('next_action_update', `${sessionId}-${action}`);
+      return apiRequest(`/api/showroom/sessions/${sessionId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ nextAction: action })
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/showroom/sessions'] });
+    }
+  });
+
+  const closeVisit = useMutation({
+    mutationFn: async (sessionId: string) => {
+      trackInteraction('visit_closed', `session-${sessionId}`);
+      return apiRequest(`/api/showroom/sessions/${sessionId}/close`, {
+        method: 'POST'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/showroom/sessions'] });
+    }
+  });
 
   const formatDuration = (startTime: string, endTime?: string) => {
     const start = new Date(startTime);
@@ -400,6 +457,9 @@ export default function ShowroomManager() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Next Action
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -415,9 +475,12 @@ export default function ShowroomManager() {
                         </div>
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        <button
+                          onClick={() => handleCustomerClick(session.customerId, session.customerName)}
+                          className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
+                        >
                           {session.customerName || `Customer ${session.customerId}`}
-                        </div>
+                        </button>
                         <div className="text-sm text-gray-500 dark:text-gray-400">
                           ID: {session.customerId}
                         </div>
@@ -442,9 +505,19 @@ export default function ShowroomManager() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <Badge className={`${getInterestColor(session.interestLevel)} border`}>
-                      {session.interestLevel.charAt(0).toUpperCase() + session.interestLevel.slice(1)}
-                    </Badge>
+                    <Select
+                      value={session.interestLevel}
+                      onValueChange={(value) => updateInterestLevel.mutate({ sessionId: session.id, level: value })}
+                    >
+                      <SelectTrigger className={`w-24 h-8 text-xs ${getInterestColor(session.interestLevel)}`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low" className="text-red-600">Low</SelectItem>
+                        <SelectItem value="medium" className="text-yellow-600">Medium</SelectItem>
+                        <SelectItem value="high" className="text-green-600">High</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900 dark:text-gray-100">
@@ -462,8 +535,69 @@ export default function ShowroomManager() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900 dark:text-gray-100 max-w-xs truncate">
-                      {session.nextAction || '-'}
+                    <Select
+                      value={session.nextAction || ''}
+                      onValueChange={(value) => updateNextAction.mutate({ sessionId: session.id, action: value })}
+                    >
+                      <SelectTrigger className="w-48 h-8 text-xs">
+                        <SelectValue placeholder="Select action..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Schedule test drive">Schedule test drive</SelectItem>
+                        <SelectItem value="Review trade-in value">Review trade-in value</SelectItem>
+                        <SelectItem value="Complete paperwork">Complete paperwork</SelectItem>
+                        <SelectItem value="Follow up tomorrow">Follow up tomorrow</SelectItem>
+                        <SelectItem value="Call back in 3 days">Call back in 3 days</SelectItem>
+                        <SelectItem value="Schedule delivery">Schedule delivery</SelectItem>
+                        <SelectItem value="Send financing options">Send financing options</SelectItem>
+                        <SelectItem value="Prepare quote">Prepare quote</SelectItem>
+                        <SelectItem value="Manager approval needed">Manager approval needed</SelectItem>
+                        <SelectItem value="Waiting for customer decision">Waiting for customer decision</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        size="sm"
+                        onClick={() => handleDeskClick(session.id, session.customerId)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1"
+                      >
+                        <Calculator className="h-3 w-3 mr-1" />
+                        Desk
+                      </Button>
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                            <MoreVertical className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleCustomerClick(session.customerId, session.customerName)}>
+                            <User className="h-4 w-4 mr-2" />
+                            View Customer
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDeskClick(session.id, session.customerId)}>
+                            <Calculator className="h-4 w-4 mr-2" />
+                            Work Deal
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <FileText className="h-4 w-4 mr-2" />
+                            Add Notes
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {session.status === 'active' && (
+                            <DropdownMenuItem 
+                              onClick={() => closeVisit.mutate(session.id)}
+                              className="text-red-600"
+                            >
+                              <X className="h-4 w-4 mr-2" />
+                              Close Visit
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </td>
                 </tr>
