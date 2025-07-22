@@ -32,19 +32,19 @@ export function EnterpriseDashboardIntegration() {
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [activeFeature, setActiveFeature] = useState<string | null>(null);
 
-  const { data: recentCustomers } = useQuery({
+  const { data: recentCustomers = [] } = useQuery({
     queryKey: ['/api/customers/recent'],
   });
 
-  const { data: activeDeals } = useQuery({
+  const { data: activeDeals = [] } = useQuery({
     queryKey: ['/api/deals/active'],
   });
 
-  const { data: urgentInsights } = useQuery({
+  const { data: urgentInsights = [] } = useQuery({
     queryKey: ['/api/ai-insights/urgent'],
   });
 
-  const { data: collaborationActivity } = useQuery({
+  const { data: collaborationActivity = [] } = useQuery({
     queryKey: ['/api/collaboration/recent-activity'],
   });
 
@@ -170,11 +170,37 @@ export function EnterpriseDashboardIntegration() {
                           <span className="ml-2">{feature.title}</span>
                         </DialogTitle>
                       </DialogHeader>
-                      {feature.id === 'customer-360' && selectedCustomerId && (
-                        <Customer360Intelligence customerId={selectedCustomerId} />
+                      {feature.id === 'customer-360' && (
+                        <div className="space-y-4">
+                          {selectedCustomerId ? (
+                            <Customer360Intelligence customerId={selectedCustomerId} />
+                          ) : (
+                            <div className="text-center py-8">
+                              <Eye className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                              <h3 className="text-lg font-medium text-gray-900 mb-2">Select a Customer</h3>
+                              <p className="text-gray-600 mb-4">Choose a customer from the Customer Intelligence tab to view their 360° profile</p>
+                              <Link href="/customers">
+                                <Button>Browse All Customers</Button>
+                              </Link>
+                            </div>
+                          )}
+                        </div>
                       )}
-                      {feature.id === 'deal-copilot' && selectedDealId && (
-                        <DealDeskCopilot dealId={selectedDealId} />
+                      {feature.id === 'deal-copilot' && (
+                        <div className="space-y-4">
+                          {selectedDealId ? (
+                            <DealDeskCopilot dealId={selectedDealId} />
+                          ) : (
+                            <div className="text-center py-8">
+                              <Brain className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                              <h3 className="text-lg font-medium text-gray-900 mb-2">Select a Deal</h3>
+                              <p className="text-gray-600 mb-4">Choose a deal from the Deal Intelligence tab to launch AI copilot analysis</p>
+                              <Link href="/deals">
+                                <Button>Browse All Deals</Button>
+                              </Link>
+                            </div>
+                          )}
+                        </div>
                       )}
                       {feature.id === 'collaboration' && (
                         <RealTimeCollaboration entityType="dashboard" entityId={1} />
