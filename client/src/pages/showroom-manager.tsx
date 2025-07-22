@@ -30,6 +30,8 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 import { usePixelTracker } from "@/hooks/use-pixel-tracker";
 import { useLocation } from "wouter";
+import { DeskingTool } from "@/components/desking-tool";
+import { useToast } from "@/hooks/use-toast";
 
 interface Customer {
   id: number;
@@ -69,6 +71,9 @@ export default function ShowroomManager() {
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [, navigate] = useLocation();
+  const [showDeskingTool, setShowDeskingTool] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
+  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch customers
@@ -224,8 +229,36 @@ export default function ShowroomManager() {
 
   const handleDeskClick = (sessionId: string, customerId: number) => {
     trackInteraction('desk_session_start', `session-${sessionId}`);
-    // Navigate to new deals desk with customer info
-    navigate(`/deals/desk?customerId=${customerId}&sessionId=${sessionId}`);
+    handleOpenDeskingTool(customerId);
+  };
+
+  const handleOpenDeskingTool = (customerId: number) => {
+    setSelectedCustomerId(customerId);
+    setShowDeskingTool(true);
+    trackInteraction('desking_tool_opened', `customer-${customerId}`);
+  };
+
+  const handleCloseDeskingTool = () => {
+    setShowDeskingTool(false);
+    setSelectedCustomerId(null);
+  };
+
+  const handleSaveDeal = async (dealData: any) => {
+    try {
+      await apiRequest("POST", "/api/deals", dealData);
+      toast({
+        title: "Deal Saved",
+        description: "The deal has been successfully saved.",
+      });
+      handleCloseDeskingTool();
+      queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save deal. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const updateInterestLevel = useMutation({
@@ -312,6 +345,24 @@ export default function ShowroomManager() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-2 text-sm text-gray-600">Loading showroom data...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Show desking tool if opened
+  if (showDeskingTool && selectedCustomerId) {
+    return (
+      <div className="fixed inset-0 bg-white z-50 overflow-auto">
+        <div className="absolute top-4 right-4 z-10">
+          <Button onClick={handleCloseDeskingTool} variant="outline" size="sm">
+            <X className="w-4 h-4 mr-2" />
+            Close Desking Tool
+          </Button>
+        </div>
+        <DeskingTool 
+          dealId={`customer-${selectedCustomerId}`}
+          onSave={handleSaveDeal}
+        />
       </div>
     );
   }
