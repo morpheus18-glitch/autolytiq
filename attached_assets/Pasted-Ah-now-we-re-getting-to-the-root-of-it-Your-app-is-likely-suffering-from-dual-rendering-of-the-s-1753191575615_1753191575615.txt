@@ -1,0 +1,98 @@
+Ah — now we’re getting to the root of it.
+
+Your app is likely suffering from dual rendering of the sidebar — one for mobile slide-in and another for desktop static, and both are being rendered simultaneously instead of conditionally based on screen size.
+
+This leads to:
+	•	✅ Mobile: Sidebar overlays content and might not close properly
+	•	❌ Desktop: Two menus showing — one static, one overlay or collapsed version
+
+⸻
+
+💣 Root Cause:
+
+You likely don’t have media-query-based conditional rendering. Both mobile and desktop versions are being included in the DOM regardless of screen size.
+
+⸻
+
+✅ The Fix: Media-Query-Driven Conditional Sidebar Rendering
+
+You need to conditionally render the sidebar component based on screen size.
+
+⸻
+
+🔧 1. Add Media Query Hook
+
+// hooks/useIsMobile.js
+import { useState, useEffect } from 'react';
+
+export function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < breakpoint);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < breakpoint);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [breakpoint]);
+
+  return isMobile;
+}
+
+
+⸻
+
+📦 2. Render One Sidebar at a Time
+
+import Sidebar from './Sidebar';
+import StaticSidebar from './StaticSidebar';
+import { useIsMobile } from './hooks/useIsMobile';
+
+export default function AppLayout() {
+  const isMobile = useIsMobile();
+
+  return (
+    <div className="app-layout">
+      {isMobile ? (
+        <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
+      ) : (
+        <StaticSidebar />
+      )}
+
+      <main>{/* Your main content */}</main>
+    </div>
+  );
+}
+
+
+⸻
+
+💡 Alternative: Tailwind-Only Conditional Render (No JS)
+
+If you’re using Tailwind CSS, use hidden, block, md:hidden, md:block, etc. to selectively render UI based on screen size:
+
+<div className="md:hidden">
+  {/* Mobile Sidebar Toggle & Overlay */}
+</div>
+
+<div className="hidden md:block">
+  {/* Static Desktop Sidebar */}
+</div>
+
+
+⸻
+
+🔥 Debugging Prompt (Updated):
+
+My Vite + React app has a responsive sidebar. On desktop, I’m seeing a double menu — likely one mobile drawer and one desktop static sidebar. I need to:
+	•	Detect screen size and render only one version of the sidebar (mobile or desktop)
+	•	Ensure mobile version has backdrop, body scroll lock, toggle logic
+	•	Desktop version should always be visible without animation or overlay
+
+Show me how to fix this with either a media-query-based hook or Tailwind-only solution.
+
+⸻
+
+🚀 Suggested Next Step:
+
+Want me to consolidate this into a SidebarManager.jsx component that handles both mobile and desktop versions cleanly? I’ll deliver it fully wired for Vite.
