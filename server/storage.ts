@@ -2032,6 +2032,371 @@ export class MemStorage implements IStorage {
     return Array.from(this.sales.values())
       .filter(sale => sale.customerId === customerId);
   }
+
+  // Enterprise Features Methods
+  async getCustomerTimeline(customerId: number) {
+    // Mock timeline data for demonstration
+    return [
+      {
+        id: 1,
+        customerId,
+        eventType: 'contact',
+        eventData: { method: 'phone', subject: 'Initial inquiry' },
+        timestamp: new Date(Date.now() - 86400000).toISOString(),
+        createdBy: 'System'
+      },
+      {
+        id: 2,
+        customerId,
+        eventType: 'visit',
+        eventData: { location: 'showroom', vehicles: ['Vehicle 1', 'Vehicle 2'] },
+        timestamp: new Date(Date.now() - 43200000).toISOString(),
+        createdBy: 'Sales Rep'
+      }
+    ];
+  }
+
+  async createCustomerTimelineEvent(eventData: any) {
+    return {
+      id: Date.now(),
+      ...eventData,
+      timestamp: new Date().toISOString(),
+      createdAt: new Date().toISOString()
+    };
+  }
+
+  async getAiInsights(entityType?: string, entityId?: number) {
+    // Mock AI insights data
+    return [
+      {
+        id: 1,
+        entityType: entityType || 'customer',
+        entityId: entityId || 1,
+        insightType: 'risk_assessment',
+        title: 'High Purchase Likelihood',
+        description: 'Customer shows 85% likelihood to purchase within 30 days',
+        confidence: 0.85,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 2,
+        entityType: entityType || 'deal',
+        entityId: entityId || 1,
+        insightType: 'compliance_check',
+        title: 'Financing Documentation Complete',
+        description: 'All required documents verified and compliant',
+        confidence: 0.95,
+        status: 'approved',
+        createdAt: new Date().toISOString()
+      }
+    ];
+  }
+
+  async createAiInsight(insightData: any) {
+    return {
+      id: Date.now(),
+      ...insightData,
+      createdAt: new Date().toISOString(),
+      status: 'pending'
+    };
+  }
+
+  async updateAiInsightStatus(insightId: number, status: string, reviewedBy?: string) {
+    return {
+      id: insightId,
+      status,
+      reviewedBy,
+      reviewedAt: new Date().toISOString()
+    };
+  }
+
+  async getCollaborationThreads(entityType?: string, entityId?: number) {
+    // Mock collaboration threads
+    return [
+      {
+        id: 1,
+        entityType: entityType || 'customer',
+        entityId: entityId || 1,
+        title: 'Customer financing discussion',
+        status: 'active',
+        priority: 'high',
+        createdBy: 'Sales Manager',
+        assignedTo: 'Finance Specialist',
+        createdAt: new Date(Date.now() - 3600000).toISOString(),
+        updatedAt: new Date(Date.now() - 1800000).toISOString()
+      },
+      {
+        id: 2,
+        entityType: entityType || 'deal',
+        entityId: entityId || 1,
+        title: 'Trade-in valuation review',
+        status: 'active',
+        priority: 'normal',
+        createdBy: 'Sales Rep',
+        assignedTo: 'Appraiser',
+        createdAt: new Date(Date.now() - 7200000).toISOString(),
+        updatedAt: new Date(Date.now() - 3600000).toISOString()
+      }
+    ];
+  }
+
+  async createCollaborationThread(threadData: any) {
+    return {
+      id: Date.now(),
+      ...threadData,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  async getCollaborationMessages(threadId: number) {
+    // Mock collaboration messages
+    return [
+      {
+        id: 1,
+        threadId,
+        userId: '1',
+        message: 'I reviewed the customer\'s credit application. Looks good for approval.',
+        messageType: 'comment',
+        timestamp: new Date(Date.now() - 1800000).toISOString(),
+        attachments: []
+      },
+      {
+        id: 2,
+        threadId,
+        userId: '2', 
+        message: 'Great! I\'ll proceed with the financing paperwork.',
+        messageType: 'comment',
+        timestamp: new Date(Date.now() - 1200000).toISOString(),
+        attachments: []
+      }
+    ];
+  }
+
+  async createCollaborationMessage(messageData: any) {
+    return {
+      id: Date.now(),
+      ...messageData,
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  async getKpiMetrics(metricType?: string, period?: string) {
+    // Mock KPI metrics data
+    return [
+      {
+        id: 1,
+        metricName: 'Monthly Sales',
+        metricType: metricType || 'sales',
+        value: 1250000,
+        period: period || 'monthly',
+        target: 1200000,
+        variance: 4.17,
+        timestamp: new Date().toISOString()
+      },
+      {
+        id: 2,
+        metricName: 'Customer Satisfaction',
+        metricType: metricType || 'operations',
+        value: 4.6,
+        period: period || 'monthly',
+        target: 4.5,
+        variance: 2.22,
+        timestamp: new Date().toISOString()
+      }
+    ];
+  }
+
+  async createKpiMetric(metricData: any) {
+    return {
+      id: Date.now(),
+      ...metricData,
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  async getDuplicateCustomers(status?: string) {
+    // Mock duplicate customer detection data
+    return [
+      {
+        id: 1,
+        primaryCustomerId: 1,
+        duplicateCustomerId: 5,
+        confidenceScore: 0.92,
+        matchingFields: ['email', 'phone', 'lastName'],
+        status: status || 'pending',
+        createdAt: new Date().toISOString()
+      }
+    ];
+  }
+
+  async createDuplicateCustomerDetection(duplicateData: any) {
+    return {
+      id: Date.now(),
+      ...duplicateData,
+      createdAt: new Date().toISOString(),
+      status: 'pending'
+    };
+  }
+
+  async getWorkflowTemplates() {
+    // Mock workflow templates
+    return [
+      {
+        id: 1,
+        name: 'Customer Onboarding',
+        description: 'Standard process for new customer setup',
+        steps: [
+          'Collect customer information',
+          'Credit check',
+          'Documentation review',
+          'Account setup'
+        ],
+        isActive: true,
+        createdAt: new Date().toISOString()
+      }
+    ];
+  }
+
+  async createWorkflowTemplate(templateData: any) {
+    return {
+      id: Date.now(),
+      ...templateData,
+      isActive: true,
+      createdAt: new Date().toISOString()
+    };
+  }
+
+  async getWorkflowExecutions(templateId?: number) {
+    // Mock workflow executions
+    return [
+      {
+        id: 1,
+        templateId: templateId || 1,
+        entityId: 1,
+        entityType: 'customer',
+        status: 'in_progress',
+        currentStep: 2,
+        totalSteps: 4,
+        startedAt: new Date(Date.now() - 3600000).toISOString(),
+        updatedAt: new Date(Date.now() - 1800000).toISOString()
+      }
+    ];
+  }
+
+  async createWorkflowExecution(executionData: any) {
+    return {
+      id: Date.now(),
+      ...executionData,
+      status: 'started',
+      startedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  async getPredictiveScores(entityType?: string, entityId?: number, scoreType?: string) {
+    // Mock predictive scores
+    return [
+      {
+        id: 1,
+        entityType: entityType || 'customer',
+        entityId: entityId || 1,
+        scoreType: scoreType || 'purchase_likelihood',
+        score: 0.85,
+        confidence: 0.92,
+        factors: ['credit_score', 'previous_purchases', 'engagement_level'],
+        calculatedAt: new Date().toISOString()
+      },
+      {
+        id: 2,
+        entityType: entityType || 'deal',
+        entityId: entityId || 1,
+        scoreType: scoreType || 'close_probability',
+        score: 0.78,
+        confidence: 0.88,
+        factors: ['customer_interest', 'financing_approved', 'trade_value'],
+        calculatedAt: new Date().toISOString()
+      }
+    ];
+  }
+
+  async createPredictiveScore(scoreData: any) {
+    return {
+      id: Date.now(),
+      ...scoreData,
+      calculatedAt: new Date().toISOString()
+    };
+  }
+
+  async getMarketBenchmarks(metricName?: string, timeframe?: string) {
+    // Mock market benchmark data
+    return [
+      {
+        id: 1,
+        metricName: metricName || 'average_sale_time',
+        ourValue: 32,
+        industryAverage: 38,
+        percentile: 72,
+        timeframe: timeframe || 'monthly',
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 2,
+        metricName: metricName || 'customer_satisfaction',
+        ourValue: 4.6,
+        industryAverage: 4.2,
+        percentile: 85,
+        timeframe: timeframe || 'monthly',
+        updatedAt: new Date().toISOString()
+      }
+    ];
+  }
+
+  async createMarketBenchmark(benchmarkData: any) {
+    return {
+      id: Date.now(),
+      ...benchmarkData,
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  async getAllDeals() {
+    // Return mock deals data for active deals endpoint
+    return [
+      {
+        id: 'D-2025-001',
+        customerId: 1,
+        customerName: 'John Smith',
+        vehicleDescription: '2024 Honda Accord LX',
+        totalAmount: 28500,
+        status: 'pending',
+        createdAt: new Date(Date.now() - 86400000).toISOString(),
+        updatedAt: new Date(Date.now() - 3600000).toISOString()
+      },
+      {
+        id: 'D-2025-002',
+        customerId: 2,
+        customerName: 'Sarah Johnson', 
+        vehicleDescription: '2024 Toyota Camry SE',
+        totalAmount: 31200,
+        status: 'in_progress',
+        createdAt: new Date(Date.now() - 172800000).toISOString(),
+        updatedAt: new Date(Date.now() - 7200000).toISOString()
+      },
+      {
+        id: 'D-2025-003',
+        customerId: 3,
+        customerName: 'Mike Davis',
+        vehicleDescription: '2023 Ford F-150 XLT',
+        totalAmount: 42800,
+        status: 'completed',
+        createdAt: new Date(Date.now() - 259200000).toISOString(),
+        updatedAt: new Date(Date.now() - 14400000).toISOString()
+      }
+    ];
+  }
 }
 
 export const storage = new MemStorage();
