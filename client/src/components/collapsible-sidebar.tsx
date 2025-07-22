@@ -1,4 +1,4 @@
-import { useLocation, Link } from "wouter";
+import React, { useCallback, useMemo } from 'react';
 import { 
   Menu,
   X,
@@ -6,8 +6,9 @@ import {
   ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { navigation } from "@/components/navigation-config";
+import { Link, useLocation } from 'wouter';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { navigation } from "@/components/navigation-config";
 
 interface CollapsibleSidebarProps {
   isOpen: boolean;
@@ -15,81 +16,132 @@ interface CollapsibleSidebarProps {
   onToggle: () => void;
 }
 
+const MAX_COLLAPSED_ITEMS = 8;
+
 export default function CollapsibleSidebar({ isOpen, onClose, onToggle }: CollapsibleSidebarProps) {
   const [location] = useLocation();
   const isMobile = useIsMobile();
 
-  const handleNavClick = (href: string, name: string) => {
+  // Memoize navigation items processing
+  const { flatNavigationItems, sectionedNavigationItems } = useMemo(() => {
+    const flat = navigation.filter(item => !item.isSection).slice(0, MAX_COLLAPSED_ITEMS);
+    const sectioned = navigation;
+    return { flatNavigationItems: flat, sectionedNavigationItems: sectioned };
+  }, []);
+
+  const handleNavClick = useCallback((href: string, name: string) => {
     console.log('Navigation clicked:', href, name);
     if (isMobile) {
       onClose();
     }
-  };
+  }, [isMobile, onClose]);
+
+  // Handle keyboard navigation
+  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
+    if (event.key === 'Escape' && isOpen) {
+      onClose();
+    }
+  }, [isOpen, onClose]);
+
+  // Render individual navigation item
+  const renderNavItem = useCallback((
+    item: any, 
+    isCollapsed = false, 
+    isChild = false
+  ) => {
+    const isActive = location === item.href;
+    const Icon = item.icon;
+    
+    const baseClasses = `
+      flex items-center rounded-lg transition-all duration-200 cursor-pointer
+      ${isActive 
+        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
+        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+      }
+    `;
+
+    const collapsedClasses = "justify-center w-12 h-12";
+    const expandedClasses = `px-3 py-2.5 text-sm font-medium w-full ${isChild ? '' : 'mb-2'}`;
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href || '#'}
+        onClick={() => handleNavClick(item.href || '#', item.name)}
+        className="block"
+        aria-label={`Navigate to ${item.name}`}
+      >
+        <div 
+          className={`${baseClasses} ${isCollapsed ? collapsedClasses : expandedClasses}`}
+          title={isCollapsed ? item.name : undefined}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === 'Enter' && handleNavClick(item.href || '#', item.name)}
+        >
+          {Icon && (
+            <Icon className={`h-4 w-4 ${isCollapsed ? '' : 'mr-3'} flex-shrink-0`} />
+          )}
+          {!isCollapsed && <span className="truncate">{item.name}</span>}
+        </div>
+      </Link>
+    );
+  }, [location, handleNavClick]);
+
+  // Render section with children
+  const renderSection = useCallback((section: any) => (
+    <div key={section.name} className="mb-4">
+      <h3 
+        className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+        role="heading"
+        aria-level={3}
+      >
+        {section.name}
+      </h3>
+      <div className="space-y-1" role="group" aria-labelledby={`section-${section.name}`}>
+        {section.children?.map((child: any) => renderNavItem(child, false, true))}
+      </div>
+    </div>
+  ), [renderNavItem]);
 
   return (
     <>
-      {/* Hamburger Menu Button - Always visible */}
+      {/* Hamburger Menu Button */}
       <div className="fixed top-3 left-3 z-50">
         <Button
           variant="outline"
           size="sm"
           onClick={onToggle}
           className="bg-white dark:bg-gray-800 shadow-xl border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 p-2.5 rounded-lg"
+          aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
+          aria-expanded={isOpen}
+          aria-controls="sidebar-content"
         >
           {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </Button>
       </div>
 
-      {/* Collapsible Sidebar */}
-      <div className={`
-        fixed top-0 left-0 h-screen 
-        bg-white dark:bg-gray-900 shadow-xl border-r border-gray-200 dark:border-gray-700 
-        flex flex-col z-50 transform transition-all duration-300 ease-in-out
-        overflow-hidden
-        ${isOpen 
-          ? 'w-72 sm:w-80 md:w-64 translate-x-0' 
-          : 'w-0 md:w-16 -translate-x-full md:translate-x-0'
-        }
-      `}>
+      {/* Sidebar */}
+      <aside 
+        id="sidebar-content"
+        className={`
+          fixed top-0 left-0 h-screen 
+          bg-white dark:bg-gray-900 shadow-xl border-r border-gray-200 dark:border-gray-700 
+          flex flex-col z-50 transform transition-all duration-300 ease-in-out
+          overflow-hidden
+          ${isOpen 
+            ? 'w-72 sm:w-80 md:w-64 translate-x-0' 
+            : 'w-0 md:w-16 -translate-x-full md:translate-x-0'
+          }
+        `}
+        onKeyDown={handleKeyDown}
+        role="navigation"
+        aria-label="Main navigation"
+        aria-hidden={!isOpen && isMobile}
+      >
+        {/* Top spacing for hamburger menu */}
+        <div className="h-16 flex-shrink-0" />
 
-
-        {/* Desktop collapsed state - show only icons */}
-        {!isMobile && !isOpen && (
-          <div className="flex-1 p-2 space-y-2 overflow-y-auto pt-16">
-            {navigation.slice(0, 8).map((item) => {
-              if (item.isSection) return null;
-              const isActive = location === item.href;
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href || '#'}
-                  onClick={() => handleNavClick(item.href || '#', item.name)}
-                >
-                  <div 
-                    className={`
-                      flex items-center justify-center w-12 h-12 rounded-lg transition-all duration-200 cursor-pointer
-                      ${isActive 
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                      }
-                    `}
-                    title={item.name}
-                  >
-                    {Icon && <Icon className="h-5 w-5" />}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Top spacing to clear hamburger menu */}
-        {isOpen && (
-          <div className="h-16 flex-shrink-0"></div>
-        )}
-
-        {/* Mobile close button when open */}
+        {/* Mobile close button */}
         {isOpen && isMobile && (
           <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-end">
             <Button
@@ -97,77 +149,31 @@ export default function CollapsibleSidebar({ isOpen, onClose, onToggle }: Collap
               size="sm"
               onClick={onClose}
               className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
+              aria-label="Close sidebar"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
         )}
 
-        {/* Full Navigation Menu - when open */}
-        {isOpen && (
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-            {navigation.map((item) => {
-              if (item.isSection) {
-                return (
-                  <div key={item.name} className="mb-4">
-                    <h3 className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {item.name}
-                    </h3>
-                    <div className="space-y-1">
-                      {item.children?.map((child) => {
-                        const isActive = location === child.href;
-                        const Icon = child.icon;
-                        return (
-                          <Link
-                            key={child.href}
-                            href={child.href || '#'}
-                            onClick={() => handleNavClick(child.href || '#', child.name)}
-                          >
-                            <div className={`
-                              flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer w-full
-                              ${isActive 
-                                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
-                              }
-                            `}>
-                              {Icon && <Icon className="mr-3 h-4 w-4 flex-shrink-0" />}
-                              <span className="truncate">{child.name}</span>
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              } else {
-                const isActive = location === item.href;
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href || '#'}
-                    onClick={() => handleNavClick(item.href || '#', item.name)}
-                  >
-                    <div className={`
-                      flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 mb-2 cursor-pointer w-full
-                      ${isActive 
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
-                      }
-                    `}>
-                      {Icon && <Icon className="mr-3 h-4 w-4 flex-shrink-0" />}
-                      <span className="truncate">{item.name}</span>
-                    </div>
-                  </Link>
-                );
-              }
-            })}
-          </nav>
-        )}
+        {/* Navigation Content */}
+        <div className="flex-1 overflow-y-auto">
+          {!isMobile && !isOpen ? (
+            // Desktop collapsed state - icons only
+            <div className="p-2 space-y-2">
+              {flatNavigationItems.map((item) => renderNavItem(item, true))}
+            </div>
+          ) : isOpen ? (
+            // Full navigation menu
+            <nav className="p-4 space-y-2" role="list">
+              {sectionedNavigationItems.map((item) => 
+                item.isSection ? renderSection(item) : renderNavItem(item)
+              )}
+            </nav>
+          ) : null}
+        </div>
 
-
-
-        {/* Desktop expand/collapse toggle - when collapsed */}
+        {/* Desktop expand/collapse toggle */}
         {!isMobile && !isOpen && (
           <div className="p-2 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
             <Button
@@ -176,12 +182,25 @@ export default function CollapsibleSidebar({ isOpen, onClose, onToggle }: Collap
               onClick={onToggle}
               className="w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
               title="Expand sidebar"
+              aria-label="Expand sidebar"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         )}
-      </div>
+      </aside>
+
+      {/* Mobile overlay */}
+      {isOpen && isMobile && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={onClose}
+          role="button"
+          tabIndex={0}
+          aria-label="Close sidebar overlay"
+          onKeyDown={(e) => e.key === 'Enter' && onClose()}
+        />
+      )}
     </>
   );
 }
