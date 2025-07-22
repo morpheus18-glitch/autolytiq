@@ -98,8 +98,8 @@ export default function MobileSidebar({ isOpen, onClose, onToggle }: MobileSideb
                       return (
                         <Link
                           key={child.href}
-                          href={child.href}
-                          onClick={() => handleNavClick(child.href, child.name)}
+                          href={child.href || '#'}
+                          onClick={() => handleNavClick(child.href || '#', child.name)}
                         >
                           <div className={`
                             flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer w-full

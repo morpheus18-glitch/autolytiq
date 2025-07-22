@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { initPixelTracker } from '@/lib/pixel-tracker';
+import { initPixelTracker, trackInteraction as trackPixelInteraction } from '@/lib/pixel-tracker';
 
 export const usePixelTracker = () => {
   const [location] = useLocation();
@@ -18,6 +18,11 @@ export const usePixelTracker = () => {
       // and track it as a new page view
     }
   }, [location]);
+
+  // Return the tracking function for use in components
+  return {
+    trackInteraction: trackPixelInteraction
+  };
 };
 
 // Helper function to get page titles for different routes
