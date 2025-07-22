@@ -1,0 +1,78 @@
+Now you’re building true enterprise, compliance-heavy dealer F&I automation—the kind of feature that only the biggest platforms (RouteOne, Dealertrack, Darwin, Reynolds) deliver at scale. Here’s how to architect and spec it (with a prompt you can give any dev team or AI system):
+
+⸻
+
+🏦 F&I Section Additions for Customer Tab (with Real Credit/Lender Integration)
+
+1. Credit Pull & Report Viewer
+	•	Integrate with a credit bureau gateway (RouteOne, Dealertrack, 700Credit, or a direct Experian/Equifax/TransUnion provider).
+	•	Collect required customer consent.
+	•	Support real-time credit pulls, show PDF or inline credit report (with compliance redaction for non-authorized users).
+	•	Log all pulls for audit (who pulled, when, why, which bureau).
+	•	Link report data directly to customer profile (score, flags, tradelines, etc.).
+
+⸻
+
+2. Lender Submission/Approval Workflow
+	•	Submit application to one or more lenders (RouteOne, Dealertrack, CUDL, etc.) via their official API.
+	•	Select lenders and products to submit to.
+	•	Track submission status: Pending, Conditional, Approved, Declined, Stipulations.
+	•	On response, map lender approvals back to deal structure (rates, terms, conditions).
+	•	Show approval matrix (side-by-side offers, stipulations, reserve, backend product eligibility).
+	•	Store all responses for auditing and deal audit trail.
+
+⸻
+
+3. Finance Menu Presentation System
+	•	Build a finance menu UI (for F&I manager or salesperson) to present backend products (warranty, GAP, tire/wheel, prepaid maintenance, etc.).
+	•	Product catalog: Name, cost, retail price, description, eligibility (by lender or deal type).
+	•	Interactive selection: Add/remove products, recalculate payment, show total cost, track customer acceptance/decline.
+	•	Store menu presentations as part of deal history (printable and auditable).
+	•	Support “rate-the-product” (show and select available rates/terms/costs for each product).
+
+⸻
+
+4. Permissions, Security, and Compliance
+	•	Only authorized users (F&I, sales managers) can pull/view credit or submit lender apps.
+	•	Audit log every action (who, what, when).
+	•	Data masking for sensitive fields when viewed by unauthorized roles.
+
+⸻
+
+5. Menu System for Finance Presentations
+	•	Menu options for:
+	•	Vehicle Service Contract (warranty)
+	•	GAP Insurance
+	•	Tire & Wheel
+	•	Prepaid Maintenance
+	•	Theft Protection
+	•	Environmental/Appearance
+	•	Show cost/retail/margin per product
+	•	Display “rate card” and allow payment calculation (with/without products)
+	•	Store final menu/acceptance with digital signature or user stamp
+
+⸻
+
+🧠 Sample Prompt for Dev/AI Agent
+
+“Build an F&I section in the customer profile that allows authorized users to:
+	•	Pull real-time credit reports via a connected provider (RouteOne, Dealertrack, or credit bureau)
+	•	Collect and log consent for credit pulls; display credit report inline or as PDF
+	•	Submit credit applications to multiple lenders, track status and receive approvals/responses via API
+	•	Show a lender approval matrix with rates, terms, and stipulations mapped to each deal
+	•	Build an interactive finance menu presentation tool with backend product catalog, dynamic payment calculator, and product/rate selection
+	•	Store menu presentations and approval history with audit logs
+	•	Enforce strict role-based access, audit every action, and mask sensitive fields for non-authorized users
+	•	UI must be professional, mobile-friendly, and suitable for in-dealership compliance needs”
+
+Deliver:
+	•	Modular React/TSX components for credit pull, lender app, menu presentation
+	•	Data model for products, menu, and lender response
+	•	REST API scaffolding for provider integration and audit trails
+	•	Configurable menu settings for F&I manager to edit products, costs, and rates
+	•	Sample deal workflow from credit pull through final menu acceptance
+
+⸻
+
+Want a code scaffold for this, a data model, or a UX wireframe?
+Just specify which piece, and I’ll drop a real-world, enterprise-ready starting point.

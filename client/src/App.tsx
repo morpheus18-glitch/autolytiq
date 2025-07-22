@@ -49,6 +49,7 @@ import CommunicationSettings from "@/pages/admin/communication-settings";
 import CommunicationDemo from "@/pages/communication-demo";
 import AISmartSearch from "@/pages/ai-smart-search";
 import WorkflowAssistant from "@/pages/workflow-assistant";
+import FiDashboardPage from "@/pages/fi-dashboard";
 import EnterpriseHeader from "@/components/enterprise-header";
 import MobileNavigation from "@/components/mobile-navigation";
 import { ThemeProvider } from "@/contexts/theme-context";
@@ -117,6 +118,7 @@ function Router() {
           <Route path="/showroom-manager" component={ShowroomManager} />
           <Route path="/reports" component={Reports} />
           <Route path="/ml-dashboard" component={MLDashboard} />
+          <Route path="/fi-dashboard" component={FiDashboardPage} />
           <Route path="/settings" component={Settings} />
           
           {/* Admin Routes */}
