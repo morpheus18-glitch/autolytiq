@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { registerUserRoutes } from "./userRoutes";
 import { storage } from "./storage";
 import { insertVehicleSchema, insertCustomerSchema, insertLeadSchema, insertSaleSchema, insertVisitorSessionSchema, insertPageViewSchema, insertCustomerInteractionSchema, insertCompetitorAnalyticsSchema, insertCompetitivePricingSchema, insertPricingInsightsSchema, insertMerchandisingStrategiesSchema, insertMarketTrendsSchema } from "@shared/schema";
 import { competitiveScraper } from "./services/competitive-scraper";
@@ -133,6 +134,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth middleware
   await setupAuth(app);
+  
+  // System user management routes
+  registerUserRoutes(app);
 
   // Auth routes
   app.get('/api/auth/user', async (req: any, res) => {

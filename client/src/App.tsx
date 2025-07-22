@@ -26,7 +26,7 @@ import DealDetailPage from "@/pages/deals/[id]/index";
 // Admin Pages
 import RolesPage from "@/pages/admin/roles";
 import DepartmentsPage from "@/pages/admin/departments";
-import UsersPage from "@/pages/admin/users";
+import Users from "@/pages/admin/users";
 import SystemSettings from "@/pages/admin/system-settings";
 import ComprehensiveSettings from "@/pages/admin/comprehensive-settings";
 import LeadDistribution from "@/pages/admin/lead-distribution";
@@ -51,7 +51,9 @@ import AISmartSearch from "@/pages/ai-smart-search";
 import WorkflowAssistant from "@/pages/workflow-assistant";
 import FiDashboardPage from "@/pages/fi-dashboard";
 import FiConfigurationPage from "@/pages/fi-configuration";
-import SystemConfigurationPage from "@/pages/admin/system-configuration";
+import SystemConfiguration from "@/pages/admin/system-configuration";
+import UserManagement from "@/pages/admin/user-management";
+import UserProfile from "@/pages/admin/user-profile";
 import EnterpriseHeader from "@/components/enterprise-header";
 import MobileNavigation from "@/components/mobile-navigation";
 import { ThemeProvider } from "@/contexts/theme-context";
@@ -127,12 +129,14 @@ function Router() {
           {/* Admin Routes */}
           <Route path="/admin/roles" component={RolesPage} />
           <Route path="/admin/departments" component={DepartmentsPage} />
-          <Route path="/admin/users" component={UsersPage} />
+          <Route path="/admin/users" component={Users} />
           <Route path="/admin/settings" component={SystemSettings} />
           <Route path="/admin/comprehensive-settings" component={ComprehensiveSettings} />
           <Route path="/admin/lead-distribution" component={LeadDistribution} />
           <Route path="/admin/communication-settings" component={CommunicationSettings} />
-          <Route path="/admin/system-configuration" component={SystemConfigurationPage} />
+          <Route path="/admin/system-configuration" component={SystemConfiguration} />
+          <Route path="/admin/user-management" component={UserManagement} />
+          <Route path="/admin/user-profile" component={UserProfile} />
           <Route path="/auth-test" component={AuthTest} />
           
           {/* Communication Routes */}

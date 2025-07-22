@@ -18,7 +18,8 @@ import {
   Timer,
   Cog,
   MessageSquare,
-  Workflow
+  Workflow,
+  User
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -75,9 +76,10 @@ const navigation = [
     isSection: true,
     children: [
       { name: "System Configuration", href: "/admin/system-configuration", icon: Settings },
+      { name: "User Management", href: "/admin/user-management", icon: Users },
+      { name: "My Profile", href: "/admin/user-profile", icon: User },
       { name: "Departments", href: "/admin/departments", icon: Building },
       { name: "Roles & Permissions", href: "/admin/roles", icon: Shield },
-      { name: "User Management", href: "/admin/users", icon: Users },
       { name: "Lead Distribution", href: "/admin/lead-distribution", icon: Target },
       { name: "Communication Settings", href: "/admin/communication-settings", icon: Settings },
       { name: "System Settings", href: "/admin/settings", icon: Settings },
