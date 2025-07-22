@@ -3104,6 +3104,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Deals API endpoints for new dealership workflow
+  app.get('/api/deals', async (req, res) => {
+    try {
+      const deals = await storage.getAllDeals();
+      res.json(deals);
+    } catch (error) {
+      console.error('Error fetching deals:', error);
+      res.status(500).json({ message: 'Failed to fetch deals' });
+    }
+  });
+
+  app.get('/api/deals/:id', async (req, res) => {
+    try {
+      const dealId = req.params.id;
+      const deal = await storage.getDeal(dealId);
+      if (!deal) {
+        return res.status(404).json({ message: 'Deal not found' });
+      }
+      res.json(deal);
+    } catch (error) {
+      console.error('Error fetching deal:', error);
+      res.status(500).json({ message: 'Failed to fetch deal' });
+    }
+  });
+
+  app.post('/api/deals', async (req, res) => {
+    try {
+      const dealData = req.body;
+      const deal = await storage.createDeal(dealData);
+      res.status(201).json(deal);
+    } catch (error) {
+      console.error('Error creating deal:', error);
+      res.status(500).json({ message: 'Failed to create deal' });
+    }
+  });
+
+  app.put('/api/deals/:id', async (req, res) => {
+    try {
+      const dealId = req.params.id;
+      const dealData = req.body;
+      const deal = await storage.updateDeal(dealId, dealData);
+      if (!deal) {
+        return res.status(404).json({ message: 'Deal not found' });
+      }
+      res.json(deal);
+    } catch (error) {
+      console.error('Error updating deal:', error);
+      res.status(500).json({ message: 'Failed to update deal' });
+    }
+  });
+
+  app.put('/api/deals/:id/finalize', async (req, res) => {
+    try {
+      const dealId = req.params.id;
+      const finalData = req.body;
+      const deal = await storage.finalizeDeal(dealId, finalData);
+      if (!deal) {
+        return res.status(404).json({ message: 'Deal not found' });
+      }
+      res.json(deal);
+    } catch (error) {
+      console.error('Error finalizing deal:', error);
+      res.status(500).json({ message: 'Failed to finalize deal' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

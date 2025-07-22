@@ -1,0 +1,327 @@
+import React, { useState, useEffect } from ‘react’;
+import {
+UserPlus,
+Car,
+Calculator,
+FileSignature,
+CheckCircle,
+ArrowRight,
+AlertCircle,
+Users,
+Search
+} from ‘lucide-react’;
+import { Button } from ‘@/components/ui/button’;
+import { Card, CardContent, CardHeader, CardTitle } from ‘@/components/ui/card’;
+import { Badge } from ‘@/components/ui/badge’;
+import { workflowStates, getNextStep, canProgressToStep } from ‘./navigation-config’;
+
+interface SalesWorkflowProps {
+customerId?: string;
+onStepChange?: (step: string) => void;
+}
+
+interface WorkflowStep {
+id: string;
+title: string;
+description: string;
+icon: React.ComponentType<any>;
+route: string;
+completed: boolean;
+canAccess: boolean;
+isActive: boolean;
+}
+
+export default function SalesWorkflow({ customerId, onStepChange }: SalesWorkflowProps) {
+const [currentStep, setCurrentStep] = useState(workflowStates.CUSTOMER_ENTRY);
+const [customerData, setCustomerData] = useState<any>(null);
+const [isLoading, setIsLoading] = useState(false);
+
+// Mock data - replace with actual API calls
+useEffect(() => {
+if (customerId) {
+// Fetch customer data and determine current step
+fetchCustomerData(customerId);
+}
+}, [customerId]);
+
+const fetchCustomerData = async (id: string) => {
+setIsLoading(true);
+try {
+// Replace with actual API call
+const mockCustomerData = {
+id: id,
+name: ‘John Doe’,
+selectedVehicle: { id: ‘123’, make: ‘Toyota’, model: ‘Camry’ },
+dealStructure: { agreedPrice: 25000 },
+contractSigned: false,
+financeApproved: false
+};
+setCustomerData(mockCustomerData);
+
+```
+  // Determine current step based on data
+  if (!mockCustomerData.contractSigned && !mockCustomerData.financeApproved) {
+    if (mockCustomerData.dealStructure?.agreedPrice) {
+      setCurrentStep(workflowStates.CONTRACT_FINANCE);
+    } else if (mockCustomerData.selectedVehicle?.id) {
+      setCurrentStep(workflowStates.DEAL_DESKING);
+    } else {
+      setCurrentStep(workflowStates.VEHICLE_SELECTION);
+    }
+  }
+} catch (error) {
+  console.error('Error fetching customer data:', error);
+} finally {
+  setIsLoading(false);
+}
+```
+
+};
+
+const workflowSteps: WorkflowStep[] = [
+{
+id: workflowStates.CUSTOMER_ENTRY,
+title: ‘Customer Entry’,
+description: ‘Add customer information to system’,
+icon: UserPlus,
+route: ‘/customers/new’,
+completed: !!customerData?.id,
+canAccess: true,
+isActive: currentStep === workflowStates.CUSTOMER_ENTRY
+},
+{
+id: workflowStates.VEHICLE_SELECTION,
+title: ‘Vehicle Selection’,
+description: ‘Add vehicle to customer profile’,
+icon: Car,
+route: `/customers/${customerId}/add-vehicle`,
+completed: !!customerData?.selectedVehicle?.id,
+canAccess: canProgressToStep(customerData, workflowStates.VEHICLE_SELECTION),
+isActive: currentStep === workflowStates.VEHICLE_SELECTION
+},
+{
+id: workflowStates.DEAL_DESKING,
+title: ‘Desk the Deal’,
+description: ‘Calculate numbers and negotiate terms’,
+icon: Calculator,
+route: `/customers/${customerId}/desk-deal`,
+completed: !!customerData?.dealStructure?.agreedPrice,
+canAccess: canProgressToStep(customerData, workflowStates.DEAL_DESKING),
+isActive: currentStep === workflowStates.DEAL_DESKING
+},
+{
+id: workflowStates.CONTRACT_FINANCE,
+title: ‘Contract & Finance’,
+description: ‘Complete paperwork and financing’,
+icon: FileSignature,
+route: `/deals/${customerData?.dealId}/contract`,
+completed: customerData?.contractSigned && customerData?.financeApproved,
+canAccess: canProgressToStep(customerData, workflowStates.CONTRACT_FINANCE),
+isActive: currentStep === workflowStates.CONTRACT_FINANCE
+}
+];
+
+const handleStepClick = (step: WorkflowStep) => {
+if (!step.canAccess) return;
+
+```
+setCurrentStep(step.id);
+onStepChange?.(step.id);
+// Navigate to the appropriate route
+window.location.href = step.route;
+```
+
+};
+
+const handleQuickActions = (action: string) => {
+switch (action) {
+case ‘new_customer’:
+window.location.href = ‘/customers/new’;
+break;
+case ‘find_customer’:
+window.location.href = ‘/customers/search’;
+break;
+case ‘existing_customer’:
+window.location.href = ‘/customers’;
+break;
+}
+};
+
+if (isLoading) {
+return (
+<div className="flex items-center justify-center p-8">
+<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+</div>
+);
+}
+
+return (
+<div className="space-y-6">
+{/* Quick Start Actions */}
+{!customerId && (
+<Card>
+<CardHeader>
+<CardTitle className="flex items-center gap-2">
+<Users className="h-5 w-5" />
+Start Your Sales Process
+</CardTitle>
+</CardHeader>
+<CardContent>
+<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+<Button
+onClick={() => handleQuickActions(‘new_customer’)}
+className=“flex flex-col items-center p-6 h-auto bg-blue-600 hover:bg-blue-700”
+>
+<UserPlus className="h-8 w-8 mb-2" />
+<span className="font-semibold">New Customer</span>
+<span className="text-sm opacity-90">Start with customer entry</span>
+</Button>
+
+```
+          <Button
+            variant="outline"
+            onClick={() => handleQuickActions('find_customer')}
+            className="flex flex-col items-center p-6 h-auto"
+          >
+            <Search className="h-8 w-8 mb-2" />
+            <span className="font-semibold">Find Customer</span>
+            <span className="text-sm opacity-70">Continue with existing</span>
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={() => handleQuickActions('existing_customer')}
+            className="flex flex-col items-center p-6 h-auto"
+          >
+            <Users className="h-8 w-8 mb-2" />
+            <span className="font-semibold">Browse Customers</span>
+            <span className="text-sm opacity-70">View all customers</span>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )}
+
+  {/* Workflow Progress */}
+  {customerId && customerData && (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span>Sales Process for {customerData.name}</span>
+          <Badge variant="outline">{customerId}</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {workflowSteps.map((step, index) => {
+            const Icon = step.icon;
+            const isLastStep = index === workflowSteps.length - 1;
+            
+            return (
+              <div key={step.id} className="relative">
+                {/* Step Content */}
+                <div
+                  className={`
+                    flex items-center p-4 rounded-lg border-2 transition-all cursor-pointer
+                    ${step.isActive 
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' 
+                      : step.completed 
+                        ? 'border-green-500 bg-green-50 dark:bg-green-950'
+                        : step.canAccess
+                          ? 'border-gray-300 hover:border-gray-400 bg-white dark:bg-gray-800'
+                          : 'border-gray-200 bg-gray-50 dark:bg-gray-900 opacity-50 cursor-not-allowed'
+                    }
+                  `}
+                  onClick={() => handleStepClick(step)}
+                >
+                  {/* Step Icon */}
+                  <div className={`
+                    flex items-center justify-center w-12 h-12 rounded-full mr-4
+                    ${step.completed 
+                      ? 'bg-green-500 text-white' 
+                      : step.isActive
+                        ? 'bg-blue-500 text-white'
+                        : step.canAccess
+                          ? 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+                          : 'bg-gray-100 text-gray-400 dark:bg-gray-800'
+                    }
+                  `}>
+                    {step.completed ? (
+                      <CheckCircle className="h-6 w-6" />
+                    ) : (
+                      <Icon className="h-6 w-6" />
+                    )}
+                  </div>
+
+                  {/* Step Details */}
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg">{step.title}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {step.description}
+                    </p>
+                    
+                    {/* Status Badges */}
+                    <div className="flex gap-2 mt-2">
+                      {step.completed && (
+                        <Badge variant="default" className="bg-green-500">
+                          Completed
+                        </Badge>
+                      )}
+                      {step.isActive && !step.completed && (
+                        <Badge variant="default" className="bg-blue-500">
+                          Current Step
+                        </Badge>
+                      )}
+                      {!step.canAccess && (
+                        <Badge variant="secondary" className="bg-gray-400">
+                          Locked
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Action Arrow */}
+                  {step.canAccess && !step.completed && (
+                    <ArrowRight className="h-5 w-5 text-gray-400" />
+                  )}
+                  
+                  {!step.canAccess && (
+                    <AlertCircle className="h-5 w-5 text-gray-400" />
+                  )}
+                </div>
+
+                {/* Connector Line */}
+                {!isLastStep && (
+                  <div className="absolute left-6 top-20 w-0.5 h-6 bg-gray-300 dark:bg-gray-600" />
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Current Step Action */}
+        {customerData && (
+          <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <h4 className="font-semibold mb-2">Next Action Required:</h4>
+            {currentStep === workflowStates.CUSTOMER_ENTRY && !customerData.id && (
+              <p>Complete customer information entry to proceed.</p>
+            )}
+            {currentStep === workflowStates.VEHICLE_SELECTION && !customerData.selectedVehicle && (
+              <p>Select and add a vehicle to this customer to continue.</p>
+            )}
+            {currentStep === workflowStates.DEAL_DESKING && !customerData.dealStructure?.agreedPrice && (
+              <p>Work the numbers and get customer agreement on pricing.</p>
+            )}
+            {currentStep === workflowStates.CONTRACT_FINANCE && !customerData.contractSigned && (
+              <p>Complete financing paperwork and get signatures.</p>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )}
+</div>
+```
+
+);
+}

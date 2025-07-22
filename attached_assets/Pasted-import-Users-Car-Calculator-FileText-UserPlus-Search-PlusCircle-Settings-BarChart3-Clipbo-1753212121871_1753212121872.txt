@@ -1,0 +1,236 @@
+import {
+Users,
+Car,
+Calculator,
+FileText,
+UserPlus,
+Search,
+PlusCircle,
+Settings,
+BarChart3,
+ClipboardList,
+DollarSign,
+Handshake,
+FileSignature,
+Archive
+} from “lucide-react”;
+
+export const navigation = [
+// SALES PROCESS FLOW - Step by Step
+{
+name: “Sales Process”,
+isSection: true,
+children: [
+{
+name: “Step 1: Customer Entry”,
+href: “/customers/new”,
+icon: UserPlus,
+description: “Add new customer to system”
+},
+{
+name: “Step 2: Vehicle Selection”,
+href: “/vehicles/assign”,
+icon: Car,
+description: “Add vehicle to customer”
+},
+{
+name: “Step 3: Desk the Deal”,
+href: “/deals/desk”,
+icon: Calculator,
+description: “Calculate numbers and negotiate”
+},
+{
+name: “Step 4: Contract & Finance”,
+href: “/deals/contract”,
+icon: FileSignature,
+description: “Finalize deal and complete paperwork”
+}
+]
+},
+
+// CUSTOMER MANAGEMENT
+{
+name: “Customer Management”,
+isSection: true,
+children: [
+{
+name: “All Customers”,
+href: “/customers”,
+icon: Users,
+description: “View and manage all customers”
+},
+{
+name: “Customer Search”,
+href: “/customers/search”,
+icon: Search,
+description: “Find existing customers”
+},
+{
+name: “Add New Customer”,
+href: “/customers/new”,
+icon: UserPlus,
+description: “Create new customer profile”
+}
+]
+},
+
+// INVENTORY MANAGEMENT
+{
+name: “Inventory”,
+isSection: true,
+children: [
+{
+name: “Vehicle Inventory”,
+href: “/inventory”,
+icon: Car,
+description: “Manage vehicle inventory”
+},
+{
+name: “Add Vehicle”,
+href: “/inventory/new”,
+icon: PlusCircle,
+description: “Add new vehicle to inventory”
+},
+{
+name: “Vehicle Search”,
+href: “/inventory/search”,
+icon: Search,
+description: “Find specific vehicles”
+}
+]
+},
+
+// DEAL MANAGEMENT
+{
+name: “Deal Management”,
+isSection: true,
+children: [
+{
+name: “Active Deals”,
+href: “/deals/active”,
+icon: Handshake,
+description: “Deals in progress”
+},
+{
+name: “Deal Desk”,
+href: “/deals/desk”,
+icon: Calculator,
+description: “Calculate and structure deals”
+},
+{
+name: “Pending Contracts”,
+href: “/deals/pending”,
+icon: ClipboardList,
+description: “Deals awaiting signatures”
+},
+{
+name: “Completed Deals”,
+href: “/deals/completed”,
+icon: Archive,
+description: “Finalized transactions”
+}
+]
+},
+
+// QUICK ACTIONS (Top Level)
+{
+name: “Quick Customer Entry”,
+href: “/customers/quick”,
+icon: UserPlus,
+badge: “Quick”
+},
+
+// REPORTING
+{
+name: “Reports”,
+isSection: true,
+children: [
+{
+name: “Sales Reports”,
+href: “/reports/sales”,
+icon: BarChart3,
+description: “Sales performance metrics”
+},
+{
+name: “Inventory Reports”,
+href: “/reports/inventory”,
+icon: Car,
+description: “Inventory analysis”
+},
+{
+name: “Financial Reports”,
+href: “/reports/financial”,
+icon: DollarSign,
+description: “Financial performance”
+}
+]
+},
+
+// SETTINGS
+{
+name: “Settings”,
+href: “/settings”,
+icon: Settings
+}
+];
+
+// CORRECTED WORKFLOW STATES
+export const workflowStates = {
+CUSTOMER_ENTRY: ‘customer_entry’,
+VEHICLE_SELECTION: ‘vehicle_selection’,
+DEAL_DESKING: ‘deal_desking’,
+CONTRACT_FINANCE: ‘contract_finance’,
+COMPLETED: ‘completed’
+};
+
+// WORKFLOW PROGRESSION LOGIC
+export const getNextStep = (currentStep: string) => {
+const stepOrder = [
+workflowStates.CUSTOMER_ENTRY,
+workflowStates.VEHICLE_SELECTION,
+workflowStates.DEAL_DESKING,
+workflowStates.CONTRACT_FINANCE,
+workflowStates.COMPLETED
+];
+
+const currentIndex = stepOrder.indexOf(currentStep);
+return currentIndex < stepOrder.length - 1 ? stepOrder[currentIndex + 1] : null;
+};
+
+export const getPreviousStep = (currentStep: string) => {
+const stepOrder = [
+workflowStates.CUSTOMER_ENTRY,
+workflowStates.VEHICLE_SELECTION,
+workflowStates.DEAL_DESKING,
+workflowStates.CONTRACT_FINANCE,
+workflowStates.COMPLETED
+];
+
+const currentIndex = stepOrder.indexOf(currentStep);
+return currentIndex > 0 ? stepOrder[currentIndex - 1] : null;
+};
+
+// WORKFLOW VALIDATION
+export const canProgressToStep = (customerData: any, targetStep: string) => {
+switch (targetStep) {
+case workflowStates.VEHICLE_SELECTION:
+return customerData?.id && customerData?.name;
+
+```
+case workflowStates.DEAL_DESKING:
+  return customerData?.id && customerData?.selectedVehicle?.id;
+  
+case workflowStates.CONTRACT_FINANCE:
+  return customerData?.id && 
+         customerData?.selectedVehicle?.id && 
+         customerData?.dealStructure?.agreedPrice;
+         
+case workflowStates.COMPLETED:
+  return customerData?.contractSigned && customerData?.financeApproved;
+  
+default:
+  return true;
+```
+
+}
+};

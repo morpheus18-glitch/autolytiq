@@ -156,6 +156,7 @@ export interface IStorage {
   createDeal(deal: InsertDeal): Promise<Deal>;
   updateDeal(id: string, updates: Partial<Deal>): Promise<Deal | undefined>;
   updateDealStatus(id: string, status: string): Promise<Deal | undefined>;
+  finalizeDeal(id: string, finalData: any): Promise<Deal | undefined>;
   deleteDeal(id: string): Promise<void>;
   
   // Credit application operations
@@ -896,6 +897,195 @@ export class MemStorage implements IStorage {
 
     showroomSessions.forEach(session => this.showroomSessions.set(session.id, session));
     this.currentShowroomSessionId = 5;
+
+    // Create sample deals
+    const sampleDeals = [
+      {
+        id: 'deal_001',
+        dealNumber: '24010001',
+        status: 'open',
+        vehicleId: '1',
+        vin: '1HGBH41JXMN109186',
+        msrp: 28500,
+        salePrice: 27800,
+        customerId: '1',
+        buyerName: 'John Smith',
+        coBuyerName: null,
+        tradeVin: null,
+        tradeYear: null,
+        tradeMake: null,
+        tradeModel: null,
+        tradeTrim: null,
+        tradeMileage: null,
+        tradeCondition: null,
+        tradeAllowance: 0,
+        tradePayoff: 0,
+        tradeActualCashValue: 0,
+        payoffLenderName: null,
+        payoffLenderAddress: null,
+        payoffLenderCity: null,
+        payoffLenderState: null,
+        payoffLenderZip: null,
+        payoffLenderPhone: null,
+        payoffAccountNumber: null,
+        payoffAmount: 0,
+        payoffPerDiem: 0,
+        payoffGoodThrough: null,
+        insuranceCompany: null,
+        insuranceAgent: null,
+        insurancePhone: null,
+        insurancePolicyNumber: null,
+        insuranceEffectiveDate: null,
+        insuranceExpirationDate: null,
+        insuranceDeductible: null,
+        insuranceCoverage: null,
+        dealType: 'retail',
+        cashDown: 3000,
+        rebates: 500,
+        salesTax: 1968,
+        docFee: 299,
+        titleFee: 75,
+        registrationFee: 125,
+        financeBalance: 25493,
+        creditStatus: null,
+        creditTier: null,
+        term: null,
+        rate: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        finalizedAt: null,
+        salesPersonId: '2',
+        financeManagerId: null
+      },
+      {
+        id: 'deal_002',
+        dealNumber: '24010002',
+        status: 'pending',
+        vehicleId: '3',
+        vin: '3VWDX7AJ8BM123456',
+        msrp: 22500,
+        salePrice: 21900,
+        customerId: '2',
+        buyerName: 'Emily Davis',
+        coBuyerName: null,
+        tradeVin: '1G1AK52F567890123',
+        tradeYear: 2018,
+        tradeMake: 'Chevrolet',
+        tradeModel: 'Malibu',
+        tradeTrim: 'LT',
+        tradeMileage: 65000,
+        tradeCondition: 'good',
+        tradeAllowance: 12000,
+        tradePayoff: 8500,
+        tradeActualCashValue: 11500,
+        payoffLenderName: 'Wells Fargo Auto',
+        payoffLenderAddress: '123 Banking St',
+        payoffLenderCity: 'Dallas',
+        payoffLenderState: 'TX',
+        payoffLenderZip: '75201',
+        payoffLenderPhone: '1-800-555-0123',
+        payoffAccountNumber: 'WF123456789',
+        payoffAmount: 8500,
+        payoffPerDiem: 5.25,
+        payoffGoodThrough: '2024-02-15',
+        insuranceCompany: 'State Farm',
+        insuranceAgent: 'Mike Agent',
+        insurancePhone: '(555) 888-9999',
+        insurancePolicyNumber: 'SF987654321',
+        insuranceEffectiveDate: '2024-01-15',
+        insuranceExpirationDate: '2025-01-15',
+        insuranceDeductible: 500,
+        insuranceCoverage: {
+          liability: true,
+          collision: true,
+          comprehensive: true,
+          uninsured: true,
+          pip: false
+        },
+        dealType: 'retail',
+        cashDown: 1500,
+        rebates: 1000,
+        salesTax: 1533,
+        docFee: 299,
+        titleFee: 75,
+        registrationFee: 125,
+        financeBalance: 13432,
+        creditStatus: 'approved',
+        creditTier: 'B',
+        term: 60,
+        rate: '6.9%',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        finalizedAt: null,
+        salesPersonId: '3',
+        financeManagerId: '1'
+      },
+      {
+        id: 'deal_003',
+        dealNumber: '24010003',
+        status: 'finalized',
+        vehicleId: '4',
+        vin: '1FTFW1ET5BKE12345',
+        msrp: 45000,
+        salePrice: 44500,
+        customerId: '3',
+        buyerName: 'Michael Brown',
+        coBuyerName: 'Sarah Brown',
+        tradeVin: null,
+        tradeYear: null,
+        tradeMake: null,
+        tradeModel: null,
+        tradeTrim: null,
+        tradeMileage: null,
+        tradeCondition: null,
+        tradeAllowance: 0,
+        tradePayoff: 0,
+        tradeActualCashValue: 0,
+        payoffLenderName: null,
+        payoffLenderAddress: null,
+        payoffLenderCity: null,
+        payoffLenderState: null,
+        payoffLenderZip: null,
+        payoffLenderPhone: null,
+        payoffAccountNumber: null,
+        payoffAmount: 0,
+        payoffPerDiem: 0,
+        payoffGoodThrough: null,
+        insuranceCompany: 'Allstate',
+        insuranceAgent: 'Jane Agent',
+        insurancePhone: '(555) 777-8888',
+        insurancePolicyNumber: 'AS123456789',
+        insuranceEffectiveDate: '2024-01-10',
+        insuranceExpirationDate: '2025-01-10',
+        insuranceDeductible: 1000,
+        insuranceCoverage: {
+          liability: true,
+          collision: true,
+          comprehensive: true,
+          uninsured: true,
+          pip: true
+        },
+        dealType: 'retail',
+        cashDown: 10000,
+        rebates: 2000,
+        salesTax: 3150,
+        docFee: 299,
+        titleFee: 75,
+        registrationFee: 125,
+        financeBalance: 34849,
+        creditStatus: 'approved',
+        creditTier: 'A+',
+        term: 72,
+        rate: '4.9%',
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // Yesterday
+        updatedAt: new Date(),
+        finalizedAt: new Date(),
+        salesPersonId: '1',
+        financeManagerId: '1'
+      }
+    ];
+
+    sampleDeals.forEach(deal => this.deals.set(deal.id, deal));
   }
 
   // User operations
@@ -2029,7 +2219,11 @@ export class MemStorage implements IStorage {
     return this.accountingEntries.get(dealId) || [];
   }
 
-  async finalizeDeal(dealId: string): Promise<any> {
+  async finalizeDeal(dealId: string, finalData: any = {}): Promise<Deal | undefined> {
+    // Update deal with final data before finalizing status
+    if (Object.keys(finalData).length > 0) {
+      await this.updateDeal(dealId, finalData);
+    }
     return await this.updateDealStatus(dealId, 'finalized');
   }
 
