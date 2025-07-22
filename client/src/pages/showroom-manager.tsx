@@ -30,7 +30,7 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 import { usePixelTracker } from "@/hooks/use-pixel-tracker";
 import { useLocation } from "wouter";
-import { DeskingTool } from "@/components/desking-tool";
+import { FunctionalDeskingTool } from "@/components/functional-desking-tool";
 import { useToast } from "@/hooks/use-toast";
 
 interface Customer {
@@ -359,7 +359,7 @@ export default function ShowroomManager() {
             Close Desking Tool
           </Button>
         </div>
-        <DeskingTool 
+        <FunctionalDeskingTool 
           dealId={`customer-${selectedCustomerId}`}
           onSave={handleSaveDeal}
         />

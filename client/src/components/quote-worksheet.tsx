@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,12 +58,77 @@ export function QuoteWorksheet({ quoteNumber = "56920", onSave }: QuoteWorksheet
     unpaidBalance: "3,183.23"
   });
 
-  const updateField = (field: string, value: string) => {
+  const updateField = (field: string, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
+
+  // Auto-calculate dependent fields
+  useEffect(() => {
+    const calculateQuote = () => {
+      // Parse numeric values
+      const aftermarketProducts = parseFloat(formData.aftermarketProducts.toString()) || 0;
+      const totalFees = parseFloat(formData.totalFees.toString()) || 0;
+      const totalTaxAmount = parseFloat(formData.totalTaxAmount.toString()) || 0;
+      const term = parseInt(formData.term) || 60;
+      const apr = parseFloat(formData.apr.replace('%', '')) || 0;
+      const daysTo1st = parseInt(formData.daysTo1stPayment) || 45;
+
+      // Calculate sale subtotal
+      const saleSubtotal = aftermarketProducts;
+
+      // Calculate total financed (subtotal + fees + tax)
+      const totalFinanced = saleSubtotal + totalFees + totalTaxAmount;
+
+      // Calculate monthly payment
+      const monthlyRate = apr / 100 / 12;
+      let payment = 0;
+      
+      if (monthlyRate > 0 && totalFinanced > 0) {
+        payment = (totalFinanced * monthlyRate * Math.pow(1 + monthlyRate, term)) / 
+                  (Math.pow(1 + monthlyRate, term) - 1);
+      } else if (totalFinanced > 0) {
+        payment = totalFinanced / term;
+      }
+
+      // Calculate total of payments and finance charge
+      const totalOfPayments = payment * term;
+      const financeCharge = totalOfPayments - totalFinanced;
+      
+      // Calculate first payment date
+      const contractDate = new Date(formData.contractDate.split('/').reverse().join('-'));
+      const firstPaymentDate = new Date(contractDate);
+      firstPaymentDate.setDate(firstPaymentDate.getDate() + daysTo1st);
+
+      setFormData(prev => ({
+        ...prev,
+        saleSubtotal: saleSubtotal.toFixed(2),
+        totalFinanced: totalFinanced.toFixed(2),
+        financeCharge: financeCharge.toFixed(2),
+        totalOfPayments: totalOfPayments.toFixed(2),
+        deferredPrice: totalOfPayments.toFixed(2),
+        unpaidBalance: totalFinanced.toFixed(2),
+        payment: payment.toFixed(2),
+        firstPaymentDate: firstPaymentDate.toLocaleDateString('en-US', {
+          month: '2-digit',
+          day: '2-digit',
+          year: '2-digit'
+        })
+      }));
+    };
+
+    calculateQuote();
+  }, [
+    formData.aftermarketProducts,
+    formData.totalFees,
+    formData.totalTaxAmount,
+    formData.term,
+    formData.apr,
+    formData.daysTo1stPayment,
+    formData.contractDate
+  ]);
 
   const handleSave = () => {
     onSave?.(formData);
@@ -87,15 +152,18 @@ export function QuoteWorksheet({ quoteNumber = "56920", onSave }: QuoteWorksheet
 
           {/* Toolbar */}
           <div className="bg-gray-200 px-4 py-2 flex items-center space-x-2 border-b">
-            <Button size="sm" variant="outline" className="h-8">
+            <Button size="sm" variant="outline" className="h-8" onClick={handleSave}>
               <Save className="w-4 h-4 mr-1" />
               Save
             </Button>
-            <Button size="sm" variant="outline" className="h-8">
+            <Button size="sm" variant="outline" className="h-8" onClick={() => window.print()}>
               <Printer className="w-4 h-4 mr-1" />
               Print
             </Button>
-            <Button size="sm" variant="outline" className="h-8">
+            <Button size="sm" variant="outline" className="h-8" onClick={() => {
+              // Force recalculation
+              setFormData(prev => ({ ...prev, aftermarketProducts: prev.aftermarketProducts }));
+            }}>
               <Calculator className="w-4 h-4 mr-1" />
               Calculate
             </Button>
