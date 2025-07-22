@@ -104,9 +104,7 @@ export default function Customers() {
       };
 
       // Create the session directly via API
-      const response = await apiRequest('POST', '/api/showroom-sessions', sessionData);
-      
-      const newSession = await response.json();
+      const newSession = await apiRequest('POST', '/api/showroom-sessions', sessionData);
       setIsStartingSession(false);
       toast({ 
         title: 'Customer visit started successfully',
