@@ -2490,6 +2490,299 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Advanced Enterprise Features API Routes
+
+  // Customer 360° Intelligence
+  app.get('/api/customers/:id/timeline', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const timeline = await storage.getCustomerTimeline(customerId);
+      res.json(timeline);
+    } catch (error) {
+      console.error('Error fetching customer timeline:', error);
+      res.status(500).json({ message: 'Failed to fetch customer timeline' });
+    }
+  });
+
+  app.post('/api/customers/timeline', async (req, res) => {
+    try {
+      const timelineEvent = await storage.createCustomerTimelineEvent(req.body);
+      res.json(timelineEvent);
+    } catch (error) {
+      console.error('Error creating timeline event:', error);
+      res.status(500).json({ message: 'Failed to create timeline event' });
+    }
+  });
+
+  // AI-Powered Decision Support
+  app.get('/api/ai-insights/:entityType?/:entityId?', async (req, res) => {
+    try {
+      const { entityType, entityId } = req.params;
+      const insights = await storage.getAiInsights(entityType, entityId ? parseInt(entityId) : undefined);
+      res.json(insights);
+    } catch (error) {
+      console.error('Error fetching AI insights:', error);
+      res.status(500).json({ message: 'Failed to fetch AI insights' });
+    }
+  });
+
+  app.post('/api/ai-insights', async (req, res) => {
+    try {
+      const insight = await storage.createAiInsight(req.body);
+      res.json(insight);
+    } catch (error) {
+      console.error('Error creating AI insight:', error);
+      res.status(500).json({ message: 'Failed to create AI insight' });
+    }
+  });
+
+  app.patch('/api/ai-insights/:id/review', async (req, res) => {
+    try {
+      const insightId = parseInt(req.params.id);
+      const { status, reviewedBy } = req.body;
+      const updatedInsight = await storage.updateAiInsightStatus(insightId, status, reviewedBy);
+      res.json(updatedInsight);
+    } catch (error) {
+      console.error('Error updating insight status:', error);
+      res.status(500).json({ message: 'Failed to update insight status' });
+    }
+  });
+
+  // Real-Time Collaboration
+  app.get('/api/collaboration/threads', async (req, res) => {
+    try {
+      const { entityType, entityId } = req.query;
+      const threads = await storage.getCollaborationThreads(
+        entityType as string, 
+        entityId ? parseInt(entityId as string) : undefined
+      );
+      res.json(threads);
+    } catch (error) {
+      console.error('Error fetching collaboration threads:', error);
+      res.status(500).json({ message: 'Failed to fetch collaboration threads' });
+    }
+  });
+
+  app.post('/api/collaboration/threads', async (req, res) => {
+    try {
+      const thread = await storage.createCollaborationThread(req.body);
+      res.json(thread);
+    } catch (error) {
+      console.error('Error creating collaboration thread:', error);
+      res.status(500).json({ message: 'Failed to create collaboration thread' });
+    }
+  });
+
+  app.get('/api/collaboration/messages/:threadId', async (req, res) => {
+    try {
+      const threadId = parseInt(req.params.threadId);
+      const messages = await storage.getCollaborationMessages(threadId);
+      res.json(messages);
+    } catch (error) {
+      console.error('Error fetching collaboration messages:', error);
+      res.status(500).json({ message: 'Failed to fetch collaboration messages' });
+    }
+  });
+
+  app.post('/api/collaboration/messages', async (req, res) => {
+    try {
+      const message = await storage.createCollaborationMessage(req.body);
+      res.json(message);
+    } catch (error) {
+      console.error('Error creating collaboration message:', error);
+      res.status(500).json({ message: 'Failed to create collaboration message' });
+    }
+  });
+
+  // Advanced Analytics & KPIs
+  app.get('/api/kpi-metrics', async (req, res) => {
+    try {
+      const { metricType, period } = req.query;
+      const metrics = await storage.getKpiMetrics(metricType as string, period as string);
+      res.json(metrics);
+    } catch (error) {
+      console.error('Error fetching KPI metrics:', error);
+      res.status(500).json({ message: 'Failed to fetch KPI metrics' });
+    }
+  });
+
+  app.post('/api/kpi-metrics', async (req, res) => {
+    try {
+      const metric = await storage.createKpiMetric(req.body);
+      res.json(metric);
+    } catch (error) {
+      console.error('Error creating KPI metric:', error);
+      res.status(500).json({ message: 'Failed to create KPI metric' });
+    }
+  });
+
+  // Smart Deduplication System
+  app.get('/api/duplicate-customers', async (req, res) => {
+    try {
+      const { status } = req.query;
+      const duplicates = await storage.getDuplicateCustomers(status as string);
+      res.json(duplicates);
+    } catch (error) {
+      console.error('Error fetching duplicate customers:', error);
+      res.status(500).json({ message: 'Failed to fetch duplicate customers' });
+    }
+  });
+
+  app.post('/api/duplicate-customers', async (req, res) => {
+    try {
+      const duplicate = await storage.createDuplicateCustomerDetection(req.body);
+      res.json(duplicate);
+    } catch (error) {
+      console.error('Error creating duplicate customer detection:', error);
+      res.status(500).json({ message: 'Failed to create duplicate customer detection' });
+    }
+  });
+
+  // Workflow Automation System
+  app.get('/api/workflow-templates', async (req, res) => {
+    try {
+      const templates = await storage.getWorkflowTemplates();
+      res.json(templates);
+    } catch (error) {
+      console.error('Error fetching workflow templates:', error);
+      res.status(500).json({ message: 'Failed to fetch workflow templates' });
+    }
+  });
+
+  app.post('/api/workflow-templates', async (req, res) => {
+    try {
+      const template = await storage.createWorkflowTemplate(req.body);
+      res.json(template);
+    } catch (error) {
+      console.error('Error creating workflow template:', error);
+      res.status(500).json({ message: 'Failed to create workflow template' });
+    }
+  });
+
+  app.get('/api/workflow-executions', async (req, res) => {
+    try {
+      const { templateId } = req.query;
+      const executions = await storage.getWorkflowExecutions(
+        templateId ? parseInt(templateId as string) : undefined
+      );
+      res.json(executions);
+    } catch (error) {
+      console.error('Error fetching workflow executions:', error);
+      res.status(500).json({ message: 'Failed to fetch workflow executions' });
+    }
+  });
+
+  app.post('/api/workflow-executions', async (req, res) => {
+    try {
+      const execution = await storage.createWorkflowExecution(req.body);
+      res.json(execution);
+    } catch (error) {
+      console.error('Error creating workflow execution:', error);
+      res.status(500).json({ message: 'Failed to create workflow execution' });
+    }
+  });
+
+  // Predictive Analytics
+  app.get('/api/predictive-scores', async (req, res) => {
+    try {
+      const { entityType, entityId, scoreType } = req.query;
+      const scores = await storage.getPredictiveScores(
+        entityType as string,
+        entityId ? parseInt(entityId as string) : undefined,
+        scoreType as string
+      );
+      res.json(scores);
+    } catch (error) {
+      console.error('Error fetching predictive scores:', error);
+      res.status(500).json({ message: 'Failed to fetch predictive scores' });
+    }
+  });
+
+  app.post('/api/predictive-scores', async (req, res) => {
+    try {
+      const score = await storage.createPredictiveScore(req.body);
+      res.json(score);
+    } catch (error) {
+      console.error('Error creating predictive score:', error);
+      res.status(500).json({ message: 'Failed to create predictive score' });
+    }
+  });
+
+  // Market Benchmarking
+  app.get('/api/market-benchmarks', async (req, res) => {
+    try {
+      const { metricName, timeframe } = req.query;
+      const benchmarks = await storage.getMarketBenchmarks(metricName as string, timeframe as string);
+      res.json(benchmarks);
+    } catch (error) {
+      console.error('Error fetching market benchmarks:', error);
+      res.status(500).json({ message: 'Failed to fetch market benchmarks' });
+    }
+  });
+
+  app.post('/api/market-benchmarks', async (req, res) => {
+    try {
+      const benchmark = await storage.createMarketBenchmark(req.body);
+      res.json(benchmark);
+    } catch (error) {
+      console.error('Error creating market benchmark:', error);
+      res.status(500).json({ message: 'Failed to create market benchmark' });
+    }
+  });
+
+  // Additional convenience endpoints for enterprise features
+  app.get('/api/customers/recent', async (req, res) => {
+    try {
+      const customers = await storage.getCustomers();
+      // Return recent 10 customers sorted by creation date
+      const recent = customers.slice(0, 10);
+      res.json(recent);
+    } catch (error) {
+      console.error('Error fetching recent customers:', error);
+      res.status(500).json({ message: 'Failed to fetch recent customers' });
+    }
+  });
+
+  app.get('/api/deals/active', async (req, res) => {
+    try {
+      const deals = await storage.getAllDeals();
+      // Filter active deals
+      const active = deals.filter((deal: any) => deal.status === 'pending' || deal.status === 'in_progress');
+      res.json(active);
+    } catch (error) {
+      console.error('Error fetching active deals:', error);
+      res.status(500).json({ message: 'Failed to fetch active deals' });
+    }
+  });
+
+  app.get('/api/ai-insights/urgent', async (req, res) => {
+    try {
+      const insights = await storage.getAiInsights();
+      // Filter urgent insights
+      const urgent = insights.filter((insight: any) => 
+        insight.status === 'pending' && insight.confidence > 0.8
+      );
+      res.json(urgent);
+    } catch (error) {
+      console.error('Error fetching urgent insights:', error);
+      res.status(500).json({ message: 'Failed to fetch urgent insights' });
+    }
+  });
+
+  app.get('/api/collaboration/recent-activity', async (req, res) => {
+    try {
+      const threads = await storage.getCollaborationThreads();
+      // Return recent activity from threads
+      const recentActivity = threads
+        .filter((thread: any) => thread.status === 'active')
+        .slice(0, 5);
+      res.json(recentActivity);
+    } catch (error) {
+      console.error('Error fetching recent collaboration activity:', error);
+      res.status(500).json({ message: 'Failed to fetch recent collaboration activity' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

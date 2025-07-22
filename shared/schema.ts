@@ -1123,13 +1123,184 @@ export const systemConfigAuditLog = pgTable("system_config_audit_log", {
   id: serial("id").primaryKey(),
   entityType: varchar("entity_type", { length: 100 }).notNull(), // 'role', 'user', 'module_config', etc
   entityId: varchar("entity_id", { length: 100 }).notNull(),
-  action: varchar("action", { length: 50 }).notNull(), // 'create', 'update', 'delete', 'assign'
-  changes: jsonb("changes").notNull(), // What changed
-  performedBy: varchar("performed_by", { length: 100 }).notNull(),
-  performedAt: timestamp("performed_at").defaultNow(),
-  ipAddress: varchar("ip_address", { length: 50 }),
-  userAgent: text("user_agent"),
+  action: varchar("action", { length: 100 }).notNull(), // 'created', 'updated', 'deleted', 'assigned'
+  changeDescription: text("change_description"),
+  oldValues: jsonb("old_values"),
+  newValues: jsonb("new_values"),
+  userId: varchar("user_id", { length: 100 }).notNull(),
+  timestamp: timestamp("timestamp").defaultNow(),
 });
+
+// Advanced Enterprise Features for Next-Gen DMS/CRM
+
+// Customer 360° Intelligence - Unified customer timeline
+export const customerTimeline = pgTable("customer_timeline", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  eventType: text("event_type").notNull(), // sales, service, finance, marketing, web, chat, phone
+  eventDescription: text("event_description").notNull(),
+  eventData: jsonb("event_data"), // Flexible JSON for event-specific data
+  source: text("source").notNull(), // department/system that generated event
+  userId: varchar("user_id").references(() => users.id),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  metadata: jsonb("metadata"), // Additional context
+});
+
+// AI-Powered Decision Support
+export const aiInsights = pgTable("ai_insights", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // deal_desk_copilot, inventory_optimizer, compliance_checker
+  entityType: text("entity_type").notNull(), // deal, vehicle, customer
+  entityId: integer("entity_id").notNull(),
+  insight: jsonb("insight").notNull(), // AI-generated recommendations/warnings
+  confidence: decimal("confidence", { precision: 3, scale: 2 }), // 0.00-1.00
+  status: text("status").default("pending").notNull(), // pending, reviewed, applied, dismissed
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Real-Time Collaboration
+export const collaborationThreads = pgTable("collaboration_threads", {
+  id: serial("id").primaryKey(),
+  entityType: text("entity_type").notNull(), // deal, customer, vehicle
+  entityId: integer("entity_id").notNull(),
+  title: text("title").notNull(),
+  status: text("status").default("active").notNull(), // active, resolved, archived
+  priority: text("priority").default("normal").notNull(), // low, normal, high, urgent
+  assignedTo: varchar("assigned_to").references(() => users.id),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const collaborationMessages = pgTable("collaboration_messages", {
+  id: serial("id").primaryKey(),
+  threadId: integer("thread_id").references(() => collaborationThreads.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  message: text("message").notNull(),
+  messageType: text("message_type").default("comment").notNull(), // comment, task, escalation, approval_request
+  attachments: jsonb("attachments"), // File metadata
+  mentions: jsonb("mentions"), // User IDs mentioned in message
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+// Advanced Analytics & KPIs
+export const kpiMetrics = pgTable("kpi_metrics", {
+  id: serial("id").primaryKey(),
+  metricName: text("metric_name").notNull(),
+  metricValue: decimal("metric_value", { precision: 15, scale: 2 }).notNull(),
+  metricType: text("metric_type").notNull(), // sales, inventory, finance, operations
+  department: text("department"),
+  period: text("period").notNull(), // daily, weekly, monthly, quarterly
+  periodStart: date("period_start").notNull(),
+  periodEnd: date("period_end").notNull(),
+  metadata: jsonb("metadata"), // Additional context like comparisons, breakdowns
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Smart Deduplication System
+export const duplicateCustomers = pgTable("duplicate_customers", {
+  id: serial("id").primaryKey(),
+  primaryCustomerId: integer("primary_customer_id").references(() => customers.id).notNull(),
+  duplicateCustomerId: integer("duplicate_customer_id").references(() => customers.id).notNull(),
+  similarityScore: decimal("similarity_score", { precision: 3, scale: 2 }).notNull(),
+  matchingFields: jsonb("matching_fields").notNull(), // Fields that matched
+  status: text("status").default("detected").notNull(), // detected, merged, dismissed
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Workflow Automation System
+export const workflowTemplates = pgTable("workflow_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  triggerType: text("trigger_type").notNull(), // event, schedule, manual
+  triggerConditions: jsonb("trigger_conditions").notNull(),
+  actions: jsonb("actions").notNull(), // Array of workflow actions
+  isActive: boolean("is_active").default(true).notNull(),
+  department: text("department"),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const workflowExecutions = pgTable("workflow_executions", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").references(() => workflowTemplates.id).notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: integer("entity_id").notNull(),
+  status: text("status").default("running").notNull(), // running, completed, failed, cancelled
+  executionData: jsonb("execution_data"), // Runtime data and results
+  error: text("error"),
+  startedAt: timestamp("started_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
+// Predictive Analytics
+export const predictiveScores = pgTable("predictive_scores", {
+  id: serial("id").primaryKey(),
+  entityType: text("entity_type").notNull(), // customer, vehicle, deal
+  entityId: integer("entity_id").notNull(),
+  scoreType: text("score_type").notNull(), // churn_risk, deal_probability, inventory_turn
+  score: decimal("score", { precision: 3, scale: 2 }).notNull(), // 0.00-1.00
+  factors: jsonb("factors"), // Contributing factors and weights
+  modelVersion: text("model_version").notNull(),
+  confidence: decimal("confidence", { precision: 3, scale: 2 }),
+  validUntil: timestamp("valid_until"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Market Benchmarking
+export const marketBenchmarks = pgTable("market_benchmarks", {
+  id: serial("id").primaryKey(),
+  metricName: text("metric_name").notNull(),
+  ourValue: decimal("our_value", { precision: 15, scale: 2 }).notNull(),
+  marketAverage: decimal("market_average", { precision: 15, scale: 2 }),
+  regionalAverage: decimal("regional_average", { precision: 15, scale: 2 }),
+  percentile: integer("percentile"), // Where we rank (1-100)
+  vehicleSegment: text("vehicle_segment"), // new, used, truck, suv, etc.
+  timeframe: text("timeframe").notNull(), // month, quarter, year
+  dataSource: text("data_source").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Insert schemas for new enterprise tables
+export const insertCustomerTimelineSchema = createInsertSchema(customerTimeline).omit({ id: true, timestamp: true });
+export const insertAiInsightsSchema = createInsertSchema(aiInsights).omit({ id: true, createdAt: true });
+export const insertCollaborationThreadsSchema = createInsertSchema(collaborationThreads).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCollaborationMessagesSchema = createInsertSchema(collaborationMessages).omit({ id: true, timestamp: true });
+export const insertKpiMetricsSchema = createInsertSchema(kpiMetrics).omit({ id: true, createdAt: true });
+export const insertDuplicateCustomersSchema = createInsertSchema(duplicateCustomers).omit({ id: true, createdAt: true });
+export const insertWorkflowTemplatesSchema = createInsertSchema(workflowTemplates).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertWorkflowExecutionsSchema = createInsertSchema(workflowExecutions).omit({ id: true, startedAt: true });
+export const insertPredictiveScoresSchema = createInsertSchema(predictiveScores).omit({ id: true, createdAt: true });
+export const insertMarketBenchmarksSchema = createInsertSchema(marketBenchmarks).omit({ id: true, createdAt: true });
+
+// Types for new enterprise features
+export type CustomerTimeline = typeof customerTimeline.$inferSelect;
+export type AiInsights = typeof aiInsights.$inferSelect;
+export type CollaborationThreads = typeof collaborationThreads.$inferSelect;
+export type CollaborationMessages = typeof collaborationMessages.$inferSelect;
+export type KpiMetrics = typeof kpiMetrics.$inferSelect;
+export type DuplicateCustomers = typeof duplicateCustomers.$inferSelect;
+export type WorkflowTemplates = typeof workflowTemplates.$inferSelect;
+export type WorkflowExecutions = typeof workflowExecutions.$inferSelect;
+export type PredictiveScores = typeof predictiveScores.$inferSelect;
+export type MarketBenchmarks = typeof marketBenchmarks.$inferSelect;
+
+export type InsertCustomerTimeline = z.infer<typeof insertCustomerTimelineSchema>;
+export type InsertAiInsights = z.infer<typeof insertAiInsightsSchema>;
+export type InsertCollaborationThreads = z.infer<typeof insertCollaborationThreadsSchema>;
+export type InsertCollaborationMessages = z.infer<typeof insertCollaborationMessagesSchema>;
+export type InsertKpiMetrics = z.infer<typeof insertKpiMetricsSchema>;
+export type InsertDuplicateCustomers = z.infer<typeof insertDuplicateCustomersSchema>;
+export type InsertWorkflowTemplates = z.infer<typeof insertWorkflowTemplatesSchema>;
+export type InsertWorkflowExecutions = z.infer<typeof insertWorkflowExecutionsSchema>;
+export type InsertPredictiveScores = z.infer<typeof insertPredictiveScoresSchema>;
+export type InsertMarketBenchmarks = z.infer<typeof insertMarketBenchmarksSchema>;
 
 // Lead Assignment History
 export const leadAssignmentHistory = pgTable("lead_assignment_history", {

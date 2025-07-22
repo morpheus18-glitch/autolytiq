@@ -1,7 +1,13 @@
 import { 
   users, vehicles, customers, leads, sales, activities, visitorSessions, pageViews, customerInteractions, competitorAnalytics, competitivePricing, pricingInsights, merchandisingStrategies, marketTrends, deals, dealDocuments, dealApprovals, creditApplications, coApplicants, tradeVehicles, showroomVisits, salespersonNotes, showroomSessions,
+  // Advanced Enterprise Tables
+  customerTimeline, aiInsights, collaborationThreads, collaborationMessages, kpiMetrics, duplicateCustomers, workflowTemplates, workflowExecutions, predictiveScores, marketBenchmarks,
   type User, type Vehicle, type Customer, type Lead, type Sale, type Activity, type VisitorSession, type PageView, type CustomerInteraction, type CompetitorAnalytics, type CompetitivePricing, type PricingInsights, type MerchandisingStrategies, type MarketTrends, type Deal, type DealDocument, type DealApproval, type CreditApplication, type CoApplicant, type TradeVehicle, type ShowroomVisit, type SalespersonNote, type ShowroomSession,
-  type InsertUser, type InsertVehicle, type InsertCustomer, type InsertLead, type InsertSale, type InsertActivity, type InsertVisitorSession, type InsertPageView, type InsertCustomerInteraction, type InsertCompetitorAnalytics, type InsertCompetitivePricing, type InsertPricingInsights, type InsertMerchandisingStrategies, type InsertMarketTrends, type InsertDeal, type InsertDealDocument, type InsertDealApproval, type UpsertUser
+  // Advanced Enterprise Types
+  type CustomerTimeline, type AiInsights, type CollaborationThreads, type CollaborationMessages, type KpiMetrics, type DuplicateCustomers, type WorkflowTemplates, type WorkflowExecutions, type PredictiveScores, type MarketBenchmarks,
+  type InsertUser, type InsertVehicle, type InsertCustomer, type InsertLead, type InsertSale, type InsertActivity, type InsertVisitorSession, type InsertPageView, type InsertCustomerInteraction, type InsertCompetitorAnalytics, type InsertCompetitivePricing, type InsertPricingInsights, type InsertMerchandisingStrategies, type InsertMarketTrends, type InsertDeal, type InsertDealDocument, type InsertDealApproval, type UpsertUser,
+  // Advanced Enterprise Insert Types
+  type InsertCustomerTimeline, type InsertAiInsights, type InsertCollaborationThreads, type InsertCollaborationMessages, type InsertKpiMetrics, type InsertDuplicateCustomers, type InsertWorkflowTemplates, type InsertWorkflowExecutions, type InsertPredictiveScores, type InsertMarketBenchmarks
 } from "@shared/schema";
 
 export interface IStorage {
@@ -166,6 +172,45 @@ export interface IStorage {
   getDealGross(dealId: string): Promise<any>;
   getDealAccountingEntries(dealId: string): Promise<any[]>;
   finalizeDeal(dealId: string): Promise<any>;
+  
+  // Advanced Enterprise Features
+  
+  // Customer 360° Intelligence
+  getCustomerTimeline(customerId: number): Promise<CustomerTimeline[]>;
+  createCustomerTimelineEvent(event: InsertCustomerTimeline): Promise<CustomerTimeline>;
+  
+  // AI-Powered Decision Support
+  getAiInsights(entityType?: string, entityId?: number): Promise<AiInsights[]>;
+  createAiInsight(insight: InsertAiInsights): Promise<AiInsights>;
+  updateAiInsightStatus(id: number, status: string, reviewedBy?: string): Promise<AiInsights | undefined>;
+  
+  // Real-Time Collaboration
+  getCollaborationThreads(entityType?: string, entityId?: number): Promise<CollaborationThreads[]>;
+  createCollaborationThread(thread: InsertCollaborationThreads): Promise<CollaborationThreads>;
+  getCollaborationMessages(threadId: number): Promise<CollaborationMessages[]>;
+  createCollaborationMessage(message: InsertCollaborationMessages): Promise<CollaborationMessages>;
+  
+  // Advanced Analytics & KPIs
+  getKpiMetrics(metricType?: string, period?: string): Promise<KpiMetrics[]>;
+  createKpiMetric(metric: InsertKpiMetrics): Promise<KpiMetrics>;
+  
+  // Smart Deduplication System
+  getDuplicateCustomers(status?: string): Promise<DuplicateCustomers[]>;
+  createDuplicateCustomerDetection(duplicate: InsertDuplicateCustomers): Promise<DuplicateCustomers>;
+  
+  // Workflow Automation System
+  getWorkflowTemplates(): Promise<WorkflowTemplates[]>;
+  createWorkflowTemplate(template: InsertWorkflowTemplates): Promise<WorkflowTemplates>;
+  getWorkflowExecutions(templateId?: number): Promise<WorkflowExecutions[]>;
+  createWorkflowExecution(execution: InsertWorkflowExecutions): Promise<WorkflowExecutions>;
+  
+  // Predictive Analytics
+  getPredictiveScores(entityType?: string, entityId?: number, scoreType?: string): Promise<PredictiveScores[]>;
+  createPredictiveScore(score: InsertPredictiveScores): Promise<PredictiveScores>;
+  
+  // Market Benchmarking
+  getMarketBenchmarks(metricName?: string, timeframe?: string): Promise<MarketBenchmarks[]>;
+  createMarketBenchmark(benchmark: InsertMarketBenchmarks): Promise<MarketBenchmarks>;
 }
 
 export class MemStorage implements IStorage {
@@ -193,6 +238,19 @@ export class MemStorage implements IStorage {
   private dealProducts: Map<string, any[]>;
   private dealGross: Map<string, any>;
   private accountingEntries: Map<string, any[]>;
+  
+  // Advanced Enterprise Feature Storage
+  private customerTimeline: Map<number, CustomerTimeline>;
+  private aiInsights: Map<number, AiInsights>;
+  private collaborationThreads: Map<number, CollaborationThreads>;
+  private collaborationMessages: Map<number, CollaborationMessages>;
+  private kpiMetrics: Map<number, KpiMetrics>;
+  private duplicateCustomers: Map<number, DuplicateCustomers>;
+  private workflowTemplates: Map<number, WorkflowTemplates>;
+  private workflowExecutions: Map<number, WorkflowExecutions>;
+  private predictiveScores: Map<number, PredictiveScores>;
+  private marketBenchmarks: Map<number, MarketBenchmarks>;
+  
   private currentUserId: number;
   private currentVehicleId: number;
   private currentCustomerId: number;
@@ -212,6 +270,16 @@ export class MemStorage implements IStorage {
   private currentShowroomVisitId: number;
   private currentSalespersonNoteId: number;
   private currentShowroomSessionId: number;
+  private currentCustomerTimelineId: number;
+  private currentAiInsightsId: number;
+  private currentCollaborationThreadId: number;
+  private currentCollaborationMessageId: number;
+  private currentKpiMetricId: number;
+  private currentDuplicateCustomerId: number;
+  private currentWorkflowTemplateId: number;
+  private currentWorkflowExecutionId: number;
+  private currentPredictiveScoreId: number;
+  private currentMarketBenchmarkId: number;
 
   constructor() {
     this.users = new Map();
