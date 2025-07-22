@@ -24,9 +24,6 @@ import ShowroomManager from "@/pages/showroom-manager";
 import DealsPage from "@/pages/deals/index";
 import DealDetailPage from "@/pages/deals/[id]/index";
 // Admin Pages
-import RolesPage from "@/pages/admin/roles";
-import DepartmentsPage from "@/pages/admin/departments";
-import Users from "@/pages/admin/users";
 import SystemSettings from "@/pages/admin/system-settings";
 import ComprehensiveSettings from "@/pages/admin/comprehensive-settings";
 import LeadDistribution from "@/pages/admin/lead-distribution";
@@ -127,9 +124,7 @@ function Router() {
           <Route path="/settings" component={Settings} />
           
           {/* Admin Routes */}
-          <Route path="/admin/roles" component={RolesPage} />
-          <Route path="/admin/departments" component={DepartmentsPage} />
-          <Route path="/admin/users" component={Users} />
+
           <Route path="/admin/settings" component={SystemSettings} />
           <Route path="/admin/comprehensive-settings" component={ComprehensiveSettings} />
           <Route path="/admin/lead-distribution" component={LeadDistribution} />

@@ -283,14 +283,14 @@ export default function EnterpriseHeader() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="flex items-center space-x-1 sm:space-x-2 p-1.5 sm:p-2">
                 <User className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="hidden md:block text-sm">{user?.first_name || 'User'}</span>
+                <span className="hidden md:block text-sm">{(user as any)?.first_name || 'User'}</span>
                 <ChevronDown className="w-2 h-2 sm:w-3 sm:h-3" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <Link href="/profile">
+              <Link href="/admin/user-profile">
                 <DropdownMenuItem>
                   <User className="mr-2 h-4 w-4" />
                   <span>Profile</span>

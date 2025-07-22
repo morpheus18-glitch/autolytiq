@@ -174,7 +174,7 @@ const relationshipTypes = [
   "Other"
 ];
 
-export default function UserForm({ user, onSuccess }: UserFormProps) {
+function UserForm({ user, onClose }: UserFormProps) {
   const { toast } = useToast();
   
   const form = useForm<UserFormData>({
@@ -760,3 +760,5 @@ export default function UserForm({ user, onSuccess }: UserFormProps) {
     </Form>
   );
 }
+
+export default UserForm;
