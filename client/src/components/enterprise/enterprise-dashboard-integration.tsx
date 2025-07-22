@@ -125,28 +125,28 @@ export function EnterpriseDashboardIntegration() {
     <div className="space-y-6">
       {/* Enterprise Header */}
       <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
-        <CardHeader>
-          <CardTitle className="flex items-center text-2xl">
-            <Zap className="w-8 h-8 mr-3 text-blue-600" />
-            Enterprise Command Center
+        <CardHeader className="pb-3 sm:pb-6">
+          <CardTitle className="flex items-center text-lg sm:text-xl lg:text-2xl">
+            <Zap className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 mr-2 sm:mr-3 text-blue-600" />
+            <span className="truncate">Enterprise Command Center</span>
           </CardTitle>
-          <CardDescription className="text-lg">
+          <CardDescription className="text-sm sm:text-base lg:text-lg">
             Next-generation dealership intelligence platform with AI-powered insights and real-time collaboration
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {enterpriseFeatures.map((feature) => (
               <Card key={feature.id} className={`cursor-pointer transition-all hover:shadow-md ${feature.color}`}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-3">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center justify-between mb-2 sm:mb-3">
                     {feature.icon}
-                    <Badge variant="secondary">
+                    <Badge variant="secondary" className="text-xs">
                       {feature.metrics.active} {feature.metrics.label}
                     </Badge>
                   </div>
-                  <h3 className="font-semibold text-sm mb-2">{feature.title}</h3>
-                  <p className="text-xs text-muted-foreground mb-3">
+                  <h3 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2 leading-tight">{feature.title}</h3>
+                  <p className="text-xs text-muted-foreground mb-2 sm:mb-3 line-clamp-2">
                     {feature.description}
                   </p>
                   <Dialog>
@@ -154,10 +154,12 @@ export function EnterpriseDashboardIntegration() {
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="w-full"
+                        className="w-full text-xs sm:text-sm h-7 sm:h-8"
                         onClick={() => setActiveFeature(feature.id)}
                       >
-                        Launch <ChevronRight className="w-4 h-4 ml-2" />
+                        <span className="hidden sm:inline">Launch</span>
+                        <span className="sm:hidden">Open</span>
+                        <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
@@ -189,39 +191,50 @@ export function EnterpriseDashboardIntegration() {
       </Card>
 
       {/* Unified Intelligence Dashboard */}
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="customer-intelligence">Customer Intelligence</TabsTrigger>
-          <TabsTrigger value="deal-intelligence">Deal Intelligence</TabsTrigger>
-          <TabsTrigger value="team-collaboration">Team Collaboration</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+      <Tabs defaultValue="overview" className="space-y-3 sm:space-y-4">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-8 sm:h-9 lg:h-10">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm px-1 sm:px-2">Overview</TabsTrigger>
+          <TabsTrigger value="customer-intelligence" className="text-xs sm:text-sm px-1 sm:px-2">
+            <span className="hidden lg:inline">Customer Intelligence</span>
+            <span className="lg:hidden">Customers</span>
+          </TabsTrigger>
+          <TabsTrigger value="deal-intelligence" className="text-xs sm:text-sm px-1 sm:px-2 col-start-1 sm:col-start-auto">
+            <span className="hidden lg:inline">Deal Intelligence</span>
+            <span className="lg:hidden">Deals</span>
+          </TabsTrigger>
+          <TabsTrigger value="team-collaboration" className="text-xs sm:text-sm px-1 sm:px-2">
+            <span className="hidden lg:inline">Team Collaboration</span>
+            <span className="lg:hidden">Team</span>
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="text-xs sm:text-sm px-1 sm:px-2">Analytics</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Quick Actions */}
             <Card className="lg:col-span-1">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Activity className="w-5 h-5 mr-2 text-blue-500" />
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="flex items-center text-sm sm:text-base">
+                  <Activity className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500" />
                   Quick Actions
                 </CardTitle>
-                <CardDescription>Common enterprise workflows and tasks</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Common enterprise workflows and tasks</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+              <CardContent className="pt-0">
+                <div className="space-y-2 sm:space-y-3">
                   {quickActions.map((action, index) => (
                     <div
                       key={index}
-                      className="flex items-start space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                       onClick={action.action}
                     >
-                      {action.icon}
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{action.title}</p>
-                        <p className="text-xs text-muted-foreground">{action.description}</p>
+                      <div className="flex-shrink-0 mt-0.5">
+                        {action.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs sm:text-sm font-medium truncate">{action.title}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{action.description}</p>
                       </div>
                     </div>
                   ))}
@@ -231,47 +244,47 @@ export function EnterpriseDashboardIntegration() {
 
             {/* Recent Activity Feed */}
             <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Clock className="w-5 h-5 mr-2 text-green-500" />
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="flex items-center text-sm sm:text-base">
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-500" />
                   Enterprise Activity Feed
                 </CardTitle>
-                <CardDescription>Real-time updates from all enterprise systems</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Real-time updates from all enterprise systems</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <Brain className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">AI Copilot generated new deal insights</p>
-                      <p className="text-xs text-muted-foreground">3 high-priority recommendations for Deal #D-2025-001</p>
+              <CardContent className="pt-0">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium">AI Copilot generated new deal insights</p>
+                      <p className="text-xs text-muted-foreground line-clamp-1">3 high-priority recommendations for Deal #D-2025-001</p>
                       <span className="text-xs text-blue-600">2 minutes ago</span>
                     </div>
                   </div>
 
-                  <div className="flex items-start space-x-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <Users className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Team collaboration thread updated</p>
-                      <p className="text-xs text-muted-foreground">Sarah Williams responded to "Customer financing approval"</p>
+                  <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium">Team collaboration thread updated</p>
+                      <p className="text-xs text-muted-foreground line-clamp-1">Sarah Williams responded to "Customer financing approval"</p>
                       <span className="text-xs text-green-600">5 minutes ago</span>
                     </div>
                   </div>
 
-                  <div className="flex items-start space-x-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <Eye className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Customer 360° timeline updated</p>
-                      <p className="text-xs text-muted-foreground">New service history added for John Martinez</p>
+                  <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium">Customer 360° timeline updated</p>
+                      <p className="text-xs text-muted-foreground line-clamp-1">New service history added for John Martinez</p>
                       <span className="text-xs text-purple-600">12 minutes ago</span>
                     </div>
                   </div>
 
-                  <div className="flex items-start space-x-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                    <BarChart3 className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Analytics benchmark update</p>
-                      <p className="text-xs text-muted-foreground">Monthly performance metrics refreshed - 3 new market comparisons</p>
+                  <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                    <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium">Analytics benchmark update</p>
+                      <p className="text-xs text-muted-foreground line-clamp-1">Monthly performance metrics refreshed - 3 new market comparisons</p>
                       <span className="text-xs text-orange-600">18 minutes ago</span>
                     </div>
                   </div>
@@ -282,27 +295,27 @@ export function EnterpriseDashboardIntegration() {
 
           {/* System Health & Performance */}
           <Card>
-            <CardHeader>
-              <CardTitle>Enterprise System Health</CardTitle>
-              <CardDescription>Real-time monitoring of all advanced features</CardDescription>
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-sm sm:text-base">Enterprise System Health</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Real-time monitoring of all advanced features</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">99.8%</div>
-                  <div className="text-sm text-muted-foreground">AI Copilot Uptime</div>
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="text-center p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <div className="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">99.8%</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">AI Copilot Uptime</div>
                 </div>
-                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">847ms</div>
-                  <div className="text-sm text-muted-foreground">Avg Response Time</div>
+                <div className="text-center p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">847ms</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Avg Response Time</div>
                 </div>
-                <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">24/7</div>
-                  <div className="text-sm text-muted-foreground">Real-time Sync</div>
+                <div className="text-center p-3 sm:p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <div className="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">24/7</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Real-time Sync</div>
                 </div>
-                <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600">156</div>
-                  <div className="text-sm text-muted-foreground">Active Integrations</div>
+                <div className="text-center p-3 sm:p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                  <div className="text-lg sm:text-xl lg:text-2xl font-bold text-orange-600">156</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Active Integrations</div>
                 </div>
               </div>
             </CardContent>
@@ -310,27 +323,29 @@ export function EnterpriseDashboardIntegration() {
         </TabsContent>
 
         {/* Customer Intelligence Tab */}
-        <TabsContent value="customer-intelligence" className="space-y-4">
+        <TabsContent value="customer-intelligence" className="space-y-3 sm:space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Customer 360° Intelligence Center</CardTitle>
-              <CardDescription>Select a customer to view comprehensive intelligence</CardDescription>
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-sm sm:text-base">Customer 360° Intelligence Center</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Select a customer to view comprehensive intelligence</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {recentCustomers?.slice(0, 6).map((customer: any) => (
                   <Card 
                     key={customer.id}
                     className="cursor-pointer hover:shadow-md transition-shadow"
                     onClick={() => setSelectedCustomerId(customer.id)}
                   >
-                    <CardContent className="p-4">
-                      <h3 className="font-medium">{customer.firstName} {customer.lastName}</h3>
-                      <p className="text-sm text-muted-foreground">{customer.email}</p>
-                      <div className="flex items-center justify-between mt-3">
-                        <Badge variant="secondary">{customer.status || 'Active'}</Badge>
-                        <Button size="sm" variant="outline">
-                          View 360° <Eye className="w-4 h-4 ml-2" />
+                    <CardContent className="p-3 sm:p-4">
+                      <h3 className="font-medium text-sm sm:text-base truncate">{customer.firstName} {customer.lastName}</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">{customer.email}</p>
+                      <div className="flex items-center justify-between mt-2 sm:mt-3">
+                        <Badge variant="secondary" className="text-xs">{customer.status || 'Active'}</Badge>
+                        <Button size="sm" variant="outline" className="text-xs h-7">
+                          <span className="hidden sm:inline">View 360°</span>
+                          <span className="sm:hidden">View</span>
+                          <Eye className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
                         </Button>
                       </div>
                     </CardContent>
@@ -348,36 +363,38 @@ export function EnterpriseDashboardIntegration() {
         </TabsContent>
 
         {/* Deal Intelligence Tab */}
-        <TabsContent value="deal-intelligence" className="space-y-4">
+        <TabsContent value="deal-intelligence" className="space-y-3 sm:space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>AI-Powered Deal Intelligence</CardTitle>
-              <CardDescription>Select an active deal for AI copilot analysis</CardDescription>
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-sm sm:text-base">AI-Powered Deal Intelligence</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Select an active deal for AI copilot analysis</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                 {activeDeals?.slice(0, 4).map((deal: any) => (
                   <Card 
                     key={deal.id}
                     className="cursor-pointer hover:shadow-md transition-shadow"
                     onClick={() => setSelectedDealId(deal.id)}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-medium">Deal #{deal.id}</h3>
-                        <Badge variant={deal.status === 'pending' ? 'secondary' : 'default'}>
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex items-center justify-between mb-2 sm:mb-3">
+                        <h3 className="font-medium text-sm sm:text-base truncate">Deal #{deal.id}</h3>
+                        <Badge variant={deal.status === 'pending' ? 'secondary' : 'default'} className="text-xs">
                           {deal.status}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-3">
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2">
                         {deal.customerName} - {deal.vehicleDescription}
                       </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-green-600">
+                        <span className="text-sm sm:text-base lg:text-lg font-bold text-green-600">
                           ${deal.totalAmount?.toLocaleString()}
                         </span>
-                        <Button size="sm" variant="outline">
-                          AI Analysis <Brain className="w-4 h-4 ml-2" />
+                        <Button size="sm" variant="outline" className="text-xs h-7">
+                          <span className="hidden sm:inline">AI Analysis</span>
+                          <span className="sm:hidden">Analyze</span>
+                          <Brain className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
                         </Button>
                       </div>
                     </CardContent>
