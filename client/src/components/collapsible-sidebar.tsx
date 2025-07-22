@@ -51,35 +51,7 @@ export default function CollapsibleSidebar({ isOpen, onClose, onToggle }: Collap
           : 'w-0 md:w-16 -translate-x-full md:translate-x-0'
         }
       `}>
-        {/* Logo and Brand */}
-        <div className={`
-          p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0
-          ${!isOpen && !isMobile ? 'hidden' : ''}
-        `}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-sm">AQ</span>
-              </div>
-              {isOpen && (
-                <div>
-                  <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">AutolytiQ</h1>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Dealership Management</p>
-                </div>
-              )}
-            </div>
-            {isMobile && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </div>
+
 
         {/* Desktop collapsed state - show only icons */}
         {!isMobile && !isOpen && (
@@ -109,6 +81,20 @@ export default function CollapsibleSidebar({ isOpen, onClose, onToggle }: Collap
                 </Link>
               );
             })}
+          </div>
+        )}
+
+        {/* Mobile close button when open */}
+        {isOpen && isMobile && (
+          <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
         )}
 
@@ -174,15 +160,7 @@ export default function CollapsibleSidebar({ isOpen, onClose, onToggle }: Collap
           </nav>
         )}
 
-        {/* Footer - only when open */}
-        {isOpen && (
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-            <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              <p>© 2025 AutolytiQ System</p>
-              <p className="text-gray-400 dark:text-gray-500">v2.0.0 Enterprise</p>
-            </div>
-          </div>
-        )}
+
 
         {/* Desktop expand/collapse toggle - when collapsed */}
         {!isMobile && !isOpen && (
