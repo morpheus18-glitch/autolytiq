@@ -208,6 +208,10 @@ export interface IStorage {
   addDealProduct(dealId: string, product: any): Promise<any>;
   getDealGross(dealId: string): Promise<any>;
   getDealAccountingEntries(dealId: string): Promise<any[]>;
+  getDealProducts(dealId: string): Promise<any[]>;
+  addDealProduct(dealId: string, product: any): Promise<any>;
+  getDealGross(dealId: string): Promise<any>;
+  getDealAccountingEntries(dealId: string): Promise<any[]>;
   finalizeDeal(dealId: string): Promise<any>;
   
   // F&I (Finance & Insurance) operations
