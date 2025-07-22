@@ -2,11 +2,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Target, Workflow } from "lucide-react";
+import { Brain, Target, Workflow, Zap, Star } from "lucide-react";
 import { Link } from "wouter";
 import UnifiedDashboard from "@/components/unified-dashboard";
 import WorkflowIntegration from "@/components/workflow-integration";
 import { EnterpriseDashboardIntegration } from "@/components/enterprise/enterprise-dashboard-integration";
+// Enhanced dual CRM/DMS components
+// import EnhancedVehicleListing from "@/components/enhanced-vehicle-listing";
+// import SmartCRMAssistant from "@/components/smart-crm-assistant";
+// import IntelligentInventoryManager from "@/components/intelligent-inventory-manager";
+// import AdvancedDealDesk from "@/components/advanced-deal-desk";
 
 export default function Dashboard() {
   return (

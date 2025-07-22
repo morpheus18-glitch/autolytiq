@@ -81,14 +81,84 @@ export const vehicles = pgTable("vehicles", {
   trim: text("trim"),
   mileage: integer("mileage"),
   price: integer("price").notNull(),
-  status: text("status").notNull(), // available, pending, sold, maintenance
+  originalPrice: integer("original_price"),
+  costPrice: integer("cost_price"),
+  status: text("status").notNull(), // available, pending, sold, maintenance, reserved, in-transit
+  condition: text("condition").default("good"), // excellent, good, fair, poor
   description: text("description"),
   imageUrl: text("image_url"),
-  media: json("media").$type<Array<{url: string; label: string; type: string}>>(),
-  valuations: json("valuations").$type<{kbb?: number; mmr?: number; blackBook?: number; jdPower?: number}>(),
+  
+  // Enhanced listing capabilities
+  listing: json("listing").$type<{
+    isListed: boolean;
+    listingSites: string[]; // autotrader, cars.com, etc.
+    listingStatus: string;
+    seoTitle?: string;
+    seoDescription?: string;
+    keywords?: string[];
+    featuredUntil?: string;
+  }>(),
+  
+  // Enhanced media management
+  media: json("media").$type<Array<{
+    url: string; 
+    label: string; 
+    type: 'image' | 'video' | 'document' | '360-view';
+    order: number;
+    isMain?: boolean;
+  }>>(),
+  
+  // AI-enhanced valuations
+  valuations: json("valuations").$type<{
+    kbb?: number; 
+    mmr?: number; 
+    blackBook?: number; 
+    jdPower?: number;
+    aiEstimate?: number;
+    marketTrend?: 'rising' | 'stable' | 'falling';
+    confidenceScore?: number;
+    lastUpdated?: string;
+  }>(),
+  
+  // Enhanced specifications
+  specifications: json("specifications").$type<{
+    engine?: string;
+    transmission?: string;
+    drivetrain?: string;
+    fuelType?: string;
+    mpgCity?: number;
+    mpgHighway?: number;
+    exteriorColor?: string;
+    interiorColor?: string;
+    features?: string[];
+    safetyRating?: number;
+    warrantyInfo?: string;
+  }>(),
+  
+  // Location and logistics
+  location: json("location").$type<{
+    lot?: string;
+    row?: string;
+    space?: string;
+    building?: string;
+    notes?: string;
+  }>(),
+  
+  // Enhanced tracking
   auditLogs: json("audit_logs").$type<Array<{user: string; action: string; timestamp: string; details?: string}>>(),
   priceHistory: json("price_history").$type<Array<{price: number; user: string; timestamp: string; reason?: string}>>(),
   tags: json("tags").$type<string[]>(),
+  
+  // AI/ML insights
+  aiInsights: json("ai_insights").$type<{
+    demandScore?: number;
+    priceOptimal?: boolean;
+    recommendedActions?: string[];
+    marketPosition?: string;
+    daysToSell?: number;
+    lastAnalyzed?: string;
+  }>(),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -123,6 +193,45 @@ export const customers = pgTable("customers", {
   followUpSchedule: json("follow_up_schedule"),
   tags: json("tags"),
   notes: text("notes"),
+  
+  // Enhanced CRM capabilities
+  leadScore: integer("lead_score").default(0),
+  buyingTimeframe: text("buying_timeframe"), // immediate, 30-days, 90-days, future
+  budgetRange: json("budget_range").$type<{min?: number; max?: number}>(),
+  tradeInVehicle: json("trade_in_vehicle").$type<{
+    make?: string;
+    model?: string;
+    year?: number;
+    mileage?: number;
+    estimatedValue?: number;
+    owedAmount?: number;
+  }>(),
+  
+  // Digital engagement
+  digitalProfile: json("digital_profile").$type<{
+    websiteVisits?: number;
+    lastWebsiteVisit?: string;
+    emailEngagement?: number;
+    smsEngagement?: number;
+    socialMediaProfiles?: string[];
+    preferredContactTime?: string;
+    communicationStyle?: 'formal' | 'casual' | 'professional';
+  }>(),
+  
+  // Enhanced customer status tracking
+  customerJourney: json("customer_journey").$type<{
+    stage: 'prospect' | 'lead' | 'qualified' | 'negotiating' | 'sold' | 'service';
+    touchpoints: Array<{
+      type: string;
+      date: string;
+      notes: string;
+      outcome: string;
+    }>;
+    nextAction?: string;
+    actionDueDate?: string;
+    probability?: number;
+  }>(),
+  
   salesConsultant: text("sales_consultant"),
   status: text("status").notNull().default("prospect"),
   lastContactDate: timestamp("last_contact_date"),
