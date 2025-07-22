@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import CollapsibleSidebar from '@/components/collapsible-sidebar';
+import CollapsibleSidebar from './collapsible-sidebar';
 
 interface SidebarManagerProps {
   children: React.ReactNode;
