@@ -21,6 +21,8 @@ import {
   // F&I Insert Types
   type InsertCreditPull, type InsertLenderApplication, type InsertFiProduct, type InsertFinanceMenu, type InsertFiAuditLog
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (OAuth users)
@@ -147,6 +149,14 @@ export interface IStorage {
   getMarketTrends(category?: string): Promise<MarketTrends[]>;
   updateMarketTrend(id: number, trend: Partial<InsertMarketTrends>): Promise<MarketTrends | undefined>;
   deleteMarketTrend(id: number): Promise<boolean>;
+  
+  // Deal operations
+  getAllDeals(): Promise<Deal[]>;
+  getDeal(id: string): Promise<Deal | undefined>;
+  createDeal(deal: InsertDeal): Promise<Deal>;
+  updateDeal(id: string, updates: Partial<Deal>): Promise<Deal | undefined>;
+  updateDealStatus(id: string, status: string): Promise<Deal | undefined>;
+  deleteDeal(id: string): Promise<void>;
   
   // Credit application operations
   getCreditApplications(customerId: number): Promise<CreditApplication[]>;
@@ -1901,69 +1911,92 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
-  // Deal Management Implementation
-  private deals: Map<string, any> = new Map();
-  private dealProducts: Map<string, any[]> = new Map();
-  private dealGross: Map<string, any> = new Map();
-  private accountingEntries: Map<string, any[]> = new Map();
-
-  async getAllDeals(): Promise<any[]> {
-    return Array.from(this.deals.values()).sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-  }
-
-  async getDeal(id: string): Promise<any> {
-    return this.deals.get(id);
-  }
-
-  async createDeal(dealData: any): Promise<any> {
-    const deal = {
-      id: `deal_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
-      dealNumber: this.generateDealNumber(),
-      status: 'open',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      ...dealData,
-    };
-    this.deals.set(deal.id, deal);
-    
-    // Initialize related data
-    this.dealProducts.set(deal.id, []);
-    this.accountingEntries.set(deal.id, []);
-    
-    return deal;
-  }
-
-  async updateDeal(id: string, updates: any): Promise<any> {
-    const existing = this.deals.get(id);
-    if (!existing) return null;
-    
-    const updated = {
-      ...existing,
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    };
-    this.deals.set(id, updated);
-    
-    // Recalculate gross if financial data changed
-    await this.calculateDealGross(id);
-    
-    return updated;
-  }
-
-  async updateDealStatus(id: string, status: string): Promise<any> {
-    const deal = await this.updateDeal(id, { 
-      status,
-      ...(status === 'finalized' ? { finalizedAt: new Date().toISOString() } : {})
-    });
-    
-    // Generate accounting entries when deal is finalized
-    if (status === 'finalized' && deal) {
-      await this.generateAccountingEntries(deal);
+  // Deal Management Implementation - Database-based
+  async getAllDeals(): Promise<Deal[]> {
+    try {
+      return await db.select().from(deals).orderBy(desc(deals.createdAt));
+    } catch (error) {
+      console.error("Error fetching all deals:", error);
+      return [];
     }
-    
-    return deal;
+  }
+
+  async getDeal(id: string): Promise<Deal | undefined> {
+    try {
+      const [deal] = await db.select().from(deals).where(eq(deals.id, id));
+      return deal;
+    } catch (error) {
+      console.error("Error fetching deal:", error);
+      return undefined;
+    }
+  }
+
+  async createDeal(dealData: InsertDeal): Promise<Deal> {
+    try {
+      const dealId = `deal_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+      const dealNumber = this.generateDealNumber();
+      
+      const newDeal: InsertDeal = {
+        id: dealId,
+        dealNumber: dealNumber,
+        status: dealData.status || 'structuring',
+        buyerName: dealData.buyerName,
+        customerId: dealData.customerId,
+        vehicleId: dealData.vehicleId,
+        dealType: dealData.dealType || 'retail',
+        salePrice: dealData.salePrice || 0,
+        cashDown: dealData.cashDown || 0,
+        ...dealData,
+      };
+      
+      const [createdDeal] = await db.insert(deals).values(newDeal).returning();
+      return createdDeal;
+    } catch (error) {
+      console.error("Error creating deal:", error);
+      throw new Error("Failed to create deal in database");
+    }
+  }
+
+  async updateDeal(id: string, updates: Partial<Deal>): Promise<Deal | undefined> {
+    try {
+      const [updatedDeal] = await db
+        .update(deals)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(deals.id, id))
+        .returning();
+      return updatedDeal;
+    } catch (error) {
+      console.error("Error updating deal:", error);
+      return undefined;
+    }
+  }
+
+  async updateDealStatus(id: string, status: string): Promise<Deal | undefined> {
+    try {
+      const updateData: any = { status, updatedAt: new Date() };
+      if (status === 'funded') {
+        updateData.finalizedAt = new Date();
+      }
+      
+      const [updatedDeal] = await db
+        .update(deals)
+        .set(updateData)
+        .where(eq(deals.id, id))
+        .returning();
+      return updatedDeal;
+    } catch (error) {
+      console.error("Error updating deal status:", error);
+      return undefined;
+    }
+  }
+
+  async deleteDeal(id: string): Promise<void> {
+    try {
+      await db.delete(deals).where(eq(deals.id, id));
+    } catch (error) {
+      console.error("Error deleting deal:", error);
+      throw new Error("Failed to delete deal");
+    }
   }
 
   async getDealProducts(dealId: string): Promise<any[]> {

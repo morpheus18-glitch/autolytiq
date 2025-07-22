@@ -469,12 +469,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/deals", async (req, res) => {
     try {
+      console.log("Creating deal with data:", req.body);
       const dealData = req.body;
+      
+      // Validate required fields
+      if (!dealData.customerId || !dealData.vehicleId) {
+        return res.status(400).json({ 
+          message: "Customer and vehicle are required for deal creation" 
+        });
+      }
+      
       const deal = await storage.createDeal(dealData);
+      console.log("Deal created successfully:", deal);
       res.status(201).json(deal);
     } catch (error) {
       console.error("Error creating deal:", error);
-      res.status(500).json({ message: "Failed to create deal" });
+      res.status(500).json({ 
+        message: "Failed to create deal", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
     }
   });
 
