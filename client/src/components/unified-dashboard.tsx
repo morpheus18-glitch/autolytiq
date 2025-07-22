@@ -178,101 +178,102 @@ export default function UnifiedDashboard() {
     <div className="space-y-6">
       {/* Executive Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <Card className="border-l-4 border-l-blue-500">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Total Customers</p>
-                <div className="flex items-baseline space-x-1 sm:space-x-2 mt-1">
-                  <p className="text-lg sm:text-2xl font-bold">{metrics?.customers.total.toLocaleString()}</p>
-                  <Badge variant="secondary" className="text-xs px-1">
-                    +{metrics?.customers.newThisWeek}
-                  </Badge>
+        {/* Top 4 navigation cards - clicking these should navigate */}
+        <Link href="/customers">
+          <Card className="border-l-4 border-l-blue-500 cursor-pointer hover:shadow-md transition-all duration-200">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Total Customers</p>
+                  <div className="flex items-baseline space-x-1 sm:space-x-2 mt-1">
+                    <p className="text-lg sm:text-2xl font-bold">{metrics?.customers.total.toLocaleString()}</p>
+                    <Badge variant="secondary" className="text-xs px-1">
+                      +{metrics?.customers.newThisWeek}
+                    </Badge>
+                  </div>
                 </div>
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 flex-shrink-0" />
               </div>
-              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 flex-shrink-0" />
-            </div>
-            <div className="mt-2 flex items-center text-xs sm:text-sm">
-              <span className="text-red-600 font-medium">{metrics?.customers.hotLeads} hot</span>
-              <ArrowRight className="w-3 h-3 mx-1 flex-shrink-0" />
-              <Link href="/customers" className="text-blue-600 hover:underline truncate">
-                View all
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="mt-2 flex items-center text-xs sm:text-sm">
+                <span className="text-red-600 font-medium">{metrics?.customers.hotLeads} hot</span>
+                <ArrowRight className="w-3 h-3 mx-1 flex-shrink-0" />
+                <span className="text-blue-600 font-medium truncate">Click to manage</span>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card className="border-l-4 border-l-green-500">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Active Inventory</p>
-                <div className="flex items-baseline space-x-1 sm:space-x-2 mt-1">
-                  <p className="text-lg sm:text-2xl font-bold">{metrics?.inventory.available}</p>
-                  <Badge variant="outline" className="text-xs px-1">
-                    {metrics?.inventory.sold} sold
-                  </Badge>
+        <Link href="/inventory">
+          <Card className="border-l-4 border-l-green-500 cursor-pointer hover:shadow-md transition-all duration-200">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Active Inventory</p>
+                  <div className="flex items-baseline space-x-1 sm:space-x-2 mt-1">
+                    <p className="text-lg sm:text-2xl font-bold">{metrics?.inventory.available}</p>
+                    <Badge variant="outline" className="text-xs px-1">
+                      {metrics?.inventory.sold} sold
+                    </Badge>
+                  </div>
                 </div>
+                <Car className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 flex-shrink-0" />
               </div>
-              <Car className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 flex-shrink-0" />
-            </div>
-            <div className="mt-2 flex items-center text-xs sm:text-sm">
-              <span className="text-gray-600">{metrics?.inventory.avgDaysOnLot} days avg</span>
-              <ArrowRight className="w-3 h-3 mx-1 flex-shrink-0" />
-              <Link href="/inventory" className="text-green-600 hover:underline truncate">
-                Manage
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="mt-2 flex items-center text-xs sm:text-sm">
+                <span className="text-gray-600">{metrics?.inventory.avgDaysOnLot} days avg</span>
+                <ArrowRight className="w-3 h-3 mx-1 flex-shrink-0" />
+                <span className="text-green-600 font-medium truncate">Click to manage</span>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card className="border-l-4 border-l-purple-500">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">AI Performance</p>
-                <div className="flex items-baseline space-x-1 sm:space-x-2 mt-1">
-                  <p className="text-lg sm:text-2xl font-bold">{metrics?.ml.accuracy}%</p>
-                  <Badge variant="secondary" className="text-xs px-1">
-                    {metrics?.ml.searchQueries} searches
-                  </Badge>
+        <Link href="/ai-smart-search">
+          <Card className="border-l-4 border-l-purple-500 cursor-pointer hover:shadow-md transition-all duration-200">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">AI Performance</p>
+                  <div className="flex items-baseline space-x-1 sm:space-x-2 mt-1">
+                    <p className="text-lg sm:text-2xl font-bold">{metrics?.ml.accuracy}%</p>
+                    <Badge variant="secondary" className="text-xs px-1">
+                      {metrics?.ml.searchQueries} searches
+                    </Badge>
+                  </div>
                 </div>
+                <Brain className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500 flex-shrink-0" />
               </div>
-              <Brain className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500 flex-shrink-0" />
-            </div>
-            <div className="mt-2 flex items-center text-xs sm:text-sm">
-              <span className="text-purple-600 font-medium">{metrics?.ml.recommendations} recs</span>
-              <ArrowRight className="w-3 h-3 mx-1 flex-shrink-0" />
-              <Link href="/ai-smart-search" className="text-purple-600 hover:underline truncate">
-                AI Search
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="mt-2 flex items-center text-xs sm:text-sm">
+                <span className="text-purple-600 font-medium">{metrics?.ml.recommendations} recs</span>
+                <ArrowRight className="w-3 h-3 mx-1 flex-shrink-0" />
+                <span className="text-purple-600 font-medium truncate">Click for AI search</span>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card className="border-l-4 border-l-orange-500">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Communications</p>
-                <div className="flex items-baseline space-x-1 sm:space-x-2 mt-1">
-                  <p className="text-lg sm:text-2xl font-bold">{metrics?.communication.responseRate}%</p>
-                  <Badge variant="secondary" className="text-xs px-1">
-                    {metrics?.communication.callsToday} calls
-                  </Badge>
+        <Link href="/communication-demo">
+          <Card className="border-l-4 border-l-orange-500 cursor-pointer hover:shadow-md transition-all duration-200">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Communications</p>
+                  <div className="flex items-baseline space-x-1 sm:space-x-2 mt-1">
+                    <p className="text-lg sm:text-2xl font-bold">{metrics?.communication.responseRate}%</p>
+                    <Badge variant="secondary" className="text-xs px-1">
+                      {metrics?.communication.callsToday} calls
+                    </Badge>
+                  </div>
                 </div>
+                <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500 flex-shrink-0" />
               </div>
-              <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500 flex-shrink-0" />
-            </div>
-            <div className="mt-2 flex items-center text-xs sm:text-sm">
-              <span className="text-orange-600 font-medium">{metrics?.communication.avgResponseTime} avg</span>
-              <ArrowRight className="w-3 h-3 mx-1 flex-shrink-0" />
-              <Link href="/communication-demo" className="text-orange-600 hover:underline truncate">
-                Messaging
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="mt-2 flex items-center text-xs sm:text-sm">
+                <span className="text-orange-600 font-medium">{metrics?.communication.avgResponseTime} avg</span>
+                <ArrowRight className="w-3 h-3 mx-1 flex-shrink-0" />
+                <span className="text-orange-600 font-medium truncate">Click for messaging</span>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
