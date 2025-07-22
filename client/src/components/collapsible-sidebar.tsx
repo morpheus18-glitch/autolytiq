@@ -55,7 +55,7 @@ export default function CollapsibleSidebar({ isOpen, onClose, onToggle }: Collap
 
         {/* Desktop collapsed state - show only icons */}
         {!isMobile && !isOpen && (
-          <div className="flex-1 p-2 space-y-2 overflow-y-auto">
+          <div className="flex-1 p-2 space-y-2 overflow-y-auto pt-16">
             {navigation.slice(0, 8).map((item) => {
               if (item.isSection) return null;
               const isActive = location === item.href;
@@ -82,6 +82,11 @@ export default function CollapsibleSidebar({ isOpen, onClose, onToggle }: Collap
               );
             })}
           </div>
+        )}
+
+        {/* Top spacing to clear hamburger menu */}
+        {isOpen && (
+          <div className="h-16 flex-shrink-0"></div>
         )}
 
         {/* Mobile close button when open */}
