@@ -48,12 +48,17 @@ import {
   Wrench,
   BarChart3,
   Target,
-  TrendingUp
+  TrendingUp,
+  Moon,
+  Sun,
+  Laptop
 } from 'lucide-react';
+import { useTheme } from '@/contexts/theme-context';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('general');
   const [showPassword, setShowPassword] = useState(false);
+  const { theme, setTheme } = useTheme();
   const [settings, setSettings] = useState({
     // General Settings
     dealershipName: 'Premier Auto Sales',
@@ -311,6 +316,78 @@ export default function Settings() {
                     step="0.01"
                     value={settings.taxRate}
                     onChange={(e) => handleSettingChange('taxRate', e.target.value)}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Appearance Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Appearance & Theme
+              </CardTitle>
+              <CardDescription>Customize the look and feel of your dashboard</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="theme">Theme Preference</Label>
+                <div className="flex items-center gap-4 mt-2">
+                  <div className="flex gap-2">
+                    <Button
+                      variant={theme === 'light' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setTheme('light')}
+                      className="flex items-center gap-2"
+                    >
+                      <Sun className="h-4 w-4" />
+                      Light
+                    </Button>
+                    <Button
+                      variant={theme === 'dark' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setTheme('dark')}
+                      className="flex items-center gap-2"
+                    >
+                      <Moon className="h-4 w-4" />
+                      Dark
+                    </Button>
+                    <Button
+                      variant={theme === 'system' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setTheme('system')}
+                      className="flex items-center gap-2"
+                    >
+                      <Laptop className="h-4 w-4" />
+                      System
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Choose your preferred theme. System will match your device settings.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="brandColor">Brand Color</Label>
+                  <Input
+                    id="brandColor"
+                    type="color"
+                    value={settings.brandColor}
+                    onChange={(e) => handleSettingChange('brandColor', e.target.value)}
+                    className="h-10"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="logoUrl">Logo URL</Label>
+                  <Input
+                    id="logoUrl"
+                    value={settings.logoUrl}
+                    onChange={(e) => handleSettingChange('logoUrl', e.target.value)}
+                    placeholder="https://example.com/logo.png"
                   />
                 </div>
               </div>
