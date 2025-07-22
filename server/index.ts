@@ -15,8 +15,7 @@ app.use((req, res, next) => {
     return res.redirect(`https://${req.header('host')}${req.url}`);
   }
   
-  // Security headers
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  // Security headers (HSTS is set by Replit infrastructure)
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-XSS-Protection', '1; mode=block');
