@@ -22,6 +22,7 @@ import ShowroomManager from "@/pages/showroom-manager";
 // Deal Pages
 import DealsPage from "@/pages/deals/index";
 import DealDetailPage from "@/pages/deals/[id]/index";
+import DealDesk from "@/pages/deal-desk";
 // Admin Pages
 import SystemSettings from "@/pages/admin/system-settings";
 import ComprehensiveSettings from "@/pages/admin/comprehensive-settings";
@@ -114,6 +115,7 @@ function Router() {
           <Route path="/competitive-pricing" component={CompetitivePricing} />
           <Route path="/deals" component={DealsPage} />
           <Route path="/deals/:id" component={DealDetailPage} />
+          <Route path="/deal-desk" component={DealDesk} />
           <Route path="/showroom-manager" component={ShowroomManager} />
           <Route path="/reports" component={Reports} />
           <Route path="/ml-dashboard" component={MLDashboard} />

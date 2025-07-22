@@ -50,7 +50,7 @@ const DEAL_TYPES = [
   { value: 'cash', label: 'Cash' },
 ];
 
-export default function DealDesk() {
+export default function DealDeskIndex() {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [newDeal, setNewDeal] = useState({
@@ -199,7 +199,7 @@ export default function DealDesk() {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Deal Desk</h1>
-            <p className="text-gray-600">Comprehensive deal management workspace</p>
+            <p className="text-gray-600">Manage vehicle deals and transactions</p>
           </div>
           <Button 
             onClick={() => setIsCreatingDeal(true)}
