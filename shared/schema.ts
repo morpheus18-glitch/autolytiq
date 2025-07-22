@@ -704,6 +704,106 @@ export const marketTrends = pgTable("market_trends", {
   lastUpdated: timestamp("last_updated").defaultNow(),
 });
 
+// ========================================
+// F&I (Finance & Insurance) Tables
+// ========================================
+
+// Credit pull records and consent tracking
+export const creditPulls = pgTable("credit_pulls", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  dealId: integer("deal_id").references(() => sales.id),
+  pulledBy: varchar("pulled_by").notNull(), // User who initiated pull
+  bureau: varchar("bureau").notNull(), // Experian, Equifax, TransUnion
+  provider: varchar("provider").notNull(), // RouteOne, Dealertrack, 700Credit, etc.
+  creditScore: integer("credit_score"),
+  reportData: jsonb("report_data"), // Full credit report JSON
+  consentGiven: boolean("consent_given").default(false),
+  consentTimestamp: timestamp("consent_timestamp"),
+  purpose: varchar("purpose").notNull(), // "auto_loan", "lease", "evaluation"
+  costCents: integer("cost_cents"), // Cost in cents
+  status: varchar("status").default("pending"), // pending, completed, failed, expired
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Lender applications and responses
+export const lenderApplications = pgTable("lender_applications", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  dealId: integer("deal_id").references(() => sales.id),
+  creditPullId: integer("credit_pull_id").references(() => creditPulls.id),
+  lenderName: varchar("lender_name").notNull(),
+  lenderCode: varchar("lender_code").notNull(),
+  submittedBy: varchar("submitted_by").notNull(),
+  applicationData: jsonb("application_data").notNull(),
+  responseData: jsonb("response_data"),
+  status: varchar("status").default("pending"), // pending, conditional, approved, declined, stipulations
+  approvalAmount: decimal("approval_amount", { precision: 10, scale: 2 }),
+  interestRate: decimal("interest_rate", { precision: 5, scale: 4 }),
+  termMonths: integer("term_months"),
+  monthlyPayment: decimal("monthly_payment", { precision: 8, scale: 2 }),
+  stipulations: jsonb("stipulations"), // Array of required documents/conditions
+  reserveAmount: decimal("reserve_amount", { precision: 8, scale: 2 }),
+  backendEligibility: jsonb("backend_eligibility"), // Which products are eligible
+  expirationDate: timestamp("expiration_date"),
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// F&I Product catalog (warranties, GAP, etc.)
+export const fiProducts = pgTable("fi_products", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  category: varchar("category").notNull(), // warranty, gap, tire_wheel, maintenance, etc.
+  description: text("description"),
+  provider: varchar("provider").notNull(),
+  costStructure: jsonb("cost_structure").notNull(), // Pricing tiers, term-based costs
+  retailPricing: jsonb("retail_pricing").notNull(),
+  margin: decimal("margin", { precision: 5, scale: 2 }),
+  eligibilityCriteria: jsonb("eligibility_criteria"),
+  termOptions: jsonb("term_options"), // Available terms/coverage periods
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Finance menu presentations to customers
+export const financeMenus = pgTable("finance_menus", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  dealId: integer("deal_id").references(() => sales.id),
+  presentedBy: varchar("presented_by").notNull(),
+  vehicleId: integer("vehicle_id").references(() => vehicles.id),
+  basePayment: decimal("base_payment", { precision: 8, scale: 2 }).notNull(),
+  selectedProducts: jsonb("selected_products"), // Array of selected product IDs with pricing
+  totalProductCost: decimal("total_product_cost", { precision: 10, scale: 2 }).default('0'),
+  finalPayment: decimal("final_payment", { precision: 8, scale: 2 }).notNull(),
+  customerResponse: varchar("customer_response"), // accepted, declined, pending
+  digitalSignature: text("digital_signature"),
+  presentationData: jsonb("presentation_data"), // Full menu state for recreation
+  notes: text("notes"),
+  presentedAt: timestamp("presented_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// F&I audit trail for compliance
+export const fiAuditLog = pgTable("fi_audit_log", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  action: varchar("action").notNull(), // credit_pull, lender_submit, menu_present, etc.
+  entityType: varchar("entity_type").notNull(), // customer, deal, application
+  entityId: integer("entity_id").notNull(),
+  details: jsonb("details"),
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
 // Insert schemas
 export const insertDepartmentSchema = createInsertSchema(departments).omit({ id: true, createdAt: true });
 export const insertRoleSchema = createInsertSchema(roles).omit({ id: true, createdAt: true });
@@ -736,6 +836,13 @@ export const insertCustomerTradeInSchema = createInsertSchema(customerTradeIns).
 export const insertCustomerCreditApplicationSchema = createInsertSchema(customerCreditApplications).omit({ id: true, submittedAt: true });
 export const insertCustomerDocumentSchema = createInsertSchema(customerDocuments).omit({ id: true, createdAt: true });
 export const insertCustomerLeadSourceSchema = createInsertSchema(customerLeadSources).omit({ id: true, createdAt: true });
+
+// F&I Insert Schemas
+export const insertCreditPullSchema = createInsertSchema(creditPulls).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertLenderApplicationSchema = createInsertSchema(lenderApplications).omit({ id: true, submittedAt: true, createdAt: true, updatedAt: true });
+export const insertFiProductSchema = createInsertSchema(fiProducts).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertFinanceMenuSchema = createInsertSchema(financeMenus).omit({ id: true, presentedAt: true, createdAt: true, updatedAt: true });
+export const insertFiAuditLogSchema = createInsertSchema(fiAuditLog).omit({ id: true, timestamp: true });
 
 // Showroom Manager - Daily customer tracking for showroom floor management
 export const showroomSessions = pgTable("showroom_sessions", {
@@ -777,6 +884,19 @@ export type ShowroomVisit = typeof showroomVisits.$inferSelect;
 export type SalespersonNote = typeof salespersonNotes.$inferSelect;
 export type ShowroomSession = typeof showroomSessions.$inferSelect;
 export type User = typeof users.$inferSelect;
+
+// F&I Types
+export type CreditPull = typeof creditPulls.$inferSelect;
+export type LenderApplication = typeof lenderApplications.$inferSelect;
+export type FiProduct = typeof fiProducts.$inferSelect;
+export type FinanceMenu = typeof financeMenus.$inferSelect;
+export type FiAuditLog = typeof fiAuditLog.$inferSelect;
+
+export type InsertCreditPull = z.infer<typeof insertCreditPullSchema>;
+export type InsertLenderApplication = z.infer<typeof insertLenderApplicationSchema>;
+export type InsertFiProduct = z.infer<typeof insertFiProductSchema>;
+export type InsertFinanceMenu = z.infer<typeof insertFinanceMenuSchema>;
+export type InsertFiAuditLog = z.infer<typeof insertFiAuditLogSchema>;
 
 // Deal Management Schema
 export const deals = pgTable("deals", {

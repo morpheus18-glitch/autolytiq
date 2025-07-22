@@ -2,12 +2,18 @@ import {
   users, vehicles, customers, leads, sales, activities, visitorSessions, pageViews, customerInteractions, competitorAnalytics, competitivePricing, pricingInsights, merchandisingStrategies, marketTrends, deals, dealDocuments, dealApprovals, creditApplications, coApplicants, tradeVehicles, showroomVisits, salespersonNotes, showroomSessions,
   // Advanced Enterprise Tables
   customerTimeline, aiInsights, collaborationThreads, collaborationMessages, kpiMetrics, duplicateCustomers, workflowTemplates, workflowExecutions, predictiveScores, marketBenchmarks,
+  // F&I Tables
+  creditPulls, lenderApplications, fiProducts, financeMenus, fiAuditLog,
   type User, type Vehicle, type Customer, type Lead, type Sale, type Activity, type VisitorSession, type PageView, type CustomerInteraction, type CompetitorAnalytics, type CompetitivePricing, type PricingInsights, type MerchandisingStrategies, type MarketTrends, type Deal, type DealDocument, type DealApproval, type CreditApplication, type CoApplicant, type TradeVehicle, type ShowroomVisit, type SalespersonNote, type ShowroomSession,
   // Advanced Enterprise Types
   type CustomerTimeline, type AiInsights, type CollaborationThreads, type CollaborationMessages, type KpiMetrics, type DuplicateCustomers, type WorkflowTemplates, type WorkflowExecutions, type PredictiveScores, type MarketBenchmarks,
+  // F&I Types
+  type CreditPull, type LenderApplication, type FiProduct, type FinanceMenu, type FiAuditLog,
   type InsertUser, type InsertVehicle, type InsertCustomer, type InsertLead, type InsertSale, type InsertActivity, type InsertVisitorSession, type InsertPageView, type InsertCustomerInteraction, type InsertCompetitorAnalytics, type InsertCompetitivePricing, type InsertPricingInsights, type InsertMerchandisingStrategies, type InsertMarketTrends, type InsertDeal, type InsertDealDocument, type InsertDealApproval, type UpsertUser,
   // Advanced Enterprise Insert Types
-  type InsertCustomerTimeline, type InsertAiInsights, type InsertCollaborationThreads, type InsertCollaborationMessages, type InsertKpiMetrics, type InsertDuplicateCustomers, type InsertWorkflowTemplates, type InsertWorkflowExecutions, type InsertPredictiveScores, type InsertMarketBenchmarks
+  type InsertCustomerTimeline, type InsertAiInsights, type InsertCollaborationThreads, type InsertCollaborationMessages, type InsertKpiMetrics, type InsertDuplicateCustomers, type InsertWorkflowTemplates, type InsertWorkflowExecutions, type InsertPredictiveScores, type InsertMarketBenchmarks,
+  // F&I Insert Types
+  type InsertCreditPull, type InsertLenderApplication, type InsertFiProduct, type InsertFinanceMenu, type InsertFiAuditLog
 } from "@shared/schema";
 
 export interface IStorage {
@@ -173,6 +179,30 @@ export interface IStorage {
   getDealAccountingEntries(dealId: string): Promise<any[]>;
   finalizeDeal(dealId: string): Promise<any>;
   
+  // F&I (Finance & Insurance) operations
+  getCreditPulls(): Promise<CreditPull[]>;
+  getCreditPull(id: number): Promise<CreditPull | undefined>;
+  createCreditPull(creditPull: InsertCreditPull): Promise<CreditPull>;
+  updateCreditPull(id: number, creditPull: Partial<InsertCreditPull>): Promise<CreditPull | undefined>;
+  
+  getLenderApplications(): Promise<LenderApplication[]>;
+  getLenderApplication(id: number): Promise<LenderApplication | undefined>;
+  createLenderApplication(application: InsertLenderApplication): Promise<LenderApplication>;
+  updateLenderApplication(id: number, application: Partial<InsertLenderApplication>): Promise<LenderApplication | undefined>;
+  
+  getFiProducts(): Promise<FiProduct[]>;
+  getFiProduct(id: number): Promise<FiProduct | undefined>;
+  createFiProduct(product: InsertFiProduct): Promise<FiProduct>;
+  updateFiProduct(id: number, product: Partial<InsertFiProduct>): Promise<FiProduct | undefined>;
+  
+  getFinanceMenus(): Promise<FinanceMenu[]>;
+  getFinanceMenu(id: number): Promise<FinanceMenu | undefined>;
+  createFinanceMenu(menu: InsertFinanceMenu): Promise<FinanceMenu>;
+  updateFinanceMenu(id: number, menu: Partial<InsertFinanceMenu>): Promise<FinanceMenu | undefined>;
+  
+  createFiAuditLog(log: InsertFiAuditLog): Promise<FiAuditLog>;
+  getFiAuditLogs(entityType?: string, entityId?: number): Promise<FiAuditLog[]>;
+  
   // Advanced Enterprise Features
   
   // Customer 360° Intelligence
@@ -239,6 +269,13 @@ export class MemStorage implements IStorage {
   private dealGross: Map<string, any>;
   private accountingEntries: Map<string, any[]>;
   
+  // F&I Storage Maps
+  private creditPulls: Map<number, CreditPull>;
+  private lenderApplications: Map<number, LenderApplication>;
+  private fiProducts: Map<number, FiProduct>;
+  private financeMenus: Map<number, FinanceMenu>;
+  private fiAuditLogs: Map<number, FiAuditLog>;
+  
   // Advanced Enterprise Feature Storage
   private customerTimeline: Map<number, CustomerTimeline>;
   private aiInsights: Map<number, AiInsights>;
@@ -280,6 +317,13 @@ export class MemStorage implements IStorage {
   private currentWorkflowExecutionId: number;
   private currentPredictiveScoreId: number;
   private currentMarketBenchmarkId: number;
+  
+  // F&I ID Counters
+  private currentCreditPullId: number;
+  private currentLenderApplicationId: number;
+  private currentFiProductId: number;
+  private currentFinanceMenuId: number;
+  private currentFiAuditLogId: number;
 
   constructor() {
     this.users = new Map();
@@ -306,6 +350,14 @@ export class MemStorage implements IStorage {
     this.dealProducts = new Map();
     this.dealGross = new Map();
     this.accountingEntries = new Map();
+    
+    // F&I Map Initialization
+    this.creditPulls = new Map();
+    this.lenderApplications = new Map();
+    this.fiProducts = new Map();
+    this.financeMenus = new Map();
+    this.fiAuditLogs = new Map();
+    
     this.currentUserId = 1;
     this.currentVehicleId = 1;
     this.currentCustomerId = 1;
@@ -325,6 +377,13 @@ export class MemStorage implements IStorage {
     this.currentShowroomVisitId = 1;
     this.currentSalespersonNoteId = 1;
     this.currentShowroomSessionId = 1;
+    
+    // F&I ID Counter Initialization
+    this.currentCreditPullId = 1;
+    this.currentLenderApplicationId = 1;
+    this.currentFiProductId = 1;
+    this.currentFinanceMenuId = 1;
+    this.currentFiAuditLogId = 1;
     
     this.initializeDefaultData();
   }
@@ -2063,6 +2122,193 @@ export class MemStorage implements IStorage {
       timestamp: new Date().toISOString(),
       createdAt: new Date().toISOString()
     };
+  }
+
+  // ============================================
+  // F&I (Finance & Insurance) Implementations
+  // ============================================
+  
+  async getCreditPulls(): Promise<CreditPull[]> {
+    return Array.from(this.creditPulls.values()).sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+  
+  async getCreditPull(id: number): Promise<CreditPull | undefined> {
+    return this.creditPulls.get(id);
+  }
+  
+  async createCreditPull(insertCreditPull: InsertCreditPull): Promise<CreditPull> {
+    const id = this.currentCreditPullId++;
+    const creditPull: CreditPull = {
+      ...insertCreditPull,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.creditPulls.set(id, creditPull);
+    
+    // Log audit entry
+    await this.createFiAuditLog({
+      userId: insertCreditPull.pulledBy,
+      action: "credit_pull",
+      entityType: "customer",
+      entityId: insertCreditPull.customerId,
+      details: { bureau: insertCreditPull.bureau, provider: insertCreditPull.provider },
+      ipAddress: null,
+      userAgent: null
+    });
+    
+    return creditPull;
+  }
+  
+  async updateCreditPull(id: number, updateCreditPull: Partial<InsertCreditPull>): Promise<CreditPull | undefined> {
+    const creditPull = this.creditPulls.get(id);
+    if (!creditPull) return undefined;
+    
+    const updatedCreditPull = { ...creditPull, ...updateCreditPull, updatedAt: new Date() };
+    this.creditPulls.set(id, updatedCreditPull);
+    return updatedCreditPull;
+  }
+  
+  async getLenderApplications(): Promise<LenderApplication[]> {
+    return Array.from(this.lenderApplications.values()).sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+  
+  async getLenderApplication(id: number): Promise<LenderApplication | undefined> {
+    return this.lenderApplications.get(id);
+  }
+  
+  async createLenderApplication(insertApplication: InsertLenderApplication): Promise<LenderApplication> {
+    const id = this.currentLenderApplicationId++;
+    const application: LenderApplication = {
+      ...insertApplication,
+      id,
+      submittedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.lenderApplications.set(id, application);
+    
+    // Log audit entry
+    await this.createFiAuditLog({
+      userId: insertApplication.submittedBy,
+      action: "lender_submit",
+      entityType: "customer",
+      entityId: insertApplication.customerId,
+      details: { lenderName: insertApplication.lenderName },
+      ipAddress: null,
+      userAgent: null
+    });
+    
+    return application;
+  }
+  
+  async updateLenderApplication(id: number, updateApplication: Partial<InsertLenderApplication>): Promise<LenderApplication | undefined> {
+    const application = this.lenderApplications.get(id);
+    if (!application) return undefined;
+    
+    const updatedApplication = { ...application, ...updateApplication, updatedAt: new Date() };
+    this.lenderApplications.set(id, updatedApplication);
+    return updatedApplication;
+  }
+  
+  async getFiProducts(): Promise<FiProduct[]> {
+    return Array.from(this.fiProducts.values()).filter(product => product.isActive);
+  }
+  
+  async getFiProduct(id: number): Promise<FiProduct | undefined> {
+    return this.fiProducts.get(id);
+  }
+  
+  async createFiProduct(insertProduct: InsertFiProduct): Promise<FiProduct> {
+    const id = this.currentFiProductId++;
+    const product: FiProduct = {
+      ...insertProduct,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.fiProducts.set(id, product);
+    return product;
+  }
+  
+  async updateFiProduct(id: number, updateProduct: Partial<InsertFiProduct>): Promise<FiProduct | undefined> {
+    const product = this.fiProducts.get(id);
+    if (!product) return undefined;
+    
+    const updatedProduct = { ...product, ...updateProduct, updatedAt: new Date() };
+    this.fiProducts.set(id, updatedProduct);
+    return updatedProduct;
+  }
+  
+  async getFinanceMenus(): Promise<FinanceMenu[]> {
+    return Array.from(this.financeMenus.values()).sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+  
+  async getFinanceMenu(id: number): Promise<FinanceMenu | undefined> {
+    return this.financeMenus.get(id);
+  }
+  
+  async createFinanceMenu(insertMenu: InsertFinanceMenu): Promise<FinanceMenu> {
+    const id = this.currentFinanceMenuId++;
+    const menu: FinanceMenu = {
+      ...insertMenu,
+      id,
+      presentedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.financeMenus.set(id, menu);
+    
+    // Log audit entry
+    await this.createFiAuditLog({
+      userId: insertMenu.presentedBy,
+      action: "menu_present",
+      entityType: "customer",
+      entityId: insertMenu.customerId,
+      details: { basePayment: insertMenu.basePayment, totalProductCost: insertMenu.totalProductCost },
+      ipAddress: null,
+      userAgent: null
+    });
+    
+    return menu;
+  }
+  
+  async updateFinanceMenu(id: number, updateMenu: Partial<InsertFinanceMenu>): Promise<FinanceMenu | undefined> {
+    const menu = this.financeMenus.get(id);
+    if (!menu) return undefined;
+    
+    const updatedMenu = { ...menu, ...updateMenu, updatedAt: new Date() };
+    this.financeMenus.set(id, updatedMenu);
+    return updatedMenu;
+  }
+  
+  async createFiAuditLog(insertLog: InsertFiAuditLog): Promise<FiAuditLog> {
+    const id = this.currentFiAuditLogId++;
+    const log: FiAuditLog = {
+      ...insertLog,
+      id,
+      timestamp: new Date()
+    };
+    this.fiAuditLogs.set(id, log);
+    return log;
+  }
+  
+  async getFiAuditLogs(entityType?: string, entityId?: number): Promise<FiAuditLog[]> {
+    const logs = Array.from(this.fiAuditLogs.values()).sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+    
+    if (entityType && entityId) {
+      return logs.filter(log => log.entityType === entityType && log.entityId === entityId);
+    }
+    
+    return logs;
   }
 
   async getAiInsights(entityType?: string, entityId?: number) {

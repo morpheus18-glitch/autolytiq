@@ -40,6 +40,7 @@ const navigation = [
       { name: "Reports", href: "/reports", icon: BarChart3 },
       { name: "Competitive Pricing", href: "/competitive-pricing", icon: Target },
       { name: "ML Dashboard", href: "/ml-dashboard", icon: Brain },
+      { name: "F&I Operations", href: "/fi-dashboard", icon: Shield },
       { name: "Smart Workflows", href: "/workflow-assistant", icon: Workflow },
       { name: "Communication Demo", href: "/communication-demo", icon: MessageSquare },
       { name: "AI Smart Search", href: "/ai-smart-search", icon: Brain },

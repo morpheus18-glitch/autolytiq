@@ -2783,6 +2783,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================
+  // F&I (Finance & Insurance) Routes
+  // ============================================
+
+  // Credit pull routes
+  app.get('/api/fi/credit-pulls', async (req, res) => {
+    try {
+      const creditPulls = await storage.getCreditPulls();
+      res.json(creditPulls);
+    } catch (error) {
+      console.error('Error fetching credit pulls:', error);
+      res.status(500).json({ message: 'Failed to fetch credit pulls' });
+    }
+  });
+
+  app.get('/api/fi/credit-pulls/:id', async (req, res) => {
+    try {
+      const creditPull = await storage.getCreditPull(parseInt(req.params.id));
+      if (!creditPull) {
+        return res.status(404).json({ message: 'Credit pull not found' });
+      }
+      res.json(creditPull);
+    } catch (error) {
+      console.error('Error fetching credit pull:', error);
+      res.status(500).json({ message: 'Failed to fetch credit pull' });
+    }
+  });
+
+  app.post('/api/fi/credit-pulls', async (req, res) => {
+    try {
+      const creditPull = await storage.createCreditPull(req.body);
+      res.status(201).json(creditPull);
+    } catch (error) {
+      console.error('Error creating credit pull:', error);
+      res.status(500).json({ message: 'Failed to create credit pull' });
+    }
+  });
+
+  app.put('/api/fi/credit-pulls/:id', async (req, res) => {
+    try {
+      const creditPull = await storage.updateCreditPull(parseInt(req.params.id), req.body);
+      if (!creditPull) {
+        return res.status(404).json({ message: 'Credit pull not found' });
+      }
+      res.json(creditPull);
+    } catch (error) {
+      console.error('Error updating credit pull:', error);
+      res.status(500).json({ message: 'Failed to update credit pull' });
+    }
+  });
+
+  // Lender application routes
+  app.get('/api/fi/lender-applications', async (req, res) => {
+    try {
+      const applications = await storage.getLenderApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error('Error fetching lender applications:', error);
+      res.status(500).json({ message: 'Failed to fetch lender applications' });
+    }
+  });
+
+  app.post('/api/fi/lender-applications', async (req, res) => {
+    try {
+      const application = await storage.createLenderApplication(req.body);
+      res.status(201).json(application);
+    } catch (error) {
+      console.error('Error creating lender application:', error);
+      res.status(500).json({ message: 'Failed to create lender application' });
+    }
+  });
+
+  // F&I Product routes
+  app.get('/api/fi/products', async (req, res) => {
+    try {
+      const products = await storage.getFiProducts();
+      res.json(products);
+    } catch (error) {
+      console.error('Error fetching F&I products:', error);
+      res.status(500).json({ message: 'Failed to fetch F&I products' });
+    }
+  });
+
+  app.post('/api/fi/products', async (req, res) => {
+    try {
+      const product = await storage.createFiProduct(req.body);
+      res.status(201).json(product);
+    } catch (error) {
+      console.error('Error creating F&I product:', error);
+      res.status(500).json({ message: 'Failed to create F&I product' });
+    }
+  });
+
+  // Finance menu routes
+  app.get('/api/fi/finance-menus', async (req, res) => {
+    try {
+      const menus = await storage.getFinanceMenus();
+      res.json(menus);
+    } catch (error) {
+      console.error('Error fetching finance menus:', error);
+      res.status(500).json({ message: 'Failed to fetch finance menus' });
+    }
+  });
+
+  app.post('/api/fi/finance-menus', async (req, res) => {
+    try {
+      const menu = await storage.createFinanceMenu(req.body);
+      res.status(201).json(menu);
+    } catch (error) {
+      console.error('Error creating finance menu:', error);
+      res.status(500).json({ message: 'Failed to create finance menu' });
+    }
+  });
+
+  // F&I Audit log routes
+  app.get('/api/fi/audit-logs', async (req, res) => {
+    try {
+      const { entityType, entityId } = req.query;
+      const logs = await storage.getFiAuditLogs(
+        entityType as string,
+        entityId ? parseInt(entityId as string) : undefined
+      );
+      res.json(logs);
+    } catch (error) {
+      console.error('Error fetching F&I audit logs:', error);
+      res.status(500).json({ message: 'Failed to fetch F&I audit logs' });
+    }
+  });
+
+  app.post('/api/fi/audit-logs', async (req, res) => {
+    try {
+      const log = await storage.createFiAuditLog(req.body);
+      res.status(201).json(log);
+    } catch (error) {
+      console.error('Error creating F&I audit log:', error);
+      res.status(500).json({ message: 'Failed to create F&I audit log' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
