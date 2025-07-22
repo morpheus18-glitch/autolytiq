@@ -227,7 +227,7 @@ export default function AISmartSearch() {
                             <div className="flex flex-wrap gap-2">
                               {Object.entries(result.metadata).map(([key, value]) => (
                                 <Badge key={key} variant="outline" className="text-xs">
-                                  {key}: {value}
+                                  {key}: {String(value)}
                                 </Badge>
                               ))}
                             </div>
@@ -240,8 +240,10 @@ export default function AISmartSearch() {
                             <div className={`w-3 h-3 rounded-full ${getScoreColor(result.score)}`}></div>
                             <span className="text-sm font-medium">{(result.score * 100).toFixed(1)}%</span>
                           </div>
-                          <Button variant="outline" size="sm">
-                            View Details
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={result.type === 'customer' ? `/customers/${result.id}` : result.type === 'vehicle' ? `/inventory/${result.id}` : `/leads/${result.id}`}>
+                              View Details
+                            </a>
                           </Button>
                         </div>
                       </div>
@@ -312,24 +314,29 @@ export default function AISmartSearch() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {Object.entries(mlInsights.modelPerformance).map(([model, stats]) => (
-                  <div key={model} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium capitalize">{model.replace(/([A-Z])/g, ' $1').trim()}</h4>
-                      <Badge variant="outline">{stats.version}</Badge>
+                {Object.entries(mlInsights.modelPerformance).map(([model, stats]) => {
+                  const performanceValue = 'accuracy' in stats ? stats.accuracy : 
+                                         'precision' in stats ? stats.precision : 
+                                         'hitRate' in stats ? stats.hitRate : 0;
+                  return (
+                    <div key={model} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium capitalize">{model.replace(/([A-Z])/g, ' $1').trim()}</h4>
+                        <Badge variant="outline">{stats.version}</Badge>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-500" 
+                          style={{ width: `${performanceValue}%` }}
+                        ></div>
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>Performance</span>
+                        <span>{performanceValue.toFixed(1)}%</span>
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-500" 
-                        style={{ width: `${stats.accuracy || stats.precision || stats.hitRate}%` }}
-                      ></div>
-                    </div>
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>Performance</span>
-                      <span>{(stats.accuracy || stats.precision || stats.hitRate).toFixed(1)}%</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
