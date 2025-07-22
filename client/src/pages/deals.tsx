@@ -30,11 +30,12 @@ import {
   TrendingUp
 } from "lucide-react";
 
-// Deal status configurations
+// Deal status configurations - proper dealership workflow
 const DEAL_STATUSES = [
-  { value: 'open', label: 'Open', color: 'bg-blue-100 text-blue-800', icon: Clock },
-  { value: 'finalized', label: 'Finalized', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-  { value: 'funded', label: 'Funded', color: 'bg-purple-100 text-purple-800', icon: DollarSign },
+  { value: 'structuring', label: 'Deal Structuring', color: 'bg-yellow-100 text-yellow-800', icon: Calculator },
+  { value: 'financing', label: 'Financing', color: 'bg-blue-100 text-blue-800', icon: CreditCard },
+  { value: 'contracting', label: 'Contracting', color: 'bg-purple-100 text-purple-800', icon: FileText },
+  { value: 'funded', label: 'Funded', color: 'bg-green-100 text-green-800', icon: CheckCircle },
   { value: 'cancelled', label: 'Cancelled', color: 'bg-red-100 text-red-800', icon: XCircle },
 ];
 
@@ -85,7 +86,7 @@ export default function Deals() {
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "New deal created successfully",
+        description: "Deal created successfully",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
       setShowNewDealDialog(false);
@@ -131,8 +132,9 @@ export default function Deals() {
 
   // Group deals by status for tabs
   const dealsByStatus = {
-    open: filteredDeals.filter(deal => deal.status === 'open'),
-    finalized: filteredDeals.filter(deal => deal.status === 'finalized'),
+    structuring: filteredDeals.filter(deal => deal.status === 'structuring'),
+    financing: filteredDeals.filter(deal => deal.status === 'financing'),
+    contracting: filteredDeals.filter(deal => deal.status === 'contracting'),
     funded: filteredDeals.filter(deal => deal.status === 'funded'),
     cancelled: filteredDeals.filter(deal => deal.status === 'cancelled'),
   };
@@ -145,16 +147,41 @@ export default function Deals() {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
     
+    const customerId = formData.get('customerId') as string;
+    const vehicleId = formData.get('vehicleId') as string;
+    
+    // Find selected customer to get buyer name
+    const selectedCustomer = (customers as any[]).find((c: any) => c.id.toString() === customerId);
+    const selectedVehicle = (vehicles as any[]).find((v: any) => v.id.toString() === vehicleId);
+    
+    if (!selectedCustomer) {
+      toast({
+        title: "Error",
+        description: "Please select a customer",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!selectedVehicle) {
+      toast({
+        title: "Error", 
+        description: "Please select a vehicle",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const dealData = {
       id: crypto.randomUUID(),
       dealNumber: `DEAL-${Date.now()}`,
-      buyerName: formData.get('buyerName') as string,
-      customerId: formData.get('customerId') as string,
-      vehicleId: formData.get('vehicleId') as string,
+      buyerName: `${selectedCustomer.firstName} ${selectedCustomer.lastName}`,
+      customerId: customerId,
+      vehicleId: vehicleId,
       dealType: formData.get('dealType') as string,
-      salePrice: parseInt(formData.get('salePrice') as string) || 0,
+      salePrice: parseInt(formData.get('salePrice') as string) || selectedVehicle.price || 0,
       cashDown: parseInt(formData.get('cashDown') as string) || 0,
-      status: 'open',
+      status: 'structuring', // Start with structuring phase, not open
     };
 
     createDealMutation.mutate(dealData);
@@ -201,23 +228,19 @@ export default function Deals() {
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle>Create New Deal</DialogTitle>
+                  <DialogTitle>Start Deal Process</DialogTitle>
+                  <p className="text-sm text-gray-600">Assign customer and vehicle to begin deal structuring</p>
                 </DialogHeader>
                 <form onSubmit={handleCreateDeal} className="space-y-4">
-                  <div>
-                    <Label htmlFor="buyerName">Buyer Name *</Label>
-                    <Input
-                      id="buyerName"
-                      name="buyerName"
-                      required
-                      placeholder="Enter buyer name"
-                    />
+                  <div className="space-y-1">
+                    <Label className="text-sm font-medium">Deal Workflow</Label>
+                    <p className="text-xs text-gray-500">Customer → Vehicle → Deal Structure → Contracting</p>
                   </div>
                   <div>
-                    <Label htmlFor="customerId">Customer</Label>
-                    <Select name="customerId">
+                    <Label htmlFor="customerId">Customer *</Label>
+                    <Select name="customerId" required>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select customer" />
+                        <SelectValue placeholder="Select customer from system" />
                       </SelectTrigger>
                       <SelectContent>
                         {(customers as any[]).map((customer: any) => (
@@ -229,15 +252,15 @@ export default function Deals() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="vehicleId">Vehicle</Label>
-                    <Select name="vehicleId">
+                    <Label htmlFor="vehicleId">Vehicle *</Label>
+                    <Select name="vehicleId" required>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select vehicle" />
+                        <SelectValue placeholder="Select vehicle to assign" />
                       </SelectTrigger>
                       <SelectContent>
                         {(vehicles as any[]).map((vehicle: any) => (
                           <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                            {vehicle.year} {vehicle.make} {vehicle.model}
+                            {vehicle.year} {vehicle.make} {vehicle.model} - ${vehicle.price?.toLocaleString() || 'No Price'}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -279,7 +302,7 @@ export default function Deals() {
                     className="w-full btn-aiq-primary"
                     disabled={createDealMutation.isPending}
                   >
-                    {createDealMutation.isPending ? 'Creating...' : 'Create Deal'}
+                    {createDealMutation.isPending ? 'Starting...' : 'Start Deal Process'}
                   </Button>
                 </form>
               </DialogContent>
@@ -336,8 +359,8 @@ export default function Deals() {
       </div>
 
       {/* Deals Tabs */}
-      <Tabs defaultValue="open" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="structuring" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-5">
           {DEAL_STATUSES.map(status => (
             <TabsTrigger key={status.value} value={status.value}>
               {status.label} ({dealsByStatus[status.value as keyof typeof dealsByStatus]?.length || 0})

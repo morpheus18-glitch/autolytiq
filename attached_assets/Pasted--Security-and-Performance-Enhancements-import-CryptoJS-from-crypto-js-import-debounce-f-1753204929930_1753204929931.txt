@@ -1,0 +1,474 @@
+// Security and Performance Enhancements
+
+import CryptoJS from 'crypto-js';
+import { debounce } from 'lodash';
+
+// ============= SECURITY ENHANCEMENTS =============
+
+class SecurityService {
+  private static encryptionKey = process.env.REACT_APP_ENCRYPTION_KEY || 'default-key';
+
+  // Encrypt sensitive data before storing
+  static encryptData(data: string): string {
+    try {
+      return CryptoJS.AES.encrypt(data, this.encryptionKey).toString();
+    } catch (error) {
+      console.error('Encryption failed:', error);
+      return data; // Fallback to unencrypted in case of error
+    }
+  }
+
+  // Decrypt sensitive data when retrieving
+  static decryptData(encryptedData: string): string {
+    try {
+      const bytes = CryptoJS.AES.decrypt(encryptedData, this.encryptionKey);
+      return bytes.toString(CryptoJS.enc.Utf8);
+    } catch (error) {
+      console.error('Decryption failed:', error);
+      return encryptedData; // Fallback to encrypted data
+    }
+  }
+
+  // Mask sensitive information for display
+  static maskSSN(ssn: string): string {
+    if (!ssn || ssn.length < 4) return ssn;
+    return 'XXX-XX-' + ssn.slice(-4);
+  }
+
+  static maskPhone(phone: string): string {
+    if (!phone || phone.length < 10) return phone;
+    const cleaned = phone.replace(/\D/g, '');
+    return `(XXX) XXX-${cleaned.slice(-4)}`;
+  }
+
+  static maskEmail(email: string): string {
+    if (!email || !email.includes('@')) return email;
+    const [username, domain] = email.split('@');
+    const maskedUsername = username.charAt(0) + 'XXX' + username.slice(-1);
+    return `${maskedUsername}@${domain}`;
+  }
+
+  // Input sanitization
+  static sanitizeInput(input: string): string {
+    return input
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove scripts
+      .replace(/[<>]/g, '') // Remove HTML brackets
+      .trim();
+  }
+
+  // Validate input patterns
+  static validateInput(input: string, type: 'name' | 'phone' | 'email' | 'ssn'): boolean {
+    const patterns = {
+      name: /^[a-zA-Z\s'-]{1,50}$/,
+      phone: /^\(?[\d\s\-\(\)\.]{10,}$/,
+      email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      ssn: /^\d{4}$/
+    };
+
+    return patterns[type].test(input);
+  }
+
+  // Generate audit trail
+  static createAuditEntry(action: string, entityType: string, entityId: string, changes?: any) {
+    const auditEntry = {
+      timestamp: new Date().toISOString(),
+      action,
+      entityType,
+      entityId,
+      userId: this.getCurrentUserId(),
+      userAgent: navigator.userAgent,
+      ipAddress: 'unknown', // Would be set by backend
+      changes: changes ? JSON.stringify(changes) : null
+    };
+
+    // Send to audit service
+    this.sendAuditLog(auditEntry);
+    return auditEntry;
+  }
+
+  private static getCurrentUserId(): string {
+    // Get from authentication context
+    return 'current-user-id'; // Placeholder
+  }
+
+  private static async sendAuditLog(entry: any) {
+    try {
+      await fetch('/api/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry)
+      });
+    } catch (error) {
+      console.error('Failed to send audit log:', error);
+    }
+  }
+}
+
+// ============= PERFORMANCE ENHANCEMENTS =============
+
+class PerformanceService {
+  private static cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+
+  // Memoization with TTL
+  static memoize<T extends (...args: any[]) => any>(
+    fn: T,
+    ttl: number = 300000 // 5 minutes
+  ): T {
+    return ((...args: Parameters<T>) => {
+      const key = JSON.stringify(args);
+      const cached = this.cache.get(key);
+      
+      if (cached && Date.now() - cached.timestamp < cached.ttl) {
+        return cached.data;
+      }
+
+      const result = fn(...args);
+      this.cache.set(key, {
+        data: result,
+        timestamp: Date.now(),
+        ttl
+      });
+
+      return result;
+    }) as T;
+  }
+
+  // Debounced search function
+  static createDebouncedSearch<T>(
+    searchFn: (query: string) => Promise<T>,
+    delay: number = 300
+  ) {
+    return debounce(searchFn, delay);
+  }
+
+  // Performance monitoring
+  static measurePerformance<T>(
+    name: string,
+    fn: () => T | Promise<T>
+  ): T | Promise<T> {
+    const start = performance.now();
+    
+    const result = fn();
+    
+    if (result instanceof Promise) {
+      return result.finally(() => {
+        const end = performance.now();
+        this.logPerformance(name, end - start);
+      });
+    } else {
+      const end = performance.now();
+      this.logPerformance(name, end - start);
+      return result;
+    }
+  }
+
+  private static logPerformance(name: string, duration: number) {
+    console.log(`Performance: ${name} took ${duration.toFixed(2)}ms`);
+    
+    // Send to analytics if duration is concerning
+    if (duration > 1000) {
+      // Report slow operation
+      console.warn(`Slow operation detected: ${name} (${duration}ms)`);
+    }
+  }
+
+  // Virtual scrolling for large lists
+  static useVirtualScroll(items: any[], itemHeight: number, containerHeight: number) {
+    const [scrollTop, setScrollTop] = React.useState(0);
+    
+    const startIndex = Math.floor(scrollTop / itemHeight);
+    const endIndex = Math.min(
+      startIndex + Math.ceil(containerHeight / itemHeight) + 1,
+      items.length
+    );
+    
+    const visibleItems = items.slice(startIndex, endIndex);
+    const totalHeight = items.length * itemHeight;
+    const offsetY = startIndex * itemHeight;
+    
+    return {
+      visibleItems,
+      totalHeight,
+      offsetY,
+      onScroll: (e: React.UIEvent<HTMLDivElement>) => {
+        setScrollTop(e.currentTarget.scrollTop);
+      }
+    };
+  }
+}
+
+// ============= ACCESSIBILITY ENHANCEMENTS =============
+
+class AccessibilityService {
+  // Screen reader announcements
+  static announce(message: string, priority: 'polite' | 'assertive' = 'polite') {
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', priority);
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.className = 'sr-only'; // Screen reader only
+    announcement.textContent = message;
+    
+    document.body.appendChild(announcement);
+    
+    setTimeout(() => {
+      document.body.removeChild(announcement);
+    }, 1000);
+  }
+
+  // Focus management
+  static manageFocus(elementId: string) {
+    setTimeout(() => {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.focus();
+      }
+    }, 100);
+  }
+
+  // Keyboard navigation helper
+  static handleKeyboardNavigation(
+    event: React.KeyboardEvent,
+    actions: {
+      onEnter?: () => void;
+      onEscape?: () => void;
+      onArrowUp?: () => void;
+      onArrowDown?: () => void;
+      onTab?: () => void;
+    }
+  ) {
+    switch (event.key) {
+      case 'Enter':
+        event.preventDefault();
+        actions.onEnter?.();
+        break;
+      case 'Escape':
+        event.preventDefault();
+        actions.onEscape?.();
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        actions.onArrowUp?.();
+        break;
+      case 'ArrowDown':
+        event.preventDefault();
+        actions.onArrowDown?.();
+        break;
+      case 'Tab':
+        actions.onTab?.();
+        break;
+    }
+  }
+}
+
+// ============= DATA VALIDATION ENHANCEMENTS =============
+
+class ValidationService {
+  // Comprehensive field validation
+  static validateField(field: string, value: string, rules: ValidationRule[]): ValidationResult {
+    const errors: string[] = [];
+    
+    for (const rule of rules) {
+      const error = rule.validate(value);
+      if (error) {
+        errors.push(error);
+      }
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors,
+      field
+    };
+  }
+
+  // Create validation rules
+  static required(message: string = 'This field is required'): ValidationRule {
+    return {
+      validate: (value: string) => !value?.trim() ? message : null
+    };
+  }
+
+  static minLength(min: number, message?: string): ValidationRule {
+    return {
+      validate: (value: string) => 
+        value && value.length < min 
+          ? message || `Must be at least ${min} characters` 
+          : null
+    };
+  }
+
+  static pattern(regex: RegExp, message: string): ValidationRule {
+    return {
+      validate: (value: string) => 
+        value && !regex.test(value) ? message : null
+    };
+  }
+
+  static custom(fn: (value: string) => string | null): ValidationRule {
+    return { validate: fn };
+  }
+
+  // Phone number validation and formatting
+  static phoneValidation(): ValidationRule {
+    return {
+      validate: (value: string) => {
+        if (!value) return null;
+        const cleaned = value.replace(/\D/g, '');
+        if (cleaned.length < 10) return 'Phone number must be at least 10 digits';
+        if (cleaned.length > 11) return 'Phone number is too long';
+        return null;
+      }
+    };
+  }
+
+  // Email validation
+  static emailValidation(): ValidationRule {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return this.pattern(emailRegex, 'Please enter a valid email address');
+  }
+
+  // SSN validation (last 4 digits)
+  static ssnValidation(): ValidationRule {
+    const ssnRegex = /^\d{4}$/;
+    return this.pattern(ssnRegex, 'Please enter exactly 4 digits');
+  }
+}
+
+interface ValidationRule {
+  validate: (value: string) => string | null;
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  field: string;
+}
+
+// ============= ENHANCED HOOKS =============
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+
+// Enhanced form hook with validation
+export function useEnhancedForm<T extends Record<string, any>>(
+  initialValues: T,
+  validationRules: Record<keyof T, ValidationRule[]> = {}
+) {
+  const [values, setValues] = useState<T>(initialValues);
+  const [errors, setErrors] = useState<Record<keyof T, string[]>>({} as Record<keyof T, string[]>);
+  const [touched, setTouched] = useState<Record<keyof T, boolean>>({} as Record<keyof T, boolean>);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const setValue = useCallback((field: keyof T, value: any) => {
+    setValues(prev => ({ ...prev, [field]: value }));
+    
+    // Real-time validation
+    if (validationRules[field]) {
+      const result = ValidationService.validateField(field as string, value, validationRules[field]);
+      setErrors(prev => ({ ...prev, [field]: result.errors }));
+    }
+  }, [validationRules]);
+
+  const setTouched = useCallback((field: keyof T) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+  }, []);
+
+  const validateAll = useCallback(() => {
+    const allErrors: Record<keyof T, string[]> = {} as Record<keyof T, string[]>;
+    let isValid = true;
+
+    Object.keys(validationRules).forEach(field => {
+      const result = ValidationService.validateField(
+        field, 
+        values[field as keyof T], 
+        validationRules[field as keyof T]
+      );
+      allErrors[field as keyof T] = result.errors;
+      if (!result.isValid) {
+        isValid = false;
+      }
+    });
+
+    setErrors(allErrors);
+    return isValid;
+  }, [values, validationRules]);
+
+  const handleSubmit = useCallback(async (
+    onSubmit: (values: T) => Promise<void> | void
+  ) => {
+    setIsSubmitting(true);
+    
+    try {
+      if (validateAll()) {
+        await onSubmit(values);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [values, validateAll]);
+
+  const reset = useCallback(() => {
+    setValues(initialValues);
+    setErrors({} as Record<keyof T, string[]>);
+    setTouched({} as Record<keyof T, boolean>);
+    setIsSubmitting(false);
+  }, [initialValues]);
+
+  return {
+    values,
+    errors,
+    touched,
+    isSubmitting,
+    setValue,
+    setTouched,
+    validateAll,
+    handleSubmit,
+    reset,
+    isValid: Object.values(errors).every(errorList => errorList.length === 0)
+  };
+}
+
+// Auto-save hook
+export function useAutoSave<T>(
+  data: T,
+  saveFunction: (data: T) => Promise<void>,
+  delay: number = 2000
+) {
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const timeoutRef = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(async () => {
+      if (data && Object.values(data).some(value => value)) {
+        setSaveStatus('saving');
+        try {
+          await saveFunction(data);
+          setSaveStatus('saved');
+          setTimeout(() => setSaveStatus('idle'), 2000);
+        } catch (error) {
+          setSaveStatus('error');
+          console.error('Auto-save failed:', error);
+        }
+      }
+    }, delay);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [data, saveFunction, delay]);
+
+  return saveStatus;
+}
+
+// Export services
+export {
+  SecurityService,
+  PerformanceService,
+  AccessibilityService,
+  ValidationService
+};
