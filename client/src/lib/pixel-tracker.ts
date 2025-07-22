@@ -1,324 +1,295 @@
-import { apiRequest } from "./queryClient";
+/**
+ * Pixel Tracking System for AutolytiQ
+ * 
+ * This module handles all customer behavior tracking across the dealership website:
+ * - Page views and time on page
+ * - Vehicle views and interactions
+ * - Form submissions and contact attempts
+ * - Session tracking and user journey mapping
+ */
 
-interface VisitorData {
-  sessionId: string;
-  visitorId: string;
-  userAgent: string;
-  referrer: string;
-  landingPage: string;
-  deviceType: string;
-  browserName: string;
-  operatingSystem: string;
-  isReturningVisitor: boolean;
-}
+let sessionId: string | null = null;
+let startTime: number = Date.now();
+let lastActivityTime: number = Date.now();
 
-interface PageViewData {
-  sessionId: string;
-  pageUrl: string;
-  pageTitle: string;
-  timeOnPage: number;
-  scrollDepth: number;
-  exitPage: boolean;
-}
+// Initialize pixel tracking
+export const initPixelTracker = () => {
+  // Create or resume session
+  sessionId = localStorage.getItem('dealer_session_id') || generateSessionId();
+  localStorage.setItem('dealer_session_id', sessionId);
+  
+  // Start session tracking
+  trackSession();
+  
+  // Track page views
+  trackPageView();
+  
+  // Track user interactions
+  setupInteractionTrackers();
+  
+  // Track session end
+  setupSessionEndTrackers();
+  
+  console.log('🎯 Pixel Tracker initialized:', sessionId);
+};
 
-interface InteractionData {
-  sessionId: string;
-  interactionType: string;
-  elementId?: string;
-  vehicleId?: number;
-  data?: string;
-}
+// Generate unique session ID
+const generateSessionId = (): string => {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 15);
+  return `session_${timestamp}_${random}`;
+};
 
-class PixelTracker {
-  private sessionId: string;
-  private visitorId: string;
-  private sessionStartTime: number;
-  private pageStartTime: number;
-  private maxScrollDepth: number;
-  private isTracking: boolean;
-  private heartbeatInterval: NodeJS.Timeout | null;
-  private competitorDomains: Set<string>;
-
-  constructor() {
-    this.sessionId = this.generateSessionId();
-    this.visitorId = this.getOrCreateVisitorId();
-    this.sessionStartTime = Date.now();
-    this.pageStartTime = Date.now();
-    this.maxScrollDepth = 0;
-    this.isTracking = false;
-    this.heartbeatInterval = null;
-    this.competitorDomains = new Set([
-      'cars.com',
-      'autotrader.com',
-      'edmunds.com',
-      'cargurus.com',
-      'carmax.com',
-      'vroom.com',
-      'carvana.com',
-      'truecar.com',
-      'carfax.com',
-      'kbb.com'
-    ]);
-  }
-
-  private generateSessionId(): string {
-    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
-
-  private getOrCreateVisitorId(): string {
-    let visitorId = localStorage.getItem('dealership_visitor_id');
-    if (!visitorId) {
-      visitorId = `visitor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      localStorage.setItem('dealership_visitor_id', visitorId);
-    }
-    return visitorId;
-  }
-
-  private detectDevice(): string {
-    const userAgent = navigator.userAgent;
-    if (/tablet|ipad|playbook|silk/i.test(userAgent)) {
-      return 'tablet';
-    }
-    if (/mobile|iphone|ipod|android|blackberry|opera|mini|windows\sce|palm|smartphone|iemobile/i.test(userAgent)) {
-      return 'mobile';
-    }
-    return 'desktop';
-  }
-
-  private detectBrowser(): string {
-    const userAgent = navigator.userAgent;
-    if (userAgent.includes('Chrome')) return 'Chrome';
-    if (userAgent.includes('Firefox')) return 'Firefox';
-    if (userAgent.includes('Safari')) return 'Safari';
-    if (userAgent.includes('Edge')) return 'Edge';
-    if (userAgent.includes('Opera')) return 'Opera';
-    return 'Unknown';
-  }
-
-  private detectOS(): string {
-    const userAgent = navigator.userAgent;
-    if (userAgent.includes('Windows')) return 'Windows';
-    if (userAgent.includes('Mac OS')) return 'macOS';
-    if (userAgent.includes('Linux')) return 'Linux';
-    if (userAgent.includes('Android')) return 'Android';
-    if (userAgent.includes('iOS')) return 'iOS';
-    return 'Unknown';
-  }
-
-  private isReturningVisitor(): boolean {
-    return localStorage.getItem('dealership_visitor_id') !== null;
-  }
-
-  private trackScrollDepth() {
-    const scrollPercent = Math.round(
-      (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100
-    );
-    this.maxScrollDepth = Math.max(this.maxScrollDepth, scrollPercent);
-  }
-
-  private setupScrollTracking() {
-    let ticking = false;
-    const updateScrollDepth = () => {
-      this.trackScrollDepth();
-      ticking = false;
-    };
-
-    window.addEventListener('scroll', () => {
-      if (!ticking) {
-        requestAnimationFrame(updateScrollDepth);
-        ticking = true;
-      }
-    });
-  }
-
-  private setupCompetitorTracking() {
-    // Check if user came from competitor site
-    const referrer = document.referrer;
-    if (referrer) {
-      const referrerDomain = new URL(referrer).hostname.replace('www.', '');
-      if (this.competitorDomains.has(referrerDomain)) {
-        this.trackCompetitorVisit(referrerDomain);
-      }
-    }
-
-    // Track when user clicks external links to competitors
-    document.addEventListener('click', (event) => {
-      const target = event.target as HTMLElement;
-      const link = target.closest('a');
-      if (link && link.href) {
-        try {
-          const url = new URL(link.href);
-          const domain = url.hostname.replace('www.', '');
-          if (this.competitorDomains.has(domain)) {
-            this.trackCompetitorVisit(domain);
-          }
-        } catch (e) {
-          // Invalid URL, ignore
-        }
-      }
-    });
-  }
-
-  private async trackCompetitorVisit(domain: string) {
-    try {
-      await apiRequest('POST', '/api/tracking/competitor', {
-        sessionId: this.sessionId,
-        competitorDomain: domain,
-        lastVisited: new Date().toISOString()
-      });
-    } catch (error) {
-      console.warn('Failed to track competitor visit:', error);
-    }
-  }
-
-  private setupHeartbeat() {
-    this.heartbeatInterval = setInterval(() => {
-      this.updateSession();
-    }, 30000); // Update every 30 seconds
-  }
-
-  private async updateSession() {
-    const sessionDuration = Math.round((Date.now() - this.sessionStartTime) / 1000);
-    try {
-      await apiRequest('PUT', `/api/tracking/session/${this.sessionId}`, {
-        sessionDuration,
-        totalPageViews: this.getTotalPageViews(),
-        lastActivity: new Date().toISOString()
-      });
-    } catch (error) {
-      console.warn('Failed to update session:', error);
-    }
-  }
-
-  private getTotalPageViews(): number {
-    return parseInt(sessionStorage.getItem('page_views') || '0');
-  }
-
-  private incrementPageViews() {
-    const current = this.getTotalPageViews();
-    sessionStorage.setItem('page_views', (current + 1).toString());
-  }
-
-  async initializeSession() {
-    const visitorData: VisitorData = {
-      sessionId: this.sessionId,
-      visitorId: this.visitorId,
+// Track new session or update existing
+const trackSession = async () => {
+  if (!sessionId) return;
+  
+  try {
+    const sessionData = {
+      sessionId,
       userAgent: navigator.userAgent,
       referrer: document.referrer,
-      landingPage: window.location.pathname,
-      deviceType: this.detectDevice(),
-      browserName: this.detectBrowser(),
-      operatingSystem: this.detectOS(),
-      isReturningVisitor: this.isReturningVisitor()
+      screenResolution: `${screen.width}x${screen.height}`,
+      language: navigator.language,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
-
-    try {
-      await apiRequest('POST', '/api/tracking/session', visitorData);
-      this.isTracking = true;
-      this.setupScrollTracking();
-      this.setupCompetitorTracking();
-      this.setupHeartbeat();
-      this.incrementPageViews();
-    } catch (error) {
-      console.warn('Failed to initialize tracking session:', error);
-    }
-  }
-
-  async trackPageView(pageUrl: string, pageTitle: string) {
-    if (!this.isTracking) return;
-
-    const timeOnPage = Math.round((Date.now() - this.pageStartTime) / 1000);
     
-    const pageViewData: PageViewData = {
-      sessionId: this.sessionId,
-      pageUrl,
-      pageTitle,
-      timeOnPage,
-      scrollDepth: this.maxScrollDepth,
-      exitPage: false
-    };
-
-    try {
-      await apiRequest('POST', '/api/tracking/pageview', pageViewData);
-      this.pageStartTime = Date.now();
-      this.maxScrollDepth = 0;
-      this.incrementPageViews();
-    } catch (error) {
-      console.warn('Failed to track page view:', error);
-    }
-  }
-
-  async trackInteraction(type: string, elementId?: string, vehicleId?: number, data?: any) {
-    if (!this.isTracking) return;
-
-    const interactionData: InteractionData = {
-      sessionId: this.sessionId,
-      interactionType: type,
-      elementId,
-      vehicleId,
-      data: data ? JSON.stringify(data) : undefined
-    };
-
-    try {
-      await apiRequest('POST', '/api/tracking/interaction', interactionData);
-    } catch (error) {
-      console.warn('Failed to track interaction:', error);
-    }
-  }
-
-  async trackVehicleView(vehicleId: number, vehicleDetails: any) {
-    await this.trackInteraction('vehicle_view', undefined, vehicleId, vehicleDetails);
-  }
-
-  async trackLeadForm(formData: any) {
-    await this.trackInteraction('lead_form', 'lead-form', undefined, formData);
-  }
-
-  async trackContactClick(contactType: string) {
-    await this.trackInteraction('contact_click', contactType);
-  }
-
-  async trackSearch(searchQuery: string) {
-    await this.trackInteraction('search', 'search-input', undefined, { query: searchQuery });
-  }
-
-  async trackFilterUsage(filterType: string, filterValue: string) {
-    await this.trackInteraction('filter_usage', filterType, undefined, { value: filterValue });
-  }
-
-  cleanup() {
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-    }
+    // Check if session exists, if not create new one
+    const existingSession = await fetch(`/api/tracking/session/${sessionId}`).then(r => r.ok ? r.json() : null);
     
-    // Track final page view with exit flag
-    const timeOnPage = Math.round((Date.now() - this.pageStartTime) / 1000);
-    if (this.isTracking) {
-      apiRequest('POST', '/api/tracking/pageview', {
-        sessionId: this.sessionId,
-        pageUrl: window.location.pathname,
-        pageTitle: document.title,
-        timeOnPage,
-        scrollDepth: this.maxScrollDepth,
-        exitPage: true
-      }).catch(() => {
-        // Ignore errors on cleanup
+    if (!existingSession) {
+      await fetch('/api/tracking/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sessionData)
+      });
+    } else {
+      // Update session activity
+      await fetch(`/api/tracking/session/${sessionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lastActivity: new Date() })
       });
     }
+  } catch (error) {
+    console.error('Session tracking error:', error);
   }
-}
+};
 
-export const pixelTracker = new PixelTracker();
+// Track page views
+const trackPageView = async () => {
+  if (!sessionId) return;
+  
+  const pageData = {
+    sessionId,
+    pageUrl: window.location.pathname,
+    pageTitle: document.title,
+    timestamp: new Date(),
+    loadTime: Date.now() - startTime,
+  };
+  
+  try {
+    await fetch('/api/tracking/pageview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(pageData)
+    });
+  } catch (error) {
+    console.error('Page view tracking error:', error);
+  }
+  
+  // Track time on page when user leaves
+  const trackTimeOnPage = () => {
+    const timeOnPage = Date.now() - startTime;
+    updatePageView(timeOnPage);
+  };
+  
+  // Listen for page unload
+  window.addEventListener('beforeunload', trackTimeOnPage);
+  window.addEventListener('pagehide', trackTimeOnPage);
+};
 
-// Initialize tracking when the page loads
-if (typeof window !== 'undefined') {
-  pixelTracker.initializeSession();
+// Update page view with time spent
+const updatePageView = async (timeOnPage: number) => {
+  if (!sessionId) return;
   
-  // Track page view on initial load
-  pixelTracker.trackPageView(window.location.pathname, document.title);
+  try {
+    await fetch(`/api/tracking/pageview/${sessionId}/update`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        timeOnPage,
+        exitTime: new Date()
+      })
+    });
+  } catch (error) {
+    console.error('Page view update error:', error);
+  }
+};
+
+// Track specific interactions
+export const trackInteraction = async (type: string, data: any = {}) => {
+  if (!sessionId) return;
   
-  // Cleanup on page unload
-  window.addEventListener('beforeunload', () => {
-    pixelTracker.cleanup();
+  const interactionData = {
+    sessionId,
+    interactionType: type,
+    elementId: data.elementId || null,
+    vehicleId: data.vehicleId || null,
+    data: data,
+    timestamp: new Date(),
+  };
+  
+  try {
+    await fetch('/api/tracking/interaction', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(interactionData)
+    });
+    
+    console.log('🎯 Tracked interaction:', type, data);
+  } catch (error) {
+    console.error('Interaction tracking error:', error);
+  }
+};
+
+// Setup automatic interaction tracking
+const setupInteractionTrackers = () => {
+  // Track vehicle card clicks
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    const vehicleCard = target.closest('[data-vehicle-id]');
+    
+    if (vehicleCard) {
+      const vehicleId = vehicleCard.getAttribute('data-vehicle-id');
+      trackInteraction('vehicle_view', {
+        vehicleId,
+        elementId: target.id || target.className,
+        clickPosition: { x: event.clientX, y: event.clientY }
+      });
+    }
+    
+    // Track button clicks
+    if (target.tagName === 'BUTTON' || target.closest('button')) {
+      const button = target.tagName === 'BUTTON' ? target : target.closest('button');
+      trackInteraction('button_click', {
+        buttonText: button?.textContent || 'Unknown',
+        elementId: button?.id || button?.className
+      });
+    }
+    
+    // Track form submissions
+    if (target.type === 'submit' || target.closest('[type="submit"]')) {
+      trackInteraction('form_submit', {
+        formId: target.closest('form')?.id || 'unknown_form',
+        elementId: target.id || target.className
+      });
+    }
   });
+  
+  // Track scroll depth
+  let maxScrollDepth = 0;
+  window.addEventListener('scroll', () => {
+    const scrollDepth = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+    if (scrollDepth > maxScrollDepth) {
+      maxScrollDepth = scrollDepth;
+      
+      // Track significant scroll milestones
+      if (scrollDepth >= 25 && maxScrollDepth < 25) {
+        trackInteraction('scroll_25', { scrollDepth });
+      } else if (scrollDepth >= 50 && maxScrollDepth < 50) {
+        trackInteraction('scroll_50', { scrollDepth });
+      } else if (scrollDepth >= 75 && maxScrollDepth < 75) {
+        trackInteraction('scroll_75', { scrollDepth });
+      } else if (scrollDepth >= 90 && maxScrollDepth < 90) {
+        trackInteraction('scroll_complete', { scrollDepth });
+      }
+    }
+  });
+  
+  // Track focus events (form field interactions)
+  document.addEventListener('focus', (event) => {
+    const target = event.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
+      trackInteraction('form_field_focus', {
+        fieldType: target.tagName.toLowerCase(),
+        fieldName: target.getAttribute('name') || target.id,
+        formId: target.closest('form')?.id
+      });
+    }
+  }, true);
+};
+
+// Setup session end tracking
+const setupSessionEndTrackers = () => {
+  const updateActivity = () => {
+    lastActivityTime = Date.now();
+    if (sessionId) {
+      // Update session with latest activity (throttled)
+      clearTimeout(window.activityTimeout);
+      window.activityTimeout = setTimeout(() => {
+        trackSession();
+      }, 5000); // Update every 5 seconds of activity
+    }
+  };
+  
+  // Track user activity
+  ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+    document.addEventListener(event, updateActivity, true);
+  });
+  
+  // Track session duration on page unload
+  window.addEventListener('beforeunload', () => {
+    const sessionDuration = Date.now() - startTime;
+    navigator.sendBeacon(`/api/tracking/session/${sessionId}/end`, 
+      JSON.stringify({ 
+        sessionDuration,
+        endTime: new Date(),
+        lastActivity: new Date(lastActivityTime)
+      })
+    );
+  });
+};
+
+// Track specific vehicle interest
+export const trackVehicleInterest = async (vehicleId: number, vehicleInfo: any) => {
+  await trackInteraction('vehicle_interest', {
+    vehicleId,
+    vehicleInfo: `${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}`,
+    price: vehicleInfo.price,
+    vin: vehicleInfo.vin
+  });
+};
+
+// Track contact form submissions
+export const trackContactSubmission = async (formType: string, formData: any) => {
+  await trackInteraction('contact_form', {
+    formType,
+    customerInfo: {
+      name: formData.firstName && formData.lastName ? `${formData.firstName} ${formData.lastName}` : null,
+      email: formData.email || null,
+      phone: formData.phone || null
+    },
+    interestedVehicle: formData.vehicleId || null
+  });
+};
+
+// Track phone number clicks
+export const trackPhoneClick = async (phoneNumber: string) => {
+  await trackInteraction('phone_click', {
+    phoneNumber,
+    source: 'website'
+  });
+};
+
+// Get current session ID
+export const getCurrentSessionId = (): string | null => {
+  return sessionId;
+};
+
+// Declare global timeout for activity tracking
+declare global {
+  interface Window {
+    activityTimeout: NodeJS.Timeout;
+  }
 }

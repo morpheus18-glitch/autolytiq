@@ -1165,6 +1165,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create demo pixel tracking data endpoint
+  app.post("/api/customers/:id/demo-tracking", async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      
+      // Create demo session for customer
+      const demoSessionId = `demo_session_${customerId}_${Date.now()}`;
+      
+      const demoSession = await storage.createVisitorSession({
+        sessionId: demoSessionId,
+        userId: customerId.toString(),
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        ipAddress: '192.168.1.100',
+        referrer: 'https://google.com',
+        landingPage: '/',
+        startTime: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
+        lastActivity: new Date(),
+        sessionDuration: 45 * 60, // 45 minutes
+        pageViews: 12,
+        deviceType: 'desktop',
+        browser: 'Chrome',
+        screenResolution: '1920x1080',
+        language: 'en-US',
+        timezone: 'America/New_York'
+      });
+
+      // Create demo page views
+      const demoPages = [
+        { url: '/', title: 'AutolytiQ - Home', timeOnPage: 180 },
+        { url: '/inventory', title: 'Vehicle Inventory', timeOnPage: 420 },
+        { url: '/vehicles/1', title: '2023 Honda Accord', timeOnPage: 300 },
+        { url: '/vehicles/3', title: '2024 Toyota Camry', timeOnPage: 240 },
+        { url: '/contact', title: 'Contact Us', timeOnPage: 150 },
+      ];
+
+      for (let i = 0; i < demoPages.length; i++) {
+        const page = demoPages[i];
+        await storage.createPageView({
+          sessionId: demoSessionId,
+          pageUrl: page.url,
+          pageTitle: page.title,
+          userId: customerId.toString(),
+          timestamp: new Date(Date.now() - (40 - i * 5) * 60 * 1000),
+          timeOnPage: page.timeOnPage,
+          deviceType: 'desktop',
+          exitPage: i === demoPages.length - 1
+        });
+      }
+
+      // Create demo interactions
+      const demoInteractions = [
+        { type: 'vehicle_view', vehicleId: '1', description: 'Viewed 2023 Honda Accord details' },
+        { type: 'button_click', elementId: 'contact-btn', description: 'Clicked Contact Dealer button' },
+        { type: 'vehicle_view', vehicleId: '3', description: 'Viewed 2024 Toyota Camry details' },
+        { type: 'form_field_focus', elementId: 'email-input', description: 'Started filling contact form' },
+        { type: 'phone_click', data: { phoneNumber: '(555) 123-4567' }, description: 'Clicked dealer phone number' }
+      ];
+
+      for (let i = 0; i < demoInteractions.length; i++) {
+        const interaction = demoInteractions[i];
+        await storage.createCustomerInteraction({
+          sessionId: demoSessionId,
+          customerId: customerId.toString(),
+          interactionType: interaction.type,
+          timestamp: new Date(Date.now() - (35 - i * 5) * 60 * 1000),
+          elementId: interaction.elementId || null,
+          vehicleId: interaction.vehicleId || null,
+          data: interaction.data || { description: interaction.description }
+        });
+      }
+
+      res.json({ 
+        success: true, 
+        message: 'Demo tracking data created',
+        sessionId: demoSessionId,
+        pageViews: demoPages.length,
+        interactions: demoInteractions.length
+      });
+    } catch (error) {
+      console.error('Demo tracking data creation error:', error);
+      res.status(500).json({ message: "Failed to create demo tracking data" });
+    }
+  });
+
   // Customer lifecycle and shopping history
   app.get("/api/customers/:id/lifecycle", async (req, res) => {
     try {
@@ -1179,24 +1263,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const deals = await storage.getDealsByCustomer(customerId);
       const sales = await storage.getSalesByCustomer(customerId);
       
+      // Create timeline events from all activities
+      const timelineEvents: any[] = [];
+
+      // Add page views as events
+      pageViews.forEach((pv: any) => {
+        timelineEvents.push({
+          type: 'page_view',
+          timestamp: pv.createdAt,
+          pageTitle: pv.pageTitle,
+          pageUrl: pv.pageUrl,
+          timeOnPage: pv.timeOnPage,
+          deviceType: pv.deviceType || 'unknown',
+          metadata: {
+            scrollDepth: pv.scrollDepth,
+            exitPage: pv.exitPage
+          }
+        });
+      });
+
+      // Add customer interactions as events
+      interactions.forEach((interaction: any) => {
+        const vehicleInfo = interaction.vehicleId ? `Vehicle ${interaction.vehicleId}` : null;
+        timelineEvents.push({
+          type: interaction.interactionType,
+          timestamp: interaction.createdAt,
+          vehicleInfo,
+          elementId: interaction.elementId,
+          data: interaction.data,
+          metadata: interaction
+        });
+      });
+
+      // Add deals as events
+      deals.forEach((deal: any) => {
+        timelineEvents.push({
+          type: 'deal_created',
+          timestamp: deal.createdAt,
+          vehicleInfo: deal.vehicleDetails,
+          amount: deal.salePrice,
+          salesperson: deal.salesConsultant,
+          metadata: deal
+        });
+      });
+
+      // Add sales as events
+      sales.forEach((sale: any) => {
+        timelineEvents.push({
+          type: 'sale_completed',
+          timestamp: sale.createdAt,
+          vehicleInfo: sale.vehicleDetails,
+          amount: sale.finalPrice,
+          salesperson: sale.salesConsultant,
+          metadata: sale
+        });
+      });
+
+      // Sort events by timestamp (newest first)
+      timelineEvents.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
       const lifecycle = {
         customerId,
-        totalSessions: sessions.length,
-        totalPageViews: pageViews.length,
-        totalInteractions: interactions.length,
-        totalDeals: deals.length,
-        totalSales: sales.length,
+        totalEvents: timelineEvents.length,
+        stats: {
+          totalSessions: sessions.length,
+          totalPageViews: pageViews.length,
+          totalInteractions: interactions.length,
+          totalDeals: deals.length,
+          totalSales: sales.length,
+          vehicleViews: interactions.filter((i: any) => i.interactionType === 'vehicle_view').length,
+          avgSessionDuration: sessions.reduce((acc, s) => acc + (s.sessionDuration || 0), 0) / sessions.length || 0,
+          conversionStatus: sales.length > 0 ? 'converted' : deals.length > 0 ? 'in_progress' : 'browsing'
+        },
+        events: timelineEvents,
         recentSessions: sessions.slice(0, 10),
-        recentPageViews: pageViews.slice(0, 20),
-        recentInteractions: interactions.slice(0, 15),
-        deals,
-        sales,
         shoppingJourney: {
-          firstVisit: sessions[0]?.startTime || null,
-          lastVisit: sessions[sessions.length - 1]?.endTime || null,
-          averageSessionDuration: sessions.reduce((acc, s) => acc + (s.duration || 0), 0) / sessions.length || 0,
+          firstVisit: sessions[0]?.createdAt || null,
+          lastVisit: sessions[sessions.length - 1]?.lastActivity || null,
+          averageSessionDuration: sessions.reduce((acc, s) => acc + (s.sessionDuration || 0), 0) / sessions.length || 0,
           mostViewedPages: pageViews.reduce((acc, pv) => {
-            acc[pv.pagePath] = (acc[pv.pagePath] || 0) + 1;
+            acc[pv.pageUrl] = (acc[pv.pageUrl] || 0) + 1;
             return acc;
           }, {} as Record<string, number>),
           conversionStatus: sales.length > 0 ? 'converted' : deals.length > 0 ? 'in_progress' : 'browsing'
