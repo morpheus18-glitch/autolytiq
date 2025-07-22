@@ -1,461 +1,446 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useQuery } from '@tanstack/react-query';
 import {
   Brain,
   Users,
-  BarChart3,
-  MessageSquare,
-  Eye,
-  TrendingUp,
-  AlertTriangle,
   Car,
   DollarSign,
-  Clock,
+  TrendingUp,
+  AlertCircle,
   Target,
+  ArrowRight,
+  Clock,
+  User,
+  FileText,
+  Settings,
+  BarChart3,
   Activity,
   Zap,
-  ChevronRight
 } from 'lucide-react';
 import { Link } from 'wouter';
-import { Customer360Intelligence } from './customer-360-intelligence';
-import { DealDeskCopilot } from './deal-desk-copilot';
-import { RealTimeCollaboration } from './real-time-collaboration';
-import { AdvancedAnalyticsDashboard } from './advanced-analytics-dashboard';
+
+interface DashboardMetric {
+  title: string;
+  value: string | number;
+  change: number;
+  icon: React.ReactNode;
+  color: string;
+}
+
+interface ActiveWorkflow {
+  id: string;
+  type: 'lead-processing' | 'deal-closing' | 'customer-onboarding' | 'follow-up';
+  title: string;
+  customer?: string;
+  vehicle?: string;
+  progress: number;
+  priority: 'high' | 'medium' | 'low';
+  nextStep: string;
+}
+
+interface AIInsight {
+  id: string;
+  type: 'pricing' | 'inventory' | 'customer' | 'market';
+  title: string;
+  description: string;
+  actionLabel: string;
+  actionPath: string;
+  priority: 'critical' | 'important' | 'info';
+}
 
 export function EnterpriseDashboardIntegration() {
-  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
-  const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
-  const [activeFeature, setActiveFeature] = useState<string | null>(null);
-
-  const { data: recentCustomers = [] } = useQuery({
-    queryKey: ['/api/customers/recent'],
-  });
-
-  const { data: activeDeals = [] } = useQuery({
-    queryKey: ['/api/deals/active'],
-  });
-
-  const { data: urgentInsights = [] } = useQuery({
-    queryKey: ['/api/ai-insights/urgent'],
-  });
-
-  const { data: collaborationActivity = [] } = useQuery({
-    queryKey: ['/api/collaboration/recent-activity'],
-  });
-
-  const enterpriseFeatures = [
+  const [activeWorkflows] = useState<ActiveWorkflow[]>([
     {
-      id: 'customer-360',
-      title: 'Customer 360° Intelligence',
-      description: 'Unified customer view with predictive insights and timeline analysis',
-      icon: <Eye className="w-6 h-6 text-blue-500" />,
-      color: 'border-blue-200 bg-blue-50 dark:bg-blue-900/20',
-      metrics: {
-        active: recentCustomers?.length || 0,
-        label: 'Recent Customers'
-      }
+      id: 'wf-001',
+      type: 'lead-processing',
+      title: 'New Internet Lead',
+      customer: 'Sarah Johnson',
+      vehicle: '2024 Honda Accord',
+      progress: 65,
+      priority: 'high',
+      nextStep: 'Schedule test drive',
     },
     {
-      id: 'deal-copilot',
-      title: 'AI-Powered Deal Desk Copilot',
-      description: 'Intelligent deal analysis with compliance checking and optimization',
-      icon: <Brain className="w-6 h-6 text-purple-500" />,
-      color: 'border-purple-200 bg-purple-50 dark:bg-purple-900/20',
-      metrics: {
-        active: urgentInsights?.length || 0,
-        label: 'Active Insights'
-      }
+      id: 'wf-002',
+      type: 'deal-closing',
+      title: 'Finance Approval Pending',
+      customer: 'Mike Davis',
+      vehicle: '2023 Toyota Camry',
+      progress: 80,
+      priority: 'high',
+      nextStep: 'Review F&I menu',
     },
     {
-      id: 'collaboration',
-      title: 'Real-Time Team Collaboration',
-      description: 'Threaded discussions, mentions, and automated workflow coordination',
-      icon: <MessageSquare className="w-6 h-6 text-green-500" />,
-      color: 'border-green-200 bg-green-50 dark:bg-green-900/20',
-      metrics: {
-        active: collaborationActivity?.length || 0,
-        label: 'Active Threads'
-      }
+      id: 'wf-003',
+      type: 'customer-onboarding',
+      title: 'Delivery Preparation',
+      customer: 'Lisa Chen',
+      vehicle: '2024 BMW X3',
+      progress: 90,
+      priority: 'medium',
+      nextStep: 'Vehicle prep checklist',
+    },
+  ]);
+
+  const [aiInsights] = useState<AIInsight[]>([
+    {
+      id: 'ai-001',
+      type: 'pricing',
+      title: 'Pricing Optimization Alert',
+      description: '3 vehicles priced $2K above market average. Adjust pricing to increase velocity.',
+      actionLabel: 'Review Pricing',
+      actionPath: '/competitive-pricing',
+      priority: 'critical',
     },
     {
-      id: 'analytics',
-      title: 'Advanced Analytics & KPIs',
-      description: 'Market benchmarking, predictive analytics, and performance dashboards',
-      icon: <BarChart3 className="w-6 h-6 text-orange-500" />,
-      color: 'border-orange-200 bg-orange-50 dark:bg-orange-900/20',
-      metrics: {
-        active: 12,
-        label: 'Live Metrics'
-      }
-    }
+      id: 'ai-002',
+      type: 'inventory',
+      title: 'Low Inventory Warning',
+      description: 'Compact SUV inventory below 15-day supply. Consider acquiring more units.',
+      actionLabel: 'View Inventory',
+      actionPath: '/inventory',
+      priority: 'important',
+    },
+    {
+      id: 'ai-003',
+      type: 'customer',
+      title: 'High-Value Lead Identified',
+      description: 'New lead shows 87% purchase probability based on behavior patterns.',
+      actionLabel: 'View Customer',
+      actionPath: '/customers',
+      priority: 'important',
+    },
+  ]);
+
+  const metrics: DashboardMetric[] = [
+    {
+      title: 'Active Deals',
+      value: 23,
+      change: 12,
+      icon: <FileText className="w-5 h-5" />,
+      color: 'text-blue-600',
+    },
+    {
+      title: 'Monthly Sales',
+      value: '$1.2M',
+      change: 8,
+      icon: <DollarSign className="w-5 h-5" />,
+      color: 'text-green-600',
+    },
+    {
+      title: 'Inventory Turn',
+      value: '42 days',
+      change: -5,
+      icon: <Car className="w-5 h-5" />,
+      color: 'text-purple-600',
+    },
+    {
+      title: 'Customer Satisfaction',
+      value: '94%',
+      change: 2,
+      icon: <Users className="w-5 h-5" />,
+      color: 'text-orange-600',
+    },
   ];
 
-  const quickActions = [
-    {
-      title: 'Analyze Customer Risk',
-      description: 'Run AI analysis on customer credit and purchase likelihood',
-      icon: <Target className="w-5 h-5 text-red-500" />,
-      action: () => setActiveFeature('customer-360')
-    },
-    {
-      title: 'Review Deal Compliance',
-      description: 'Check active deals for regulatory and policy compliance',
-      icon: <AlertTriangle className="w-5 h-5 text-amber-500" />,
-      action: () => setActiveFeature('deal-copilot')
-    },
-    {
-      title: 'Team Discussion',
-      description: 'Start urgent discussion thread with team members',
-      icon: <Users className="w-5 h-5 text-blue-500" />,
-      action: () => setActiveFeature('collaboration')
-    },
-    {
-      title: 'Performance Review',
-      description: 'Generate comprehensive performance and benchmark report',
-      icon: <TrendingUp className="w-5 h-5 text-green-500" />,
-      action: () => setActiveFeature('analytics')
+  const getWorkflowIcon = (type: ActiveWorkflow['type']) => {
+    switch (type) {
+      case 'lead-processing':
+        return <Target className="w-4 h-4" />;
+      case 'deal-closing':
+        return <DollarSign className="w-4 h-4" />;
+      case 'customer-onboarding':
+        return <User className="w-4 h-4" />;
+      case 'follow-up':
+        return <Clock className="w-4 h-4" />;
     }
-  ];
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return 'text-red-600 bg-red-50 border-red-200';
+      case 'medium':
+        return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'low':
+        return 'text-gray-600 bg-gray-50 border-gray-200';
+      case 'critical':
+        return 'text-red-600 bg-red-50 border-red-200';
+      case 'important':
+        return 'text-orange-600 bg-orange-50 border-orange-200';
+      case 'info':
+        return 'text-blue-600 bg-blue-50 border-blue-200';
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Enterprise Header */}
-      <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
-        <CardHeader className="pb-3 sm:pb-6">
-          <CardTitle className="flex items-center text-lg sm:text-xl lg:text-2xl">
-            <Zap className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 mr-2 sm:mr-3 text-blue-600" />
-            <span className="truncate">Enterprise Command Center</span>
-          </CardTitle>
-          <CardDescription className="text-sm sm:text-base lg:text-lg">
-            Next-generation dealership intelligence platform with AI-powered insights and real-time collaboration
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {enterpriseFeatures.map((feature) => (
-              <Card key={feature.id} className={`cursor-pointer transition-all hover:shadow-md ${feature.color}`}>
-                <CardContent className="p-3 sm:p-4">
-                  <div className="flex items-center justify-between mb-2 sm:mb-3">
-                    {feature.icon}
-                    <Badge variant="secondary" className="text-xs">
-                      {feature.metrics.active} {feature.metrics.label}
-                    </Badge>
-                  </div>
-                  <h3 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2 leading-tight">{feature.title}</h3>
-                  <p className="text-xs text-muted-foreground mb-2 sm:mb-3 line-clamp-2">
-                    {feature.description}
-                  </p>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full text-xs sm:text-sm h-7 sm:h-8"
-                        onClick={() => setActiveFeature(feature.id)}
-                      >
-                        <span className="hidden sm:inline">Launch</span>
-                        <span className="sm:hidden">Open</span>
-                        <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle className="flex items-center">
-                          {feature.icon}
-                          <span className="ml-2">{feature.title}</span>
-                        </DialogTitle>
-                      </DialogHeader>
-                      {feature.id === 'customer-360' && (
-                        <div className="space-y-4">
-                          {selectedCustomerId ? (
-                            <Customer360Intelligence customerId={selectedCustomerId} />
-                          ) : (
-                            <div className="text-center py-8">
-                              <Eye className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                              <h3 className="text-lg font-medium text-gray-900 mb-2">Select a Customer</h3>
-                              <p className="text-gray-600 mb-4">Choose a customer from the Customer Intelligence tab to view their 360° profile</p>
-                              <Link href="/customers">
-                                <Button>Browse All Customers</Button>
-                              </Link>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      {feature.id === 'deal-copilot' && (
-                        <div className="space-y-4">
-                          {selectedDealId ? (
-                            <DealDeskCopilot dealId={selectedDealId} />
-                          ) : (
-                            <div className="text-center py-8">
-                              <Brain className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                              <h3 className="text-lg font-medium text-gray-900 mb-2">Select a Deal</h3>
-                              <p className="text-gray-600 mb-4">Choose a deal from the Deal Intelligence tab to launch AI copilot analysis</p>
-                              <Link href="/deals">
-                                <Button>Browse All Deals</Button>
-                              </Link>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      {feature.id === 'collaboration' && (
-                        <RealTimeCollaboration entityType="dashboard" entityId={1} />
-                      )}
-                      {feature.id === 'analytics' && (
-                        <AdvancedAnalyticsDashboard />
-                      )}
-                    </DialogContent>
-                  </Dialog>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Enterprise Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Intelligent dealership management with AI-powered insights
+          </p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Badge variant="secondary" className="bg-green-100 text-green-800">
+            <Activity className="w-3 h-3 mr-1" />
+            All Systems Operational
+          </Badge>
+        </div>
+      </div>
 
-      {/* Unified Intelligence Dashboard */}
-      <Tabs defaultValue="overview" className="space-y-3 sm:space-y-4">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-8 sm:h-9 lg:h-10">
-          <TabsTrigger value="overview" className="text-xs sm:text-sm px-1 sm:px-2">Overview</TabsTrigger>
-          <TabsTrigger value="customer-intelligence" className="text-xs sm:text-sm px-1 sm:px-2">
-            <span className="hidden lg:inline">Customer Intelligence</span>
-            <span className="lg:hidden">Customers</span>
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {metrics.map((metric, index) => (
+          <Card key={index} className="relative overflow-hidden">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    {metric.title}
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {metric.value}
+                  </p>
+                </div>
+                <div className={`${metric.color} opacity-80`}>
+                  {metric.icon}
+                </div>
+              </div>
+              <div className="mt-2">
+                <Badge 
+                  variant={metric.change > 0 ? "default" : "secondary"} 
+                  className={`text-xs ${metric.change > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                >
+                  <TrendingUp className="w-3 h-3 mr-1" />
+                  {metric.change > 0 ? '+' : ''}{metric.change}%
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Tabs defaultValue="workflows" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="workflows" className="flex items-center space-x-2">
+            <Zap className="w-4 h-4" />
+            <span>Active Workflows</span>
           </TabsTrigger>
-          <TabsTrigger value="deal-intelligence" className="text-xs sm:text-sm px-1 sm:px-2 col-start-1 sm:col-start-auto">
-            <span className="hidden lg:inline">Deal Intelligence</span>
-            <span className="lg:hidden">Deals</span>
+          <TabsTrigger value="ai-insights" className="flex items-center space-x-2">
+            <Brain className="w-4 h-4" />
+            <span>AI Insights</span>
           </TabsTrigger>
-          <TabsTrigger value="team-collaboration" className="text-xs sm:text-sm px-1 sm:px-2">
-            <span className="hidden lg:inline">Team Collaboration</span>
-            <span className="lg:hidden">Team</span>
+          <TabsTrigger value="analytics" className="flex items-center space-x-2">
+            <BarChart3 className="w-4 h-4" />
+            <span>Analytics</span>
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="text-xs sm:text-sm px-1 sm:px-2">Analytics</TabsTrigger>
         </TabsList>
 
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Quick Actions */}
-            <Card className="lg:col-span-1">
-              <CardHeader className="pb-3 sm:pb-6">
-                <CardTitle className="flex items-center text-sm sm:text-base">
-                  <Activity className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500" />
-                  Quick Actions
-                </CardTitle>
-                <CardDescription className="text-xs sm:text-sm">Common enterprise workflows and tasks</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-2 sm:space-y-3">
-                  {quickActions.map((action, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                      onClick={action.action}
-                    >
-                      <div className="flex-shrink-0 mt-0.5">
-                        {action.icon}
+        {/* Active Workflows */}
+        <TabsContent value="workflows" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Zap className="w-5 h-5 text-blue-600" />
+                <span>Smart Workflow Assistant</span>
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  {activeWorkflows.length} Active
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {activeWorkflows.map((workflow) => (
+                <div
+                  key={workflow.id}
+                  className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="text-blue-600">
+                        {getWorkflowIcon(workflow.type)}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs sm:text-sm font-medium truncate">{action.title}</p>
-                        <p className="text-xs text-muted-foreground line-clamp-2">{action.description}</p>
+                      <div>
+                        <h4 className="font-medium text-gray-900 dark:text-white">
+                          {workflow.title}
+                        </h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {workflow.customer} • {workflow.vehicle}
+                        </p>
                       </div>
                     </div>
-                  ))}
+                    <Badge className={getPriorityColor(workflow.priority)}>
+                      {workflow.priority}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex-1 mr-4">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-600">Progress</span>
+                        <span className="text-xs text-gray-600">{workflow.progress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${workflow.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Next: {workflow.nextStep}
+                    </p>
+                    <Button size="sm" variant="outline">
+                      <ArrowRight className="w-3 h-3 mr-1" />
+                      Continue
+                    </Button>
+                  </div>
                 </div>
+              ))}
+              
+              <Link href="/workflow-assistant">
+                <Button className="w-full" variant="outline">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Manage All Workflows
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* AI Insights */}
+        <TabsContent value="ai-insights" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Brain className="w-5 h-5 text-green-600" />
+                <span>AI-Powered Insights</span>
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  {aiInsights.length} Active
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {aiInsights.map((insight) => (
+                <div
+                  key={insight.id}
+                  className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="text-green-600">
+                        <Brain className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900 dark:text-white">
+                          {insight.title}
+                        </h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {insight.description}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge className={getPriorityColor(insight.priority)}>
+                      {insight.priority}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex justify-end">
+                    <Link href={insight.actionPath}>
+                      <Button size="sm" variant="outline">
+                        <ArrowRight className="w-3 h-3 mr-1" />
+                        {insight.actionLabel}
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+              
+              <Link href="/ai-smart-search">
+                <Button className="w-full" variant="outline">
+                  <Brain className="w-4 h-4 mr-2" />
+                  Advanced AI Analytics
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Analytics */}
+        <TabsContent value="analytics" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance Metrics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Close Rate</span>
+                    <span className="text-sm font-medium">18.5%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Avg Deal Size</span>
+                    <span className="text-sm font-medium">$32,450</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Time to Close</span>
+                    <span className="text-sm font-medium">12.3 days</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Customer Retention</span>
+                    <span className="text-sm font-medium">67%</span>
+                  </div>
+                </div>
+                <Link href="/analytics">
+                  <Button className="w-full mt-4" variant="outline">
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    View Detailed Analytics
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
-
-            {/* Recent Activity Feed */}
-            <Card className="lg:col-span-2">
-              <CardHeader className="pb-3 sm:pb-6">
-                <CardTitle className="flex items-center text-sm sm:text-base">
-                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-500" />
-                  Enterprise Activity Feed
-                </CardTitle>
-                <CardDescription className="text-xs sm:text-sm">Real-time updates from all enterprise systems</CardDescription>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-3 sm:space-y-4">
-                  <Link href="/deals?filter=ai_insights">
-                    <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
-                      <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs sm:text-sm font-medium">AI Copilot generated new deal insights</p>
-                        <p className="text-xs text-muted-foreground line-clamp-1">3 high-priority recommendations for Deal #D-2025-001</p>
-                        <span className="text-xs text-blue-600">2 minutes ago</span>
-                      </div>
-                    </div>
-                  </Link>
-
-                  <Link href="/communication-demo?tab=team">
-                    <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 rounded-lg cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
-                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs sm:text-sm font-medium">Team collaboration thread updated</p>
-                        <p className="text-xs text-muted-foreground line-clamp-1">Sarah Williams responded to "Customer financing approval"</p>
-                        <span className="text-xs text-green-600">5 minutes ago</span>
-                      </div>
-                    </div>
-                  </Link>
-
-                  <Link href="/customers?search=John Martinez">
-                    <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
-                      <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs sm:text-sm font-medium">Customer 360° timeline updated</p>
-                        <p className="text-xs text-muted-foreground line-clamp-1">New service history added for John Martinez</p>
-                        <span className="text-xs text-purple-600">12 minutes ago</span>
-                      </div>
-                    </div>
-                  </Link>
-
-                  <Link href="/analytics">
-                    <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors">
-                      <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs sm:text-sm font-medium">Analytics benchmark update</p>
-                        <p className="text-xs text-muted-foreground line-clamp-1">Monthly performance metrics refreshed - 3 new market comparisons</p>
-                        <span className="text-xs text-orange-600">18 minutes ago</span>
-                      </div>
-                    </div>
-                  </Link>
-                </div>
+              <CardContent className="space-y-2">
+                <Link href="/inventory">
+                  <Button className="w-full" variant="outline" size="sm">
+                    <Car className="w-4 h-4 mr-2" />
+                    Manage Inventory
+                  </Button>
+                </Link>
+                <Link href="/customers">
+                  <Button className="w-full" variant="outline" size="sm">
+                    <Users className="w-4 h-4 mr-2" />
+                    Customer Management
+                  </Button>
+                </Link>
+                <Link href="/deal-desk">
+                  <Button className="w-full" variant="outline" size="sm">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Deal Desk
+                  </Button>
+                </Link>
+                <Link href="/reports">
+                  <Button className="w-full" variant="outline" size="sm">
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    Generate Reports
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </div>
-
-          {/* System Health & Performance */}
-          <Card>
-            <CardHeader className="pb-3 sm:pb-6">
-              <CardTitle className="text-sm sm:text-base">Enterprise System Health</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Real-time monitoring of all advanced features</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <div className="text-center p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <div className="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">99.8%</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">AI Copilot Uptime</div>
-                </div>
-                <div className="text-center p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">847ms</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">Avg Response Time</div>
-                </div>
-                <div className="text-center p-3 sm:p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                  <div className="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">24/7</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">Real-time Sync</div>
-                </div>
-                <div className="text-center p-3 sm:p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                  <div className="text-lg sm:text-xl lg:text-2xl font-bold text-orange-600">156</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">Active Integrations</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Customer Intelligence Tab */}
-        <TabsContent value="customer-intelligence" className="space-y-3 sm:space-y-4">
-          <Card>
-            <CardHeader className="pb-3 sm:pb-6">
-              <CardTitle className="text-sm sm:text-base">Customer 360° Intelligence Center</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Select a customer to view comprehensive intelligence</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                {recentCustomers?.slice(0, 6).map((customer: any) => (
-                  <Link key={customer.id} href={`/customers/${customer.id}`}>
-                    <Card 
-                      className="cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => setSelectedCustomerId(customer.id)}
-                    >
-                      <CardContent className="p-3 sm:p-4">
-                        <h3 className="font-medium text-sm sm:text-base truncate">{customer.firstName} {customer.lastName}</h3>
-                        <p className="text-xs sm:text-sm text-muted-foreground truncate">{customer.email}</p>
-                        <div className="flex items-center justify-between mt-2 sm:mt-3">
-                          <Badge variant="secondary" className="text-xs">{customer.status || 'Active'}</Badge>
-                          <Button size="sm" variant="outline" className="text-xs h-7">
-                            <span className="hidden sm:inline">View 360°</span>
-                            <span className="sm:hidden">View</span>
-                            <Eye className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-              
-              {selectedCustomerId && (
-                <div className="mt-6">
-                  <Customer360Intelligence customerId={selectedCustomerId} />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Deal Intelligence Tab */}
-        <TabsContent value="deal-intelligence" className="space-y-3 sm:space-y-4">
-          <Card>
-            <CardHeader className="pb-3 sm:pb-6">
-              <CardTitle className="text-sm sm:text-base">AI-Powered Deal Intelligence</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Select an active deal for AI copilot analysis</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-                {activeDeals?.slice(0, 4).map((deal: any) => (
-                  <Link key={deal.id} href={`/deals/${deal.id}`}>
-                    <Card 
-                      className="cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => setSelectedDealId(deal.id)}
-                    >
-                      <CardContent className="p-3 sm:p-4">
-                        <div className="flex items-center justify-between mb-2 sm:mb-3">
-                          <h3 className="font-medium text-sm sm:text-base truncate">Deal #{deal.id}</h3>
-                          <Badge variant={deal.status === 'pending' ? 'secondary' : 'default'} className="text-xs">
-                            {deal.status}
-                          </Badge>
-                        </div>
-                        <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2">
-                          {deal.customerName} - {deal.vehicleDescription}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm sm:text-base lg:text-lg font-bold text-green-600">
-                            ${deal.totalAmount?.toLocaleString()}
-                          </span>
-                          <Button size="sm" variant="outline" className="text-xs h-7">
-                            <span className="hidden sm:inline">AI Analysis</span>
-                            <span className="sm:hidden">Analyze</span>
-                            <Brain className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-
-              {selectedDealId && (
-                <div className="mt-6">
-                  <DealDeskCopilot dealId={selectedDealId} />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Team Collaboration Tab */}
-        <TabsContent value="team-collaboration" className="space-y-4">
-          <RealTimeCollaboration entityType="enterprise" entityId={1} />
-        </TabsContent>
-
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-4">
-          <AdvancedAnalyticsDashboard />
         </TabsContent>
       </Tabs>
     </div>

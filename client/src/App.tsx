@@ -55,6 +55,7 @@ import UserProfile from "@/pages/admin/user-profile";
 import EnterpriseHeader from "@/components/enterprise-header";
 import MobileNavigation from "@/components/mobile-navigation";
 import { ThemeProvider } from "@/contexts/theme-context";
+import { SimpleSessionBar } from "@/components/workspace/simple-session-bar";
 
 function Router() {
   // Initialize pixel tracking for the entire app
@@ -149,6 +150,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <SimpleSessionBar />
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
