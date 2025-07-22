@@ -52,6 +52,7 @@ import CommunicationSettings from "@/pages/admin/communication-settings";
 import CommunicationDemo from "@/pages/communication-demo";
 import AISmartSearch from "@/pages/ai-smart-search";
 import WorkflowAssistant from "@/pages/workflow-assistant";
+import EnterpriseAdmin from "@/pages/enterprise-admin";
 import FiDashboardPage from "@/pages/fi-dashboard";
 import FiConfigurationPage from "@/pages/fi-configuration";
 import SystemConfiguration from "@/pages/admin/system-configuration";
@@ -134,6 +135,7 @@ function Router() {
           <Route path="/communication-demo" component={CommunicationDemo} />
           <Route path="/ai-smart-search" component={AISmartSearch} />
           <Route path="/workflow-assistant" component={WorkflowAssistant} />
+          <Route path="/enterprise-admin" component={EnterpriseAdmin} />
           
           {/* Service Routes */}
           <Route path="/service/orders" component={ServiceOrdersPage} />
