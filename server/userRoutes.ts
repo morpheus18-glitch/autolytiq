@@ -40,6 +40,123 @@ const requirePermission = (permission: string) => {
 };
 
 export function registerUserRoutes(app: Express): void {
+  // Get all users - temporarily public for development
+  app.get('/api/users', async (req, res) => {
+    try {
+      const users = await storage.getAllSystemUsers();
+      res.json(users);
+    } catch (error: any) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ message: 'Failed to fetch users' });
+    }
+  });
+
+  // Get all roles - temporarily public for development  
+  app.get('/api/roles', async (req, res) => {
+    try {
+      const roles = await storage.getAllRoles();
+      res.json(roles);
+    } catch (error: any) {
+      console.error('Error fetching roles:', error);
+      res.status(500).json({ message: 'Failed to fetch roles' });
+    }
+  });
+
+  // Create new user - temporarily public for development
+  app.post('/api/users', async (req, res) => {
+    try {
+      const userData = req.body;
+      
+      // Generate unique ID if not provided
+      if (!userData.id) {
+        userData.id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      }
+
+      // Hash password if provided
+      if (userData.password) {
+        userData.passwordHash = await bcrypt.hash(userData.password, 10);
+        delete userData.password;
+      }
+
+      const user = await storage.createSystemUser(userData);
+      
+      // Log activity
+      await storage.logActivity({
+        id: `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        userId: userData.id,
+        action: 'user_created',
+        description: `User ${userData.firstName} ${userData.lastName} was created`,
+        metadata: { userRole: userData.role }
+      });
+
+      res.status(201).json(user);
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      res.status(500).json({ message: 'Failed to create user' });
+    }
+  });
+
+  // Update user - temporarily public for development
+  app.put('/api/users/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+
+      // Hash password if being updated
+      if (updates.password) {
+        updates.passwordHash = await bcrypt.hash(updates.password, 10);
+        delete updates.password;
+      }
+
+      const user = await storage.updateSystemUser(id, updates);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Log activity
+      await storage.logActivity({
+        id: `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        userId: id,
+        action: 'user_updated',
+        description: `User ${user.firstName} ${user.lastName} was updated`,
+        metadata: { updates: Object.keys(updates) }
+      });
+
+      res.json(user);
+    } catch (error: any) {
+      console.error('Error updating user:', error);
+      res.status(500).json({ message: 'Failed to update user' });
+    }
+  });
+
+  // Delete user - temporarily public for development
+  app.delete('/api/users/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const user = await storage.getSystemUserById(id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      await storage.deleteSystemUser(id);
+
+      // Log activity
+      await storage.logActivity({
+        id: `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        userId: id,
+        action: 'user_deleted',
+        description: `User ${user.firstName} ${user.lastName} was deleted`,
+        metadata: { deletedUser: user.email }
+      });
+
+      res.json({ message: 'User deleted successfully' });
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      res.status(500).json({ message: 'Failed to delete user' });
+    }
+  });
+
   // User authentication
   app.post('/api/auth/login', async (req, res) => {
     try {

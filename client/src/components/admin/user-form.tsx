@@ -50,6 +50,21 @@ const userFormSchema = z.object({
     timezone: "America/New_York",
   }),
   password: z.string().min(6, "Password must be at least 6 characters").optional(),
+  // Extended user setup options
+  employeeId: z.string().optional(),
+  hireDate: z.string().optional(),
+  supervisor: z.string().optional(),
+  jobTitle: z.string().optional(),
+  workLocation: z.string().optional(),
+  emergencyContact: z.object({
+    name: z.string().optional(),
+    phone: z.string().optional(),
+    relationship: z.string().optional(),
+  }).optional(),
+  accessLevel: z.enum(["basic", "advanced", "admin", "super_admin"]).default("basic"),
+  twoFactorEnabled: z.boolean().default(false),
+  accountExpiry: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 type UserFormData = z.infer<typeof userFormSchema>;
@@ -110,14 +125,53 @@ const departments = [
 
 const roles = [
   "Administrator",
+  "General Manager", 
   "Sales Manager",
   "Sales Associate",
+  "Sales Consultant",
   "Finance Manager",
+  "Finance Specialist",
   "Service Manager",
   "Service Advisor",
+  "Service Technician",
   "Parts Manager",
+  "Parts Specialist",
+  "Marketing Manager",
   "Marketing Specialist",
-  "General Manager"
+  "IT Manager",
+  "IT Specialist",
+  "Customer Relations Manager",
+  "Receptionist",
+  "Accounting Manager",
+  "Bookkeeper"
+];
+
+const workLocations = [
+  "Main Dealership",
+  "Service Department",
+  "Parts Department", 
+  "Sales Floor",
+  "Finance Office",
+  "Admin Office",
+  "Remote",
+  "Multiple Locations"
+];
+
+const accessLevels = [
+  { value: "basic", label: "Basic Access", description: "View-only access to assigned areas" },
+  { value: "advanced", label: "Advanced Access", description: "Full access to assigned departments" },
+  { value: "admin", label: "Administrator", description: "System administration capabilities" },
+  { value: "super_admin", label: "Super Admin", description: "Complete system control" }
+];
+
+const relationshipTypes = [
+  "Spouse",
+  "Parent", 
+  "Child",
+  "Sibling",
+  "Friend",
+  "Colleague",
+  "Other"
 ];
 
 export default function UserForm({ user, onSuccess }: UserFormProps) {
@@ -144,6 +198,21 @@ export default function UserForm({ user, onSuccess }: UserFormProps) {
         timezone: "America/New_York",
       },
       password: "",
+      // Extended fields
+      employeeId: (user as any)?.employeeId || "",
+      hireDate: (user as any)?.hireDate || "",
+      supervisor: (user as any)?.supervisor || "",
+      jobTitle: (user as any)?.jobTitle || "",
+      workLocation: (user as any)?.workLocation || "",
+      emergencyContact: (user as any)?.emergencyContact || {
+        name: "",
+        phone: "",
+        relationship: ""
+      },
+      accessLevel: (user as any)?.accessLevel || "basic",
+      twoFactorEnabled: (user as any)?.twoFactorEnabled || false,
+      accountExpiry: (user as any)?.accountExpiry || "",
+      notes: (user as any)?.notes || "",
     },
   });
 
@@ -298,8 +367,53 @@ export default function UserForm({ user, onSuccess }: UserFormProps) {
           )}
         </div>
 
+        {/* Employee Information */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <FormField
+            control={form.control}
+            name="employeeId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Employee ID (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="EMP001" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="hireDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Hire Date (Optional)</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="jobTitle"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Job Title (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Senior Sales Associate" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         {/* Role and Department */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField
             control={form.control}
             name="role"
@@ -398,6 +512,84 @@ export default function UserForm({ user, onSuccess }: UserFormProps) {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
+            </FormItem>
+          )}
+        />
+
+        {/* Emergency Contact Information */}
+        <div className="space-y-4">
+          <div className="text-base font-medium">Emergency Contact (Optional)</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="emergencyContact.name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contact Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Jane Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="emergencyContact.phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contact Phone</FormLabel>
+                  <FormControl>
+                    <Input placeholder="(555) 123-4567" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="emergencyContact.relationship"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Relationship</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select relationship" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {relationshipTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Additional Notes */}
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Additional Notes (Optional)</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Any additional information about this user..."
+                  className="min-h-[100px]"
+                  {...field} 
+                />
+              </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
