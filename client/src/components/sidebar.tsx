@@ -135,11 +135,11 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
             <div className="flex items-center space-x-2 md:space-x-3">
               <img 
                 src="/aiq-logo.png" 
-                alt="AiQ Logo" 
+                alt="AutolytiQ Logo" 
                 className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 object-contain flex-shrink-0"
               />
               <div>
-                <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100">AiQ</h1>
+                <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100">AutolytiQ</h1>
                 <p className="text-xs sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">Dealership Management</p>
               </div>
             </div>
@@ -171,15 +171,18 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
                       return (
                         <Link
                           key={child.href}
-                          href={child.href || '#'}
+                          href={child.href}
                           className={`
-                            flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
+                            flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer
                             ${isActive 
                               ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
                               : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
                             }
                           `}
-                          onClick={onClose}
+                          onClick={() => {
+                            console.log('Navigation clicked:', child.href, child.name);
+                            onClose();
+                          }}
                         >
                           {Icon && <Icon className="mr-3 h-4 w-4 flex-shrink-0" />}
                           <span className="truncate">{child.name}</span>
@@ -216,7 +219,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
         {/* Footer */}
         <div className="p-4 border-t border-gray-200 dark:border-gray-700">
           <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-            <p>© 2025 AiQ System</p>
+            <p>© 2025 AutolytiQ System</p>
             <p className="text-gray-400 dark:text-gray-500">v2.0.0 Enterprise</p>
           </div>
         </div>
