@@ -75,16 +75,11 @@ const navigation = [
     name: "Administration", 
     isSection: true,
     children: [
-      { name: "System Configuration", href: "/admin/system-configuration", icon: Settings },
       { name: "User Management", href: "/admin/user-management", icon: Users },
       { name: "My Profile", href: "/admin/user-profile", icon: User },
-      { name: "Departments", href: "/admin/departments", icon: Building },
-      { name: "Roles & Permissions", href: "/admin/roles", icon: Shield },
+      { name: "System Configuration", href: "/admin/system-configuration", icon: Settings },
       { name: "Lead Distribution", href: "/admin/lead-distribution", icon: Target },
-      { name: "Communication Settings", href: "/admin/communication-settings", icon: Settings },
-      { name: "System Settings", href: "/admin/settings", icon: Settings },
       { name: "Enterprise Config", href: "/admin/comprehensive-settings", icon: Settings },
-      { name: "User Settings", href: "/settings", icon: Settings },
     ]
   },
 ];
@@ -118,7 +113,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
         fixed md:relative
         top-0 left-0
         h-full
-        w-64 
+        w-72 md:w-64
         bg-white 
         shadow-lg 
         border-r 
