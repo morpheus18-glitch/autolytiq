@@ -21,6 +21,7 @@ import {
   Zap,
   ChevronRight
 } from 'lucide-react';
+import { Link } from 'wouter';
 import { Customer360Intelligence } from './customer-360-intelligence';
 import { DealDeskCopilot } from './deal-desk-copilot';
 import { RealTimeCollaboration } from './real-time-collaboration';
@@ -253,41 +254,49 @@ export function EnterpriseDashboardIntegration() {
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-3 sm:space-y-4">
-                  <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs sm:text-sm font-medium">AI Copilot generated new deal insights</p>
-                      <p className="text-xs text-muted-foreground line-clamp-1">3 high-priority recommendations for Deal #D-2025-001</p>
-                      <span className="text-xs text-blue-600">2 minutes ago</span>
+                  <Link href="/deals?filter=ai_insights">
+                    <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+                      <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs sm:text-sm font-medium">AI Copilot generated new deal insights</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">3 high-priority recommendations for Deal #D-2025-001</p>
+                        <span className="text-xs text-blue-600">2 minutes ago</span>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
 
-                  <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs sm:text-sm font-medium">Team collaboration thread updated</p>
-                      <p className="text-xs text-muted-foreground line-clamp-1">Sarah Williams responded to "Customer financing approval"</p>
-                      <span className="text-xs text-green-600">5 minutes ago</span>
+                  <Link href="/communication-demo?tab=team">
+                    <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 rounded-lg cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs sm:text-sm font-medium">Team collaboration thread updated</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">Sarah Williams responded to "Customer financing approval"</p>
+                        <span className="text-xs text-green-600">5 minutes ago</span>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
 
-                  <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs sm:text-sm font-medium">Customer 360° timeline updated</p>
-                      <p className="text-xs text-muted-foreground line-clamp-1">New service history added for John Martinez</p>
-                      <span className="text-xs text-purple-600">12 minutes ago</span>
+                  <Link href="/customers?search=John Martinez">
+                    <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
+                      <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs sm:text-sm font-medium">Customer 360° timeline updated</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">New service history added for John Martinez</p>
+                        <span className="text-xs text-purple-600">12 minutes ago</span>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
 
-                  <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                    <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs sm:text-sm font-medium">Analytics benchmark update</p>
-                      <p className="text-xs text-muted-foreground line-clamp-1">Monthly performance metrics refreshed - 3 new market comparisons</p>
-                      <span className="text-xs text-orange-600">18 minutes ago</span>
+                  <Link href="/analytics">
+                    <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors">
+                      <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs sm:text-sm font-medium">Analytics benchmark update</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">Monthly performance metrics refreshed - 3 new market comparisons</p>
+                        <span className="text-xs text-orange-600">18 minutes ago</span>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
@@ -332,24 +341,25 @@ export function EnterpriseDashboardIntegration() {
             <CardContent className="pt-0">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {recentCustomers?.slice(0, 6).map((customer: any) => (
-                  <Card 
-                    key={customer.id}
-                    className="cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => setSelectedCustomerId(customer.id)}
-                  >
-                    <CardContent className="p-3 sm:p-4">
-                      <h3 className="font-medium text-sm sm:text-base truncate">{customer.firstName} {customer.lastName}</h3>
-                      <p className="text-xs sm:text-sm text-muted-foreground truncate">{customer.email}</p>
-                      <div className="flex items-center justify-between mt-2 sm:mt-3">
-                        <Badge variant="secondary" className="text-xs">{customer.status || 'Active'}</Badge>
-                        <Button size="sm" variant="outline" className="text-xs h-7">
-                          <span className="hidden sm:inline">View 360°</span>
-                          <span className="sm:hidden">View</span>
-                          <Eye className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <Link key={customer.id} href={`/customers/${customer.id}`}>
+                    <Card 
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setSelectedCustomerId(customer.id)}
+                    >
+                      <CardContent className="p-3 sm:p-4">
+                        <h3 className="font-medium text-sm sm:text-base truncate">{customer.firstName} {customer.lastName}</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">{customer.email}</p>
+                        <div className="flex items-center justify-between mt-2 sm:mt-3">
+                          <Badge variant="secondary" className="text-xs">{customer.status || 'Active'}</Badge>
+                          <Button size="sm" variant="outline" className="text-xs h-7">
+                            <span className="hidden sm:inline">View 360°</span>
+                            <span className="sm:hidden">View</span>
+                            <Eye className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 ))}
               </div>
               
@@ -372,33 +382,34 @@ export function EnterpriseDashboardIntegration() {
             <CardContent className="pt-0">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                 {activeDeals?.slice(0, 4).map((deal: any) => (
-                  <Card 
-                    key={deal.id}
-                    className="cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => setSelectedDealId(deal.id)}
-                  >
-                    <CardContent className="p-3 sm:p-4">
-                      <div className="flex items-center justify-between mb-2 sm:mb-3">
-                        <h3 className="font-medium text-sm sm:text-base truncate">Deal #{deal.id}</h3>
-                        <Badge variant={deal.status === 'pending' ? 'secondary' : 'default'} className="text-xs">
-                          {deal.status}
-                        </Badge>
-                      </div>
-                      <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2">
-                        {deal.customerName} - {deal.vehicleDescription}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm sm:text-base lg:text-lg font-bold text-green-600">
-                          ${deal.totalAmount?.toLocaleString()}
-                        </span>
-                        <Button size="sm" variant="outline" className="text-xs h-7">
-                          <span className="hidden sm:inline">AI Analysis</span>
-                          <span className="sm:hidden">Analyze</span>
-                          <Brain className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <Link key={deal.id} href={`/deals/${deal.id}`}>
+                    <Card 
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setSelectedDealId(deal.id)}
+                    >
+                      <CardContent className="p-3 sm:p-4">
+                        <div className="flex items-center justify-between mb-2 sm:mb-3">
+                          <h3 className="font-medium text-sm sm:text-base truncate">Deal #{deal.id}</h3>
+                          <Badge variant={deal.status === 'pending' ? 'secondary' : 'default'} className="text-xs">
+                            {deal.status}
+                          </Badge>
+                        </div>
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2">
+                          {deal.customerName} - {deal.vehicleDescription}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm sm:text-base lg:text-lg font-bold text-green-600">
+                            ${deal.totalAmount?.toLocaleString()}
+                          </span>
+                          <Button size="sm" variant="outline" className="text-xs h-7">
+                            <span className="hidden sm:inline">AI Analysis</span>
+                            <span className="sm:hidden">Analyze</span>
+                            <Brain className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 ))}
               </div>
 

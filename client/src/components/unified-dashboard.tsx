@@ -124,7 +124,8 @@ export default function UnifiedDashboard() {
       description: 'Jennifer Wilson - $85K budget, luxury vehicles',
       timestamp: '2 min ago',
       score: 94,
-      action: 'View Lead'
+      action: 'View Lead',
+      href: '/customers?filter=hot_leads'
     },
     {
       id: 2,
@@ -132,7 +133,8 @@ export default function UnifiedDashboard() {
       title: 'Customer message received',
       description: 'Michael Johnson asking about test drive',
       timestamp: '5 min ago',
-      action: 'Respond'
+      action: 'Respond',
+      href: '/communication-demo?tab=messages'
     },
     {
       id: 3,
@@ -141,7 +143,8 @@ export default function UnifiedDashboard() {
       description: '2023 Tesla Model 3 for Sarah Davis',
       timestamp: '8 min ago',
       accuracy: 89,
-      action: 'Review'
+      action: 'Review',
+      href: '/ai-smart-search?tab=recommendations'
     },
     {
       id: 4,
@@ -150,7 +153,8 @@ export default function UnifiedDashboard() {
       description: '2024 Honda Accord - $28,500',
       timestamp: '1 hour ago',
       amount: '$28,500',
-      action: 'View Deal'
+      action: 'View Deal',
+      href: '/deals?filter=closed_today'
     }
   ];
 
@@ -344,9 +348,11 @@ export default function UnifiedDashboard() {
                         )}
                       </div>
                       
-                      <Button variant="ghost" size="sm" className="text-xs flex-shrink-0 px-2">
-                        {activity.action}
-                      </Button>
+                      <Link href={activity.href}>
+                        <Button variant="ghost" size="sm" className="text-xs flex-shrink-0 px-2">
+                          {activity.action}
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </div>
