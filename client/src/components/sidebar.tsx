@@ -112,7 +112,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
       {/* Sidebar */}
       <div className={`
         sidebar
-        fixed md:relative
+        fixed md:static
         top-0 left-0
         h-screen md:h-full
         w-72 sm:w-80 md:w-64
@@ -127,8 +127,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
         transition-transform 
         duration-300 
         ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:translate-x-0
+        ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         overflow-hidden
       `}>
         {/* Logo and Brand */}
