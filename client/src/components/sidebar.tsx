@@ -1,26 +1,24 @@
-import { Link, useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { 
-  Car, 
   BarChart3, 
-  Handshake, 
   Users, 
+  Car, 
+  Handshake, 
+  Calculator, 
   TrendingUp, 
-  Settings, 
-  Target, 
-  Wrench, 
-  DollarSign, 
   Shield, 
-  Building, 
-  Calculator,
-  Menu,
-  X,
-  Brain,
-  Timer,
-  Cog,
-  MessageSquare,
-  Workflow,
+  Settings, 
+  DollarSign,
+  Wrench,
   User,
-  FileText
+  Target,
+  FileText,
+  Timer,
+  Brain,
+  Workflow,
+  MessageSquare,
+  Menu,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -95,9 +93,16 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
   const [location] = useLocation();
 
+  const handleNavClick = (href: string, name: string) => {
+    console.log('Navigation clicked:', href, name);
+    onClose();
+    // Force navigation if needed
+    window.location.hash = href;
+  };
+
   return (
     <>
-      {/* Mobile menu button - improved positioning and styling */}
+      {/* Mobile menu button */}
       <div className="md:hidden fixed top-3 left-3 z-50">
         <Button
           variant="outline"
@@ -171,20 +176,18 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
                         <Link
                           key={child.href}
                           href={child.href}
-                          className={`
-                            flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer
+                          onClick={() => handleNavClick(child.href, child.name)}
+                        >
+                          <div className={`
+                            flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer w-full hover:bg-gray-100 dark:hover:bg-gray-800
                             ${isActive 
                               ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+                              : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
                             }
-                          `}
-                          onClick={() => {
-                            console.log('Navigation clicked:', child.href, child.name);
-                            onClose();
-                          }}
-                        >
-                          {Icon && <Icon className="mr-3 h-4 w-4 flex-shrink-0" />}
-                          <span className="truncate">{child.name}</span>
+                          `}>
+                            {Icon && <Icon className="mr-3 h-4 w-4 flex-shrink-0" />}
+                            <span className="truncate">{child.name}</span>
+                          </div>
                         </Link>
                       );
                     })}
@@ -198,17 +201,18 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
                 <Link
                   key={item.href}
                   href={item.href || '#'}
-                  className={`
-                    flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 mb-2
+                  onClick={() => handleNavClick(item.href || '#', item.name)}
+                >
+                  <div className={`
+                    flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 mb-2 cursor-pointer w-full hover:bg-gray-100 dark:hover:bg-gray-800
                     ${isActive 
                       ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+                      : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
                     }
-                  `}
-                  onClick={onClose}
-                >
-                  {Icon && <Icon className="mr-3 h-4 w-4 flex-shrink-0" />}
-                  <span className="truncate">{item.name}</span>
+                  `}>
+                    {Icon && <Icon className="mr-3 h-4 w-4 flex-shrink-0" />}
+                    <span className="truncate">{item.name}</span>
+                  </div>
                 </Link>
               );
             }
