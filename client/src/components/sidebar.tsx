@@ -112,8 +112,8 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
         sidebar
         fixed md:relative
         top-0 left-0
-        h-full
-        w-80 md:w-64
+        h-screen md:h-full
+        w-72 sm:w-80 md:w-64
         bg-white dark:bg-gray-900
         shadow-xl 
         border-r 
@@ -127,19 +127,20 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
         ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0
+        overflow-hidden
       `}>
         {/* Logo and Brand */}
-        <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-3 sm:p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 md:space-x-3">
               <img 
                 src="/aiq-logo.png" 
                 alt="AiQ Logo" 
-                className="w-8 h-8 md:w-10 md:h-10 object-contain flex-shrink-0"
+                className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 object-contain flex-shrink-0"
               />
               <div>
-                <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100">AutolytiQ</h1>
-                <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">Dealership Management</p>
+                <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100">AiQ</h1>
+                <p className="text-xs sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">Dealership Management</p>
               </div>
             </div>
             {/* Close button for mobile */}
@@ -149,7 +150,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
               onClick={onClose}
               className="md:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </div>
         </div>
@@ -215,7 +216,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
         {/* Footer */}
         <div className="p-4 border-t border-gray-200 dark:border-gray-700">
           <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-            <p>© 2025 AutolytiQ System</p>
+            <p>© 2025 AiQ System</p>
             <p className="text-gray-400 dark:text-gray-500">v2.0.0 Enterprise</p>
           </div>
         </div>
