@@ -95,7 +95,7 @@ interface SystemUser {
 
 interface UserFormProps {
   user?: SystemUser;
-  onSuccess?: () => void;
+  onClose?: () => void;
 }
 
 const availablePermissions = [
@@ -228,7 +228,7 @@ function UserForm({ user, onClose }: UserFormProps) {
         title: "Success",
         description: "User created successfully",
       });
-      onSuccess?.();
+      onClose?.();
     },
     onError: (error: any) => {
       toast({
@@ -251,7 +251,7 @@ function UserForm({ user, onClose }: UserFormProps) {
         title: "Success",
         description: "User updated successfully",
       });
-      onSuccess?.();
+      onClose?.();
     },
     onError: (error: any) => {
       toast({

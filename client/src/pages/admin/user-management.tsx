@@ -349,7 +349,7 @@ export default function UserManagement() {
               </DialogTitle>
             </DialogHeader>
             <UserForm
-              user={selectedUser}
+              user={selectedUser || undefined}
               onClose={() => {
                 setIsUserDialogOpen(false);
                 setSelectedUser(null);
