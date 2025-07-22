@@ -101,7 +101,7 @@ function Router() {
       />
       
       {/* Main content area */}
-      <div className="content flex-1 min-w-0 overflow-hidden flex flex-col md:ml-0">
+      <div className="content flex-1 min-w-0 overflow-hidden flex flex-col">
         <EnterpriseHeader />
         <div className="h-full overflow-auto bg-background pb-16 md:pb-0 pt-2">
           <Switch>
