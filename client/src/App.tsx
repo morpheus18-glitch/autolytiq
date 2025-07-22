@@ -51,6 +51,7 @@ import AISmartSearch from "@/pages/ai-smart-search";
 import WorkflowAssistant from "@/pages/workflow-assistant";
 import FiDashboardPage from "@/pages/fi-dashboard";
 import FiConfigurationPage from "@/pages/fi-configuration";
+import SystemConfigurationPage from "@/pages/admin/system-configuration";
 import EnterpriseHeader from "@/components/enterprise-header";
 import MobileNavigation from "@/components/mobile-navigation";
 import { ThemeProvider } from "@/contexts/theme-context";
@@ -131,6 +132,7 @@ function Router() {
           <Route path="/admin/comprehensive-settings" component={ComprehensiveSettings} />
           <Route path="/admin/lead-distribution" component={LeadDistribution} />
           <Route path="/admin/communication-settings" component={CommunicationSettings} />
+          <Route path="/admin/system-configuration" component={SystemConfigurationPage} />
           <Route path="/auth-test" component={AuthTest} />
           
           {/* Communication Routes */}
