@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
+import { trackInteraction } from '@/lib/pixel-tracker';
 import { apiRequest } from '@/lib/queryClient';
 import EnhancedCustomerSearch from '@/components/enhanced-customer-search';
 import CustomerModal from '@/components/customer-modal';
@@ -25,7 +26,7 @@ import type { Customer } from '@shared/schema';
 export default function Customers() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { trackInteraction } = usePixelTracker();
+  usePixelTracker(); // Initialize pixel tracking
   const [, navigate] = useLocation();
   
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -48,26 +49,26 @@ export default function Customers() {
   });
 
   const handleEdit = (customer: Customer) => {
-    trackInteraction('customer_edit', `customer-${customer.id}`, customer.id);
+    trackInteraction('customer_edit', { customerId: customer.id, customerName: customer.name });
     setSelectedCustomer(customer);
     setIsEditModalOpen(true);
   };
 
   const handleAdd = () => {
-    trackInteraction('customer_add', 'add-customer-button');
+    trackInteraction('customer_add', { elementId: 'add-customer-button' });
     setSelectedCustomer(null);
     setIsAddModalOpen(true);
   };
 
   const handleView = (customer: Customer) => {
-    trackInteraction('customer_view', `customer-${customer.id}`, customer.id);
+    trackInteraction('customer_view', { customerId: customer.id, customerName: customer.name });
     setSelectedCustomer(customer);
     setIsDetailModalOpen(true);
   };
 
   const handleDelete = (id: number) => {
     if (confirm('Are you sure you want to delete this customer?')) {
-      trackInteraction('customer_delete', `customer-${id}`, id);
+      trackInteraction('customer_delete', { customerId: id });
       deleteCustomerMutation.mutate(id);
     }
   };
