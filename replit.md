@@ -10,6 +10,17 @@ AutolytiQ is a comprehensive dealership management system built with React (Type
 
 Preferred communication style: Simple, everyday language.
 
+## Development Guidelines
+
+**CRITICAL**: Always check `ARCHITECTURE.md` before making changes to prevent code duplication and fragmentation. This document contains the canonical file structure and anti-duplication rules for AI-assisted development.
+
+### AI Development Rules
+1. **Check existing files first** - Search for related components before creating new ones
+2. **Update canonical files** - Never duplicate core components like `sidebar-manager.tsx`, `dashboard.tsx`, etc.
+3. **Extend, don't recreate** - Add features to existing files rather than creating new versions
+4. **Maintain imports** - Ensure all references point to the correct canonical files
+5. **Test after changes** - Verify functionality works after modifications
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -190,3 +201,6 @@ The architecture follows a traditional full-stack pattern with modern tooling, e
 - **Professional SaaS Experience**: Integrated all components into cohesive enterprise platform with tabbed interfaces, real-time metrics, and automated business processes for maximum productivity
 - **Unified System Configuration Center**: Consolidated all settings and configurations into comprehensive admin section with 6 main tabs: Dealership Information, F&I Products, Lender Management, Communication Settings, API Integrations, and System Security settings
 - **AiQ Brand Integration**: Updated application with custom AiQ logo (blue "A", green "i", dark charcoal "Q") and implemented matching color theme throughout the system with brand-consistent primary colors (HSL 207 90% 54% blue, HSL 160 84% 39% green) for professional dealership management interface
+- **SSL Certificate Optimization**: Fixed duplicate HSTS headers by removing server-side HSTS (Replit infrastructure handles SSL automatically) and confirmed SSL certificates are fully functional with Let's Encrypt auto-renewal
+- **Mobile Sidebar Responsiveness**: Fixed sidebar to properly overlay content on mobile instead of pushing main content, maintaining desktop behavior with smooth transitions and proper z-index layering
+- **Architecture Documentation**: Created comprehensive `ARCHITECTURE.md` with canonical file structure, anti-duplication rules, and development guidelines to prevent AI-driven code fragmentation and maintain codebase organization
