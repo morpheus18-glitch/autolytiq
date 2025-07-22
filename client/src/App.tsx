@@ -51,6 +51,7 @@ import AISmartSearch from "@/pages/ai-smart-search";
 import WorkflowAssistant from "@/pages/workflow-assistant";
 import EnterpriseHeader from "@/components/enterprise-header";
 import MobileNavigation from "@/components/mobile-navigation";
+import { ThemeProvider } from "@/contexts/theme-context";
 
 function Router() {
   // Initialize pixel tracking for the entire app
@@ -81,7 +82,7 @@ function Router() {
   }
   
   return (
-    <div className="layout h-screen bg-gray-50 flex flex-col md:flex-row">
+    <div className="layout h-screen bg-background flex flex-col md:flex-row">
       {/* Mobile overlay for sidebar */}
       {isSidebarOpen && (
         <div 
@@ -100,7 +101,7 @@ function Router() {
       {/* Main content area */}
       <div className="content flex-1 min-w-0 overflow-hidden flex flex-col">
         <EnterpriseHeader />
-        <div className="h-full overflow-auto bg-gray-50 pb-16 md:pb-0">
+        <div className="h-full overflow-auto bg-background pb-16 md:pb-0">
           <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/inventory" component={Inventory} />
@@ -159,10 +160,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
