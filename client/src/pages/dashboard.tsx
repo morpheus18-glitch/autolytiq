@@ -2,11 +2,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Target, Workflow, Zap, Star } from "lucide-react";
+import { Brain, Target, Workflow, Zap, Star, Shield, BarChart3, Users, Settings } from "lucide-react";
 import { Link } from "wouter";
 import UnifiedDashboard from "@/components/unified-dashboard";
 import WorkflowIntegration from "@/components/workflow-integration";
 import { EnterpriseDashboardIntegration } from "@/components/enterprise/enterprise-dashboard-integration";
+import ProductionDashboard from "@/components/enterprise/production-dashboard";
+import ProductionSuite from "@/components/enterprise/production-suite";
+import AdvancedReporting from "@/components/enterprise/advanced-reporting";
+import CustomerIntelligence from "@/components/enterprise/customer-intelligence";
+import WorkflowAutomation from "@/components/enterprise/workflow-automation";
+import SystemHealth from "@/components/enterprise/system-health";
 // Enhanced dual CRM/DMS components
 // import EnhancedVehicleListing from "@/components/enhanced-vehicle-listing";
 // import SmartCRMAssistant from "@/components/smart-crm-assistant";
@@ -32,28 +38,56 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
-        <TabsList className="grid w-full grid-cols-4 h-9 sm:h-10">
-          <TabsTrigger value="overview" className="text-xs sm:text-sm px-1 sm:px-2">Overview</TabsTrigger>
-          <TabsTrigger value="workflows" className="text-xs sm:text-sm px-1 sm:px-2">Workflows</TabsTrigger>
-          <TabsTrigger value="enterprise" className="text-xs sm:text-sm px-1 sm:px-2">Enterprise</TabsTrigger>
-          <TabsTrigger value="insights" className="text-xs sm:text-sm px-1 sm:px-2">AI Insights</TabsTrigger>
+      <Tabs defaultValue="production" className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-6 h-9 sm:h-10">
+          <TabsTrigger value="production" className="text-xs sm:text-sm px-1 sm:px-2">
+            <BarChart3 className="w-3 h-3 mr-1" />
+            Production
+          </TabsTrigger>
+          <TabsTrigger value="overview" className="text-xs sm:text-sm px-1 sm:px-2">
+            <Target className="w-3 h-3 mr-1" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="intelligence" className="text-xs sm:text-sm px-1 sm:px-2">
+            <Brain className="w-3 h-3 mr-1" />
+            Intelligence
+          </TabsTrigger>
+          <TabsTrigger value="workflows" className="text-xs sm:text-sm px-1 sm:px-2">
+            <Workflow className="w-3 h-3 mr-1" />
+            Automation
+          </TabsTrigger>
+          <TabsTrigger value="reports" className="text-xs sm:text-sm px-1 sm:px-2">
+            <BarChart3 className="w-3 h-3 mr-1" />
+            Reports
+          </TabsTrigger>
+          <TabsTrigger value="health" className="text-xs sm:text-sm px-1 sm:px-2">
+            <Shield className="w-3 h-3 mr-1" />
+            Health
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="production">
+          <ProductionSuite />
+        </TabsContent>
 
         <TabsContent value="overview">
           <UnifiedDashboard />
         </TabsContent>
 
+        <TabsContent value="intelligence">
+          <CustomerIntelligence />
+        </TabsContent>
+
         <TabsContent value="workflows">
-          <WorkflowIntegration />
+          <WorkflowAutomation />
         </TabsContent>
 
-        <TabsContent value="enterprise">
-          <EnterpriseDashboardIntegration />
+        <TabsContent value="reports">
+          <AdvancedReporting />
         </TabsContent>
 
-        <TabsContent value="insights">
-          <AIInsightsDashboard />
+        <TabsContent value="health">
+          <SystemHealth />
         </TabsContent>
       </Tabs>
     </div>
