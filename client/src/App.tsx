@@ -103,10 +103,11 @@ function Router() {
           <Route path="/customers/:id" component={CustomerDetail} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/competitive-pricing" component={CompetitivePricing} />
+          <Route path="/deals-list" component={DealsList} />
+          <Route path="/deals-desk" component={DealsDesk} />
+          <Route path="/deals-finance" component={DealsFinance} />
           <Route path="/deals/:id" component={DealDetailPage} />
           <Route path="/deals" component={DealsList} />
-          <Route path="/deals/desk" component={DealsDesk} />
-          <Route path="/deals/finance" component={DealsFinance} />
           <Route path="/deal-desk" component={DealDesk} />
           <Route path="/deal-working" component={DealWorkingScreen} />
           <Route path="/showroom-manager" component={ShowroomManager} />
