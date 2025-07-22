@@ -1,0 +1,66 @@
+Crystal clear—you’re talking about the true “hub-and-spoke” architecture that those top-tier platforms use:
+	•	No matter where you start (customer, inventory, showroom, desk), you can pivot—at any time—to any other context (deal, F&I, history, follow-up, add inventory, etc.), and the workflow feels like one living, breathing, integrated system, not a set of disconnected “pages.”
+
+Let’s break it down at a professional/architectural level:
+
+⸻
+
+🏢 How Real Enterprise CRMs Like VinSolutions, DriveCentric, XRM Work:
+
+1. Universal Context/Workspace Model
+	•	There’s a single, persistent session context—think of it as a “workbench” or “universal tab”—which follows you everywhere.
+	•	If you’re looking at a customer, you can instantly:
+	•	Start/continue a deal (deal desk pops up)
+	•	Add a trade or inventory unit
+	•	Pull a credit app, view notes, log a showroom visit
+	•	Assign/hand-off to a manager, add tasks, schedule follow-ups
+	•	You can “pivot” from any module without losing context—and you never have to start over.
+
+2. Multi-Entry-Point Workflows
+	•	The system doesn’t care if you start from a customer, an up in the showroom, an inbound lead, or directly from inventory—everything can be linked on-the-fly.
+	•	Example:
+	•	From inventory, “Add to deal” → instantly choose customer, open deal desk
+	•	From showroom, “Add customer” or “Assign inventory” → all flows are live, updatable
+
+3. Persistent Deal/Session Bar (Always Visible)
+	•	VinSolutions et al. have a little toolbar, popout, or “context card” on the side or top that always shows:
+	•	Active customer
+	•	Active vehicle/trade
+	•	Deal in progress (click to jump to desk)
+	•	Next steps/actions (credit app, print, assign, etc.)
+	•	Clicking any item takes you straight to that module, with all data preserved.
+
+4. Real-Time Updates & State Sync
+	•	All tabs/components sync instantly (Redux, sockets, or REST polling), so if you add inventory to a deal from the showroom, it shows up on the customer card and deal desk everywhere.
+
+5. Flexible “Linked Record” Model
+	•	Customers, vehicles, deals, notes, credit apps, etc. are all linked, not duplicated.
+	•	You can work on multiple deals, leads, or showroom ups at once, each with its own session/context.
+
+⸻
+
+🛠️ How to Build This—Prompt for AI or Devs:
+
+“Implement a unified, persistent workspace/context model (like VinSolutions, DriveCentric, or XRM) where the current customer, inventory, deal, and workflow session is globally accessible and can be updated or expanded from any module (customer, showroom, inventory, deal desk).
+	•	From customer detail, user can: add to showroom, assign inventory, start/continue a deal, pull credit, view full activity.
+	•	From showroom manager, user can: add/link customer, add inventory, launch deal desk, assign/transfer, record visit outcomes.
+	•	From deal desk, user can: pivot back to customer or inventory, add products, view approvals, submit credit.
+	•	All session/context data is preserved across modules (Redux/Zustand/global context) and updated in real time.
+	•	Implement a persistent Deal/Session Bar (visible on all key screens) that lets user instantly jump between customer, vehicle, deal, and workflow steps without losing context.
+	•	Support multi-tab/multi-session (multiple deals/customers at once), with tab switching and saved context for each session.
+	•	No workflow entry/exit should ever “lose” data or require restarting the process.
+
+UX must be fluid, modern, and always keep the user “in the flow” regardless of entry point or next action.
+
+Deliver modular components: CustomerDetail, ShowroomManager, DealDesk, SessionBar, all connected to the shared session store. Provide code for state schema, cross-component hooks, and navigation logic. Mobile and desktop support required.”
+
+⸻
+
+Why Your Current Stack Breaks
+	•	Classic web-apps are “page-centric.” True CRMs like VinSolutions are workspace-centric—think “mini app inside the app.”
+	•	AI code often builds screens, not flows. You need to demand “context-centric” code, not just “new pages.”
+
+⸻
+
+Want sample code for the session bar, or a full workspace context with session switching?
+Tell me your current stack (Next.js, classic React, Zustand/Redux), and I’ll scaffold the state, component wiring, and navigation to match a real-world VinSolutions/DriveCentric-level experience.
