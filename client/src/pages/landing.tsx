@@ -11,11 +11,15 @@ export default function Landing() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <header className="flex justify-between items-center mb-16">
-          <div className="flex items-center space-x-2">
-            <Car className="h-8 w-8 text-blue-600" />
+          <div className="flex items-center space-x-3">
+            <img 
+              src="/aiq-logo.png" 
+              alt="AiQ Logo" 
+              className="h-10 w-10 object-contain"
+            />
             <span className="text-2xl font-bold text-gray-900">AutolytiQ</span>
           </div>
-          <Button onClick={handleLogin} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={handleLogin} className="btn-aiq-primary">
             Log In
           </Button>
         </header>
@@ -32,7 +36,7 @@ export default function Landing() {
           <Button 
             onClick={handleLogin}
             size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-4"
+            className="btn-aiq-primary text-lg px-8 py-4"
           >
             Get Started
           </Button>

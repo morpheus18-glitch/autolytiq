@@ -101,9 +101,9 @@ function Router() {
       />
       
       {/* Main content area */}
-      <div className="content flex-1 min-w-0 overflow-hidden flex flex-col">
+      <div className="content flex-1 min-w-0 overflow-hidden flex flex-col md:ml-0">
         <EnterpriseHeader />
-        <div className="h-full overflow-auto bg-background pb-16 md:pb-0">
+        <div className="h-full overflow-auto bg-background pb-16 md:pb-0 pt-2">
           <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/inventory" component={Inventory} />

@@ -120,7 +120,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
         border-gray-200 dark:border-gray-700 
         flex 
         flex-col
-        z-50
+        z-30
         transform 
         transition-transform 
         duration-300 
@@ -133,7 +133,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 md:space-x-3">
               <img 
-                src="/attached_assets/60460DF2-3086-47E0-AF52-CED6FEB5E75C_1753166830119.png" 
+                src="/aiq-logo.png" 
                 alt="AiQ Logo" 
                 className="w-8 h-8 md:w-10 md:h-10 object-contain flex-shrink-0"
               />
