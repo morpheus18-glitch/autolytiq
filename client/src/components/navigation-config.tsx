@@ -41,11 +41,8 @@ export const navigation: NavigationItem[] = [
     children: [
       { name: "Inventory", href: "/inventory", icon: Car },
       { name: "Sales & Leads", href: "/sales", icon: Handshake },
-      { name: "Mobile Sales", href: "/sales-mobile", icon: Handshake },
       { name: "Customers", href: "/customers", icon: Users },
-      { name: "Deal Management", href: "/deals-list", icon: FileText },
-      { name: "Deal Desk", href: "/deals-desk", icon: Calculator },
-      { name: "Finance Suite", href: "/deals-finance", icon: DollarSign },
+      { name: "Deals", href: "/deals-list", icon: FileText },
       { name: "Showroom Manager", href: "/showroom-manager", icon: Timer },
       { name: "Analytics", href: "/analytics", icon: TrendingUp },
       { name: "Reports", href: "/reports", icon: BarChart3 },
