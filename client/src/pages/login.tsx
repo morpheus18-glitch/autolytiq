@@ -35,8 +35,12 @@ export default function Login() {
         <Card className="shadow-xl border-0">
           <CardHeader className="space-y-4 pb-6">
             <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <Car className="h-8 w-8 text-blue-600" />
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <img 
+                  src="/aiq-logo.png" 
+                  alt="AiQ Logo" 
+                  className="h-10 w-10 object-contain"
+                />
                 <h1 className="text-2xl font-bold text-gray-900">AutolytiQ</h1>
               </div>
               <p className="text-gray-600">Dealership Management System</p>
@@ -51,7 +55,7 @@ export default function Login() {
               {/* Replit OAuth */}
               <Button
                 onClick={() => handleProviderLogin('replit')}
-                className="w-full bg-[#F26207] hover:bg-[#E55100] text-white py-3 text-base font-medium"
+                className="w-full btn-aiq-primary py-3 text-base font-medium"
                 size="lg"
               >
                 <div className="w-5 h-5 mr-3 bg-white rounded-sm flex items-center justify-center">

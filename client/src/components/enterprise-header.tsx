@@ -176,7 +176,7 @@ export default function EnterpriseHeader() {
   };
 
   return (
-    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-3 sm:px-4 py-2 sm:py-3 sticky top-0 z-50">
+    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-3 sm:px-4 py-2 sm:py-3 sticky top-0 z-40">
       <div className="flex items-center justify-between">
         {/* Left Section - Logo & Page Title */}
         <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
@@ -184,7 +184,7 @@ export default function EnterpriseHeader() {
             <Link href="/">
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <img 
-                  src="/attached_assets/60460DF2-3086-47E0-AF52-CED6FEB5E75C_1753166830119.png" 
+                  src="/aiq-logo.png" 
                   alt="AiQ Logo" 
                   className="w-10 h-10 sm:w-12 sm:h-12 object-contain flex-shrink-0"
                 />
