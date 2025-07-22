@@ -157,7 +157,7 @@ export default function ShowroomManager() {
 
   // Optimized mutations with proper error handling and specific cache invalidation
   const createSessionMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/showroom-sessions', { method: 'POST', body: data }),
+    mutationFn: (data: any) => apiRequest('/api/showroom-sessions', 'POST', data),
     onSuccess: () => {
       toast({ title: 'Session created successfully' });
       setIsCreateDialogOpen(false);
@@ -176,7 +176,7 @@ export default function ShowroomManager() {
 
   // Update session mutation with optimistic updates
   const updateSessionMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest(`/api/showroom-sessions/${id}`, { method: 'PUT', body: data }),
+    mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest(`/api/showroom-sessions/${id}`, 'PUT', data),
     onSuccess: () => {
       toast({ title: 'Session updated successfully' });
       setIsEditDialogOpen(false);
@@ -196,11 +196,7 @@ export default function ShowroomManager() {
   // End session mutation with notes and reason
   const endSessionMutation = useMutation({
     mutationFn: ({ id, endNotes, endReason }: { id: number, endNotes?: string, endReason?: string }) => 
-      apiRequest(`/api/showroom-sessions/${id}/end`, { 
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ endNotes, endReason })
-      }),
+      apiRequest(`/api/showroom-sessions/${id}/end`, 'PUT', { endNotes, endReason }),
     onSuccess: () => {
       toast({ title: 'Session ended successfully' });
       setIsEndDialogOpen(false);
@@ -221,10 +217,7 @@ export default function ShowroomManager() {
   const quickUpdateMutation = useMutation({
     mutationFn: ({ id, field, value }: { id: number, field: string, value: string }) => {
       console.log('Sending quick update request:', { id, field, value });
-      return apiRequest(`/api/showroom-sessions/${id}/quick-update`, { 
-        method: 'PUT',
-        body: { field, value }
-      });
+      return apiRequest(`/api/showroom-sessions/${id}/quick-update`, 'PUT', { field, value });
     },
     onSuccess: () => {
       toast({ title: 'Session updated successfully' });

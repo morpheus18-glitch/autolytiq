@@ -41,6 +41,7 @@ const navigation = [
       { name: "Competitive Pricing", href: "/competitive-pricing", icon: Target },
       { name: "ML Dashboard", href: "/ml-dashboard", icon: Brain },
       { name: "F&I Operations", href: "/fi-dashboard", icon: Shield },
+      { name: "F&I Configuration", href: "/fi-configuration", icon: Settings },
       { name: "Smart Workflows", href: "/workflow-assistant", icon: Workflow },
       { name: "Communication Demo", href: "/communication-demo", icon: MessageSquare },
       { name: "AI Smart Search", href: "/ai-smart-search", icon: Brain },
@@ -170,7 +171,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
                       return (
                         <Link
                           key={child.href}
-                          href={child.href}
+                          href={child.href || '#'}
                           className={`
                             flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors
                             ${isActive 
@@ -180,7 +181,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
                           `}
                           onClick={onClose}
                         >
-                          <Icon className="mr-3 h-4 w-4" />
+                          {Icon && <Icon className="mr-3 h-4 w-4" />}
                           {child.name}
                         </Link>
                       );
@@ -194,7 +195,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={item.href || '#'}
                   className={`
                     flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors
                     ${isActive 
@@ -204,7 +205,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
                   `}
                   onClick={onClose}
                 >
-                  <Icon className="mr-3 h-4 w-4" />
+                  {Icon && <Icon className="mr-3 h-4 w-4" />}
                   {item.name}
                 </Link>
               );
