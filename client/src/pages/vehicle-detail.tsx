@@ -59,10 +59,10 @@ interface AuditLog {
 
 export default function VehicleDetail() {
   const { id } = useParams<{ id: string }>();
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { trackInteraction } = usePixelTracker();
+  usePixelTracker();
   
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<Vehicle>>({});

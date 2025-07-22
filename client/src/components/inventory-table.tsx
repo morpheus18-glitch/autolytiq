@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { usePixelTracker } from "@/hooks/use-pixel-tracker";
@@ -20,6 +21,7 @@ export default function InventoryTable({ showAddButton = true, limit }: Inventor
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { trackVehicleView, trackSearch, trackFilterUsage, trackInteraction } = usePixelTracker();
@@ -93,6 +95,8 @@ export default function InventoryTable({ showAddButton = true, limit }: Inventor
       price: vehicle.price,
       status: vehicle.status
     });
+    // Navigate to vehicle detail page
+    setLocation(`/inventory/${vehicle.id}`);
   };
 
   const handleGeneratePricing = (vehicle: Vehicle) => {
