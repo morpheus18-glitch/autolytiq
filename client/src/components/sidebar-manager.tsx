@@ -12,8 +12,8 @@ export default function SidebarManager({ children }: SidebarManagerProps) {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
-    <div className="layout h-screen bg-background flex">
-      {/* Overlay for mobile when sidebar is open */}
+    <div className="layout h-screen bg-background relative">
+      {/* Mobile overlay when sidebar is open */}
       {isSidebarOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
@@ -28,8 +28,12 @@ export default function SidebarManager({ children }: SidebarManagerProps) {
         onToggle={toggleSidebar}
       />
       
-      {/* Main content area */}
-      <div className="content flex-1 min-w-0 overflow-hidden flex flex-col">
+      {/* Main content area - stays fixed on mobile, pushes on desktop */}
+      <div className={`
+        content flex-1 min-w-0 overflow-hidden flex flex-col h-full
+        transition-all duration-300 ease-in-out
+        md:ml-0 ${isSidebarOpen ? 'md:ml-64' : 'md:ml-16'}
+      `}>
         {children}
       </div>
     </div>

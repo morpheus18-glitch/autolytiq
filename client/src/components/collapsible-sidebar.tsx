@@ -42,9 +42,9 @@ export default function CollapsibleSidebar({ isOpen, onClose, onToggle }: Collap
 
       {/* Collapsible Sidebar */}
       <div className={`
-        fixed md:relative top-0 left-0 h-screen 
+        fixed top-0 left-0 h-screen 
         bg-white dark:bg-gray-900 shadow-xl border-r border-gray-200 dark:border-gray-700 
-        flex flex-col z-30 transform transition-all duration-300 ease-in-out
+        flex flex-col z-50 transform transition-all duration-300 ease-in-out
         overflow-hidden
         ${isOpen 
           ? 'w-72 sm:w-80 md:w-64 translate-x-0' 
