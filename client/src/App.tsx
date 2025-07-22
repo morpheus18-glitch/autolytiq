@@ -13,7 +13,7 @@ import VehicleDetail from "@/pages/vehicle-detail";
 import Sales from "@/pages/sales-enhanced";
 import SalesMobileEnhanced from "@/pages/sales-mobile-enhanced";
 import Customers from "@/pages/customers-enhanced";
-import CustomerDetail from "@/pages/customers/customer-detail";
+import CustomerDetail from "@/pages/customer-detail";
 import Analytics from "@/pages/analytics";
 import Settings from "@/pages/settings";
 import CompetitivePricing from "@/pages/competitive-pricing";

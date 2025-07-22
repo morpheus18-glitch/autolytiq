@@ -374,9 +374,9 @@ export default function EnhancedCustomerSearch({
                   <tr key={customer.id} className="border-b hover:bg-gray-50 transition-colors">
                     <td className="p-3">
                       <div>
-                        <div className="font-medium">
+                        <Link href={`/customers/${customer.id}`} className="font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">
                           {customer.firstName} {customer.lastName}
-                        </div>
+                        </Link>
                         <div className="text-sm text-gray-500">
                           {customer.leadSource && `Source: ${customer.leadSource}`}
                         </div>
