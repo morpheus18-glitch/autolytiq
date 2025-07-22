@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -36,58 +38,91 @@ import { Link, useLocation } from 'wouter';
 import { ThemeToggle } from './theme-toggle';
 
 interface Notification {
-  id: number;
-  type: 'message' | 'lead' | 'ai' | 'system';
+  id: string;
+  userId?: string;
+  type: 'lead' | 'sale' | 'inventory' | 'system' | 'message' | 'alert';
+  priority: 'low' | 'normal' | 'high' | 'urgent';
   title: string;
-  description: string;
-  timestamp: string;
-  read: boolean;
+  message: string;
+  actionUrl?: string;
+  actionData?: any;
+  isRead: boolean;
+  readAt?: string;
+  createdAt: string;
+  expiresAt?: string;
 }
 
 export default function EnterpriseHeader() {
   const { user } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const queryClient = useQueryClient();
 
-  // Mock notifications for professional demo
-  const notifications: Notification[] = [
-    {
-      id: 1,
-      type: 'lead',
-      title: 'High-Value Lead Alert',
-      description: 'Jennifer Wilson - $85K budget, requires immediate follow-up',
-      timestamp: '2 min ago',
-      read: false
+  // Fetch real notifications from API
+  const { data: notifications = [], isLoading: notificationsLoading } = useQuery<Notification[]>({
+    queryKey: ['/api/notifications'],
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+
+  const { data: unreadCountData } = useQuery<{ count: number }>({
+    queryKey: ['/api/notifications/unread-count'],
+    refetchInterval: 10000, // Refetch every 10 seconds
+  });
+
+  const unreadCount = unreadCountData?.count || 0;
+
+  // Mark notification as read mutation
+  const markAsReadMutation = useMutation({
+    mutationFn: async (notificationId: string) => {
+      return apiRequest(`/api/notifications/${notificationId}/read`, {
+        method: 'PATCH',
+      });
     },
-    {
-      id: 2,
-      type: 'message',
-      title: 'Customer Message',
-      description: 'Michael Johnson asking about test drive availability',
-      timestamp: '5 min ago',
-      read: false
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
     },
-    {
-      id: 3,
-      type: 'ai',
-      title: 'AI Recommendation Ready',
-      description: 'Price optimization suggestions for 5 vehicles',
-      timestamp: '10 min ago',
-      read: true
+  });
+
+  // Mark all as read mutation
+  const markAllAsReadMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('/api/notifications/read-all', {
+        method: 'PATCH',
+      });
     },
-    {
-      id: 4,
-      type: 'system',
-      title: 'Daily Report Generated',
-      description: 'Sales and inventory report is now available',
-      timestamp: '1 hour ago',
-      read: true
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+    },
+  });
+
+  const handleNotificationClick = (notification: Notification) => {
+    // Mark as read
+    if (!notification.isRead) {
+      markAsReadMutation.mutate(notification.id);
     }
-  ];
+    
+    // Navigate to the action URL if provided
+    if (notification.actionUrl) {
+      setLocation(notification.actionUrl);
+    }
+  };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  // Format timestamp for display
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes} min ago`;
+    if (minutes < 1440) return `${Math.floor(minutes / 60)} hr ago`;
+    return date.toLocaleDateString();
+  };
 
   const quickSearchSuggestions = [
     { type: 'customer', text: 'high credit score customers', icon: User },
@@ -99,10 +134,22 @@ export default function EnterpriseHeader() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'lead': return <Zap className="w-4 h-4 text-blue-500" />;
-      case 'message': return <MessageSquare className="w-4 h-4 text-green-500" />;
-      case 'ai': return <Brain className="w-4 h-4 text-purple-500" />;
+      case 'sale': return <MessageSquare className="w-4 h-4 text-green-500" />;
+      case 'inventory': return <Settings className="w-4 h-4 text-orange-500" />;
       case 'system': return <Settings className="w-4 h-4 text-gray-500" />;
+      case 'message': return <MessageSquare className="w-4 h-4 text-green-500" />;
+      case 'alert': return <Bell className="w-4 h-4 text-red-500" />;
       default: return <Bell className="w-4 h-4" />;
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'bg-red-500';
+      case 'high': return 'bg-orange-500';
+      case 'normal': return 'bg-blue-500';
+      case 'low': return 'bg-gray-500';
+      default: return 'bg-blue-500';
     }
   };
 
@@ -253,24 +300,56 @@ export default function EnterpriseHeader() {
                 )}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {unreadCount > 0 && (
+                <div className="px-3 pb-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => markAllAsReadMutation.mutate()}
+                    disabled={markAllAsReadMutation.isPending}
+                    className="w-full text-xs"
+                  >
+                    Mark all as read
+                  </Button>
+                </div>
+              )}
               <div className="max-h-64 overflow-y-auto">
-                {notifications.map((notification) => (
-                  <DropdownMenuItem key={notification.id} className="flex items-start p-3 hover:bg-gray-50">
-                    <div className="mr-3 mt-1">
-                      {getNotificationIcon(notification.type)}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-sm">{notification.title}</p>
-                        {!notification.read && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                {notificationsLoading ? (
+                  <div className="flex items-center justify-center p-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : notifications.length === 0 ? (
+                  <div className="flex items-center justify-center p-4 text-gray-500 text-sm">
+                    No notifications yet
+                  </div>
+                ) : (
+                  notifications.map((notification) => (
+                    <DropdownMenuItem 
+                      key={notification.id} 
+                      className="flex items-start p-3 hover:bg-gray-50 cursor-pointer"
+                      onClick={() => handleNotificationClick(notification)}
+                    >
+                      <div className="mr-3 mt-1 relative">
+                        {getNotificationIcon(notification.type)}
+                        {!notification.isRead && (
+                          <div className={`absolute -top-1 -right-1 w-2 h-2 rounded-full ${getPriorityColor(notification.priority)}`}></div>
                         )}
                       </div>
-                      <p className="text-xs text-gray-600 mt-1">{notification.description}</p>
-                      <p className="text-xs text-gray-400 mt-1">{notification.timestamp}</p>
-                    </div>
-                  </DropdownMenuItem>
-                ))}
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className={`font-medium text-sm ${!notification.isRead ? 'text-gray-900' : 'text-gray-700'}`}>
+                            {notification.title}
+                          </p>
+                          {notification.priority === 'urgent' && (
+                            <Badge variant="destructive" className="text-xs">Urgent</Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
+                        <p className="text-xs text-gray-400 mt-1">{formatTimestamp(notification.createdAt)}</p>
+                      </div>
+                    </DropdownMenuItem>
+                  ))
+                )}
               </div>
             </DropdownMenuContent>
           </DropdownMenu>

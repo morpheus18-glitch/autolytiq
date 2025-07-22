@@ -885,6 +885,54 @@ export type SalespersonNote = typeof salespersonNotes.$inferSelect;
 export type ShowroomSession = typeof showroomSessions.$inferSelect;
 export type User = typeof users.$inferSelect;
 
+// Notifications schema
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().notNull(),
+  userId: varchar("user_id").references(() => users.id),
+  type: varchar("type").notNull(), // 'lead', 'sale', 'inventory', 'system', 'message', 'alert'
+  priority: varchar("priority").notNull().default("normal"), // 'low', 'normal', 'high', 'urgent'
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  actionUrl: varchar("action_url"), // URL to navigate when clicked
+  actionData: jsonb("action_data"), // Additional data for the action
+  isRead: boolean("is_read").default(false),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+});
+
+// Notification templates for different triggers
+export const notificationTemplates = pgTable("notification_templates", {
+  id: varchar("id").primaryKey().notNull(),
+  type: varchar("type").notNull(),
+  trigger: varchar("trigger").notNull(), // 'new_lead', 'deal_closed', 'low_inventory', etc.
+  title: varchar("title").notNull(),
+  messageTemplate: text("message_template").notNull(), // Template with placeholders
+  actionUrl: varchar("action_url"),
+  priority: varchar("priority").default("normal"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Notification preferences by user
+export const notificationPreferences = pgTable("notification_preferences", {
+  id: varchar("id").primaryKey().notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  type: varchar("type").notNull(),
+  enabled: boolean("enabled").default(true),
+  pushEnabled: boolean("push_enabled").default(true),
+  emailEnabled: boolean("email_enabled").default(false),
+  smsEnabled: boolean("sms_enabled").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
+export type NotificationTemplate = typeof notificationTemplates.$inferSelect;
+export type InsertNotificationTemplate = typeof notificationTemplates.$inferInsert;
+export type NotificationPreference = typeof notificationPreferences.$inferSelect;
+export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;
+
 // F&I Types
 export type CreditPull = typeof creditPulls.$inferSelect;
 export type LenderApplication = typeof lenderApplications.$inferSelect;

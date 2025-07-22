@@ -2898,6 +2898,64 @@ export class MemStorage implements IStorage {
     const offset = filters.offset || 0;
     return activities.slice(offset, offset + limit);
   }
+
+  // Notification operations
+  async createNotification(notification: any) {
+    this.notifications = this.notifications || [];
+    this.notifications.push(notification);
+    return notification;
+  }
+
+  async getNotifications(userId?: string) {
+    this.notifications = this.notifications || [];
+    if (userId) {
+      return this.notifications.filter(n => !n.userId || n.userId === userId);
+    }
+    return this.notifications;
+  }
+
+  async markNotificationAsRead(notificationId: string, userId?: string) {
+    this.notifications = this.notifications || [];
+    const notification = this.notifications.find(n => n.id === notificationId);
+    if (notification && (!userId || !notification.userId || notification.userId === userId)) {
+      notification.isRead = true;
+      notification.readAt = new Date().toISOString();
+      return notification;
+    }
+    return null;
+  }
+
+  async markAllNotificationsAsRead(userId?: string) {
+    this.notifications = this.notifications || [];
+    const updated = this.notifications.filter(n => 
+      (!userId || !n.userId || n.userId === userId) && !n.isRead
+    );
+    updated.forEach(n => {
+      n.isRead = true;
+      n.readAt = new Date().toISOString();
+    });
+    return updated.length;
+  }
+
+  async getUnreadNotificationCount(userId?: string) {
+    this.notifications = this.notifications || [];
+    return this.notifications.filter(n => 
+      (!userId || !n.userId || n.userId === userId) && !n.isRead
+    ).length;
+  }
+
+  private notifications: any[] = [];
 }
 
 export const storage = new MemStorage();
+
+// Initialize sample notifications
+setTimeout(async () => {
+  try {
+    const { notificationService } = await import('./notificationService');
+    await notificationService.generateSampleNotifications();
+    console.log('✅ Sample notifications initialized');
+  } catch (error) {
+    console.error('❌ Failed to initialize sample notifications:', error);
+  }
+}, 1000);

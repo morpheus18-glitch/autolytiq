@@ -2335,6 +2335,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register admin routes
   registerAdminRoutes(app);
 
+  // Import and use notification routes
+  const notificationRoutes = (await import('./notificationRoutes')).default;
+  app.use('/api/notifications', isAuthenticated, notificationRoutes);
+
   // Communication API Routes - Text Messages
   app.get('/api/customers/:id/messages', async (req, res) => {
     try {
