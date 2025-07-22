@@ -95,15 +95,15 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile menu button */}
-      <div className="md:hidden fixed top-2 left-2 z-50">
+      {/* Mobile menu button - improved positioning and styling */}
+      <div className="md:hidden fixed top-3 left-3 z-50">
         <Button
           variant="outline"
           size="sm"
           onClick={onToggle}
-          className="bg-white dark:bg-gray-800 shadow-lg border-2 hover:bg-gray-50 dark:hover:bg-gray-700 p-2"
+          className="bg-white dark:bg-gray-800 shadow-xl border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 p-2.5 rounded-lg"
         >
-          {isOpen ? <X className="h-3 w-3" /> : <Menu className="h-3 w-3" />}
+          {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </Button>
       </div>
 
@@ -133,11 +133,9 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
         <div className="p-3 sm:p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 md:space-x-3">
-              <img 
-                src="/aiq-logo.png" 
-                alt="AutolytiQ Logo" 
-                className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 object-contain flex-shrink-0"
-              />
+              <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-600 to-green-600 rounded flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-bold text-xs sm:text-sm md:text-base">AQ</span>
+              </div>
               <div>
                 <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100">AutolytiQ</h1>
                 <p className="text-xs sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">Dealership Management</p>

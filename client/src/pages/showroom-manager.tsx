@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
+import { trackInteraction } from '@/lib/pixel-tracker';
 import { format, addDays, subDays } from 'date-fns';
 import { apiRequest } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
@@ -105,7 +106,7 @@ export default function ShowroomManager() {
   const [activeTab, setActiveTab] = useState('live-dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { toast } = useToast();
-  const { trackInteraction } = usePixelTracker();
+  usePixelTracker(); // Initialize pixel tracking
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   const urlProcessedRef = useRef(false);
@@ -125,14 +126,14 @@ export default function ShowroomManager() {
   const { data: customers = [], isLoading: customersLoading, error: customersError } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
   // Fetch vehicles for dropdown with caching
   const { data: vehicles = [], isLoading: vehiclesLoading, error: vehiclesError } = useQuery<Vehicle[]>({
     queryKey: ['/api/vehicles'],
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
   // Memoize processed data to prevent unnecessary re-renders

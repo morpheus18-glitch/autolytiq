@@ -185,13 +185,11 @@ export default function EnterpriseHeader() {
           <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
             <Link href="/">
               <div className="flex items-center space-x-1 sm:space-x-2">
-                <img 
-                  src="/aiq-logo.png" 
-                  alt="AiQ Logo" 
-                  className="w-10 h-10 sm:w-12 sm:h-12 object-contain flex-shrink-0"
-                />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-600 to-green-600 rounded flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-bold text-sm sm:text-base">AQ</span>
+                </div>
                 <span className="hidden sm:block font-bold text-lg sm:text-xl text-gray-900 dark:text-gray-100">AutolytiQ</span>
-                <span className="sm:hidden font-bold text-sm text-gray-900 dark:text-gray-100">AiQ</span>
+                <span className="sm:hidden font-bold text-sm text-gray-900 dark:text-gray-100">AutolytiQ</span>
               </div>
             </Link>
             <div className="hidden lg:block">
