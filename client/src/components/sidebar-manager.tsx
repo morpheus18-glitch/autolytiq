@@ -1,42 +1,32 @@
 import { useState } from 'react';
-import { useIsMobile } from '@/hooks/useIsMobile';
-import MobileSidebar from '@/components/mobile-sidebar';
-import DesktopSidebar from '@/components/desktop-sidebar';
+import CollapsibleSidebar from '@/components/collapsible-sidebar';
 
 interface SidebarManagerProps {
   children: React.ReactNode;
 }
 
 export default function SidebarManager({ children }: SidebarManagerProps) {
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const isMobile = useIsMobile();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const closeMobileSidebar = () => setIsMobileSidebarOpen(false);
-  const toggleMobileSidebar = () => setIsMobileSidebarOpen(!isMobileSidebarOpen);
+  const closeSidebar = () => setIsSidebarOpen(false);
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
-    <div className="layout h-screen bg-background flex flex-col md:flex-row">
-      {isMobile ? (
-        <>
-          {/* Mobile overlay */}
-          {isMobileSidebarOpen && (
-            <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-40"
-              onClick={closeMobileSidebar}
-            />
-          )}
-          
-          {/* Mobile Sidebar */}
-          <MobileSidebar 
-            isOpen={isMobileSidebarOpen} 
-            onClose={closeMobileSidebar}
-            onToggle={toggleMobileSidebar}
-          />
-        </>
-      ) : (
-        /* Desktop Sidebar */
-        <DesktopSidebar />
+    <div className="layout h-screen bg-background flex">
+      {/* Overlay for mobile when sidebar is open */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={closeSidebar}
+        />
       )}
+      
+      {/* Collapsible Sidebar */}
+      <CollapsibleSidebar 
+        isOpen={isSidebarOpen} 
+        onClose={closeSidebar}
+        onToggle={toggleSidebar}
+      />
       
       {/* Main content area */}
       <div className="content flex-1 min-w-0 overflow-hidden flex flex-col">
