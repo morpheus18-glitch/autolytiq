@@ -72,6 +72,7 @@ export default function DealDesk() {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedDeal, setSelectedDeal] = useState<DealData | null>(null);
   const [newDeal, setNewDeal] = useState({
+    id: crypto.randomUUID(),
     dealNumber: `DEAL-${Date.now()}`,
     status: 'open',
     dealType: 'retail',
@@ -108,10 +109,8 @@ export default function DealDesk() {
   // Create deal mutation
   const createDealMutation = useMutation({
     mutationFn: async (dealData: any) => {
-      return await apiRequest('/api/deals', {
-        method: 'POST',
-        body: JSON.stringify(dealData),
-      });
+      const response = await apiRequest('POST', '/api/deals', dealData);
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -134,10 +133,8 @@ export default function DealDesk() {
   // Update deal mutation
   const updateDealMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      return await apiRequest(`/api/deals/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest('PUT', `/api/deals/${id}`, data);
+      return response.json();
     },
     onSuccess: () => {
       toast({

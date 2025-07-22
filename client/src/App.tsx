@@ -24,6 +24,7 @@ import ShowroomManager from "@/pages/showroom-manager";
 import DealsPage from "@/pages/deals/index";
 import DealDetailPage from "@/pages/deals/[id]/index";
 import DealDesk from "@/pages/deal-desk";
+import Deals from "@/pages/deals";
 // Admin Pages
 import SystemSettings from "@/pages/admin/system-settings";
 import ComprehensiveSettings from "@/pages/admin/comprehensive-settings";
@@ -96,8 +97,8 @@ function Router() {
           <Route path="/customers/:id" component={CustomerDetail} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/competitive-pricing" component={CompetitivePricing} />
-          <Route path="/deals" component={DealsPage} />
           <Route path="/deals/:id" component={DealDetailPage} />
+          <Route path="/deals" component={Deals} />
           <Route path="/deal-desk" component={DealDesk} />
           <Route path="/showroom-manager" component={ShowroomManager} />
           <Route path="/reports" component={Reports} />
