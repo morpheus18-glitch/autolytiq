@@ -224,7 +224,10 @@ export default function ShowroomManager() {
 
   const handleDeskClick = (sessionId: string, customerId: number) => {
     trackInteraction('desk_session_start', `session-${sessionId}`);
-    navigate(`/deal-desk?customerId=${customerId}&sessionId=${sessionId}`);
+    // Store customer info for deal working screen
+    localStorage.setItem('selectedCustomerId', customerId.toString());
+    // Navigate to deal working screen instead of deal desk
+    navigate(`/deal-working?customerId=${customerId}&sessionId=${sessionId}`);
   };
 
   const updateInterestLevel = useMutation({
@@ -564,7 +567,7 @@ export default function ShowroomManager() {
                         className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1"
                       >
                         <Calculator className="h-3 w-3 mr-1" />
-                        Desk
+                        Deal Working
                       </Button>
                       
                       <DropdownMenu>
