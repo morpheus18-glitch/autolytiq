@@ -48,40 +48,40 @@ export default function Customers() {
     },
   });
 
-  const { trackInteraction } = usePixelTracker();
+  // usePixelTracker already called above, no need to destructure again
 
   const handleEdit = (customer: Customer) => {
-    trackInteraction('customer_edit', 'edit-button', customer.id);
+    trackInteraction('button_click', { action: 'edit_customer', customerId: customer.id });
     setSelectedCustomer(customer);
     setIsEditModalOpen(true);
   };
 
   const handleAdd = () => {
-    trackInteraction('customer_add', 'add-customer-button');
+    trackInteraction('button_click', { action: 'add_customer' });
     setSelectedCustomer(null);
     setIsAddModalOpen(true);
   };
 
   const handleView = (customer: Customer) => {
-    trackInteraction('customer_view', 'view-button', customer.id);
+    trackInteraction('button_click', { action: 'view_customer', customerId: customer.id });
     setSelectedCustomer(customer);
     setIsDetailModalOpen(true);
   };
 
   const handleDelete = (id: number) => {
     if (confirm('Are you sure you want to delete this customer?')) {
-      trackInteraction('customer_delete', 'delete-button', id);
+      trackInteraction('button_click', { action: 'delete_customer', customerId: id });
       deleteCustomerMutation.mutate(id);
     }
   };
 
   const handleExport = () => {
-    trackInteraction('customer_export', 'export-button');
+    trackInteraction('button_click', { action: 'export_customers' });
     toast({ title: 'Export started', description: 'Your customer data is being exported...' });
   };
 
   const handleImport = () => {
-    trackInteraction('customer_import', 'import-button');
+    trackInteraction('button_click', { action: 'import_customers' });
     toast({ title: 'Import ready', description: 'Select a file to import customer data...' });
   };
 
@@ -104,11 +104,7 @@ export default function Customers() {
       };
 
       // Create the session directly via API
-      const response = await apiRequest('/api/showroom-sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sessionData),
-      });
+      const response = await apiRequest('POST', '/api/showroom-sessions', sessionData);
       
       const newSession = await response.json();
       setIsStartingSession(false);
