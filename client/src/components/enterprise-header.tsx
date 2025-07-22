@@ -129,7 +129,7 @@ export default function EnterpriseHeader() {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 px-3 sm:px-4 py-2 sm:py-3 sticky top-0 z-50">
+    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-3 sm:px-4 py-2 sm:py-3 sticky top-0 z-50">
       <div className="flex items-center justify-between">
         {/* Left Section - Logo & Page Title */}
         <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
@@ -139,13 +139,13 @@ export default function EnterpriseHeader() {
                 <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
                   <span className="text-white font-bold text-xs sm:text-sm">A</span>
                 </div>
-                <span className="hidden sm:block font-bold text-lg sm:text-xl text-gray-900">AutolytiQ</span>
-                <span className="sm:hidden font-bold text-sm text-gray-900">AutolytiQ</span>
+                <span className="hidden sm:block font-bold text-lg sm:text-xl text-gray-900 dark:text-gray-100">AutolytiQ</span>
+                <span className="sm:hidden font-bold text-sm text-gray-900 dark:text-gray-100">AutolytiQ</span>
               </div>
             </Link>
             <div className="hidden lg:block">
               <span className="text-gray-400">/</span>
-              <span className="ml-2 text-gray-700 font-medium text-sm">{currentPageTitle()}</span>
+              <span className="ml-2 text-gray-700 dark:text-gray-300 font-medium text-sm">{currentPageTitle()}</span>
             </div>
           </div>
         </div>
