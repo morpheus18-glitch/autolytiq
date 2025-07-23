@@ -10,7 +10,7 @@ import { EnterpriseDashboardIntegration } from "@/components/enterprise/enterpri
 import ProductionDashboard from "@/components/enterprise/production-dashboard";
 import ProductionSuite from "@/components/enterprise/production-suite";
 import AdvancedReporting from "@/components/enterprise/advanced-reporting";
-import CustomerIntelligence from "@/components/enterprise/customer-intelligence";
+import CustomerIntelligence from "@/components/enterprise/ai-customer-intelligence";
 import WorkflowAutomation from "@/components/enterprise/workflow-automation";
 import SystemHealth from "@/components/enterprise/system-health";
 // Enhanced dual CRM/DMS components

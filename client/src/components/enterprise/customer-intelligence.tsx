@@ -3,6 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Link } from "wouter";
 import { 
   User, 
   Brain, 
@@ -21,7 +26,17 @@ import {
   Award,
   Users,
   PieChart,
-  BarChart3
+  BarChart3,
+  Eye,
+  Zap,
+  MessageSquare,
+  Activity,
+  ChevronRight,
+  Database,
+  Lightbulb,
+  ThumbsUp,
+  Filter,
+  Search
 } from "lucide-react";
 import { useState } from "react";
 
