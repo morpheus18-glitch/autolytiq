@@ -269,6 +269,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Vehicle Pricing Insights Endpoint
+  app.post("/api/pricing-insights/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const vehicle = await storage.getVehicle(id);
+      
+      if (!vehicle) {
+        return res.status(404).json({ message: "Vehicle not found" });
+      }
+
+      // Get comprehensive valuation using the valuation service
+      const { getComprehensiveValuation } = await import('./services/valuation-service');
+      const valuationResult = await getComprehensiveValuation(vehicle.vin);
+
+      // Prepare pricing insights response
+      const pricingInsights = {
+        vehicle: {
+          id: vehicle.id,
+          make: vehicle.make,
+          model: vehicle.model,
+          year: vehicle.year,
+          vin: vehicle.vin,
+          currentPrice: vehicle.price
+        },
+        vinData: valuationResult.vinData,
+        valuations: valuationResult.valuations,
+        marketAnalysis: {
+          averageMarketValue: valuationResult.averageMarketValue,
+          recommendedPrice: valuationResult.recommendedPrice,
+          competitivePosition: valuationResult.averageMarketValue 
+            ? vehicle.price > valuationResult.averageMarketValue ? 'above_market' : 'below_market'
+            : 'unknown',
+          pricingRecommendation: valuationResult.recommendedPrice 
+            ? `Consider pricing at $${valuationResult.recommendedPrice?.toLocaleString()} based on market data`
+            : 'Insufficient market data for recommendation'
+        },
+        timestamp: new Date().toISOString()
+      };
+
+      // Store the pricing insights in the database for history
+      try {
+        await storage.createPricingInsights({
+          vehicleId: vehicle.id,
+          marketValue: valuationResult.averageMarketValue || vehicle.price,
+          recommendedPrice: valuationResult.recommendedPrice || vehicle.price,
+          competitorPrices: JSON.stringify(valuationResult.valuations),
+          analysisDate: new Date(),
+          insights: JSON.stringify(pricingInsights.marketAnalysis)
+        });
+      } catch (storageError) {
+        console.warn('Failed to store pricing insights:', storageError);
+        // Continue with response even if storage fails
+      }
+
+      res.json(pricingInsights);
+    } catch (error) {
+      console.error('Pricing insights error:', error);
+      res.status(500).json({ 
+        message: "Failed to generate pricing insights",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Enhanced VIN decoder route using free NHTSA API
   app.get("/api/decode-vin/:vin", async (req, res) => {
     try {
