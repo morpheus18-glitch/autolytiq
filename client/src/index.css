@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile safe area support for iPhone */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-pb {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0.75rem);
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
