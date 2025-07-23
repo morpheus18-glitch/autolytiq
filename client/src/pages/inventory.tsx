@@ -75,6 +75,10 @@ export default function Inventory() {
     description: ''
   });
   const [vinDecoding, setVinDecoding] = useState(false);
+  const [valuationModal, setValuationModal] = useState<{
+    vehicle: Vehicle;
+    data: any;
+  } | null>(null);
 
   const { data: vehicles = [], isLoading, error } = useQuery<Vehicle[]>({
     queryKey: ['/api/vehicles'],
@@ -146,7 +150,11 @@ export default function Inventory() {
         method: 'POST',
       });
     },
-    onSuccess: () => {
+    onSuccess: (data, vehicleId) => {
+      const vehicle = vehicles?.find(v => v.id === vehicleId);
+      if (vehicle) {
+        setValuationModal({ vehicle, data });
+      }
       toast({
         title: "Pricing Insights",
         description: "Pricing analysis completed successfully",
@@ -656,6 +664,183 @@ export default function Inventory() {
           </div>
         </div>
       )}
+
+      {/* Valuation Modal */}
+      <Dialog open={!!valuationModal} onOpenChange={() => setValuationModal(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Vehicle Valuation Report
+            </DialogTitle>
+            <DialogDescription>
+              {valuationModal?.vehicle && `${valuationModal.vehicle.year} ${valuationModal.vehicle.make} ${valuationModal.vehicle.model}`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {valuationModal && (
+            <div className="space-y-6">
+              {/* Vehicle Overview */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Vehicle Information</CardTitle>
+                </CardHeader>
+                <CardContent className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Vehicle</Label>
+                    <p className="font-semibold">{valuationModal.vehicle.year} {valuationModal.vehicle.make} {valuationModal.vehicle.model}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">VIN</Label>
+                    <p className="font-mono text-sm">{valuationModal.vehicle.vin}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Current Price</Label>
+                    <p className="font-semibold text-lg text-blue-600">${valuationModal.vehicle.price.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Status</Label>
+                    <Badge className={getStatusColor(valuationModal.vehicle.status)}>
+                      {valuationModal.vehicle.status}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Market Analysis */}
+              {valuationModal.data.marketAnalysis && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      Market Analysis
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div className="text-center p-4 bg-gray-50 rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">Average Market Value</Label>
+                        <p className="text-2xl font-bold text-green-600">
+                          {valuationModal.data.marketAnalysis.averageMarketValue 
+                            ? `$${valuationModal.data.marketAnalysis.averageMarketValue.toLocaleString()}`
+                            : 'N/A'}
+                        </p>
+                      </div>
+                      <div className="text-center p-4 bg-gray-50 rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">Recommended Price</Label>
+                        <p className="text-2xl font-bold text-blue-600">
+                          {valuationModal.data.marketAnalysis.recommendedPrice 
+                            ? `$${valuationModal.data.marketAnalysis.recommendedPrice.toLocaleString()}`
+                            : 'N/A'}
+                        </p>
+                      </div>
+                      <div className="text-center p-4 bg-gray-50 rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">Competitive Position</Label>
+                        <div className="flex items-center justify-center gap-2">
+                          {valuationModal.data.marketAnalysis.competitivePosition === 'above_market' ? (
+                            <>
+                              <AlertCircle className="h-5 w-5 text-orange-500" />
+                              <span className="text-orange-600 font-semibold">Above Market</span>
+                            </>
+                          ) : valuationModal.data.marketAnalysis.competitivePosition === 'below_market' ? (
+                            <>
+                              <CheckCircle className="h-5 w-5 text-green-500" />
+                              <span className="text-green-600 font-semibold">Below Market</span>
+                            </>
+                          ) : (
+                            <span className="text-gray-600">Unknown</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {valuationModal.data.marketAnalysis.pricingRecommendation && (
+                      <div className="p-4 bg-blue-50 rounded-lg">
+                        <Label className="text-sm font-medium text-blue-800">Pricing Recommendation</Label>
+                        <p className="text-blue-700 mt-1">{valuationModal.data.marketAnalysis.pricingRecommendation}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Valuation Sources */}
+              {valuationModal.data.valuations && valuationModal.data.valuations.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Valuation Sources</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {valuationModal.data.valuations.map((valuation: any, index: number) => (
+                        <div key={index} className="border rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h4 className="font-semibold">{valuation.source}</h4>
+                              <p className="text-sm text-gray-600">
+                                Confidence: {valuation.confidence} • 
+                                Updated: {new Date(valuation.lastUpdated).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            {valuation.marketValue && (
+                              <div>
+                                <Label className="text-gray-600">Market Value</Label>
+                                <p className="font-semibold">${valuation.marketValue.toLocaleString()}</p>
+                              </div>
+                            )}
+                            {valuation.tradeInValue && (
+                              <div>
+                                <Label className="text-gray-600">Trade-In</Label>
+                                <p className="font-semibold">${valuation.tradeInValue.toLocaleString()}</p>
+                              </div>
+                            )}
+                            {valuation.retailValue && (
+                              <div>
+                                <Label className="text-gray-600">Retail</Label>
+                                <p className="font-semibold">${valuation.retailValue.toLocaleString()}</p>
+                              </div>
+                            )}
+                            {valuation.privatePartyValue && (
+                              <div>
+                                <Label className="text-gray-600">Private Party</Label>
+                                <p className="font-semibold">${valuation.privatePartyValue.toLocaleString()}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* VIN Decode Data */}
+              {valuationModal.data.vinData && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Vehicle Specifications</CardTitle>
+                    <CardDescription>Data from VIN decode</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-3 gap-4 text-sm">
+                      {Object.entries(valuationModal.data.vinData).map(([key, value]) => (
+                        value && (
+                          <div key={key}>
+                            <Label className="text-gray-600 capitalize">{key.replace(/([A-Z])/g, ' $1')}</Label>
+                            <p className="font-medium">{String(value)}</p>
+                          </div>
+                        )
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
