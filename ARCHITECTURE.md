@@ -4,7 +4,7 @@
 
 This document serves as the **canonical reference** for AutolytiQ's architecture to prevent code duplication and fragmentation during AI-assisted development.
 
-## 📁 Current File Structure (Last Updated: July 22, 2025)
+## 📁 Current File Structure (Last Updated: July 23, 2025)
 
 ```
 AutolytiQ/
@@ -57,11 +57,13 @@ AutolytiQ/
 
 ### NEVER CREATE DUPLICATES OF:
 1. **Main Layout Components**: `sidebar-manager.tsx`, `collapsible-sidebar.tsx`, `enterprise-header.tsx`
-2. **Core Pages**: `dashboard.tsx`, `deal-desk.tsx`, `showroom-manager.tsx`
-3. **Authentication**: `use-auth.ts`, OAuth configurations
-4. **Database Schema**: `shared/schema.ts` (UPDATE ONLY)
-5. **API Routes**: `server/routes.ts` (EXTEND ONLY)
-6. **Storage Layer**: `server/storage.ts` (EXTEND ONLY)
+2. **Navigation Config**: `navigation-config.tsx` (CANONICAL navigation structure)
+3. **Core Pages**: `dashboard.tsx`, `deal-desk.tsx`, `showroom-manager.tsx`
+4. **Deal Components**: `enhanced-work-deal.tsx` (CANONICAL deal working interface)
+5. **Authentication**: `use-auth.ts`, OAuth configurations
+6. **Database Schema**: `shared/schema.ts` (UPDATE ONLY)
+7. **API Routes**: `server/routes.ts` (EXTEND ONLY)
+8. **Storage Layer**: `server/storage.ts` (EXTEND ONLY)
 
 ### UPDATE EXISTING FILES INSTEAD:
 - ✅ Add new props to existing components
@@ -244,3 +246,14 @@ Client UI ← JSON Response ← Route Handler ← Storage Method ← Query Resul
 5. ✅ Update `replit.md` with progress
 
 **Remember: Update existing files, don't duplicate. Extend functionality, don't recreate.**
+
+---
+
+## 📋 Change Log
+
+### [July 23, 2025] - Duplicate File Cleanup
+- **What Changed**: Removed 8 duplicate files causing code fragmentation
+- **Files Removed**: `mobile-sidebar.tsx`, `desktop-sidebar.tsx`, `mobile-navigation.tsx`, `navigation-config.ts`, `work-a-deal.tsx`, `advanced-deal-desk.tsx`, `deal-desk-old.tsx`, `deals-desk.tsx`
+- **Canonical Files Preserved**: `sidebar-manager.tsx`, `collapsible-sidebar.tsx`, `navigation-config.tsx`, `enhanced-work-deal.tsx`, `deal-desk.tsx`
+- **Impact**: Cleaner codebase architecture, reduced confusion for AI development
+- **Migration**: All imports now reference canonical files only
