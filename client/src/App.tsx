@@ -28,7 +28,7 @@ import Deals from "@/pages/deals";
 import DealsUnified from "@/pages/deals-unified";
 import DealWorkingScreen from "@/pages/deal-working-screen";
 import DealsList from "@/pages/deals-list";
-import DealsDesk from "@/pages/deals-desk";
+
 import DealsFinance from "@/pages/deals-finance";
 // Admin Pages
 import SystemSettings from "@/pages/admin/system-settings";
@@ -60,7 +60,7 @@ import SystemConfiguration from "@/pages/admin/system-configuration";
 import UserManagement from "@/pages/admin/user-management";
 import UserProfile from "@/pages/admin/user-profile";
 import EnterpriseHeader from "@/components/enterprise-header";
-import MobileNavigation from "@/components/mobile-navigation";
+
 import { ThemeProvider } from "@/contexts/theme-context";
 import { MobileFooterMenu } from "@/components/mobile-footer-menu";
 import DealJacket from "@/pages/deal-jacket";
@@ -108,7 +108,7 @@ function Router() {
           <Route path="/analytics" component={Analytics} />
           <Route path="/competitive-pricing" component={CompetitivePricing} />
           <Route path="/deals-list" component={DealsList} />
-          <Route path="/deals-desk" component={DealsDesk} />
+
           <Route path="/deals-finance" component={DealsFinance} />
           <Route path="/deals/:id" component={DealDetailPage} />
           <Route path="/deals" component={DealsList} />
