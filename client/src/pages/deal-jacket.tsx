@@ -106,10 +106,38 @@ export default function DealJacket() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('summary');
+  
+  // Working state management
+  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+  const [selectedConsultant, setSelectedConsultant] = useState('');
+  const [showCreditApp, setShowCreditApp] = useState(false);
+  const [showTradeDialog, setShowTradeDialog] = useState(false);
+  const [showCoApplicantDialog, setShowCoApplicantDialog] = useState(false);
+  const [newNote, setNewNote] = useState('');
+  const [creditAppData, setCreditAppData] = useState({
+    firstName: '',
+    lastName: '',
+    ssn: '',
+    dateOfBirth: '',
+    annualIncome: '',
+    employment: '',
+    monthlyPayment: '',
+    downPayment: ''
+  });
 
   const { data: dealJacket, isLoading } = useQuery({
     queryKey: ['/api/deal-jackets', id],
     enabled: !!id,
+  });
+
+  // Fetch vehicles for price auto-population
+  const { data: vehicles } = useQuery({
+    queryKey: ['/api/vehicles'],
+  });
+
+  // Fetch sales consultants for dropdown
+  const { data: salesConsultants } = useQuery({
+    queryKey: ['/api/users'],
   });
 
   const updateDealJacket = useMutation({
@@ -124,6 +152,131 @@ export default function DealJacket() {
       });
     },
   });
+
+  // Create Deal mutation
+  const createDealMutation = useMutation({
+    mutationFn: async (dealData: any) => {
+      return apiRequest('POST', '/api/deals', dealData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Deal Created",
+        description: "New deal has been created successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Creating Deal",
+        description: error.message || "Failed to create deal. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Credit Application mutation
+  const createCreditAppMutation = useMutation({
+    mutationFn: async (appData: any) => {
+      return apiRequest('POST', `/api/deal-jackets/${id}/credit-applications`, appData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/deal-jackets', id] });
+      setShowCreditApp(false);
+      setCreditAppData({
+        firstName: '',
+        lastName: '',
+        ssn: '',
+        dateOfBirth: '',
+        annualIncome: '',
+        employment: '',
+        monthlyPayment: '',
+        downPayment: ''
+      });
+      toast({
+        title: "Credit Application Created",
+        description: "Credit application submitted successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to create credit application.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Add Note mutation
+  const addNoteMutation = useMutation({
+    mutationFn: async (noteData: any) => {
+      return apiRequest('POST', `/api/deal-jackets/${id}/notes`, noteData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/deal-jackets', id] });
+      setNewNote('');
+      toast({
+        title: "Note Added",
+        description: "Note has been added successfully.",
+      });
+    },
+  });
+
+  // Working functions
+  const handleVehicleSelect = (vehicleId: string) => {
+    const vehicle = vehicles?.find(v => v.id === vehicleId);
+    if (vehicle) {
+      setSelectedVehicle(vehicle);
+      // Auto-populate price
+      updateDealJacket.mutate({
+        vehicleId: vehicle.id,
+        salePrice: vehicle.price
+      });
+    }
+  };
+
+  const handleCreateDeal = () => {
+    if (!selectedVehicle || !selectedConsultant) {
+      toast({
+        title: "Missing Information",
+        description: "Please select a vehicle and sales consultant.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createDealMutation.mutate({
+      vehicleId: selectedVehicle.id,
+      salesConsultant: selectedConsultant,
+      customerId: dealJacket?.customer?.id,
+      status: 'in_progress'
+    });
+  };
+
+  const handleCreditAppSubmit = () => {
+    if (!creditAppData.firstName || !creditAppData.lastName || !creditAppData.ssn) {
+      toast({
+        title: "Required Fields Missing",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    createCreditAppMutation.mutate(creditAppData);
+  };
+
+  const handleAddNote = () => {
+    if (!newNote.trim()) {
+      toast({
+        title: "Empty Note",
+        description: "Please enter a note before adding.",
+        variant: "destructive",
+      });
+      return;
+    }
+    addNoteMutation.mutate({
+      content: newNote,
+      noteType: 'general'
+    });
+  };
 
   if (isLoading) {
     return (
@@ -348,6 +501,232 @@ export default function DealJacket() {
           </div>
         </TabsContent>
 
+        {/* Customer Tab */}
+        <TabsContent value="customer" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Vehicle Selection */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Vehicle Selection</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="vehicle-select">Select Vehicle</Label>
+                  <Select onValueChange={handleVehicleSelect}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a vehicle" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {vehicles?.map((vehicle) => (
+                        <SelectItem key={vehicle.id} value={vehicle.id}>
+                          {vehicle.year} {vehicle.make} {vehicle.model} - ${vehicle.price?.toLocaleString()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {selectedVehicle && (
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium mb-2">Selected Vehicle</h4>
+                    <p className="text-sm text-gray-600">
+                      {selectedVehicle.year} {selectedVehicle.make} {selectedVehicle.model}
+                    </p>
+                    <p className="text-lg font-semibold text-green-600">
+                      ${selectedVehicle.price?.toLocaleString()}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Sales Consultant */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Sales Consultant</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div>
+                  <Label htmlFor="consultant-select">Assign Sales Consultant</Label>
+                  <Select onValueChange={setSelectedConsultant}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select consultant" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {salesConsultants?.filter(user => user.role === 'sales_consultant')?.map((consultant) => (
+                        <SelectItem key={consultant.id} value={consultant.id}>
+                          {consultant.firstName} {consultant.lastName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <Button 
+                  onClick={handleCreateDeal} 
+                  className="w-full mt-4 bg-green-600 hover:bg-green-700"
+                  disabled={createDealMutation.isPending}
+                >
+                  {createDealMutation.isPending ? 'Creating...' : 'Create Deal'}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Credit & Compliance Tab */}
+        <TabsContent value="credit" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Credit Applications</CardTitle>
+                <Button onClick={() => setShowCreditApp(true)} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Application
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {dealJacket?.creditApplications?.map((app) => (
+                    <div key={app.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-sm">{app.firstName} {app.lastName}</p>
+                        <p className="text-xs text-gray-600">{app.applicationType}</p>
+                      </div>
+                      <Badge className={`text-xs ${
+                        app.creditDecision === 'approved' ? 'bg-green-100 text-green-800' :
+                        app.creditDecision === 'declined' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {app.creditDecision || 'Pending'}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Trade & Co-applicant */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Additional Options</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => setShowTradeDialog(true)}
+                >
+                  <Car className="w-4 h-4 mr-2" />
+                  Add Trade-In
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => setShowCoApplicantDialog(true)}
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Add Co-Applicant
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Deal Structure Tab */}
+        <TabsContent value="structure" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Showroom Log</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Time In</Label>
+                    <Input type="time" />
+                  </div>
+                  <div>
+                    <Label>Time Out</Label>
+                    <Input type="time" />
+                  </div>
+                </div>
+                <div>
+                  <Label>Activities</Label>
+                  <Textarea placeholder="Log customer activities..." />
+                </div>
+                <Button className="w-full">Save Log Entry</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Deal History Tab with Notes */}
+        <TabsContent value="history" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Notes</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Textarea
+                    placeholder="Add a note..."
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+                <Button 
+                  onClick={handleAddNote}
+                  disabled={addNoteMutation.isPending || !newNote.trim()}
+                >
+                  {addNoteMutation.isPending ? 'Adding...' : 'Add Note'}
+                </Button>
+                
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {dealJacket?.history?.filter(h => h.action === 'Note Added')?.map((note) => (
+                    <div key={note.id} className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm">{note.description}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(note.timestamp).toLocaleString()} - {note.performedBy}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Deal Activity History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {dealJacket?.history?.map((entry) => (
+                    <div key={entry.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <History className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-sm">{entry.action}</h4>
+                          <span className="text-xs text-gray-500">
+                            {new Date(entry.timestamp).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">{entry.description}</p>
+                        <p className="text-xs text-gray-500 mt-2">by {entry.performedBy}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
         {/* Documents Tab */}
         <TabsContent value="documents" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -469,6 +848,216 @@ export default function DealJacket() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Credit Application Dialog */}
+      <Dialog open={showCreditApp} onOpenChange={setShowCreditApp}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>New Credit Application</DialogTitle>
+            <DialogDescription>
+              Complete the secure credit application form
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>First Name *</Label>
+              <Input
+                value={creditAppData.firstName}
+                onChange={(e) => setCreditAppData({...creditAppData, firstName: e.target.value})}
+                placeholder="First name"
+              />
+            </div>
+            <div>
+              <Label>Last Name *</Label>
+              <Input
+                value={creditAppData.lastName}
+                onChange={(e) => setCreditAppData({...creditAppData, lastName: e.target.value})}
+                placeholder="Last name"
+              />
+            </div>
+            <div>
+              <Label>SSN *</Label>
+              <Input
+                value={creditAppData.ssn}
+                onChange={(e) => setCreditAppData({...creditAppData, ssn: e.target.value})}
+                placeholder="XXX-XX-XXXX"
+                type="password"
+              />
+            </div>
+            <div>
+              <Label>Date of Birth</Label>
+              <Input
+                value={creditAppData.dateOfBirth}
+                onChange={(e) => setCreditAppData({...creditAppData, dateOfBirth: e.target.value})}
+                type="date"
+              />
+            </div>
+            <div>
+              <Label>Annual Income</Label>
+              <Input
+                value={creditAppData.annualIncome}
+                onChange={(e) => setCreditAppData({...creditAppData, annualIncome: e.target.value})}
+                placeholder="Annual income"
+                type="number"
+              />
+            </div>
+            <div>
+              <Label>Employment</Label>
+              <Input
+                value={creditAppData.employment}
+                onChange={(e) => setCreditAppData({...creditAppData, employment: e.target.value})}
+                placeholder="Employer name"
+              />
+            </div>
+            <div>
+              <Label>Desired Monthly Payment</Label>
+              <Input
+                value={creditAppData.monthlyPayment}
+                onChange={(e) => setCreditAppData({...creditAppData, monthlyPayment: e.target.value})}
+                placeholder="Monthly payment"
+                type="number"
+              />
+            </div>
+            <div>
+              <Label>Down Payment</Label>
+              <Input
+                value={creditAppData.downPayment}
+                onChange={(e) => setCreditAppData({...creditAppData, downPayment: e.target.value})}
+                placeholder="Down payment"
+                type="number"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreditApp(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreditAppSubmit}
+              disabled={createCreditAppMutation.isPending}
+            >
+              {createCreditAppMutation.isPending ? 'Submitting...' : 'Submit Application'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Trade-In Dialog */}
+      <Dialog open={showTradeDialog} onOpenChange={setShowTradeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Trade-In Vehicle</DialogTitle>
+            <DialogDescription>
+              Enter details about the customer's trade-in vehicle
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label>Year</Label>
+                <Input placeholder="2020" />
+              </div>
+              <div>
+                <Label>Make</Label>
+                <Input placeholder="Toyota" />
+              </div>
+              <div>
+                <Label>Model</Label>
+                <Input placeholder="Camry" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Mileage</Label>
+                <Input placeholder="50,000" type="number" />
+              </div>
+              <div>
+                <Label>Condition</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select condition" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="excellent">Excellent</SelectItem>
+                    <SelectItem value="good">Good</SelectItem>
+                    <SelectItem value="fair">Fair</SelectItem>
+                    <SelectItem value="poor">Poor</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>Estimated Value</Label>
+              <Input placeholder="15,000" type="number" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTradeDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => setShowTradeDialog(false)}>
+              Add Trade-In
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Co-Applicant Dialog */}
+      <Dialog open={showCoApplicantDialog} onOpenChange={setShowCoApplicantDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Co-Applicant</DialogTitle>
+            <DialogDescription>
+              Add a co-applicant to this deal
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>First Name</Label>
+                <Input placeholder="First name" />
+              </div>
+              <div>
+                <Label>Last Name</Label>
+                <Input placeholder="Last name" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>SSN</Label>
+                <Input placeholder="XXX-XX-XXXX" type="password" />
+              </div>
+              <div>
+                <Label>Date of Birth</Label>
+                <Input type="date" />
+              </div>
+            </div>
+            <div>
+              <Label>Relationship to Primary Applicant</Label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select relationship" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="spouse">Spouse</SelectItem>
+                  <SelectItem value="partner">Partner</SelectItem>
+                  <SelectItem value="parent">Parent</SelectItem>
+                  <SelectItem value="child">Child</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCoApplicantDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => setShowCoApplicantDialog(false)}>
+              Add Co-Applicant
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
