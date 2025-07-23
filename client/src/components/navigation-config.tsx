@@ -73,9 +73,10 @@ export const navigation: NavigationItem[] = [
     name: "Accounting Department", 
     isSection: true,
     children: [
-      { name: "Financial Reports", href: "/accounting/reports", icon: DollarSign },
+      { name: "Accounting Dashboard", href: "/accounting", icon: DollarSign },
+      { name: "Financial Reports", href: "/accounting/reports", icon: BarChart3 },
       { name: "Payroll", href: "/accounting/payroll", icon: Users },
-      { name: "Transactions", href: "/accounting/transactions", icon: BarChart3 },
+      { name: "Transactions", href: "/accounting/transactions", icon: FileText },
     ]
   },
   
