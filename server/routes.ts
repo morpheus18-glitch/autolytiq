@@ -3271,6 +3271,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Deal Jacket API endpoints
+  app.get('/api/deal-jackets/:id', async (req, res) => {
+    try {
+      const dealId = req.params.id;
+      const deal = await storage.getDeal(dealId);
+      if (!deal) {
+        return res.status(404).json({ message: 'Deal jacket not found' });
+      }
+      res.json(deal);
+    } catch (error) {
+      console.error('Error fetching deal jacket:', error);
+      res.status(500).json({ message: 'Failed to fetch deal jacket' });
+    }
+  });
+
+  app.patch('/api/deal-jackets/:id', async (req, res) => {
+    try {
+      const dealId = req.params.id;
+      const updates = req.body;
+      const deal = await storage.updateDeal(dealId, updates);
+      if (!deal) {
+        return res.status(404).json({ message: 'Deal jacket not found' });
+      }
+      res.json(deal);
+    } catch (error) {
+      console.error('Error updating deal jacket:', error);
+      res.status(500).json({ message: 'Failed to update deal jacket' });
+    }
+  });
+
+  app.post('/api/deal-jackets/:id/credit-applications', async (req, res) => {
+    try {
+      const dealId = req.params.id;
+      const appData = {
+        ...req.body,
+        dealId: dealId,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      };
+      
+      // Simulate creating credit application
+      const creditApp = await storage.createCreditApplication(appData);
+      res.status(201).json(creditApp);
+    } catch (error) {
+      console.error('Error creating credit application:', error);
+      res.status(500).json({ message: 'Failed to create credit application' });
+    }
+  });
+
+  app.post('/api/deal-jackets/:id/notes', async (req, res) => {
+    try {
+      const dealId = req.params.id;
+      const noteData = {
+        ...req.body,
+        dealId: dealId,
+        timestamp: new Date().toISOString(),
+        performedBy: 'Current User' // In real app, get from session
+      };
+      
+      const note = await storage.addDealNote(dealId, noteData);
+      res.status(201).json(note);
+    } catch (error) {
+      console.error('Error adding note:', error);
+      res.status(500).json({ message: 'Failed to add note' });
+    }
+  });
+
   app.post('/api/deals', async (req, res) => {
     try {
       const dealData = req.body;

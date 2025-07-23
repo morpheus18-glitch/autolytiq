@@ -159,6 +159,9 @@ export interface IStorage {
   finalizeDeal(id: string, finalData: any): Promise<Deal | undefined>;
   deleteDeal(id: string): Promise<void>;
   
+  // Deal Jacket specific operations
+  addDealNote(dealId: string, noteData: any): Promise<any>;
+  
   // Credit application operations
   getCreditApplications(customerId: number): Promise<CreditApplication[]>;
   getCreditApplication(id: number): Promise<CreditApplication | undefined>;
@@ -2467,6 +2470,30 @@ export class MemStorage implements IStorage {
       await this.updateDeal(dealId, finalData);
     }
     return await this.updateDealStatus(dealId, 'finalized');
+  }
+
+  // Deal Jacket specific operations
+  async addDealNote(dealId: string, noteData: any): Promise<any> {
+    const note = {
+      id: `note_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+      dealId,
+      action: 'Note Added',
+      description: noteData.content,
+      performedBy: noteData.performedBy || 'Current User',
+      timestamp: new Date().toISOString(),
+      ...noteData,
+    };
+    
+    // Add to deal history (using salesperson notes table for storage)
+    await this.createSalespersonNote({
+      customerId: 0, // For deal notes, we'll use 0 as a special marker
+      salespersonId: 'system',
+      note: noteData.content,
+      noteType: noteData.noteType || 'general',
+      followUpRequired: noteData.followUpRequired || false
+    });
+    
+    return note;
   }
 
   private generateDealNumber(): string {
