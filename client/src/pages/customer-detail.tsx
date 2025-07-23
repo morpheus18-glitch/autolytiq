@@ -3,7 +3,7 @@ import { useParams, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Edit, Phone, Mail, MapPin, CreditCard, User, Calendar, Target } from 'lucide-react';
+import { ArrowLeft, Edit, Phone, Mail, MapPin, CreditCard, User, Calendar, Target, MessageSquare, Car, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Customer } from '@shared/schema';
 
@@ -195,21 +195,54 @@ export default function CustomerDetail() {
                   </p>
                 </div>
               </div>
-              {customer.updatedAt && (
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-green-600 rounded-full mt-2"></div>
-                  <div>
-                    <p className="text-sm font-medium">Last Updated</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(customer.updatedAt).toLocaleDateString()}
-                    </p>
-                  </div>
+              <div className="flex items-start space-x-3">
+                <div className="w-2 h-2 bg-green-600 rounded-full mt-2"></div>
+                <div>
+                  <p className="text-sm font-medium">Last Updated</p>
+                  <p className="text-xs text-gray-500">
+                    {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString() : 'Unknown'}
+                  </p>
                 </div>
-              )}
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Customer Action Tabs */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Customer Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Link href={`/customers/${customer.id}/texting`}>
+              <Button variant="outline" className="w-full justify-start">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Texting Portal
+              </Button>
+            </Link>
+            <Link href={`/customers/${customer.id}/calls`}>
+              <Button variant="outline" className="w-full justify-start">
+                <Phone className="h-4 w-4 mr-2" />
+                Phone Calls
+              </Button>
+            </Link>
+            <Link href={`/showroom-manager?customerId=${customer.id}`}>
+              <Button variant="outline" className="w-full justify-start">
+                <Car className="h-4 w-4 mr-2" />
+                Showroom Session
+              </Button>
+            </Link>
+            <Link href={`/deals?customerId=${customer.id}`}>
+              <Button variant="outline" className="w-full justify-start">
+                <FileText className="h-4 w-4 mr-2" />
+                View Deals
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Notes Section */}
       {customer.notes && (
