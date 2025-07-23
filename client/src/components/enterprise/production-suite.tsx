@@ -156,7 +156,7 @@ export default function ProductionSuite() {
         "Purchase predictions",
         "Churn prevention"
       ],
-      href: "/?tab=intelligence"
+      href: "/ai-smart-search"
     },
     {
       title: "Workflow Automation",
@@ -173,7 +173,7 @@ export default function ProductionSuite() {
         "Process templates",
         "Performance monitoring"
       ],
-      href: "/?tab=workflows"
+      href: "/workflow-assistant"
     },
     {
       title: "Advanced Reporting",
@@ -190,7 +190,7 @@ export default function ProductionSuite() {
         "Scheduled delivery",
         "Data visualization"
       ],
-      href: "/?tab=reports"
+      href: "/reports"
     },
     {
       title: "System Health Monitor",
@@ -207,7 +207,7 @@ export default function ProductionSuite() {
         "Uptime tracking",
         "System diagnostics"
       ],
-      href: "/?tab=health"
+      href: "/system-health"
     },
     {
       title: "Enterprise Administration",
