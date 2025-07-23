@@ -4,15 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, Target, Workflow, Zap, Star, Shield, BarChart3, Users, Settings } from "lucide-react";
 import { Link } from "wouter";
-import UnifiedDashboard from "@/components/unified-dashboard";
-import WorkflowIntegration from "@/components/workflow-integration";
-import { EnterpriseDashboardIntegration } from "@/components/enterprise/enterprise-dashboard-integration";
-import ProductionDashboard from "@/components/enterprise/production-dashboard";
-import ProductionSuite from "@/components/enterprise/production-suite";
-import AdvancedReporting from "@/components/enterprise/advanced-reporting";
-import CustomerIntelligence from "@/components/enterprise/ai-customer-intelligence";
-import WorkflowAutomation from "@/components/enterprise/workflow-automation";
-import SystemHealth from "@/components/enterprise/system-health";
+import AIUnifiedDashboard from "@/components/enterprise/ai-unified-dashboard";
+import AIProductionSuite from "@/components/enterprise/ai-production-suite";
+import AIAdvancedReporting from "@/components/enterprise/ai-advanced-reporting";
+import AICustomerIntelligence from "@/components/enterprise/ai-customer-intelligence";
+import AIWorkflowAutomation from "@/components/enterprise/ai-workflow-automation";
+import AISystemHealth from "@/components/enterprise/ai-system-health";
 // Enhanced dual CRM/DMS components
 // import EnhancedVehicleListing from "@/components/enhanced-vehicle-listing";
 // import SmartCRMAssistant from "@/components/smart-crm-assistant";
@@ -67,27 +64,27 @@ export default function Dashboard() {
         </TabsList>
 
         <TabsContent value="production">
-          <ProductionSuite />
+          <AIProductionSuite />
         </TabsContent>
 
         <TabsContent value="overview">
-          <UnifiedDashboard />
+          <AIUnifiedDashboard />
         </TabsContent>
 
         <TabsContent value="intelligence">
-          <CustomerIntelligence />
+          <AICustomerIntelligence />
         </TabsContent>
 
         <TabsContent value="workflows">
-          <WorkflowAutomation />
+          <AIWorkflowAutomation />
         </TabsContent>
 
         <TabsContent value="reports">
-          <AdvancedReporting />
+          <AIAdvancedReporting />
         </TabsContent>
 
         <TabsContent value="health">
-          <SystemHealth />
+          <AISystemHealth />
         </TabsContent>
       </Tabs>
     </div>
