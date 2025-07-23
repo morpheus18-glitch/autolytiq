@@ -62,6 +62,8 @@ import EnterpriseHeader from "@/components/enterprise-header";
 import MobileNavigation from "@/components/mobile-navigation";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { MobileFooterMenu } from "@/components/mobile-footer-menu";
+import DealJacket from "@/pages/deal-jacket";
+import MultiStoreManagement from "@/pages/multi-store-management";
 
 function Router() {
   // Initialize pixel tracking for the entire app
@@ -136,6 +138,10 @@ function Router() {
           <Route path="/ai-smart-search" component={AISmartSearch} />
           <Route path="/workflow-assistant" component={WorkflowAssistant} />
           <Route path="/enterprise-admin" component={EnterpriseAdmin} />
+          
+          {/* Deal Jacket & Multi-Store Routes */}
+          <Route path="/deal-jackets/:id" component={DealJacket} />
+          <Route path="/multi-store-management" component={MultiStoreManagement} />
           
           {/* Service Routes */}
           <Route path="/service/orders" component={ServiceOrdersPage} />
