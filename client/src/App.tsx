@@ -53,6 +53,7 @@ import CommunicationDemo from "@/pages/communication-demo";
 import AISmartSearch from "@/pages/ai-smart-search";
 import WorkflowAssistant from "@/pages/workflow-assistant";
 import EnterpriseAdmin from "@/pages/enterprise-admin";
+import SystemHealth from "@/pages/system-health";
 import FiDashboardPage from "@/pages/fi-dashboard";
 import FiConfigurationPage from "@/pages/fi-configuration";
 import SystemConfiguration from "@/pages/admin/system-configuration";
@@ -138,6 +139,7 @@ function Router() {
           <Route path="/ai-smart-search" component={AISmartSearch} />
           <Route path="/workflow-assistant" component={WorkflowAssistant} />
           <Route path="/enterprise-admin" component={EnterpriseAdmin} />
+          <Route path="/system-health" component={SystemHealth} />
           
           {/* Deal Jacket & Multi-Store Routes */}
           <Route path="/deal-jackets/:id" component={DealJacket} />
