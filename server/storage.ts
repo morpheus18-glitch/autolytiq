@@ -290,6 +290,48 @@ export interface IStorage {
   // Market Benchmarking
   getMarketBenchmarks(metricName?: string, timeframe?: string): Promise<MarketBenchmarks[]>;
   createMarketBenchmark(benchmark: InsertMarketBenchmarks): Promise<MarketBenchmarks>;
+
+  // Accounting System Methods
+  // Chart of Accounts
+  getChartOfAccounts(): Promise<any[]>;
+  createAccount(account: any): Promise<any>;
+  updateAccount(id: string, updates: any): Promise<any>;
+  
+  // Journal Entries
+  getJournalEntries(): Promise<any[]>;
+  createJournalEntry(entry: any): Promise<any>;
+  
+  // Deal Profitability
+  createDealProfitability(data: any): Promise<any>;
+  getDealProfitAnalysis(dealId: string): Promise<any>;
+  createDealJournalEntries(dealId: string, data: any): Promise<void>;
+  
+  // Vehicle Profit Analysis
+  getVehicleProfitAnalysis(vehicleId: string): Promise<any>;
+  getInventoryMetrics(): Promise<any>;
+  getVehicleHistory(vehicleId: string): Promise<any>;
+  getMarketComparison(vehicleId: string): Promise<any>;
+  updateVehicleCosts(vehicleId: string, costs: any): Promise<any>;
+  updateVehiclePricing(vehicleId: string, pricing: any): Promise<any>;
+  markVehicleSold(vehicleId: string, saleData: any): Promise<any>;
+  
+  // CRM Integration
+  getCustomerInteractions(customerId: string): Promise<any[]>;
+  getCustomerDeals(customerId: string): Promise<any[]>;
+  
+  // Trial Balance & Reports
+  getTrialBalance(): Promise<any>;
+  generateIncomeStatement(startDate: string, endDate: string): Promise<any>;
+  generateBalanceSheet(asOfDate: string): Promise<any>;
+  generateCashFlowStatement(startDate: string, endDate: string): Promise<any>;
+  getMonthlyFinancials(month: number, year: number): Promise<any>;
+  
+  // F&I Product Configurations
+  getFiProductConfigs(): Promise<any[]>;
+  createFiProductConfig(product: any): Promise<any>;
+  
+  // Dashboard Metrics
+  getAccountingDashboardMetrics(): Promise<any>;
 }
 
 export class MemStorage implements IStorage {
@@ -3411,6 +3453,265 @@ export class MemStorage implements IStorage {
   }
 
   private notifications: any[] = [];
+
+  // Accounting System Implementation
+  async getChartOfAccounts() {
+    return [
+      { id: 1, accountNumber: '1000', accountName: 'Cash', accountType: 'Asset', category: 'Current Assets', isActive: true, normalBalance: 'Debit' },
+      { id: 2, accountNumber: '1200', accountName: 'Accounts Receivable', accountType: 'Asset', category: 'Current Assets', isActive: true, normalBalance: 'Debit' },
+      { id: 3, accountNumber: '1500', accountName: 'Vehicle Inventory', accountType: 'Asset', category: 'Inventory', isActive: true, normalBalance: 'Debit' },
+      { id: 4, accountNumber: '4100', accountName: 'New Vehicle Sales', accountType: 'Revenue', category: 'Vehicle Sales', isActive: true, normalBalance: 'Credit' },
+      { id: 5, accountNumber: '4200', accountName: 'Used Vehicle Sales', accountType: 'Revenue', category: 'Vehicle Sales', isActive: true, normalBalance: 'Credit' },
+      { id: 6, accountNumber: '4300', accountName: 'F&I Revenue', accountType: 'Revenue', category: 'Finance & Insurance', isActive: true, normalBalance: 'Credit' }
+    ];
+  }
+
+  async createAccount(account: any) {
+    return { id: Date.now(), ...account, createdAt: new Date(), updatedAt: new Date() };
+  }
+
+  async updateAccount(id: string, updates: any) {
+    return { id: parseInt(id), ...updates, updatedAt: new Date() };
+  }
+
+  async getJournalEntries() {
+    return [
+      { 
+        id: 1, 
+        entryNumber: 'JE-001', 
+        entryDate: '2025-01-23', 
+        description: 'Vehicle Sale - 2024 Toyota Camry',
+        totalDebit: 25000,
+        totalCredit: 25000,
+        isPosted: true,
+        lines: [
+          { accountId: 1, accountName: 'Cash', debitAmount: 25000, creditAmount: 0 },
+          { accountId: 4, accountName: 'New Vehicle Sales', debitAmount: 0, creditAmount: 25000 }
+        ]
+      }
+    ];
+  }
+
+  async createJournalEntry(entry: any) {
+    return { id: Date.now(), ...entry, createdAt: new Date() };
+  }
+
+  async createDealProfitability(data: any) {
+    return { id: Date.now(), ...data, createdAt: new Date() };
+  }
+
+  async getDealProfitAnalysis(dealId: string) {
+    return {
+      dealId,
+      vehicleCost: 22000,
+      sellingPrice: 25000,
+      frontEndGross: 3000,
+      backEndGross: 1500,
+      totalProfit: 4500,
+      profitMargin: 18.0,
+      financeReserve: 800,
+      fiProducts: 700
+    };
+  }
+
+  async createDealJournalEntries(dealId: string, data: any) {
+    // Stub implementation - would create GL entries for the deal
+    return;
+  }
+
+  async getVehicleProfitAnalysis(vehicleId: string) {
+    return {
+      vehicleId,
+      cost: 22000,
+      currentPrice: 25000,
+      projectedProfit: 3000,
+      daysInInventory: 45,
+      marketComparison: 'competitive'
+    };
+  }
+
+  async getInventoryMetrics() {
+    return {
+      totalVehicles: 156,
+      totalValue: 8500000,
+      averageDaysInStock: 38,
+      fastMoving: 23,
+      slowMoving: 12,
+      averageCost: 28500,
+      averageSellingPrice: 32000
+    };
+  }
+
+  async getVehicleHistory(vehicleId: string) {
+    return [
+      { date: '2025-01-01', event: 'Vehicle Added to Inventory', user: 'System' },
+      { date: '2025-01-15', event: 'Price Adjusted', user: 'Mike Johnson', details: 'Reduced by $500' },
+      { date: '2025-01-20', event: 'Customer Interest', user: 'Sarah Wilson', details: 'Test drive scheduled' }
+    ];
+  }
+
+  async getMarketComparison(vehicleId: string) {
+    return {
+      ourPrice: 25000,
+      marketAverage: 25500,
+      marketHigh: 27000,
+      marketLow: 24000,
+      competitivePosition: 'competitive',
+      daysToSell: 35
+    };
+  }
+
+  async updateVehicleCosts(vehicleId: string, costs: any) {
+    return { vehicleId, ...costs, updatedAt: new Date() };
+  }
+
+  async updateVehiclePricing(vehicleId: string, pricing: any) {
+    return { vehicleId, ...pricing, updatedAt: new Date() };
+  }
+
+  async markVehicleSold(vehicleId: string, saleData: any) {
+    return { vehicleId, status: 'sold', ...saleData, soldAt: new Date() };
+  }
+
+  async getCustomerInteractions(customerId: string) {
+    return [
+      { id: 1, type: 'phone_call', date: '2025-01-20', notes: 'Discussed financing options' },
+      { id: 2, type: 'showroom_visit', date: '2025-01-22', notes: 'Test drove 2024 Camry' }
+    ];
+  }
+
+  async getCustomerDeals(customerId: string) {
+    return [
+      { id: 1, vehicle: '2024 Toyota Camry', status: 'pending', estimatedValue: 25000 }
+    ];
+  }
+
+  async getTrialBalance() {
+    return {
+      assets: [
+        { account: 'Cash', debit: 150000, credit: 0, balance: 150000 },
+        { account: 'Accounts Receivable', debit: 75000, credit: 0, balance: 75000 },
+        { account: 'Vehicle Inventory', debit: 8500000, credit: 0, balance: 8500000 }
+      ],
+      liabilities: [
+        { account: 'Accounts Payable', debit: 0, credit: 320000, balance: -320000 }
+      ],
+      equity: [
+        { account: 'Owner Equity', debit: 0, credit: 500000, balance: -500000 }
+      ],
+      revenue: [
+        { account: 'Vehicle Sales', debit: 0, credit: 2450000, balance: -2450000 }
+      ],
+      expenses: [
+        { account: 'Operating Expenses', debit: 185000, credit: 0, balance: 185000 }
+      ]
+    };
+  }
+
+  async generateIncomeStatement(startDate: string, endDate: string) {
+    return {
+      period: `${startDate} to ${endDate}`,
+      revenue: {
+        newVehicleSales: 1500000,
+        usedVehicleSales: 950000,
+        fiRevenue: 210000,
+        serviceRevenue: 285000,
+        totalRevenue: 2945000
+      },
+      expenses: {
+        costOfGoodsSold: 2200000,
+        operatingExpenses: 560000,
+        totalExpenses: 2760000
+      },
+      netIncome: 185000
+    };
+  }
+
+  async generateBalanceSheet(asOfDate: string) {
+    return {
+      asOfDate,
+      assets: {
+        currentAssets: {
+          cash: 150000,
+          accountsReceivable: 75000,
+          inventory: 8500000,
+          totalCurrentAssets: 8725000
+        },
+        fixedAssets: {
+          equipment: 500000,
+          building: 2000000,
+          totalFixedAssets: 2500000
+        },
+        totalAssets: 11225000
+      },
+      liabilities: {
+        currentLiabilities: {
+          accountsPayable: 320000,
+          shortTermDebt: 100000,
+          totalCurrentLiabilities: 420000
+        },
+        longTermDebt: 2000000,
+        totalLiabilities: 2420000
+      },
+      equity: {
+        ownerEquity: 8805000,
+        totalEquity: 8805000
+      }
+    };
+  }
+
+  async generateCashFlowStatement(startDate: string, endDate: string) {
+    return {
+      period: `${startDate} to ${endDate}`,
+      operatingActivities: {
+        netIncome: 185000,
+        adjustments: 50000,
+        netCashFromOperations: 235000
+      },
+      investingActivities: {
+        equipmentPurchases: -75000,
+        netCashFromInvesting: -75000
+      },
+      financingActivities: {
+        loanPayments: -50000,
+        netCashFromFinancing: -50000
+      },
+      netCashFlow: 110000
+    };
+  }
+
+  async getMonthlyFinancials(month: number, year: number) {
+    return [
+      { account: 'Vehicle Sales', beginningBalance: 0, debits: 0, credits: 450000, endingBalance: 450000 },
+      { account: 'F&I Revenue', beginningBalance: 0, debits: 0, credits: 85000, endingBalance: 85000 }
+    ];
+  }
+
+  async getFiProductConfigs() {
+    return [
+      { id: 1, productName: 'Extended Warranty', productType: 'warranty', provider: 'AutoGuard', isActive: true, baseCommission: 25.0 },
+      { id: 2, productName: 'GAP Insurance', productType: 'gap', provider: 'SafeGap', isActive: true, baseCommission: 30.0 }
+    ];
+  }
+
+  async createFiProductConfig(product: any) {
+    return { id: Date.now(), ...product, createdAt: new Date() };
+  }
+
+  async getAccountingDashboardMetrics() {
+    return {
+      monthlyRevenue: 2450000,
+      grossProfit: 485000,
+      netProfit: 185000,
+      activeDeals: 34,
+      pendingFinalization: 12,
+      completedDeals: 156,
+      averageDealProfit: 3200,
+      inventoryValue: 8500000,
+      receivables: 450000,
+      payables: 320000
+    };
+  }
 }
 
 export const storage = new MemStorage();
