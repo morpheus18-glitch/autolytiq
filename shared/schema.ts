@@ -1344,6 +1344,9 @@ export type InsertCompetitivePricing = z.infer<typeof insertCompetitivePricingSc
 export type InsertPricingInsights = z.infer<typeof insertPricingInsightsSchema>;
 export type InsertMerchandisingStrategies = z.infer<typeof insertMerchandisingStrategiesSchema>;
 export type InsertMarketTrends = z.infer<typeof insertMarketTrendsSchema>;
+
+// Import Accounting Schema Tables for DMS Accounting Suite
+export * from './accounting-schema';
 export type InsertCustomerNote = z.infer<typeof insertCustomerNoteSchema>;
 export type InsertCustomerCall = z.infer<typeof insertCustomerCallSchema>;
 export type InsertCustomerVehicleOfInterest = z.infer<typeof insertCustomerVehicleOfInterestSchema>;
