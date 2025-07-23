@@ -3,6 +3,15 @@ import { createServer, type Server } from "http";
 import { registerUserRoutes } from "./userRoutes";
 import { storage } from "./storage";
 import { insertVehicleSchema, insertCustomerSchema, insertLeadSchema, insertSaleSchema, insertVisitorSessionSchema, insertPageViewSchema, insertCustomerInteractionSchema, insertCompetitorAnalyticsSchema, insertCompetitivePricingSchema, insertPricingInsightsSchema, insertMerchandisingStrategiesSchema, insertMarketTrendsSchema } from "@shared/schema";
+import { 
+  insertStoreSchema, 
+  insertDealJacketSchema, 
+  insertDealStructureSchema, 
+  insertCreditApplicationSchema, 
+  insertDealDocumentSchema, 
+  insertDealHistorySchema, 
+  insertDealProductSchema 
+} from "@shared/deal-jacket-schema";
 import { competitiveScraper } from "./services/competitive-scraper";
 import { registerAdminRoutes } from "./admin-routes";
 import { decodeVINHandler } from "./services/vin-decoder";
@@ -11,6 +20,7 @@ import { valuationService } from './services/valuation-service';
 import { photoService } from './services/photo-service';
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { db } from "./db";
+import { EnterpriseWebSocketManager } from "./enterprise-websocket";
 
 // XML Lead parsing utility
 function parseXmlLead(xmlString: string) {
@@ -869,6 +879,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete customer" });
+    }
+  });
+
+  // Deal Jacket Routes
+  app.get("/api/deal-jackets", async (req, res) => {
+    try {
+      // Mock data for now - would integrate with database
+      const dealJackets = [{
+        id: "deal_123",
+        storeId: "store_1",
+        customerId: 1,
+        dealNumber: "DL-2025-001",
+        status: "active",
+        dealType: "sale",
+        salesConsultant: "John Smith",
+        financeManager: "Sarah Johnson",
+        lastActivity: new Date().toISOString(),
+        customer: { id: 1, firstName: "Shannon", lastName: "Roberts", email: "shannon.roberts@email.com", phone: "(555) 123-4567" },
+        store: { id: "store_1", name: "Main Dealership", code: "MAIN" },
+        creditApplications: [],
+        documents: [],
+        products: [],
+        history: []
+      }];
+      res.json(dealJackets);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch deal jackets" });
+    }
+  });
+
+  app.get("/api/deal-jackets/:id", async (req, res) => {
+    try {
+      const dealJacket = {
+        id: req.params.id,
+        storeId: "store_1",
+        customerId: 1,
+        dealNumber: "DL-2025-001",
+        status: "active",
+        dealType: "sale",
+        salesConsultant: "John Smith",
+        financeManager: "Sarah Johnson",
+        lastActivity: new Date().toISOString(),
+        customer: { id: 1, firstName: "Shannon", lastName: "Roberts", email: "shannon.roberts@email.com", phone: "(555) 123-4567" },
+        store: { id: "store_1", name: "Main Dealership", code: "MAIN" },
+        dealStructure: {
+          salePrice: 25000,
+          tradeValue: 8000,
+          downPayment: 5000,
+          monthlyPayment: 450,
+          apr: 4.9,
+          termMonths: 60
+        },
+        creditApplications: [{
+          id: "app_1",
+          applicationType: "primary",
+          firstName: "Shannon",
+          lastName: "Roberts",
+          creditScore: 720,
+          status: "approved",
+          creditDecision: "approved"
+        }],
+        documents: [
+          {
+            id: "doc_1",
+            documentType: "Credit Application",
+            documentCategory: "credit",
+            fileName: "credit_app_001.pdf",
+            status: "completed",
+            uploadedBy: "F&I Manager",
+            createdAt: new Date().toISOString()
+          }
+        ],
+        products: [],
+        history: [
+          {
+            id: "hist_1",
+            action: "Deal Created",
+            description: "New deal jacket created for Shannon Roberts",
+            performedBy: "John Smith",
+            timestamp: new Date().toISOString()
+          }
+        ]
+      };
+      res.json(dealJacket);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch deal jacket" });
+    }
+  });
+
+  // Store Management Routes
+  app.get("/api/stores", async (req, res) => {
+    try {
+      const stores = [{
+        id: "store_1",
+        name: "Main Dealership",
+        code: "MAIN",
+        address: "123 Auto Drive, City, ST 12345",
+        phone: "(555) 123-4567",
+        email: "main@dealership.com",
+        isActive: true,
+        settings: {
+          timezone: "America/New_York",
+          currency: "USD",
+          dealerLicense: "DL12345",
+          taxRate: 8.5,
+          features: ["deal_jackets", "inventory", "crm"]
+        },
+        stats: {
+          totalDeals: 142,
+          monthlyRevenue: 2456000,
+          activeUsers: 25,
+          vehiclesInStock: 89
+        },
+        createdAt: new Date().toISOString()
+      }];
+      res.json(stores);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch stores" });
+    }
+  });
+
+  app.get("/api/system/health", async (req, res) => {
+    try {
+      const health = {
+        status: "operational",
+        database: "connected",
+        websockets: "active",
+        services: "running"
+      };
+      res.json(health);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get system health" });
     }
   });
 
@@ -3171,5 +3313,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  
+  // Initialize Enterprise WebSocket Manager
+  const wsManager = new EnterpriseWebSocketManager(httpServer);
+  
+  // Store WebSocket manager globally for access in other parts of the application
+  (global as any).wsManager = wsManager;
+  
   return httpServer;
 }

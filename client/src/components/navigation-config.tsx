@@ -12,6 +12,7 @@ import {
   Shield,
   Workflow,
   MessageSquare,
+  Building,
   Wrench,
   DollarSign,
   Settings,
@@ -44,6 +45,7 @@ export const navigation: NavigationItem[] = [
       { name: "Customers", href: "/customers", icon: Users },
       { name: "Deals", href: "/deals-list", icon: FileText },
       { name: "Showroom Manager", href: "/showroom-manager", icon: Timer },
+      { name: "Deal Jackets", href: "/deal-jackets/deal_123", icon: FileText },
       { name: "Analytics", href: "/analytics", icon: TrendingUp },
       { name: "Reports", href: "/reports", icon: BarChart3 },
       { name: "Competitive Pricing", href: "/competitive-pricing", icon: Target },
@@ -87,6 +89,8 @@ export const navigation: NavigationItem[] = [
       { name: "System Configuration", href: "/admin/system-configuration", icon: Settings },
       { name: "Lead Distribution", href: "/admin/lead-distribution", icon: Target },
       { name: "Enterprise Config", href: "/admin/comprehensive-settings", icon: Settings },
+      { name: "Multi-Store Management", href: "/multi-store-management", icon: Building },
+      { name: "Multi-Store Management", href: "/multi-store-management", icon: Building },
     ]
   },
 ];
