@@ -61,7 +61,7 @@ import UserProfile from "@/pages/admin/user-profile";
 import EnterpriseHeader from "@/components/enterprise-header";
 import MobileNavigation from "@/components/mobile-navigation";
 import { ThemeProvider } from "@/contexts/theme-context";
-import { SimpleSessionBar } from "@/components/workspace/simple-session-bar";
+import { MobileFooterMenu } from "@/components/mobile-footer-menu";
 
 function Router() {
   // Initialize pixel tracking for the entire app
@@ -93,7 +93,7 @@ function Router() {
   return (
     <SidebarManager>
       <EnterpriseHeader />
-      <div className="h-full overflow-auto bg-background pb-16 md:pb-0 pt-2">
+      <div className="h-full overflow-auto bg-background pb-20 md:pb-0 pt-2">
           <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/inventory" component={Inventory} />
@@ -161,7 +161,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
-          <SimpleSessionBar />
+          <MobileFooterMenu />
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
