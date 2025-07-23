@@ -10,6 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   User,
   Car,
@@ -125,18 +127,54 @@ export default function DealJacket() {
     downPayment: ''
   });
 
-  const { data: dealJacket, isLoading } = useQuery({
+  const defaultDealJacket: DealJacket = {
+    id: id || '',
+    storeId: 'store-001',
+    customerId: 1,
+    dealNumber: `DEAL-${Date.now()}`,
+    status: 'structuring',
+    dealType: 'retail',
+    salesConsultant: '',
+    financeManager: '',
+    lastActivity: new Date().toISOString(),
+    customer: {
+      id: 1,
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john.doe@example.com',
+      phone: '(555) 123-4567'
+    },
+    store: {
+      id: 'store-001',
+      name: 'Main Dealership',
+      code: 'MAIN'
+    },
+    dealStructure: {
+      salePrice: 0,
+      tradeValue: 0,
+      downPayment: 0,
+      monthlyPayment: 0,
+      apr: 0,
+      termMonths: 60
+    },
+    creditApplications: [],
+    documents: [],
+    products: [],
+    history: []
+  };
+
+  const { data: dealJacket = defaultDealJacket, isLoading } = useQuery<DealJacket>({
     queryKey: ['/api/deal-jackets', id],
     enabled: !!id,
   });
 
   // Fetch vehicles for price auto-population
-  const { data: vehicles } = useQuery({
+  const { data: vehicles = [] } = useQuery({
     queryKey: ['/api/vehicles'],
   });
 
   // Fetch sales consultants for dropdown
-  const { data: salesConsultants } = useQuery({
+  const { data: salesConsultants = [] } = useQuery({
     queryKey: ['/api/users'],
   });
 
@@ -246,7 +284,7 @@ export default function DealJacket() {
     createDealMutation.mutate({
       vehicleId: selectedVehicle.id,
       salesConsultant: selectedConsultant,
-      customerId: dealJacket?.customer?.id,
+      customerId: dealJacket?.customer?.id || 1,
       status: 'in_progress'
     });
   };
