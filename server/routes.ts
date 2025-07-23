@@ -14,6 +14,7 @@ import {
 } from "@shared/deal-jacket-schema";
 import { competitiveScraper } from "./services/competitive-scraper";
 import { registerAdminRoutes } from "./admin-routes";
+import { registerAccountingRoutes } from "./accounting-routes";
 import { decodeVINHandler } from "./services/vin-decoder";
 import { mlBackend } from "./ml-integration";
 import { valuationService } from './services/valuation-service';
@@ -2568,6 +2569,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register admin routes
   registerAdminRoutes(app);
+
+  // Register accounting routes
+  registerAccountingRoutes(app);
 
   // Import and use notification routes
   const notificationRoutes = (await import('./notificationRoutes')).default;

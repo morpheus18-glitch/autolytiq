@@ -42,6 +42,7 @@ import ServiceReportsPage from "@/pages/service/reports";
 import FinancialReportsPage from "@/pages/accounting/reports";
 import PayrollPage from "@/pages/accounting/payroll";
 import TransactionsPage from "@/pages/accounting/transactions";
+import AccountingDashboard from "@/pages/accounting/accounting-dashboard";
 import SidebarManager from "@/components/sidebar-manager";
 import { usePixelTracker } from "@/hooks/use-pixel-tracker";
 import AuthTest from "@/pages/auth-test";
@@ -151,6 +152,7 @@ function Router() {
           <Route path="/service/reports" component={ServiceReportsPage} />
           
           {/* Accounting Routes */}
+          <Route path="/accounting" component={AccountingDashboard} />
           <Route path="/accounting/reports" component={FinancialReportsPage} />
           <Route path="/accounting/payroll" component={PayrollPage} />
           <Route path="/accounting/transactions" component={TransactionsPage} />
