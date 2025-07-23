@@ -281,7 +281,7 @@ export default function DealsFinance() {
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
-              onClick={() => navigate(`/deals-desk?dealId=${dealId}`)}
+              onClick={() => navigate(`/deal-desk?dealId=${dealId}`)}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Desk
