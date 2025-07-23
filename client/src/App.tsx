@@ -43,7 +43,7 @@ import FinancialReportsPage from "@/pages/accounting/reports";
 import PayrollPage from "@/pages/accounting/payroll";
 import TransactionsPage from "@/pages/accounting/transactions";
 import AccountingDashboard from "@/pages/accounting/accounting-dashboard";
-import SidebarManager from "@/components/sidebar-manager";
+import TopNavbar from "@/components/top-navbar";
 import { usePixelTracker } from "@/hooks/use-pixel-tracker";
 import AuthTest from "@/pages/auth-test";
 // Communication Pages
@@ -60,7 +60,7 @@ import FiConfigurationPage from "@/pages/fi-configuration";
 import SystemConfiguration from "@/pages/admin/system-configuration";
 import UserManagement from "@/pages/admin/user-management";
 import UserProfile from "@/pages/admin/user-profile";
-import EnterpriseHeader from "@/components/enterprise-header";
+import DealFinalization from "@/pages/accounting/deal-finalization";
 
 import { ThemeProvider } from "@/contexts/theme-context";
 import { MobileFooterMenu } from "@/components/mobile-footer-menu";
@@ -95,72 +95,97 @@ function Router() {
   }
   
   return (
-    <SidebarManager>
-      <EnterpriseHeader />
-      <div className="h-full overflow-auto bg-background pb-20 md:pb-0 pt-2">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <TopNavbar />
+      <main className="flex-1">
+        <div className="h-full overflow-auto bg-background pb-20 md:pb-0">
           <Switch>
-          <Route path="/" component={Dashboard} />
-          <Route path="/inventory" component={Inventory} />
-          <Route path="/inventory/:id" component={VehicleDetail} />
-          <Route path="/sales" component={Sales} />
-          <Route path="/sales-mobile" component={SalesMobileEnhanced} />
-          <Route path="/customers" component={Customers} />
-          <Route path="/customers/:id" component={CustomerDetail} />
-          <Route path="/analytics" component={Analytics} />
-          <Route path="/competitive-pricing" component={CompetitivePricing} />
-          <Route path="/deals-list" component={DealsList} />
+            <Route path="/" component={Dashboard} />
+            <Route path="/inventory" component={Inventory} />
+            <Route path="/inventory/:id" component={VehicleDetail} />
+            <Route path="/leads" component={Sales} />
+            <Route path="/customers" component={Customers} />
+            <Route path="/customers/:id" component={CustomerDetail} />
+            <Route path="/deals" component={DealDesk} />
+            <Route path="/showroom" component={ShowroomManager} />
+            <Route path="/reports" component={Reports} />
+            <Route path="/sales-mobile" component={SalesMobileEnhanced} />
+            <Route path="/analytics" component={Analytics} />
+            <Route path="/competitive-pricing" component={CompetitivePricing} />
+            <Route path="/deals-list" component={DealsList} />
 
-          <Route path="/deals-finance" component={DealsFinance} />
-          <Route path="/deals/:id" component={DealDetailPage} />
-          <Route path="/deals" component={DealsList} />
-          <Route path="/deal-desk" component={DealDesk} />
-          <Route path="/deal-working" component={DealWorkingScreen} />
-          <Route path="/showroom-manager" component={ShowroomManager} />
-          <Route path="/reports" component={Reports} />
-          <Route path="/ml-dashboard" component={MLDashboard} />
-          <Route path="/fi-dashboard" component={FiDashboardPage} />
-          <Route path="/fi-configuration" component={FiConfigurationPage} />
-          <Route path="/settings" component={Settings} />
-          
-          {/* Admin Routes */}
+            {/* Finance Routes */}
+            <Route path="/finance" component={FiDashboardPage} />
+            <Route path="/finance/structuring" component={DealWorkingScreen} />
+            <Route path="/finance/lenders" component={() => <div className="p-6">Lender Management - Coming Soon</div>} />
+            <Route path="/finance/rates" component={() => <div className="p-6">Rate Sheets - Coming Soon</div>} />
+            <Route path="/finance/compliance" component={() => <div className="p-6">Compliance - Coming Soon</div>} />
+            <Route path="/finance/reports" component={() => <div className="p-6">F&I Reports - Coming Soon</div>} />
 
-          <Route path="/admin/settings" component={SystemSettings} />
-          <Route path="/admin/comprehensive-settings" component={ComprehensiveSettings} />
-          <Route path="/admin/lead-distribution" component={LeadDistribution} />
-          <Route path="/admin/communication-settings" component={CommunicationSettings} />
-          <Route path="/admin/system-configuration" component={SystemConfiguration} />
-          <Route path="/admin/user-management" component={UserManagement} />
-          <Route path="/admin/user-profile" component={UserProfile} />
-          <Route path="/auth-test" component={AuthTest} />
-          
-          {/* Communication Routes */}
-          <Route path="/customers/:id/texting" component={TextingPortal} />
-          <Route path="/customers/:id/calls" component={PhoneCalls} />
-          <Route path="/communication-demo" component={CommunicationDemo} />
-          <Route path="/ai-smart-search" component={AISmartSearch} />
-          <Route path="/workflow-assistant" component={WorkflowAssistant} />
-          <Route path="/enterprise-admin" component={EnterpriseAdmin} />
-          <Route path="/system-health" component={SystemHealth} />
-          
-          {/* Deal Jacket & Multi-Store Routes */}
-          <Route path="/deal-jackets/:id" component={DealJacket} />
-          <Route path="/multi-store-management" component={MultiStoreManagement} />
-          
-          {/* Service Routes */}
-          <Route path="/service/orders" component={ServiceOrdersPage} />
-          <Route path="/service/parts" component={PartsInventoryPage} />
-          <Route path="/service/reports" component={ServiceReportsPage} />
-          
-          {/* Accounting Routes */}
-          <Route path="/accounting" component={AccountingDashboard} />
-          <Route path="/accounting/reports" component={FinancialReportsPage} />
-          <Route path="/accounting/payroll" component={PayrollPage} />
-          <Route path="/accounting/transactions" component={TransactionsPage} />
-          
-          <Route component={NotFound} />
-        </Switch>
-      </div>
-    </SidebarManager>
+            {/* Accounting Routes */}
+            <Route path="/accounting" component={AccountingDashboard} />
+            <Route path="/accounting/chart" component={() => <div className="p-6">Chart of Accounts - Coming Soon</div>} />
+            <Route path="/accounting/journal" component={() => <div className="p-6">Journal Entries - Coming Soon</div>} />
+            <Route path="/accounting/finalization" component={() => <DealFinalization />} />
+            <Route path="/accounting/reports" component={FinancialReportsPage} />
+            <Route path="/accounting/reconciliation" component={() => <div className="p-6">Reconciliation - Coming Soon</div>} />
+            <Route path="/accounting/payroll" component={PayrollPage} />
+            <Route path="/accounting/transactions" component={TransactionsPage} />
+
+            {/* Admin Routes */}
+            <Route path="/admin/settings" component={SystemSettings} />
+            <Route path="/admin/dealership" component={ComprehensiveSettings} />
+            <Route path="/admin/integrations" component={() => <div className="p-6">API Integrations - Coming Soon</div>} />
+            <Route path="/admin/health" component={SystemHealth} />
+            <Route path="/admin/comprehensive-settings" component={ComprehensiveSettings} />
+            <Route path="/admin/lead-distribution" component={LeadDistribution} />
+            <Route path="/admin/communication-settings" component={CommunicationSettings} />
+            <Route path="/admin/system-configuration" component={SystemConfiguration} />
+
+            {/* User Management Routes */}
+            <Route path="/users" component={UserManagement} />
+            <Route path="/admin/roles" component={() => <div className="p-6">Roles & Permissions - Coming Soon</div>} />
+            <Route path="/admin/performance" component={() => <div className="p-6">Performance Tracking - Coming Soon</div>} />
+            <Route path="/admin/training" component={() => <div className="p-6">Training Center - Coming Soon</div>} />
+            <Route path="/admin/analytics" component={() => <div className="p-6">User Analytics - Coming Soon</div>} />
+            <Route path="/users/new" component={() => <div className="p-6">Add New User - Coming Soon</div>} />
+            <Route path="/admin/user-management" component={UserManagement} />
+            <Route path="/admin/user-profile" component={UserProfile} />
+
+            {/* Legacy Routes */}
+            <Route path="/deals-finance" component={DealsFinance} />
+            <Route path="/deals/:id" component={DealDetailPage} />
+            <Route path="/deal-desk" component={DealDesk} />
+            <Route path="/deal-working" component={DealWorkingScreen} />
+            <Route path="/showroom-manager" component={ShowroomManager} />
+            <Route path="/ml-dashboard" component={MLDashboard} />
+            <Route path="/fi-dashboard" component={FiDashboardPage} />
+            <Route path="/fi-configuration" component={FiConfigurationPage} />
+            <Route path="/settings" component={Settings} />
+            <Route path="/auth-test" component={AuthTest} />
+            
+            {/* Communication Routes */}
+            <Route path="/customers/:id/texting" component={TextingPortal} />
+            <Route path="/customers/:id/calls" component={PhoneCalls} />
+            <Route path="/communication-demo" component={CommunicationDemo} />
+            <Route path="/ai-smart-search" component={AISmartSearch} />
+            <Route path="/workflow-assistant" component={WorkflowAssistant} />
+            <Route path="/enterprise-admin" component={EnterpriseAdmin} />
+            
+            {/* Deal Jacket & Multi-Store Routes */}
+            <Route path="/deal-jackets/:id" component={DealJacket} />
+            <Route path="/multi-store-management" component={MultiStoreManagement} />
+            
+            {/* Service Routes */}
+            <Route path="/service/orders" component={ServiceOrdersPage} />
+            <Route path="/service/parts" component={PartsInventoryPage} />
+            <Route path="/service/reports" component={ServiceReportsPage} />
+            
+            <Route component={NotFound} />
+          </Switch>
+        </div>
+      </main>
+    </div>
   );
 }
 
