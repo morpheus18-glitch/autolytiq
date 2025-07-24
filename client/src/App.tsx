@@ -129,18 +129,21 @@ function Router() {
 
             {/* Accounting Routes */}
             <Route path="/accounting" component={AccountingDashboard} />
+            <Route path="/accounting/deals" component={() => <DealFinalization />} />
             <Route path="/accounting/chart" component={() => <div className="p-6">Chart of Accounts - Coming Soon</div>} />
-            <Route path="/accounting/journal" component={() => <div className="p-6">Journal Entries - Coming Soon</div>} />
-            <Route path="/accounting/finalization" component={() => <DealFinalization />} />
+            <Route path="/accounting/profit" component={() => <div className="p-6">Vehicle Profit - Coming Soon</div>} />
+            <Route path="/accounting/reserves" component={() => <div className="p-6">Finance Reserves - Coming Soon</div>} />
+            <Route path="/accounting/close" component={() => <div className="p-6">Monthly Close - Coming Soon</div>} />
             <Route path="/accounting/reports" component={FinancialReportsPage} />
-            <Route path="/accounting/reconciliation" component={() => <div className="p-6">Reconciliation - Coming Soon</div>} />
             <Route path="/accounting/payroll" component={PayrollPage} />
             <Route path="/accounting/transactions" component={TransactionsPage} />
 
             {/* Admin Routes */}
             <Route path="/admin/settings" component={SystemSettings} />
+            <Route path="/admin/users" component={UserManagement} />
             <Route path="/admin/dealership" component={ComprehensiveSettings} />
-            <Route path="/admin/integrations" component={() => <div className="p-6">API Integrations - Coming Soon</div>} />
+            <Route path="/admin/integrations" component={() => <div className="p-6">Integration Setup - Coming Soon</div>} />
+            <Route path="/admin/security" component={() => <div className="p-6">Security Center - Coming Soon</div>} />
             <Route path="/admin/health" component={SystemHealth} />
             <Route path="/admin/comprehensive-settings" component={ComprehensiveSettings} />
             <Route path="/admin/lead-distribution" component={LeadDistribution} />
@@ -148,12 +151,11 @@ function Router() {
             <Route path="/admin/system-configuration" component={SystemConfiguration} />
 
             {/* User Management Routes */}
+            <Route path="/users/staff" component={UserManagement} />
+            <Route path="/users/roles" component={() => <div className="p-6">Role Management - Coming Soon</div>} />
+            <Route path="/users/performance" component={() => <div className="p-6">Performance - Coming Soon</div>} />
+            <Route path="/users/training" component={() => <div className="p-6">Training Center - Coming Soon</div>} />
             <Route path="/users" component={UserManagement} />
-            <Route path="/admin/roles" component={() => <div className="p-6">Roles & Permissions - Coming Soon</div>} />
-            <Route path="/admin/performance" component={() => <div className="p-6">Performance Tracking - Coming Soon</div>} />
-            <Route path="/admin/training" component={() => <div className="p-6">Training Center - Coming Soon</div>} />
-            <Route path="/admin/analytics" component={() => <div className="p-6">User Analytics - Coming Soon</div>} />
-            <Route path="/users/new" component={() => <div className="p-6">Add New User - Coming Soon</div>} />
             <Route path="/admin/user-management" component={UserManagement} />
             <Route path="/admin/user-profile" component={UserProfile} />
 
