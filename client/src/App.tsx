@@ -62,6 +62,12 @@ import SystemConfiguration from "@/pages/admin/system-configuration";
 import UserManagement from "@/pages/admin/user-management";
 import UserProfile from "@/pages/admin/user-profile";
 import DealFinalization from "@/pages/accounting/deal-finalization";
+import ChartOfAccounts from "@/pages/accounting/chart-of-accounts";
+import VehicleProfit from "@/pages/accounting/vehicle-profit";
+import FinanceReserves from "@/pages/accounting/finance-reserves";
+import MonthlyClose from "@/pages/accounting/monthly-close";
+import LenderManagement from "@/pages/finance/lenders";
+import RateSheets from "@/pages/finance/rates";
 
 import { ThemeProvider } from "@/contexts/theme-context";
 import { MobileFooterMenu } from "@/components/mobile-footer-menu";
@@ -122,18 +128,18 @@ function Router() {
             {/* Finance Routes */}
             <Route path="/finance" component={FiDashboardPage} />
             <Route path="/finance/structuring" component={DealWorkingScreen} />
-            <Route path="/finance/lenders" component={() => <div className="p-6">Lender Management - Coming Soon</div>} />
-            <Route path="/finance/rates" component={() => <div className="p-6">Rate Sheets - Coming Soon</div>} />
+            <Route path="/finance/lenders" component={() => <LenderManagement />} />
+            <Route path="/finance/rates" component={() => <RateSheets />} />
             <Route path="/finance/compliance" component={() => <div className="p-6">Compliance - Coming Soon</div>} />
             <Route path="/finance/reports" component={() => <div className="p-6">F&I Reports - Coming Soon</div>} />
 
             {/* Accounting Routes */}
             <Route path="/accounting" component={AccountingDashboard} />
             <Route path="/accounting/deals" component={() => <DealFinalization />} />
-            <Route path="/accounting/chart" component={() => <div className="p-6">Chart of Accounts - Coming Soon</div>} />
-            <Route path="/accounting/profit" component={() => <div className="p-6">Vehicle Profit - Coming Soon</div>} />
-            <Route path="/accounting/reserves" component={() => <div className="p-6">Finance Reserves - Coming Soon</div>} />
-            <Route path="/accounting/close" component={() => <div className="p-6">Monthly Close - Coming Soon</div>} />
+            <Route path="/accounting/chart" component={() => <ChartOfAccounts />} />
+            <Route path="/accounting/profit" component={() => <VehicleProfit />} />
+            <Route path="/accounting/reserves" component={() => <FinanceReserves />} />
+            <Route path="/accounting/close" component={() => <MonthlyClose />} />
             <Route path="/accounting/reports" component={FinancialReportsPage} />
             <Route path="/accounting/payroll" component={PayrollPage} />
             <Route path="/accounting/transactions" component={TransactionsPage} />
