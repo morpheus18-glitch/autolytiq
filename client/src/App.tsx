@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -43,7 +44,7 @@ import FinancialReportsPage from "@/pages/accounting/reports";
 import PayrollPage from "@/pages/accounting/payroll";
 import TransactionsPage from "@/pages/accounting/transactions";
 import AccountingDashboard from "@/pages/accounting/accounting-dashboard";
-import TopNavbar from "@/components/top-navbar";
+import SidebarNavigation from "@/components/sidebar-navigation";
 import { usePixelTracker } from "@/hooks/use-pixel-tracker";
 import AuthTest from "@/pages/auth-test";
 // Communication Pages
@@ -72,6 +73,7 @@ function Router() {
   usePixelTracker();
   
   const { isAuthenticated, isLoading } = useAuth();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   if (isLoading) {
     return (
@@ -95,10 +97,13 @@ function Router() {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <TopNavbar />
-      <main className="flex-1">
-        <div className="h-full overflow-auto bg-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+      <SidebarNavigation 
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+      />
+      <main className="flex-1 overflow-auto">
+        <div className="h-full bg-background pb-20 md:pb-0">
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/inventory" component={Inventory} />
