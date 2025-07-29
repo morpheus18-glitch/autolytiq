@@ -46,6 +46,7 @@ import TransactionsPage from "@/pages/accounting/transactions";
 import AccountingDashboard from "@/pages/accounting/accounting-dashboard";
 import SidebarNavigation from "@/components/sidebar-navigation";
 import { usePixelTracker } from "@/hooks/use-pixel-tracker";
+import { TrackingPixel } from "@/components/tracking-pixel";
 import AuthTest from "@/pages/auth-test";
 // Communication Pages
 import TextingPortal from "@/pages/customers/texting-portal";
@@ -73,6 +74,7 @@ import { ThemeProvider } from "@/contexts/theme-context";
 import { MobileFooterMenu } from "@/components/mobile-footer-menu";
 import DealJacket from "@/pages/deal-jacket";
 import MultiStoreManagement from "@/pages/multi-store-management";
+import CustomerLifecycle from "@/pages/analytics/customer-lifecycle";
 
 function Router() {
   // Initialize pixel tracking for the entire app
@@ -122,6 +124,7 @@ function Router() {
             <Route path="/reports" component={Reports} />
             <Route path="/sales-mobile" component={SalesMobileEnhanced} />
             <Route path="/analytics" component={Analytics} />
+            <Route path="/analytics/customer-lifecycle" component={CustomerLifecycle} />
             <Route path="/competitive-pricing" component={CompetitivePricing} />
             <Route path="/deals-list" component={DealsList} />
 
@@ -209,6 +212,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <TrackingPixel />
           <MobileFooterMenu />
         </TooltipProvider>
       </ThemeProvider>
