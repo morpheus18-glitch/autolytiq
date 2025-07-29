@@ -24,6 +24,7 @@ import { db } from "./db";
 import { EnterpriseWebSocketManager } from "./enterprise-websocket";
 import { lifecycleTracker } from "./tracking-service";
 import { LeadStorageService, sampleLeadData } from "./lead-engine";
+import AutomotiveDataService from "./automotive-data-service";
 
 // XML Lead parsing utility
 function parseXmlLead(xmlString: string) {
@@ -1420,17 +1421,140 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Mark alert as read/actioned
-  app.put("/api/market-leads/alerts/:id", async (req, res) => {
+  // ========================================
+  // AUTOMOTIVE DATA API ROUTES  
+  // ========================================
+
+  // API Health Check
+  app.get("/api/automotive/health", async (req, res) => {
     try {
-      const alertId = req.params.id;
-      const { status, actionedBy } = req.body;
-      
-      // This would be implemented in LeadStorageService
-      res.json({ message: "Alert updated", alertId, status });
+      const healthStatus = await AutomotiveDataService.checkAPIHealth();
+      res.json(healthStatus);
     } catch (error) {
-      console.error("Error updating alert:", error);
-      res.status(500).json({ error: "Failed to update alert" });
+      console.error("Error checking API health:", error);
+      res.status(500).json({ error: "Failed to check API health" });
+    }
+  });
+
+  // VIN Decode
+  app.post("/api/automotive/decode-vin", async (req, res) => {
+    try {
+      const { vin } = req.body;
+      
+      if (!vin || vin.length !== 17) {
+        return res.status(400).json({ error: "Valid 17-character VIN required" });
+      }
+
+      const vehicleData = await AutomotiveDataService.decodeVIN(vin);
+      
+      if (!vehicleData) {
+        return res.status(404).json({ error: "Unable to decode VIN" });
+      }
+
+      res.json({ vehicleData });
+    } catch (error) {
+      console.error("Error decoding VIN:", error);
+      res.status(500).json({ error: "Failed to decode VIN" });
+    }
+  });
+
+  // Market Data
+  app.get("/api/automotive/market-data/:vin", async (req, res) => {
+    try {
+      const { vin } = req.params;
+      const mileage = parseInt(req.query.mileage as string) || 50000;
+
+      const marketData = await AutomotiveDataService.getMarketValue(vin, mileage);
+      
+      if (!marketData) {
+        return res.status(404).json({ error: "Market data not available" });
+      }
+
+      res.json(marketData);
+    } catch (error) {
+      console.error("Error fetching market data:", error);
+      res.status(500).json({ error: "Failed to fetch market data" });
+    }
+  });
+
+  // Incentives
+  app.get("/api/automotive/incentives/:make/:model/:year", async (req, res) => {
+    try {
+      const { make, model, year } = req.params;
+      
+      const incentives = await AutomotiveDataService.getIncentives(make, model, parseInt(year));
+      
+      if (!incentives) {
+        return res.status(404).json({ error: "No incentives found" });
+      }
+
+      res.json(incentives);
+    } catch (error) {
+      console.error("Error fetching incentives:", error);
+      res.status(500).json({ error: "Failed to fetch incentives" });
+    }
+  });
+
+  // Competition Analysis
+  app.get("/api/automotive/competition/:make/:model/:year", async (req, res) => {
+    try {
+      const { make, model, year } = req.params;
+      const price = parseInt(req.query.price as string) || 30000;
+      
+      const competition = await AutomotiveDataService.getCompetitionAnalysis(make, model, parseInt(year), price);
+      
+      if (!competition) {
+        return res.status(404).json({ error: "Competition data not available" });
+      }
+
+      res.json(competition);
+    } catch (error) {
+      console.error("Error fetching competition data:", error);
+      res.status(500).json({ error: "Failed to fetch competition data" });
+    }
+  });
+
+  // Batch VIN Processing
+  app.post("/api/automotive/batch-process", async (req, res) => {
+    try {
+      const { vins } = req.body;
+      
+      if (!Array.isArray(vins) || vins.length === 0) {
+        return res.status(400).json({ error: "Array of VINs required" });
+      }
+
+      const results = await AutomotiveDataService.batchProcessVINs(vins);
+      
+      res.json({
+        message: "Batch processing completed",
+        processed: results.length,
+        results
+      });
+    } catch (error) {
+      console.error("Error in batch processing:", error);
+      res.status(500).json({ error: "Failed to process VINs" });
+    }
+  });
+
+  // Market Estimation (alternative to VIN-based lookup)
+  app.post("/api/automotive/estimate-value", async (req, res) => {
+    try {
+      const { make, model, year, mileage } = req.body;
+      
+      if (!make || !model || !year) {
+        return res.status(400).json({ error: "Make, model, and year are required" });
+      }
+
+      const marketData = await AutomotiveDataService.estimateMarketValue(make, model, parseInt(year), mileage || 50000);
+      
+      if (!marketData) {
+        return res.status(404).json({ error: "Unable to estimate market value" });
+      }
+
+      res.json(marketData);
+    } catch (error) {
+      console.error("Error estimating market value:", error);
+      res.status(500).json({ error: "Failed to estimate market value" });
     }
   });
 

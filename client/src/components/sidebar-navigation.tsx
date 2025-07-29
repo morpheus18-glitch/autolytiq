@@ -31,7 +31,8 @@ import {
   BookOpen,
   Menu,
   X,
-  Brain
+  Brain,
+  Database
 } from "lucide-react";
 
 interface NavItem {
@@ -54,6 +55,7 @@ const navigationSections: NavSection[] = [
     items: [
       { label: "Dashboard", href: "/", icon: BarChart3 },
       { label: "AI Market Leads", href: "/market-leads", icon: Brain, badge: "AI" },
+      { label: "Data Center", href: "/automotive-data-center", icon: Database, badge: "API" },
       { label: "Leads & Prospects", href: "/leads", icon: Target },
       { label: "Customer Management", href: "/customers", icon: Users },
       { label: "Deal Desk", href: "/deals", icon: FileText },
