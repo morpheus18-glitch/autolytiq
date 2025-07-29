@@ -22,6 +22,7 @@ import { photoService } from './services/photo-service';
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { db } from "./db";
 import { EnterpriseWebSocketManager } from "./enterprise-websocket";
+import { lifecycleTracker } from "./tracking-service";
 
 // XML Lead parsing utility
 function parseXmlLead(xmlString: string) {
@@ -3508,6 +3509,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('AI insights error:', error);
       res.status(500).json({ message: "Failed to generate AI insights" });
+    }
+  });
+
+  // Enhanced Customer Lifecycle Tracking Routes
+  app.post("/api/tracking/lifecycle/pageview", async (req, res) => {
+    try {
+      const { customerId, sessionId, url, title, timestamp, referrer, userAgent, viewport, source } = req.body;
+      
+      await lifecycleTracker.trackExternalActivity(customerId, {
+        site: source || 'dealer_website',
+        url: url,
+        timeSpent: 0,
+        interactions: [],
+        referrer: referrer
+      });
+
+      res.status(201).json({ success: true });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to track page view" });
+    }
+  });
+
+  app.post("/api/tracking/lifecycle/interaction", async (req, res) => {
+    try {
+      const { customerId, sessionId, type, element, timestamp, page, source } = req.body;
+      
+      await lifecycleTracker.trackDealerActivity(customerId, {
+        page: page,
+        action: type,
+        timeSpent: 0,
+        formData: element.value ? { [element.id || 'unknown']: element.value } : undefined
+      });
+
+      res.status(201).json({ success: true });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to track interaction" });
+    }
+  });
+
+  app.post("/api/tracking/lifecycle/search", async (req, res) => {
+    try {
+      const { customerId, searchTerms, platform } = req.body;
+      
+      await lifecycleTracker.trackSearchActivity(customerId, searchTerms, platform || 'dealer_website');
+
+      res.status(201).json({ success: true });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to track search activity" });
+    }
+  });
+
+  // Customer Journey Analytics API
+  app.get("/api/analytics/customer-journeys", async (req, res) => {
+    try {
+      const { stage, intent, limit = 50 } = req.query;
+      
+      let journeys = Array.from(lifecycleTracker['journeys'].values());
+      
+      // Filter by stage
+      if (stage && stage !== 'all') {
+        journeys = journeys.filter(j => j.currentStage === stage);
+      }
+      
+      // Filter by intent level
+      if (intent && intent !== 'all') {
+        if (intent === 'high') {
+          journeys = journeys.filter(j => j.purchaseIntent >= 80);
+        } else if (intent === 'medium') {
+          journeys = journeys.filter(j => j.purchaseIntent >= 50 && j.purchaseIntent < 80);
+        } else if (intent === 'low') {
+          journeys = journeys.filter(j => j.purchaseIntent < 50);
+        }
+      }
+      
+      // Sort by purchase intent and limit results
+      journeys = journeys
+        .sort((a, b) => b.purchaseIntent - a.purchaseIntent)
+        .slice(0, parseInt(limit as string));
+      
+      res.json(journeys);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch customer journeys" });
+    }
+  });
+
+  app.get("/api/analytics/conversion-funnel", async (req, res) => {
+    try {
+      const funnelData = lifecycleTracker.getConversionFunnel();
+      res.json(funnelData);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch conversion funnel data" });
+    }
+  });
+
+  app.get("/api/analytics/high-intent-activities", async (req, res) => {
+    try {
+      const { limit = 10 } = req.query;
+      const activities = lifecycleTracker.getRecentHighIntentActivities(parseInt(limit as string));
+      res.json(activities);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch high-intent activities" });
     }
   });
 
