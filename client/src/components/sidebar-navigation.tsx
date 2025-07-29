@@ -30,7 +30,8 @@ import {
   Receipt,
   BookOpen,
   Menu,
-  X
+  X,
+  Brain
 } from "lucide-react";
 
 interface NavItem {
@@ -52,6 +53,7 @@ const navigationSections: NavSection[] = [
     icon: Handshake,
     items: [
       { label: "Dashboard", href: "/", icon: BarChart3 },
+      { label: "AI Market Leads", href: "/market-leads", icon: Brain, badge: "AI" },
       { label: "Leads & Prospects", href: "/leads", icon: Target },
       { label: "Customer Management", href: "/customers", icon: Users },
       { label: "Deal Desk", href: "/deals", icon: FileText },
