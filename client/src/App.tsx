@@ -77,6 +77,7 @@ import MultiStoreManagement from "@/pages/multi-store-management";
 import CustomerLifecycle from "@/pages/analytics/customer-lifecycle";
 import MarketLeads from "@/pages/market-leads";
 import AutomotiveDataCenter from "@/pages/automotive-data-center";
+import ProfessionalDealDesk from "@/pages/professional-deal-desk";
 
 function Router() {
   // Initialize pixel tracking for the entire app
@@ -134,7 +135,7 @@ function Router() {
 
             {/* Finance Routes */}
             <Route path="/finance" component={FiDashboardPage} />
-            <Route path="/finance/structuring" component={DealWorkingScreen} />
+            <Route path="/finance/structuring" component={ProfessionalDealDesk} />
             <Route path="/finance/lenders" component={() => <LenderManagement />} />
             <Route path="/finance/rates" component={() => <RateSheets />} />
             <Route path="/finance/compliance" component={() => <div className="p-6">Compliance - Coming Soon</div>} />

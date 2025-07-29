@@ -68,7 +68,7 @@ const navigationSections: NavSection[] = [
     icon: DollarSign,
     items: [
       { label: "F&I Dashboard", href: "/finance", icon: CreditCard },
-      { label: "Deal Structuring", href: "/finance/structuring", icon: Calculator },
+      { label: "Deal Structuring", href: "/finance/structuring", icon: Calculator, badge: "Pro" },
       { label: "Lender Management", href: "/finance/lenders", icon: Building },
       { label: "Rate Sheets", href: "/finance/rates", icon: FileText },
       { label: "Compliance", href: "/finance/compliance", icon: Shield },
