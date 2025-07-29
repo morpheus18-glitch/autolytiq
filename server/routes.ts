@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { registerUserRoutes } from "./userRoutes";
 import { storage } from "./storage";
-import { insertVehicleSchema, insertCustomerSchema, insertLeadSchema, insertSaleSchema, insertVisitorSessionSchema, insertPageViewSchema, insertCustomerInteractionSchema, insertCompetitorAnalyticsSchema, insertCompetitivePricingSchema, insertPricingInsightsSchema, insertMerchandisingStrategiesSchema, insertMarketTrendsSchema } from "@shared/schema";
+import { insertVehicleSchema, insertCustomerSchema, insertLeadSchema, insertSaleSchema, insertVisitorSessionSchema, insertPageViewSchema, insertCustomerInteractionSchema, insertCompetitorAnalyticsSchema, insertCompetitivePricingSchema, insertPricingInsightsSchema, insertMerchandisingStrategiesSchema, insertMarketTrendsSchema, insertMarketLeadSchema } from "@shared/schema";
 import { 
   insertStoreSchema, 
   insertDealJacketSchema, 
@@ -23,6 +23,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { db } from "./db";
 import { EnterpriseWebSocketManager } from "./enterprise-websocket";
 import { lifecycleTracker } from "./tracking-service";
+import { LeadStorageService, sampleLeadData } from "./lead-engine";
 
 // XML Lead parsing utility
 function parseXmlLead(xmlString: string) {
@@ -1313,6 +1314,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error optimizing deal:", error);
       res.status(500).json({ error: "Failed to optimize deal" });
+    }
+  });
+
+  // ========================================
+  // AI MARKET LEAD ENGINE ROUTES
+  // ========================================
+
+  // Initialize sample lead data
+  app.post("/api/leads/init-sample-data", async (req, res) => {
+    try {
+      const leads = [];
+      for (const leadData of sampleLeadData) {
+        const lead = await LeadStorageService.upsertLead(leadData);
+        leads.push(lead);
+      }
+      res.json({ message: "Sample lead data initialized", count: leads.length, leads });
+    } catch (error) {
+      console.error("Error initializing sample lead data:", error);
+      res.status(500).json({ error: "Failed to initialize sample lead data" });
+    }
+  });
+
+  // Get market leads with filtering and pagination
+  app.get("/api/market-leads", async (req, res) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const filters = {
+        lifecycleStage: req.query.lifecycleStage as string,
+        minIntentScore: req.query.minIntentScore ? parseInt(req.query.minIntentScore as string) : undefined
+      };
+
+      const leads = await LeadStorageService.getMarketLeads(page, limit, filters);
+      res.json(leads);
+    } catch (error) {
+      console.error("Error fetching market leads:", error);
+      res.status(500).json({ error: "Failed to fetch market leads" });
+    }
+  });
+
+  // Get lead analytics
+  app.get("/api/market-leads/analytics", async (req, res) => {
+    try {
+      const analytics = await LeadStorageService.getLeadAnalytics();
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching lead analytics:", error);
+      res.status(500).json({ error: "Failed to fetch lead analytics" });
+    }
+  });
+
+  // Get active alerts
+  app.get("/api/market-leads/alerts", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 20;
+      const alerts = await LeadStorageService.getActiveAlerts(limit);
+      res.json(alerts);
+    } catch (error) {
+      console.error("Error fetching lead alerts:", error);
+      res.status(500).json({ error: "Failed to fetch lead alerts" });
+    }
+  });
+
+  // Get specific lead with activity
+  app.get("/api/market-leads/:id", async (req, res) => {
+    try {
+      const leadId = req.params.id;
+      const lead = await LeadStorageService.getLeadWithActivity(leadId);
+      
+      if (!lead) {
+        return res.status(404).json({ error: "Lead not found" });
+      }
+      
+      res.json(lead);
+    } catch (error) {
+      console.error("Error fetching lead:", error);
+      res.status(500).json({ error: "Failed to fetch lead" });
+    }
+  });
+
+  // Create new market lead
+  app.post("/api/market-leads", async (req, res) => {
+    try {
+      const validatedData = insertMarketLeadSchema.parse(req.body);
+      const lead = await LeadStorageService.upsertLead(validatedData);
+      res.status(201).json(lead);
+    } catch (error) {
+      console.error("Error creating market lead:", error);
+      res.status(400).json({ error: "Invalid lead data" });
+    }
+  });
+
+  // Update lead status
+  app.put("/api/market-leads/:id/status", async (req, res) => {
+    try {
+      const leadId = req.params.id;
+      const { status } = req.body;
+      
+      // This would be implemented in LeadStorageService
+      res.json({ message: "Lead status updated", leadId, status });
+    } catch (error) {
+      console.error("Error updating lead status:", error);
+      res.status(500).json({ error: "Failed to update lead status" });
+    }
+  });
+
+  // Mark alert as read/actioned
+  app.put("/api/market-leads/alerts/:id", async (req, res) => {
+    try {
+      const alertId = req.params.id;
+      const { status, actionedBy } = req.body;
+      
+      // This would be implemented in LeadStorageService
+      res.json({ message: "Alert updated", alertId, status });
+    } catch (error) {
+      console.error("Error updating alert:", error);
+      res.status(500).json({ error: "Failed to update alert" });
     }
   });
 

@@ -75,6 +75,7 @@ import { MobileFooterMenu } from "@/components/mobile-footer-menu";
 import DealJacket from "@/pages/deal-jacket";
 import MultiStoreManagement from "@/pages/multi-store-management";
 import CustomerLifecycle from "@/pages/analytics/customer-lifecycle";
+import MarketLeads from "@/pages/market-leads";
 
 function Router() {
   // Initialize pixel tracking for the entire app
@@ -126,6 +127,7 @@ function Router() {
             <Route path="/analytics" component={Analytics} />
             <Route path="/analytics/customer-lifecycle" component={CustomerLifecycle} />
             <Route path="/competitive-pricing" component={CompetitivePricing} />
+            <Route path="/market-leads" component={MarketLeads} />
             <Route path="/deals-list" component={DealsList} />
 
             {/* Finance Routes */}
