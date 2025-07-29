@@ -8,6 +8,7 @@ import AIUnifiedDashboard from "@/components/enterprise/ai-unified-dashboard";
 import AIProductionSuite from "@/components/enterprise/ai-production-suite";
 import AIAdvancedReporting from "@/components/enterprise/ai-advanced-reporting";
 import AICustomerIntelligence from "@/components/enterprise/ai-customer-intelligence";
+import AICustomerLifecycle from "../components/enterprise/ai-customer-lifecycle";
 import AIWorkflowAutomation from "@/components/enterprise/ai-workflow-automation";
 import AISystemHealth from "@/components/enterprise/ai-system-health";
 // Enhanced dual CRM/DMS components
@@ -36,7 +37,7 @@ export default function Dashboard() {
       </div>
 
       <Tabs defaultValue="production" className="space-y-4 sm:space-y-6">
-        <TabsList className="grid w-full grid-cols-6 h-9 sm:h-10">
+        <TabsList className="grid w-full grid-cols-7 h-9 sm:h-10">
           <TabsTrigger value="production" className="text-xs sm:text-sm px-1 sm:px-2">
             <BarChart3 className="w-3 h-3 mr-1" />
             Production
@@ -48,6 +49,10 @@ export default function Dashboard() {
           <TabsTrigger value="intelligence" className="text-xs sm:text-sm px-1 sm:px-2">
             <Brain className="w-3 h-3 mr-1" />
             Intelligence
+          </TabsTrigger>
+          <TabsTrigger value="lifecycle" className="text-xs sm:text-sm px-1 sm:px-2">
+            <Users className="w-3 h-3 mr-1" />
+            Lifecycle
           </TabsTrigger>
           <TabsTrigger value="workflows" className="text-xs sm:text-sm px-1 sm:px-2">
             <Workflow className="w-3 h-3 mr-1" />
@@ -73,6 +78,10 @@ export default function Dashboard() {
 
         <TabsContent value="intelligence">
           <AICustomerIntelligence />
+        </TabsContent>
+
+        <TabsContent value="lifecycle">
+          <AICustomerLifecycle />
         </TabsContent>
 
         <TabsContent value="workflows">
