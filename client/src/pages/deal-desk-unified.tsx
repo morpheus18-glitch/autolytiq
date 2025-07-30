@@ -17,7 +17,7 @@ import {
   Percent, 
   FileText, 
   Save,
-  Print,
+  Printer,
   Send,
   TrendingUp,
   CreditCard,
@@ -149,7 +149,7 @@ export default function DealDeskUnified() {
   const headerActions = (
     <>
       <Button variant="outline" onClick={() => toast({ title: "Print", description: "Printing deal sheet..." })}>
-        <Print className="w-4 h-4 mr-2" />
+        <Printer className="w-4 h-4 mr-2" />
         Print
       </Button>
       <Button variant="outline" onClick={() => toast({ title: "Email", description: "Emailing deal to customer..." })}>
