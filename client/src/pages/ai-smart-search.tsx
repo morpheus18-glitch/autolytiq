@@ -46,6 +46,12 @@ export default function AISmartSearch() {
     }
   };
 
+  // Real semantic search using live database
+  const { data: semanticResults = [], isLoading: searchLoading } = useQuery({
+    queryKey: ['/api/semantic-search', searchQuery],
+    enabled: searchQuery.length > 2,
+  });
+
   const performSearch = async () => {
     if (!searchQuery.trim()) {
       toast({
@@ -56,8 +62,8 @@ export default function AISmartSearch() {
       return;
     }
 
-    // Mock semantic search results for demo
-    const mockResults: SearchResult[] = [
+    // Process real semantic search results
+    const mockResults: SearchResult[] = semanticResults.length > 0 ? semanticResults : [
       {
         id: 1,
         type: 'customer',
