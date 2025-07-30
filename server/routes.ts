@@ -25,6 +25,7 @@ import { registerMLDashboardRoutes } from "./ml-dashboard-routes";
 import { registerContinuousMLRoutes } from "./continuous-ml";
 import { registerMLAdminRoutes } from "./ml-admin-routes";
 import { registerMLEnterpriseRoutes } from "./ml-enterprise-routes";
+import { registerMLHeatmapRoutes } from "./ml-heatmap-routes";
 import { db } from "./db";
 import { EnterpriseWebSocketManager } from "./enterprise-websocket";
 import { lifecycleTracker } from "./tracking-service";
@@ -160,6 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerContinuousMLRoutes(app);
   registerMLAdminRoutes(app);
   registerMLEnterpriseRoutes(app);
+  registerMLHeatmapRoutes(app);
   
   // System user management routes
   registerUserRoutes(app);

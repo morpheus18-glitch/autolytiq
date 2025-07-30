@@ -41,6 +41,7 @@ import {
   Container,
   Workflow
 } from "lucide-react";
+import MLPerformanceHeatmap from "@/components/ml-performance-heatmap-fixed";
 
 // Advanced ML Enterprise Dashboard with Production Stack
 export default function MLEnterpriseDashboard() {
@@ -76,14 +77,14 @@ export default function MLEnterpriseDashboard() {
         triggers,
         res
       ] = await Promise.all([
-        fetch('/api/ml-enterprise/production-metrics').then(r => r.json()),
-        fetch('/api/ml-enterprise/model-registry').then(r => r.json()),
-        fetch('/api/ml-enterprise/drift-detection').then(r => r.json()),
-        fetch('/api/ml-enterprise/swarm-collapse').then(r => r.json()),
-        fetch('/api/ml-enterprise/orchestration/status').then(r => r.json()),
-        fetch('/api/ml-enterprise/shadow-deployments').then(r => r.json()),
-        fetch('/api/ml-enterprise/retrain-triggers').then(r => r.json()),
-        fetch('/api/ml-enterprise/resources').then(r => r.json())
+        fetch('/api/ml-enterprise/production-metrics').then(r => r.ok ? r.json() : {}),
+        fetch('/api/ml-enterprise/model-registry').then(r => r.ok ? r.json() : { models: [] }),
+        fetch('/api/ml-enterprise/drift-detection').then(r => r.ok ? r.json() : { detectors: [], alertsActive: 0 }),
+        fetch('/api/ml-enterprise/swarm-collapse').then(r => r.ok ? r.json() : { riskLevel: 0, detectors: {} }),
+        fetch('/api/ml-enterprise/orchestration/status').then(r => r.ok ? r.json() : { runningPipelines: 0, totalPipelines: 0 }),
+        fetch('/api/ml-enterprise/shadow-deployments').then(r => r.ok ? r.json() : { active: [] }),
+        fetch('/api/ml-enterprise/retrain-triggers').then(r => r.ok ? r.json() : { activeTriggers: [] }),
+        fetch('/api/ml-enterprise/resources').then(r => r.ok ? r.json() : { compute: {}, storage: {} })
       ]);
 
       setProductionMetrics(prodMetrics);
@@ -238,8 +239,9 @@ export default function MLEnterpriseDashboard() {
 
       {/* Main Dashboard Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-9">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
           <TabsTrigger value="models">Models</TabsTrigger>
           <TabsTrigger value="drift">Drift</TabsTrigger>
           <TabsTrigger value="swarm">Swarm</TabsTrigger>
@@ -343,6 +345,11 @@ export default function MLEnterpriseDashboard() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Interactive Heatmap Tab */}
+        <TabsContent value="heatmap" className="space-y-6">
+          <MLPerformanceHeatmap />
         </TabsContent>
 
         {/* Model Registry Tab */}
