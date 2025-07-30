@@ -559,7 +559,15 @@ export default function Inventory() {
           {/* Mobile Cards */}
           <div className="md:hidden space-y-3">
             {filteredVehicles.map((vehicle: Vehicle) => (
-              <Card key={vehicle.id} className="p-3">
+              <Card 
+                key={vehicle.id} 
+                className="p-3 cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => {
+                  trackInteraction('vehicle_view', `vehicle-${vehicle.id}`, vehicle.id);
+                  setSelectedVehicle(vehicle);
+                  setIsModalOpen(true);
+                }}
+              >
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-sm truncate">{vehicle.year} {vehicle.make} {vehicle.model}</h3>
@@ -622,7 +630,15 @@ export default function Inventory() {
                 </TableHeader>
                 <TableBody>
                   {filteredVehicles.map((vehicle: Vehicle) => (
-                    <TableRow key={vehicle.id}>
+                    <TableRow 
+                      key={vehicle.id} 
+                      className="cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => {
+                        trackInteraction('vehicle_view', `vehicle-${vehicle.id}`, vehicle.id);
+                        setSelectedVehicle(vehicle);
+                        setIsModalOpen(true);
+                      }}
+                    >
                       <TableCell>
                         <div>
                           <div className="font-medium">{vehicle.year} {vehicle.make} {vehicle.model}</div>

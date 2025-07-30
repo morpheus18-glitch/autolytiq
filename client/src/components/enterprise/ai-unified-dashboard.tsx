@@ -56,10 +56,10 @@ export default function AIUnifiedDashboard() {
   const queryClient = useQueryClient();
 
   // Fetch real data for intelligent analysis
-  const { data: vehicles = [] } = useQuery({ queryKey: ['/api/vehicles'] });
-  const { data: sales = [] } = useQuery({ queryKey: ['/api/sales'] });
-  const { data: leads = [] } = useQuery({ queryKey: ['/api/leads'] });
-  const { data: customers = [] } = useQuery({ queryKey: ['/api/customers'] });
+  const { data: vehicles = [] } = useQuery<any[]>({ queryKey: ['/api/vehicles'] });
+  const { data: sales = [] } = useQuery<any[]>({ queryKey: ['/api/sales'] });
+  const { data: leads = [] } = useQuery<any[]>({ queryKey: ['/api/leads'] });
+  const { data: customers = [] } = useQuery<any[]>({ queryKey: ['/api/customers'] });
 
   // AI-powered executive metrics
   const executiveMetrics: ExecutiveMetric[] = [
@@ -110,7 +110,7 @@ export default function AIUnifiedDashboard() {
       change: '+15.7%',
       trend: 'up',
       status: leads.length > 30 ? 'excellent' : leads.length > 15 ? 'good' : 'warning',
-      aiInsight: `Pipeline quality improved with ${leads.filter(l => l.status === 'hot').length} hot prospects identified by AI scoring`,
+      aiInsight: `Pipeline quality improved with ${leads.filter((l: any) => l.status === 'hot').length} hot prospects identified by AI scoring`,
       priority: 'high'
     },
     {
@@ -251,7 +251,11 @@ export default function AIUnifiedDashboard() {
       {/* Executive Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {executiveMetrics.map((metric) => (
-          <Card key={metric.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card 
+            key={metric.id} 
+            className="hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => handleMetricAnalysis(metric)}
+          >
             <CardContent className="p-4">
               <div className="flex justify-between items-start mb-3">
                 <div>

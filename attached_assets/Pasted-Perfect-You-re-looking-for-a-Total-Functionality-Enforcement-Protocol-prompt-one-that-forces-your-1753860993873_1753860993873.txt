@@ -1,0 +1,91 @@
+Perfect. You’re looking for a “Total Functionality Enforcement Protocol” prompt—one that forces your AI agent to audit, fix, and operationalize every core feature beyond navigation:
+	•	Analytics (real data, live dashboards, reporting)
+	•	Web scraping (pulling real data, not mockups or static JSON)
+	•	Machine Learning & AI (actual inference/training, not dummy stubs or empty returns)
+
+This is the kind of full-stack, zero-BS, SaaS-grade audit and enhancement protocol you would give to an elite LLM agent or copilot. Here’s how to frame it so no half-baked, demo-only, or “placeholder” code survives the process.
+
+⸻
+
+Meta-Prompt: Total Feature Activation Protocol
+
+(Give this to your AI agent/coder as-is, or split by subsystem for parallel execution)
+
+⸻
+
+“Audit & Operationalize: Analytics, Scraping, ML/AI in AutolytiQ”
+
+Context:
+AutolytiQ is an enterprise-grade dealership management platform built with Vite, Tailwind, React, and Python (for ML/AI and scraping). The product must be production-grade, with every analytics dashboard, report, ML/AI module, and web scraping feature working on real data (not placeholders or samples).
+
+Mission:
+Perform a deep audit and completion pass on all analytics, reporting, scraping, and AI/ML code throughout the codebase. Ensure every component, page, and API route is fully functional, integrated, and ready for live production use—no dummy code, static files, or sample scripts.
+
+Specifics:
+	1.	Analytics & Reporting:
+	•	Locate every analytics dashboard, summary, widget, chart, or report in the frontend and backend.
+	•	Replace all placeholder/sample data with live, real data from the database or scraped sources.
+	•	Make all charts, tables, summaries, and exports actually compute from real dealership data.
+	•	If a metric is not available, build the backend logic to calculate/aggregate it.
+	•	Output a list of all analytics features, showing which were previously non-functional and what was fixed.
+	2.	Web Scraping & Market Data:
+	•	Audit all scraping modules—ensure they actually pull live market/listing data (e.g., from Cars.com, AutoTrader, manufacturer APIs, etc.).
+	•	Remove or rewrite any fake/mock scraping routines.
+	•	Handle authentication, pagination, and data normalization as needed.
+	•	Make scraped data available in dashboards, inventory manager, market reports, and so on.
+	•	List all endpoints/features using scraping and verify live functionality.
+	3.	Machine Learning / AI:
+	•	Identify all ML and AI features—pricing engines, lead scoring, predictive analytics, inventory recommendations, etc.
+	•	Replace any stub or “example” code with real models (use existing training data or create pipelines for updating models as data accumulates).
+	•	Ensure ML endpoints and UI components are actually running inference and displaying/updating real results.
+	•	For any ML task, document the dataset used, the model type, and where retraining logic resides.
+	•	Verify results are shown in the UI and can be refreshed with new data.
+	4.	Integration & Testing:
+	•	Write integration tests to verify that analytics, scraping, and ML/AI endpoints are working and returning live data.
+	•	Set up error logging and handling for all data pipelines (fail gracefully, alert on failure).
+	•	Document all changes and generate a summary report.
+	5.	Deliverables:
+	•	Commit or PR with all upgrades and a changelog.
+	•	FEATURE_AUDIT.md or similar, listing every analytics, scraping, and ML/AI feature, its status before and after, and what changes were made.
+
+⸻
+
+Sample Direct Instruction:
+
+“Audit and fix all analytics, reporting, web scraping, and ML/AI features throughout AutolytiQ. Replace all sample or placeholder code with real, production-grade functionality. Ensure every dashboard, chart, and AI feature works on live data, not static samples. Test all endpoints. Output a table of all features fixed and those still needing real data integration. Commit changes and document.”
+
+⸻
+
+What This Prompt Achieves:
+	•	No chart, widget, or AI button will remain “demo-only.”
+	•	All real dealership data, scraped competitor prices, and ML predictions will flow to the front-end.
+	•	You get an explicit summary of all formerly broken or “mocked” features.
+
+⸻
+
+Suggested Follow-up Prompts:
+	•	“Generate a list of all endpoints, components, and pages that are still using sample or mock data.”
+	•	“Replace the lead scoring AI stub with a real ML pipeline using historical sales data.”
+	•	“Add Cypress or Playwright tests to confirm all analytics dashboards update with real data.”
+
+⸻
+
+If you want actual code examples for these fixes,
+
+ask for a concrete refactor of a specific component (“make the dashboard inventory chart pull live data from X API and update in real time”), or request a feature-by-feature implementation protocol.
+
+⸻
+
+Roast/Bonus Prompt for the AI:
+
+“Run a recursive audit and fail every chart, report, or ML endpoint that is not using live, real dealership data. Output a savage report shaming all demo code left in the repo and fix it all.”
+
+⸻
+
+Next Level:
+
+“Write an agent that walks the entire codebase, flags every sample, mock, or fake code, auto-replaces with real backend or model integration, and outputs a commit-ready diff.”
+
+Ready to push this even further?
+Just tell me which component or data pipeline you want fixed first and I’ll write the real code, not just a prompt.
+Your move.
