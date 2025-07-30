@@ -96,6 +96,7 @@ const navigationSections: NavSection[] = [
       { label: "Dealership Config", href: "/admin/dealership", icon: Building },
       { label: "Integration Setup", href: "/admin/integrations", icon: Archive },
       { label: "Security Center", href: "/admin/security", icon: Shield },
+      { label: "ML Control Center", href: "/ml-control", icon: Brain },
     ]
   },
   {
