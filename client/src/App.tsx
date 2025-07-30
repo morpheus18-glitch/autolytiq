@@ -186,6 +186,7 @@ function Router() {
             <Route path="/ml-control" component={MLDashboardControl} />
             <Route path="/ml-developer-admin" component={MLDeveloperAdmin} />
             <Route path="/ml-enterprise" component={MLEnterpriseDashboard} />
+            <Route path="/ml-enterprise-dashboard" component={lazy(() => import("@/pages/ml-enterprise-dashboard-fixed"))} />
             <Route path="/fi-dashboard" component={FiDashboardPage} />
             <Route path="/fi-configuration" component={FiConfigurationPage} />
             <Route path="/settings" component={Settings} />

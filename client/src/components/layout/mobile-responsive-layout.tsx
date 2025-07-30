@@ -34,6 +34,7 @@ const navigationItems = [
   { name: "Inventory", href: "/inventory", icon: Car },
   { name: "Deal Desk", href: "/deal-desk", icon: Calculator },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
+  { name: "ML Enterprise", href: "/ml-enterprise-dashboard", icon: BarChart3 },
   { name: "Market Leads", href: "/market-leads", icon: MessageSquare },
   { name: "Enhanced Inventory", href: "/enhanced-inventory", icon: Car },
   { name: "Enhanced Customers", href: "/enhanced-customers", icon: Users },
@@ -52,38 +53,38 @@ export default function MobileResponsiveLayout({
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Fixed Mobile-First Header */}
+      {/* Fixed Mobile-First Header - Enhanced Responsiveness */}
       <header className={`${stickyHeader ? 'fixed' : 'relative'} top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm`}>
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 min-h-[56px]">
           {/* Left - Mobile Menu and Logo */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Mobile Navigation */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="lg:hidden">
-                  <Menu className="w-5 h-5" />
+                <Button variant="ghost" size="sm" className="lg:hidden p-1 sm:p-2">
+                  <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-72 p-0">
+              <SheetContent side="left" className="w-80 sm:w-72 p-0 overflow-y-auto">
                 <div className="flex flex-col h-full">
-                  <div className="p-6 border-b">
+                  <div className="p-4 sm:p-6 border-b">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-green-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">AiQ</span>
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-600 to-green-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white font-bold text-xs sm:text-sm">AiQ</span>
                       </div>
-                      <span className="font-semibold text-lg">AutolytiQ</span>
+                      <span className="font-semibold text-base sm:text-lg">AutolytiQ</span>
                     </div>
                   </div>
-                  <nav className="flex-1 p-4">
-                    <div className="space-y-2">
+                  <nav className="flex-1 p-3 sm:p-4 overflow-y-auto">
+                    <div className="space-y-1 sm:space-y-2">
                       {navigationItems.map((item) => (
                         <Link key={item.name} href={item.href}>
                           <Button
                             variant={location === item.href ? "default" : "ghost"}
-                            className="w-full justify-start gap-3"
+                            className="w-full justify-start gap-2 sm:gap-3 h-10 sm:h-11 text-sm"
                           >
-                            <item.icon className="w-4 h-4" />
-                            {item.name}
+                            <item.icon className="w-4 h-4 flex-shrink-0" />
+                            <span className="truncate">{item.name}</span>
                           </Button>
                         </Link>
                       ))}
@@ -93,13 +94,13 @@ export default function MobileResponsiveLayout({
               </SheetContent>
             </Sheet>
             
-            {/* Logo */}
+            {/* Logo - Mobile Optimized */}
             <Link href="/">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-green-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">AiQ</span>
+              <div className="flex items-center gap-1 sm:gap-2">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-600 to-green-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-xs sm:text-sm">AiQ</span>
                 </div>
-                <span className="font-semibold text-lg hidden sm:block">AutolytiQ</span>
+                <span className="font-semibold text-sm sm:text-lg hidden xs:block">AutolytiQ</span>
               </div>
             </Link>
           </div>
@@ -112,15 +113,15 @@ export default function MobileResponsiveLayout({
             <Link href="/analytics"><Button variant={location === "/analytics" ? "default" : "ghost"} size="sm">Analytics</Button></Link>
           </nav>
 
-          {/* Right - User Actions */}
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="hidden sm:flex">
+          {/* Right - User Actions - Mobile Optimized */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Button variant="ghost" size="sm" className="hidden sm:flex p-1 sm:p-2">
               <Search className="w-4 h-4" />
             </Button>
             
-            <Button variant="ghost" size="sm" className="relative">
+            <Button variant="ghost" size="sm" className="relative p-1 sm:p-2">
               <Bell className="w-4 h-4" />
-              <Badge className="absolute -top-1 -right-1 w-2 h-2 p-0 bg-red-500"></Badge>
+              <Badge className="absolute -top-0.5 -right-0.5 w-2 h-2 p-0 bg-red-500 rounded-full"></Badge>
             </Button>
             
             <Button variant="ghost" size="sm" className="gap-2">
@@ -132,31 +133,31 @@ export default function MobileResponsiveLayout({
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className={`${stickyHeader ? 'pt-16' : ''} min-h-screen`}>
-        {/* Page Header */}
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Main Content - Mobile Optimized */}
+      <main className={`${stickyHeader ? 'pt-14 sm:pt-16' : ''} min-h-screen`}>
+        {/* Page Header - Mobile Optimized */}
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white leading-tight">
                 {title}
               </h1>
               {subtitle && (
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
                   {subtitle}
                 </p>
               )}
             </div>
             {headerActions && (
-              <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 {headerActions}
               </div>
             )}
           </div>
         </div>
 
-        {/* Page Content */}
-        <div className="px-4 sm:px-6 lg:px-8 py-6">
+        {/* Page Content - Mobile Optimized */}
+        <div className="px-3 sm:px-4 lg:px-6 py-4 sm:py-6 pb-20 md:pb-6">
           {children}
         </div>
       </main>
