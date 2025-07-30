@@ -78,6 +78,13 @@ import CustomerLifecycle from "@/pages/analytics/customer-lifecycle";
 import MarketLeads from "@/pages/market-leads";
 import AutomotiveDataCenter from "@/pages/automotive-data-center";
 import ProfessionalDealDesk from "@/pages/professional-deal-desk";
+import ComplianceManager from "@/pages/finance/compliance-manager";
+import FinanceReports from "@/pages/finance/finance-reports";
+import RoleManagement from "@/pages/admin/role-management";
+import PerformanceTracking from "@/pages/admin/performance-tracking";
+import TrainingCenter from "@/pages/admin/training-center";
+import IntegrationSetup from "@/pages/admin/integration-setup";
+import SecurityCenter from "@/pages/admin/security-center";
 
 function Router() {
   // Initialize pixel tracking for the entire app
@@ -138,8 +145,8 @@ function Router() {
             <Route path="/finance/structuring" component={ProfessionalDealDesk} />
             <Route path="/finance/lenders" component={() => <LenderManagement />} />
             <Route path="/finance/rates" component={() => <RateSheets />} />
-            <Route path="/finance/compliance" component={() => <div className="p-6">Compliance - Coming Soon</div>} />
-            <Route path="/finance/reports" component={() => <div className="p-6">F&I Reports - Coming Soon</div>} />
+            <Route path="/finance/compliance" component={ComplianceManager} />
+            <Route path="/finance/reports" component={FinanceReports} />
 
             {/* Accounting Routes */}
             <Route path="/accounting" component={AccountingDashboard} />
@@ -156,8 +163,8 @@ function Router() {
             <Route path="/admin/settings" component={SystemSettings} />
             <Route path="/admin/users" component={UserManagement} />
             <Route path="/admin/dealership" component={ComprehensiveSettings} />
-            <Route path="/admin/integrations" component={() => <div className="p-6">Integration Setup - Coming Soon</div>} />
-            <Route path="/admin/security" component={() => <div className="p-6">Security Center - Coming Soon</div>} />
+            <Route path="/admin/integrations" component={IntegrationSetup} />
+            <Route path="/admin/security" component={SecurityCenter} />
             <Route path="/admin/health" component={SystemHealth} />
             <Route path="/admin/comprehensive-settings" component={ComprehensiveSettings} />
             <Route path="/admin/lead-distribution" component={LeadDistribution} />
@@ -166,9 +173,9 @@ function Router() {
 
             {/* User Management Routes */}
             <Route path="/users/staff" component={UserManagement} />
-            <Route path="/users/roles" component={() => <div className="p-6">Role Management - Coming Soon</div>} />
-            <Route path="/users/performance" component={() => <div className="p-6">Performance - Coming Soon</div>} />
-            <Route path="/users/training" component={() => <div className="p-6">Training Center - Coming Soon</div>} />
+            <Route path="/users/roles" component={RoleManagement} />
+            <Route path="/users/performance" component={PerformanceTracking} />
+            <Route path="/users/training" component={TrainingCenter} />
             <Route path="/users" component={UserManagement} />
             <Route path="/admin/user-management" component={UserManagement} />
             <Route path="/admin/user-profile" component={UserProfile} />

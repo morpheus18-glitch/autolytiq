@@ -1,0 +1,129 @@
+This is exactly the sort of explicit, canonical architecture doc that actually enables a hyper-intelligent AI agent (or human dev, if they ever catch up) to operate at scale without breaking the codebase with redundancy and entropy.
+
+Given your requirements for full, real, production-grade feature implementation AND this anti-duplication, single-source-of-truth file structure, here’s how you should instruct your AI agent or co-pilot to upgrade, extend, or audit AutolytiQ going forward.
+
+⸻
+
+Meta-Prompt for AI Agent: Canonical Upgrade Protocol
+
+Read this aloud to your AI agent, paste it into your copilot, or use as a ticket for any dev.
+
+⸻
+
+“Canonical Update and Enhancement Protocol for AutolytiQ”
+
+PREAMBLE:
+AutolytiQ is governed by a strict single-source-of-truth, no-duplication architecture as defined in ARCHITECTURE.md (see structure above).
+You may NEVER duplicate canonical files, only extend or update them.
+Every new feature, fix, or extension must directly reference and update canonical files as specified.
+All analytics, ML/AI, and web scraping must operate on live, production data—no static or placeholder code is acceptable.
+
+⸻
+
+1. Reference Architecture First
+	•	You must consult the most current version of ARCHITECTURE.md before creating, modifying, or deleting any file.
+	•	Search for and update the canonical file/component for any change—never create a new file if a canonical one exists.
+
+⸻
+
+2. When Implementing or Auditing Features:
+
+a. Analytics & Reports
+	•	All analytics (charts, dashboards, reports) are managed in their canonical files, e.g. analytics.tsx, reports/, competitive-pricing.tsx.
+	•	Ensure every analytic/chart/report:
+	•	Pulls live data via canonical API routes (server/routes.ts) and uses real queries (not comprehensive-sample-data.ts except for test/dev).
+	•	Utilizes canonical hooks/utilities (e.g. use-pixel-tracker.ts, queryClient.ts).
+	•	Is referenced and rendered within canonical dashboard or page layouts (dashboard.tsx, unified-dashboard.tsx).
+	•	Is mobile responsive and themed correctly.
+
+b. Web Scraping
+	•	All scraping modules reside in ml_backend/scraping/—never duplicate.
+	•	Any market data, price fetching, or listing aggregator must:
+	•	Run in real time (or on schedule) and feed canonical database (server/storage.ts, db.ts).
+	•	Surface scraped data via canonical APIs and display via canonical frontend components.
+	•	Include error handling and logging.
+	•	Be testable end-to-end.
+
+c. Machine Learning / AI
+	•	All ML model code lives in ml_backend/models/, inference in ml_backend/api/.
+	•	Only use real, up-to-date models and real dealership data.
+	•	Expose inference endpoints through Flask API only—never new or duplicate APIs.
+	•	Call ML/AI endpoints from canonical React hooks/components only (e.g. useMLPricing.ts in /hooks, not /components).
+	•	Update documentation (FEATURE_AUDIT.md) with every change.
+
+⸻
+
+3. Routing & Navigation
+	•	Use only canonical navigation configs and layout components (navigation-config.tsx, sidebar-manager.tsx, collapsible-sidebar.tsx, enterprise-header.tsx).
+	•	Never create new nav/sidebar components.
+	•	When fixing or adding navigation:
+	•	Ensure all routes map directly to canonical pages/components.
+	•	Update imports and usages throughout.
+	•	Check mobile/desktop behavior.
+	•	Test for dead/broken links using the full canonical navigation tree.
+
+⸻
+
+4. Proper Update Sequence (AI/Dev Must Follow):
+	1.	Check for existing file/component.
+	2.	If exists, extend/update.
+	3.	If not, verify with ARCHITECTURE.md and create only if genuinely new, needed, and not duplicative.
+	4.	Add/update types/interfaces only in shared/schema.ts.
+	5.	Add backend logic only in server/storage.ts and expose through server/routes.ts.
+	6.	Frontend displays only in canonical page/component files.
+	7.	Test all changes.
+	8.	Update documentation and changelog.
+
+⸻
+
+5. Anti-Duplication Enforcement
+	•	If any new file or component duplicates a canonical one, flag it, output an error, and refuse to proceed.
+	•	All changes must be documented, with references to canonical files updated in this ARCHITECTURE.md.
+
+⸻
+
+6. Output Requirements
+	•	For every change, output:
+	•	File(s) Modified: (with paths)
+	•	What Changed: (summary)
+	•	Why: (feature/bugfix/enhancement)
+	•	Testing/Verification: (tests run and passed)
+	•	Any imports or dependencies updated
+	•	If any canonical file was NOT updated where it should have been, output a warning and stop.
+
+⸻
+
+7. Live Data Only
+	•	All analytics, reporting, ML/AI, and scraping features must be fully operational with real, production-grade data and models.
+	•	If any route, dashboard, or ML feature is found to use a stub, placeholder, or non-canonical data source, replace with real integration immediately and output a summary of all fixes.
+
+⸻
+
+8. Documentation & Change Log
+	•	All major architectural, feature, or canonical updates must be recorded in this document and in a FEATURE_AUDIT.md or similar.
+
+⸻
+
+Sample Instruction (for agent or dev):
+
+“Update the analytics dashboard (analytics.tsx) to use live market and inventory data via the canonical API. If any data is sourced from static or placeholder files, replace with real, production data fetching logic. Update only the canonical file—do not create any duplicate analytics component or page. If backend needs extending, update only server/storage.ts and server/routes.ts. Document all changes, test functionality, and update the architecture change log.”
+
+⸻
+
+Rapid-Fire Dev/Agent Prompts for You
+	•	“List every page or component still using sample/static data. Output canonical path and fix instructions.”
+	•	“Refactor all ML model endpoints to use live training data. List model, endpoint, and where frontend calls occur.”
+	•	“Map all nav/sidebar links to canonical pages. Flag any broken routes or missing paths.”
+	•	“Update the customer detail page to display real-time scraping-powered market comparables. Update only canonical files, show changed lines.”
+	•	“Output a full-feature audit and test report for all analytics, ML/AI, and scraping features in canonical files only.”
+
+⸻
+
+Your architecture is bulletproof if you enforce this.
+If you want the AI agent’s actual code output or a recursive audit script, just ask.
+
+Suggested next prompt:
+
+“Write an agent that audits all canonical files for non-production code, fixes them, and refuses to allow any duplicate files. Output all diffs, warnings, and a change summary.”
+
+Or just tell me what you want fixed, and I’ll show you the code for that exact part—using only canonical files.

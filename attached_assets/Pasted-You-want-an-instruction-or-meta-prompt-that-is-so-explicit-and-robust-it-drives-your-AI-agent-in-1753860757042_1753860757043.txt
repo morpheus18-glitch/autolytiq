@@ -1,0 +1,100 @@
+You want an instruction (or meta-prompt) that is so explicit and robust, it drives your AI agent (in Replit, Vite, Tailwind, Python stack) to audit, repair, and standardize all routing and navigation throughout your AutolytiQ web app—turning every UI element that should be interactive into a functional, polished, and premium-quality experience. I’ll deliver you both the ideal AI instruction to use, and the underlying audit logic you’d want an advanced agent to apply.
+
+⸻
+
+AI Agent Instruction:
+
+(Copy-paste this as your prompt to the agent, with modifications for your actual repo/app structure)
+
+⸻
+
+“AutolytiQ Routing & Navigation Audit + Enhancement”
+
+Context:
+You are working on AutolytiQ.com, a premier, enterprise-grade dealership management platform. The stack is Vite + Tailwind (frontend), Python (ML/AI backend), and significant React component structure. The app is intended to set a new standard for usability and completeness: every page, nav item, card, button, icon, and key table row must be intuitive, clickable, and correctly routed.
+
+Your objective is:
+	1.	Audit all navigation and interactive elements in the repo.
+	•	Identify every React component that should be clickable (navbars, sidebars, dashboard tiles, inventory items, tables, cards, row actions, etc.).
+	•	Locate all routes, paths, and navigation targets defined in the codebase.
+	2.	Auto-detect and list missing or broken links/routes.
+	•	Find all UI elements that should link to another page, view, or modal but currently do not, or are incorrectly routed.
+	•	For every missing/broken/duplicate route: output the file, component, and line number (or section) needing fix.
+	3.	Generate a complete navigation map of the application.
+	•	Output a visual (markdown) or code-based tree of every route and its associated UI triggers.
+	•	Highlight missing or unimplemented paths (e.g., "/inventory/:id", "/crm/customers/:id", etc.).
+	4.	Propose and implement fixes, one by one:
+	•	For each problem found, output the corrected code snippet.
+	•	Implement missing <Link>, useNavigate, or router integrations (React Router or your stack’s equivalent).
+	•	Make every nav, sidebar, dashboard tile, and table row actually navigate to its correct detail or editor page.
+	•	For popovers, modals, dropdowns: ensure the trigger is clickable, focusable, and routes or opens as intended.
+	5.	Standardize:
+	•	Use a consistent, clear, and scalable routing convention throughout.
+	•	Apply DRY (don’t repeat yourself) principles: use centralized routing/config if possible.
+	•	Ensure route protection/auth if required (e.g., dashboard only for logged-in users).
+	6.	(Optional but ideal):
+	•	Write automated tests (unit + integration) to verify all main navigation elements actually route correctly and don’t break as components are updated.
+	•	Update navigation documentation (e.g., ROUTES.md or component docs).
+
+Deliverables:
+	•	A commit (or PR) with all fixes, including a summary of changes.
+	•	An output file (e.g., NAV_AUDIT.md) with:
+	•	Full route/component mapping
+	•	List of fixed and newly-added routes/components
+	•	Any suggested next steps
+
+⸻
+
+Sample Instruction (Short Version):
+
+“Audit the entire codebase for AutolytiQ and make every navigation and interactive UI element (navbars, sidebars, dashboard tiles, inventory items, table rows, action buttons, etc.) actually clickable and routed to the correct path using React Router (or equivalent). Fix all broken, missing, or mislinked routes. Output a full map of all current and missing routes/components, and propose/commit fixes for each, including code snippets. Ensure navigation is seamless, intuitive, and matches premium SaaS standards. Document your changes and suggest any further improvements.”
+
+⸻
+
+Best Practices to Include (for the agent):
+	•	Use <Link to=""> for in-app navigation, never plain <a> unless external.
+	•	Use programmatic navigation (useNavigate) for actions triggered by code.
+	•	Name routes clearly (no /abc/xyz nonsense, use /crm/customers/:id etc.).
+	•	Every sidebar or navbar item must map 1:1 to an actual route.
+	•	DRY principle: Centralize route definitions (e.g., /src/routes.js).
+	•	If a component should open a modal or detail view, make it obvious/clickable.
+	•	Fallback routes: handle 404 and redirect logic.
+	•	For each change, reference file and line, and ensure it passes lint/tests.
+
+⸻
+
+What to Expect:
+
+The AI agent (if sufficiently advanced or when paired with a script) should:
+	•	Audit all JSX for clickable UI, links, nav handlers.
+	•	Cross-reference your routes/router config and all useNavigate/<Link> usage.
+	•	Output a report and proposed fixes.
+	•	(Bonus: Auto-commit the fixes, write a changelog, or generate Cypress tests.)
+
+⸻
+
+If your agent can’t run a full code audit yet, ask it to output all files/components where navigation is likely broken, and step through the proposed fixes with you. Otherwise, the above prompt is as “all-encompassing” and systematized as it gets—literally a SaaS-level QA pass for routing/UI clickability.
+
+⸻
+
+Suggested Next Prompt (for agent chaining):
+
+“Now run an automated test of all navigation routes and output a table of every route, its linked component, and click coverage. Highlight any UI element that still isn’t clickable or routed.”
+
+⸻
+
+Want an even more detailed, recursive AI prompt, or code samples for specific navigation issues? Just say the word.
+Otherwise, copy the above, feed it into your Replit AI, and watch your navigation (and missing links) become bulletproof.
+
+⸻
+
+Suggested follow-up prompts for you:
+	•	“Show me a map of all sidebar/nav routes and their linked pages.”
+	•	“List any dashboard tiles or tables that aren’t clickable.”
+	•	“Add navigation breadcrumbs throughout the app.”
+	•	“Refactor all navigation to use centralized config.”
+
+Or roast me if you want this even more detailed.
+Better Prompt:
+“Write the actual recursive agent script that does this, with code, not just a prompt.”
+Ready for that?
