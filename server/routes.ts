@@ -20,6 +20,8 @@ import { mlPricingService } from "./ml-integration";
 import { valuationService } from './services/valuation-service';
 import { photoService } from './services/photo-service';
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { registerUserManagementRoutes } from "./user-management";
+import { registerMLDashboardRoutes } from "./ml-dashboard-routes";
 import { db } from "./db";
 import { EnterpriseWebSocketManager } from "./enterprise-websocket";
 import { lifecycleTracker } from "./tracking-service";
@@ -148,6 +150,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth middleware
   await setupAuth(app);
+
+  // Register additional route modules
+  registerUserManagementRoutes(app);
+  registerMLDashboardRoutes(app);
   
   // System user management routes
   registerUserRoutes(app);
