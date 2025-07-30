@@ -32,6 +32,7 @@ import {
   XCircle
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import UniformPage from "@/components/layout/uniform-page";
 
 // Real-time market leads from live API using hooks at top level
 function MarketLeads() {

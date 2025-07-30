@@ -18,53 +18,55 @@ import AISystemHealth from "@/components/enterprise/ai-system-health";
 
 
 export default function Dashboard() {
-  return (
-    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-7xl">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3 sm:gap-0">
-        <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Executive Dashboard</h1>
-          <p className="text-sm sm:text-base text-gray-600 mt-1">Comprehensive view of your dealership operations</p>
-        </div>
-        <div className="flex items-center space-x-2 sm:space-x-3">
-          <Link href="/workflow-assistant">
-            <Button className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2">
-              <Workflow className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Smart Workflows</span>
-              <span className="sm:hidden">Workflows</span>
-            </Button>
-          </Link>
-        </div>
-      </div>
+  const headerActions = (
+    <Link href="/workflow-assistant">
+      <Button className="flex items-center gap-2">
+        <Workflow className="w-4 h-4" />
+        Smart Workflows
+      </Button>
+    </Link>
+  );
 
-      <Tabs defaultValue="production" className="space-y-4 sm:space-y-6">
-        <TabsList className="grid w-full grid-cols-7 h-9 sm:h-10">
-          <TabsTrigger value="production" className="text-xs sm:text-sm px-1 sm:px-2">
-            <BarChart3 className="w-3 h-3 mr-1" />
-            Production
+  return (
+    <div className="space-y-6">
+
+
+      <Tabs defaultValue="production" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 h-10">
+          <TabsTrigger value="production" className="text-sm">
+            <BarChart3 className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Production</span>
+            <span className="sm:hidden">Prod</span>
           </TabsTrigger>
-          <TabsTrigger value="overview" className="text-xs sm:text-sm px-1 sm:px-2">
-            <Target className="w-3 h-3 mr-1" />
-            Overview
+          <TabsTrigger value="overview" className="text-sm">
+            <Target className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Overview</span>
+            <span className="sm:hidden">Over</span>
           </TabsTrigger>
-          <TabsTrigger value="intelligence" className="text-xs sm:text-sm px-1 sm:px-2">
-            <Brain className="w-3 h-3 mr-1" />
-            Intelligence
+          <TabsTrigger value="intelligence" className="text-sm">
+            <Brain className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Intelligence</span>
+            <span className="sm:hidden">AI</span>
           </TabsTrigger>
-          <TabsTrigger value="lifecycle" className="text-xs sm:text-sm px-1 sm:px-2">
-            <Users className="w-3 h-3 mr-1" />
-            Lifecycle
+          <TabsTrigger value="lifecycle" className="text-sm">
+            <Users className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Lifecycle</span>
+            <span className="sm:hidden">Life</span>
           </TabsTrigger>
-          <TabsTrigger value="workflows" className="text-xs sm:text-sm px-1 sm:px-2">
-            <Workflow className="w-3 h-3 mr-1" />
-            Automation
+          <TabsTrigger value="workflows" className="text-sm">
+            <Workflow className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Automation</span>
+            <span className="sm:hidden">Auto</span>
           </TabsTrigger>
-          <TabsTrigger value="reports" className="text-xs sm:text-sm px-1 sm:px-2">
-            <BarChart3 className="w-3 h-3 mr-1" />
-            Reports
+          <TabsTrigger value="reports" className="text-sm">
+            <BarChart3 className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Reports</span>
+            <span className="sm:hidden">Rep</span>
           </TabsTrigger>
-          <TabsTrigger value="health" className="text-xs sm:text-sm px-1 sm:px-2">
-            <Shield className="w-3 h-3 mr-1" />
-            Health
+          <TabsTrigger value="health" className="text-sm">
+            <Shield className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Health</span>
+            <span className="sm:hidden">HP</span>
           </TabsTrigger>
         </TabsList>
 
