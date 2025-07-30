@@ -12,8 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
-import EnhancedInventorySearch from '@/components/enhanced-inventory-search';
-import VehicleModal from '@/components/vehicle-modal';
+import UniformPage from '@/components/layout/uniform-page';
 import { 
   Plus, 
   Search, 
