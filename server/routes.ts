@@ -16,7 +16,7 @@ import { competitiveScraper } from "./services/competitive-scraper";
 import { registerAdminRoutes } from "./admin-routes";
 import { registerAccountingRoutes } from "./accounting-routes";
 import { decodeVINHandler } from "./services/vin-decoder";
-import { mlBackend } from "./ml-integration";
+import { mlPricingService } from "./ml-integration";
 import { valuationService } from './services/valuation-service';
 import { photoService } from './services/photo-service';
 import { setupAuth, isAuthenticated } from "./replitAuth";
@@ -947,6 +947,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete customer" });
+    }
+  });
+
+  // ML Pricing Routes
+  app.post("/api/ml/pricing-analysis", async (req, res) => {
+    try {
+      const result = await mlPricingService.getVehiclePricing(req.body);
+      res.json(result);
+    } catch (error) {
+      console.error("ML pricing analysis error:", error);
+      res.status(500).json({ 
+        message: "ML analysis temporarily unavailable",
+        fallback: "Using rule-based pricing estimation"
+      });
+    }
+  });
+
+  app.post("/api/ml/competitive-intel", async (req, res) => {
+    try {
+      const result = await mlPricingService.getCompetitivePricing(req.body);
+      res.json(result);
+    } catch (error) {
+      console.error("ML competitive intel error:", error);
+      res.status(500).json({ 
+        message: "Competitive analysis temporarily unavailable",
+        fallback: "Using sample competitive data"
+      });
+    }
+  });
+
+  app.post("/api/ml/market-trends", async (req, res) => {
+    try {
+      const result = await mlPricingService.getMarketTrends(req.body);
+      res.json(result);
+    } catch (error) {
+      console.error("ML market trends error:", error);
+      res.status(500).json({ 
+        message: "Market analysis temporarily unavailable",
+        fallback: "Using sample market data"
+      });
     }
   });
 

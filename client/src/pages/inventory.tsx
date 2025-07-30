@@ -77,7 +77,6 @@ export default function Inventory() {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showEnhancedSearch, setShowEnhancedSearch] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterMake, setFilterMake] = useState('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -525,7 +524,7 @@ export default function Inventory() {
             <Input
               placeholder="Search by make, model, or VIN..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => updateSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
