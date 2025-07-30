@@ -77,24 +77,52 @@ export default function MLEnterpriseDashboard() {
         triggers,
         res
       ] = await Promise.all([
-        fetch('/api/ml-enterprise/production-metrics').then(r => r.ok ? r.json() : {}),
+        fetch('/api/ml-enterprise/production-metrics').then(r => r.ok ? r.json() : { 
+          totalPredictions: 0, 
+          averageAccuracy: 0, 
+          modelsDeployed: 0, 
+          alertsActive: 0,
+          recentMetrics: []
+        }),
         fetch('/api/ml-enterprise/model-registry').then(r => r.ok ? r.json() : { models: [] }),
-        fetch('/api/ml-enterprise/drift-detection').then(r => r.ok ? r.json() : { detectors: [], alertsActive: 0 }),
-        fetch('/api/ml-enterprise/swarm-collapse').then(r => r.ok ? r.json() : { riskLevel: 0, detectors: {} }),
-        fetch('/api/ml-enterprise/orchestration/status').then(r => r.ok ? r.json() : { runningPipelines: 0, totalPipelines: 0 }),
-        fetch('/api/ml-enterprise/shadow-deployments').then(r => r.ok ? r.json() : { active: [] }),
-        fetch('/api/ml-enterprise/retrain-triggers').then(r => r.ok ? r.json() : { activeTriggers: [] }),
-        fetch('/api/ml-enterprise/resources').then(r => r.ok ? r.json() : { compute: {}, storage: {} })
+        fetch('/api/ml-enterprise/drift-detection').then(r => r.ok ? r.json() : { 
+          detectors: [], 
+          alertsActive: 0,
+          driftScores: {}
+        }),
+        fetch('/api/ml-enterprise/swarm-collapse').then(r => r.ok ? r.json() : { 
+          riskLevel: 0, 
+          detectors: {},
+          correlationThreshold: 0.8,
+          entropyThreshold: 0.5
+        }),
+        fetch('/api/ml-enterprise/orchestration/status').then(r => r.ok ? r.json() : { 
+          runningPipelines: 0, 
+          totalPipelines: 0,
+          orchestrators: {}
+        }),
+        fetch('/api/ml-enterprise/shadow-deployments').then(r => r.ok ? r.json() : { 
+          active: [],
+          deployments: {}
+        }),
+        fetch('/api/ml-enterprise/retrain-triggers').then(r => r.ok ? r.json() : { 
+          activeTriggers: [],
+          triggers: {}
+        }),
+        fetch('/api/ml-enterprise/resources').then(r => r.ok ? r.json() : { 
+          compute: { cpu: { usage: 0 }, memory: { usage: 0 }, gpu: { usage: 0 } }, 
+          storage: { usage: 0 }
+        })
       ]);
 
-      setProductionMetrics(prodMetrics);
-      setModelRegistry(registry);
-      setDriftDetection(drift);
-      setSwarmCollapse(swarm);
-      setOrchestration(orch);
-      setShadowDeployments(shadow);
-      setRetrainTriggers(triggers);
-      setResources(res);
+      setProductionMetrics(prodMetrics || {});
+      setModelRegistry(registry || { models: [] });
+      setDriftDetection(drift || { detectors: [], alertsActive: 0 });
+      setSwarmCollapse(swarm || { riskLevel: 0, detectors: {} });
+      setOrchestration(orch || { runningPipelines: 0, totalPipelines: 0 });
+      setShadowDeployments(shadow || { active: [] });
+      setRetrainTriggers(triggers || { activeTriggers: [] });
+      setResources(res || { compute: {}, storage: {} });
       setLoading(false);
     } catch (error) {
       console.error('Error loading enterprise ML data:', error);
@@ -141,7 +169,7 @@ export default function MLEnterpriseDashboard() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="p-2 sm:p-4 md:p-6 space-y-4 sm:space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">ML Enterprise Dashboard</h1>
