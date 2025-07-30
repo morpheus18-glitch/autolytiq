@@ -77,6 +77,7 @@ export default function AISystemHealth() {
   const { data: vehicles = [] } = useQuery({ queryKey: ['/api/vehicles'] });
   const { data: sales = [] } = useQuery({ queryKey: ['/api/sales'] });
   const { data: leads = [] } = useQuery({ queryKey: ['/api/leads'] });
+  const { data: customers = [] } = useQuery({ queryKey: ['/api/customers'] });
 
   // AI-powered system components monitoring
   const systemComponents: SystemComponent[] = [
@@ -197,7 +198,7 @@ export default function AISystemHealth() {
     {
       id: 'concurrent_users',
       name: 'Concurrent Users',
-      value: Math.max(leads.length + customers.length, 45),
+      value: Math.max((leads as any[]).length + (customers as any[]).length, 45),
       unit: 'users',
       status: 'good',
       trend: 15.3,
