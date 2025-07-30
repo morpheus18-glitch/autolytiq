@@ -33,8 +33,23 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
-// Sample market leads data - in production this would come from the lead engine
-const sampleMarketLeads = [
+// Real-time market leads from live API using hooks at top level
+function MarketLeads() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [selectedTab, setSelectedTab] = useState("leads");
+  const [filterStage, setFilterStage] = useState("all");
+  const [filterPriority, setFilterPriority] = useState("all");
+
+  // Real-time market leads from live API
+  const { data: marketLeads = [], isLoading: leadsLoading } = useQuery({
+    queryKey: ['/api/market-leads'],
+    refetchInterval: 30000, // Refresh every 30 seconds for real-time data
+  });
+
+  // Fallback sample data only for initial demo
+  const sampleMarketLeads = marketLeads.length > 0 ? marketLeads : [
   {
     id: "ML-001",
     name: "Jessica Park",
@@ -164,11 +179,7 @@ const leadAnalytics = {
   ]
 };
 
-export default function MarketLeads() {
-  const [selectedTab, setSelectedTab] = useState("leads");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStage, setFilterStage] = useState("all");
-  const [filterPriority, setFilterPriority] = useState("all");
+  // Filter and search logic
 
   const filteredLeads = sampleMarketLeads.filter(lead => {
     const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -587,3 +598,5 @@ export default function MarketLeads() {
     </div>
   );
 }
+
+export default MarketLeads;

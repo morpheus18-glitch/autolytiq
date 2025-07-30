@@ -3855,6 +3855,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Market leads endpoint - REAL DATA ONLY
+  app.get("/api/market-leads", async (req, res) => {
+    try {
+      const leads = await storage.getMarketLeads();
+      res.json(leads);
+    } catch (error) {
+      console.error("Market leads error:", error);
+      res.status(500).json({ message: "Failed to fetch market leads" });
+    }
+  });
+
+  // Semantic search endpoint - REAL DATABASE QUERIES ONLY
+  app.get("/api/semantic-search", async (req, res) => {
+    try {
+      const { query } = req.query;
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+
+      const results = await storage.performSemanticSearch(query as string);
+      res.json(results);
+    } catch (error) {
+      console.error("Semantic search error:", error);
+      res.status(500).json({ message: "Failed to perform semantic search" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // Initialize Enterprise WebSocket Manager
