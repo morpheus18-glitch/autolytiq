@@ -13,6 +13,9 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import UniformPage from '@/components/layout/uniform-page';
+import AdvancedSearch from '@/components/search/advanced-search';
+import SearchResults from '@/components/search/search-results';
+import { useSearch } from '@/hooks/use-search';
 import { 
   Plus, 
   Search, 
@@ -54,6 +57,22 @@ export default function Inventory() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { trackInteraction } = usePixelTracker();
+
+  // Enhanced search functionality
+  const {
+    searchTerm,
+    filters,
+    results,
+    isLoading: searchLoading,
+    updateSearchTerm,
+    updateFilter,
+    clearFilters,
+    hasActiveFilters
+  } = useSearch({
+    endpoint: '/api/vehicles',
+    searchFields: ['make', 'model', 'year', 'vin'],
+    initialFilters: {}
+  });
   
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);

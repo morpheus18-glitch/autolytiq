@@ -35,6 +35,9 @@ const navigationItems = [
   { name: "Deal Desk", href: "/deal-desk", icon: Calculator },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Market Leads", href: "/market-leads", icon: MessageSquare },
+  { name: "Enhanced Inventory", href: "/enhanced-inventory", icon: Car },
+  { name: "Enhanced Customers", href: "/enhanced-customers", icon: Users },
+  { name: "Enhanced Sales", href: "/enhanced-sales", icon: Calculator },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
