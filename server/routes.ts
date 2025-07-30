@@ -23,6 +23,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { registerUserManagementRoutes } from "./user-management";
 import { registerMLDashboardRoutes } from "./ml-dashboard-routes";
 import { registerContinuousMLRoutes } from "./continuous-ml";
+import { registerMLAdminRoutes } from "./ml-admin-routes";
 import { db } from "./db";
 import { EnterpriseWebSocketManager } from "./enterprise-websocket";
 import { lifecycleTracker } from "./tracking-service";
@@ -156,6 +157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerUserManagementRoutes(app);
   registerMLDashboardRoutes(app);
   registerContinuousMLRoutes(app);
+  registerMLAdminRoutes(app);
   
   // System user management routes
   registerUserRoutes(app);
