@@ -61,15 +61,37 @@ export default function MLDashboardControl() {
 
   const loadDashboardData = async () => {
     try {
-      const [statusRes, paramsRes, statsRes] = await Promise.all([
+      const [statusRes, paramsRes, statsRes, mlControlRes] = await Promise.all([
         fetch('/api/ml/pipeline/status'),
         fetch(`/api/ml/models/${selectedModel}/parameters`),
-        fetch('/api/ml/data/stats')
+        fetch('/api/ml/data/stats'),
+        fetch('/api/ml-control/status')
       ]);
 
       if (statusRes.ok) setPipelineStatus(await statusRes.json());
       if (paramsRes.ok) setModelParameters(await paramsRes.json());
       if (statsRes.ok) setDataStats(await statsRes.json());
+      
+      // Load continuous ML status
+      if (mlControlRes.ok) {
+        const mlStatus = await mlControlRes.json();
+        if (Array.isArray(mlStatus)) {
+          // Update pipeline status with live data
+          setPipelineStatus(prev => ({
+            ...prev,
+            pipelines: mlStatus.map(pipeline => ({
+              id: pipeline.pipeline_id,
+              name: pipeline.pipeline_id.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+              status: pipeline.running ? 'running' : 'stopped',
+              lastRun: pipeline.metrics.last_train || new Date().toISOString(),
+              nextRun: new Date(Date.now() + (pipeline.params?.scrape_interval || 300) * 1000).toISOString(),
+              accuracy: Math.round(pipeline.metrics.model_accuracy * 100),
+              health: pipeline.health,
+              metrics: pipeline.metrics
+            }))
+          }));
+        }
+      }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
@@ -79,22 +101,33 @@ export default function MLDashboardControl() {
 
   const handleParameterUpdate = async () => {
     try {
-      const response = await fetch(`/api/ml/models/${selectedModel}/parameters`, {
-        method: 'PUT',
+      // Update continuous ML pipeline parameters
+      const response = await fetch('/api/ml-control/params', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(modelParameters)
+        body: JSON.stringify({
+          pipeline_id: selectedModel,
+          params: {
+            learning_rate: modelParameters.hyperparameters?.learning_rate?.value || 0.001,
+            batch_size: modelParameters.hyperparameters?.batch_size?.value || 32,
+            scrape_interval: modelParameters.hyperparameters?.scrape_interval?.value || 300,
+            epochs: modelParameters.hyperparameters?.epochs?.value || 10,
+            quality_threshold: modelParameters.hyperparameters?.quality_threshold?.value || 0.8,
+            max_training_time: modelParameters.hyperparameters?.max_training_time?.value || 120
+          }
+        })
       });
 
       if (response.ok) {
         toast({
           title: "Parameters Updated",
-          description: "Model parameters updated successfully. Retraining scheduled."
+          description: "Live ML parameters updated successfully. Changes applied immediately."
         });
       }
     } catch (error) {
       toast({
         title: "Update Failed",
-        description: "Failed to update model parameters.",
+        description: "Failed to update ML parameters.",
         variant: "destructive"
       });
     }
@@ -102,24 +135,85 @@ export default function MLDashboardControl() {
 
   const triggerTraining = async (modelId: string) => {
     try {
-      const response = await fetch(`/api/ml/models/${modelId}/train`, {
+      // Start continuous ML pipeline
+      const response = await fetch('/api/ml-control/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ force_retrain: true })
+        body: JSON.stringify({ 
+          pipeline_id: modelId,
+          params: {
+            learning_rate: 0.001,
+            batch_size: 32,
+            scrape_interval: 300,
+            epochs: 10,
+            model_type: "xgboost",
+            data_sources: ["carfax", "autotrader", "cargurus"],
+            quality_threshold: 0.8,
+            max_training_time: 120
+          }
+        })
       });
 
       if (response.ok) {
-        const job = await response.json();
-        setTrainingJobs(prev => [job, ...prev]);
+        const result = await response.json();
         toast({
-          title: "Training Started",
-          description: `Training job ${job.jobId} queued successfully.`
+          title: "Pipeline Started",
+          description: `Continuous ML pipeline ${modelId} started successfully.`
         });
+        loadDashboardData(); // Refresh data
       }
     } catch (error) {
       toast({
-        title: "Training Failed",
-        description: "Failed to start model training.",
+        title: "Pipeline Start Failed",
+        description: "Failed to start continuous ML pipeline.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const stopPipeline = async (modelId: string) => {
+    try {
+      const response = await fetch('/api/ml-control/stop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pipeline_id: modelId })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Pipeline Stopped",
+          description: `ML pipeline ${modelId} stopped successfully.`
+        });
+        loadDashboardData();
+      }
+    } catch (error) {
+      toast({
+        title: "Stop Failed",
+        description: "Failed to stop ML pipeline.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const restartPipeline = async (modelId: string) => {
+    try {
+      const response = await fetch('/api/ml-control/restart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pipeline_id: modelId })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Pipeline Restarting",
+          description: `ML pipeline ${modelId} is restarting with updated parameters.`
+        });
+        setTimeout(loadDashboardData, 3000); // Refresh after restart
+      }
+    } catch (error) {
+      toast({
+        title: "Restart Failed",
+        description: "Failed to restart ML pipeline.",
         variant: "destructive"
       });
     }
@@ -198,9 +292,13 @@ export default function MLDashboardControl() {
             <RotateCcw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          <Button onClick={() => triggerTraining(selectedModel)}>
+          <Button onClick={() => triggerTraining('pricing_analysis')}>
             <Play className="h-4 w-4 mr-2" />
-            Start Training
+            Start Pricing Pipeline
+          </Button>
+          <Button onClick={() => triggerTraining('customer_segmentation')} variant="secondary">
+            <Brain className="h-4 w-4 mr-2" />
+            Start Customer Pipeline
           </Button>
         </div>
       </div>
@@ -309,17 +407,31 @@ export default function MLDashboardControl() {
                       </p>
                     </div>
                     <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        onClick={() => triggerTraining(pipeline.id)}
-                        disabled={pipeline.status === 'training'}
+                      {pipeline.status === 'running' ? (
+                        <Button
+                          size="sm"
+                          onClick={() => stopPipeline(pipeline.id)}
+                          variant="destructive"
+                        >
+                          <Pause className="h-3 w-3 mr-1" />
+                          Stop
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() => triggerTraining(pipeline.id)}
+                        >
+                          <Play className="h-3 w-3 mr-1" />
+                          Start
+                        </Button>
+                      )}
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => restartPipeline(pipeline.id)}
                       >
-                        <Play className="h-3 w-3 mr-1" />
-                        Retrain
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Settings className="h-3 w-3 mr-1" />
-                        Config
+                        <RotateCcw className="h-3 w-3 mr-1" />
+                        Restart
                       </Button>
                     </div>
                   </div>
@@ -374,14 +486,20 @@ export default function MLDashboardControl() {
                           />
                           <span className="text-sm text-gray-500">{config.max}</span>
                         </div>
-                        <Input
-                          type="number"
-                          value={config.value}
-                          onChange={(e) => updateHyperparameter(param, parseFloat(e.target.value))}
-                          min={config.min}
-                          max={config.max}
-                          step={config.type === 'int' ? 1 : 0.001}
-                        />
+                        <div className="flex items-center space-x-2">
+                          <Input
+                            type="number"
+                            value={config.value}
+                            onChange={(e) => updateHyperparameter(param, parseFloat(e.target.value))}
+                            min={config.min}
+                            max={config.max}
+                            step={config.type === 'int' ? 1 : 0.001}
+                            className="flex-1"
+                          />
+                          <Badge variant="outline" className="text-xs">
+                            {config.type === 'int' ? 'Integer' : 'Float'}
+                          </Badge>
+                        </div>
                       </div>
                     ) : config.type === 'select' ? (
                       <Select
@@ -448,10 +566,14 @@ export default function MLDashboardControl() {
             </Card>
           </div>
 
-          <div className="flex justify-center">
+          <div className="flex justify-center space-x-4">
             <Button onClick={handleParameterUpdate} size="lg">
               <Settings className="h-4 w-4 mr-2" />
-              Update Parameters
+              Update Live Parameters
+            </Button>
+            <Button onClick={() => restartPipeline(selectedModel)} variant="outline" size="lg">
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Apply & Restart
             </Button>
           </div>
         </TabsContent>
