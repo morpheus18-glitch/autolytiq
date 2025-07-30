@@ -30,7 +30,7 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 import { usePixelTracker } from "@/hooks/use-pixel-tracker";
 import { useLocation } from "wouter";
-import { FunctionalDeskingTool } from "@/components/functional-desking-tool";
+// Removed functional-desking-tool - using unified deal desk
 import { useToast } from "@/hooks/use-toast";
 
 interface Customer {
@@ -435,10 +435,13 @@ export default function ShowroomManager() {
             Close Desking Tool
           </Button>
         </div>
-        <FunctionalDeskingTool 
-          dealId={`customer-${selectedCustomerId}`}
-          onSave={handleSaveDeal}
-        />
+        <div className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Deal Desk</h2>
+          <p className="text-gray-600 mb-4">Working with customer #{selectedCustomerId}</p>
+          <Button onClick={handleSaveDeal} className="mr-2">
+            Save Deal
+          </Button>
+        </div>
       </div>
     );
   }

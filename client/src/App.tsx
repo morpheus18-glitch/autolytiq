@@ -9,11 +9,11 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
-import Inventory from "@/pages/inventory-enhanced";
+import Inventory from "@/pages/inventory";
 import VehicleDetail from "@/pages/vehicle-detail";
-import Sales from "@/pages/sales-enhanced";
-import SalesMobileEnhanced from "@/pages/sales-mobile-enhanced";
-import Customers from "@/pages/customers-enhanced";
+import Sales from "@/pages/sales";
+// Removed sales-mobile-enhanced - using unified sales page
+import Customers from "@/pages/customers";
 import CustomerDetail from "@/pages/customer-detail";
 import Analytics from "@/pages/analytics";
 import Settings from "@/pages/settings";
@@ -22,15 +22,8 @@ import Reports from "@/pages/reports";
 import MLDashboard from "@/pages/ml-dashboard";
 import ShowroomManager from "@/pages/showroom-manager";
 // Deal Pages
-import DealsPage from "@/pages/deals/index";
-import DealDetailPage from "@/pages/deals/[id]/index";
-import DealDesk from "@/pages/deal-desk";
-import Deals from "@/pages/deals";
-import DealsUnified from "@/pages/deals-unified";
-import DealWorkingScreen from "@/pages/deal-working-screen";
-import DealsList from "@/pages/deals-list";
-
-import DealsFinance from "@/pages/deals-finance";
+import DealDeskUnified from "@/pages/deal-desk-unified";
+import InventoryDetail from "@/pages/inventory-detail";
 // Admin Pages
 import SystemSettings from "@/pages/admin/system-settings";
 import ComprehensiveSettings from "@/pages/admin/comprehensive-settings";
@@ -77,7 +70,7 @@ import MultiStoreManagement from "@/pages/multi-store-management";
 import CustomerLifecycle from "@/pages/analytics/customer-lifecycle";
 import MarketLeads from "@/pages/market-leads";
 import AutomotiveDataCenter from "@/pages/automotive-data-center";
-import ProfessionalDealDesk from "@/pages/professional-deal-desk";
+// Professional deal desk removed - using unified deal desk
 import ComplianceManager from "@/pages/finance/compliance-manager";
 import FinanceReports from "@/pages/finance/finance-reports";
 import RoleManagement from "@/pages/admin/role-management";
@@ -125,24 +118,24 @@ function Router() {
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/inventory" component={Inventory} />
-            <Route path="/inventory/:id" component={VehicleDetail} />
+            <Route path="/inventory/:id" component={InventoryDetail} />
             <Route path="/leads" component={Sales} />
             <Route path="/customers" component={Customers} />
             <Route path="/customers/:id" component={CustomerDetail} />
-            <Route path="/deals" component={DealDesk} />
+            <Route path="/deals" component={DealDeskUnified} />
             <Route path="/showroom" component={ShowroomManager} />
             <Route path="/reports" component={Reports} />
-            <Route path="/sales-mobile" component={SalesMobileEnhanced} />
+            <Route path="/sales-mobile" component={Sales} />
             <Route path="/analytics" component={Analytics} />
             <Route path="/analytics/customer-lifecycle" component={CustomerLifecycle} />
             <Route path="/competitive-pricing" component={CompetitivePricing} />
             <Route path="/market-leads" component={MarketLeads} />
             <Route path="/automotive-data-center" component={AutomotiveDataCenter} />
-            <Route path="/deals-list" component={DealsList} />
+            <Route path="/deals-list" component={DealDeskUnified} />
 
             {/* Finance Routes */}
             <Route path="/finance" component={FiDashboardPage} />
-            <Route path="/finance/structuring" component={ProfessionalDealDesk} />
+            <Route path="/finance/structuring" component={DealDeskUnified} />
             <Route path="/finance/lenders" component={() => <LenderManagement />} />
             <Route path="/finance/rates" component={() => <RateSheets />} />
             <Route path="/finance/compliance" component={ComplianceManager} />
@@ -181,10 +174,10 @@ function Router() {
             <Route path="/admin/user-profile" component={UserProfile} />
 
             {/* Legacy Routes */}
-            <Route path="/deals-finance" component={DealsFinance} />
-            <Route path="/deals/:id" component={DealDetailPage} />
-            <Route path="/deal-desk" component={DealDesk} />
-            <Route path="/deal-working" component={DealWorkingScreen} />
+            <Route path="/deals-finance" component={DealDeskUnified} />
+            <Route path="/deals/:id" component={DealDeskUnified} />
+            <Route path="/deal-desk" component={DealDeskUnified} />
+            <Route path="/deal-working" component={DealDeskUnified} />
             <Route path="/showroom-manager" component={ShowroomManager} />
             <Route path="/ml-dashboard" component={MLDashboard} />
             <Route path="/fi-dashboard" component={FiDashboardPage} />
