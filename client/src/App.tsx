@@ -181,7 +181,7 @@ function Router() {
             <Route path="/deal-working" component={DealDeskUnified} />
             <Route path="/showroom-manager" component={ShowroomManager} />
             <Route path="/ml-dashboard" component={MLDashboard} />
-          <Route path="/ml-control" component={MLDashboardControl} />
+            <Route path="/ml-control" component={MLDashboardControl} />
             <Route path="/fi-dashboard" component={FiDashboardPage} />
             <Route path="/fi-configuration" component={FiConfigurationPage} />
             <Route path="/settings" component={Settings} />

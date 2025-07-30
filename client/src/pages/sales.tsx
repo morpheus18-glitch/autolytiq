@@ -80,17 +80,18 @@ export default function Sales() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterTemperature, setFilterTemperature] = useState('all');
+  const [showQuoteWorksheet, setShowQuoteWorksheet] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: leads = [], isLoading: leadsLoading } = useQuery({
+  const { data: leads = [], isLoading: leadsLoading } = useQuery<Lead[]>({
     queryKey: ['/api/leads'],
     retry: 1,
     retryDelay: 1000,
   });
 
-  const { data: sales = [], isLoading: salesLoading } = useQuery({
+  const { data: sales = [], isLoading: salesLoading } = useQuery<Sale[]>({
     queryKey: ['/api/sales'],
     retry: 1,
     retryDelay: 1000,
