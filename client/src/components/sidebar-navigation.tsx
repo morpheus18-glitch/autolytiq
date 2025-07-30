@@ -33,7 +33,8 @@ import {
   X,
   Brain,
   Database,
-  Terminal
+  Terminal,
+  Server
 } from "lucide-react";
 
 interface NavItem {
@@ -99,6 +100,7 @@ const navigationSections: NavSection[] = [
       { label: "Security Center", href: "/admin/security", icon: Shield },
       { label: "ML Control Center", href: "/ml-control", icon: Brain },
       { label: "ML Developer Admin", href: "/ml-developer-admin", icon: Terminal, badge: "DEV" },
+      { label: "ML Enterprise Stack", href: "/ml-enterprise", icon: Server, badge: "PROD" },
     ]
   },
   {
