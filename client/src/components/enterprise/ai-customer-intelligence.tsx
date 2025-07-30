@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Link } from "wouter";
+import MLDashboardWidget from "@/components/widgets/ml-dashboard-widget";
 import { 
   User, 
   Brain, 
@@ -306,6 +307,43 @@ export default function AICustomerIntelligence() {
 
         {/* Hot Prospects Tab */}
         <TabsContent value="hot-prospects" className="space-y-4">
+          {/* ML Pipeline Status Widget */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+            <div className="lg:col-span-1">
+              <MLDashboardWidget />
+            </div>
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="w-5 h-5 text-blue-600" />
+                    AI Intelligence Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{hotProspects.length}</div>
+                      <div className="text-sm text-gray-600">Hot Prospects</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">{aiInsights.length}</div>
+                      <div className="text-sm text-gray-600">AI Insights</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{purchasePredictions.length}</div>
+                      <div className="text-sm text-gray-600">Predictions</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-orange-600">{Math.round(aiInsights.reduce((acc, i) => acc + i.confidence, 0) / Math.max(aiInsights.length, 1))}%</div>
+                      <div className="text-sm text-gray-600">Avg Confidence</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {hotProspects.map((prospect) => (
               <Card key={prospect.id} className="hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-green-500">
