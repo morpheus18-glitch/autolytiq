@@ -27,7 +27,8 @@ import {
   PieChart,
   Wallet,
   Receipt,
-  BookOpen
+  BookOpen,
+  Brain
 } from "lucide-react";
 
 interface NavItem {
@@ -88,6 +89,7 @@ const navigationSections: NavSection[] = [
       { label: "Dealership Config", href: "/admin/dealership", icon: Building },
       { label: "Inventory Management", href: "/inventory", icon: Car },
       { label: "Multi-Store Management", href: "/multi-store-management", icon: Archive },
+      { label: "ML Control Center", href: "/ml-control", icon: Brain },
       { label: "API Integrations", href: "/admin/integrations", icon: Shield },
       { label: "System Health", href: "/admin/health", icon: TrendingUp },
     ]
