@@ -21,6 +21,7 @@ import CompetitivePricing from "@/pages/competitive-pricing";
 import Reports from "@/pages/reports";
 import MLDashboard from "@/pages/ml-dashboard";
 import MLDashboardControl from "@/pages/ml-dashboard-control";
+import MLDeveloperAdmin from "@/pages/ml-developer-admin";
 import ShowroomManager from "@/pages/showroom-manager";
 // Deal Pages
 import DealDeskUnified from "@/pages/deal-desk-unified";
@@ -182,6 +183,7 @@ function Router() {
             <Route path="/showroom-manager" component={ShowroomManager} />
             <Route path="/ml-dashboard" component={MLDashboard} />
             <Route path="/ml-control" component={MLDashboardControl} />
+            <Route path="/ml-developer-admin" component={MLDeveloperAdmin} />
             <Route path="/fi-dashboard" component={FiDashboardPage} />
             <Route path="/fi-configuration" component={FiConfigurationPage} />
             <Route path="/settings" component={Settings} />
