@@ -1,0 +1,39 @@
+You’re hitting on the core issue - **the interface needs to match how dealership staff actually think and work**, not follow generic web app patterns.
+
+## Ditch the Sidebar for Task-Based Navigation
+
+**Top navigation with workflow tabs** - Organize around actual dealer processes: “Inventory,” “Sales Process,” “Service,” “Customer Management,” “Reports.” Each tab reveals contextual sub-navigation.
+
+**Dashboard-first approach** - Land users on a role-specific dashboard (Sales Manager vs Service Advisor vs Finance) with quick actions and today’s priorities front and center.
+
+**Contextual navigation** - When viewing a customer, show related actions right there: “Schedule Service,” “View Purchase History,” “Process Trade-in” rather than making them navigate elsewhere.
+
+## Route Structure That Matches Mental Models
+
+Instead of `/admin/vehicles/123/edit`, use paths like:
+
+- `/inventory/lot-management`
+- `/customer/john-smith/service-history`
+- `/deals/pending/review`
+- `/service/appointments/today`
+
+**Breadcrumbs that make sense** - “Customer: John Smith > Current Deal > Trade Appraisal” not “Users > ID:12345 > Transactions > Form”
+
+## Workflow-Centered Design
+
+**Task completion flows** - Guide users through complete processes like “New Customer Sale” or “Service Write-up” with clear progress indicators and next steps.
+
+**Quick actions everywhere** - From any customer view, one-click to schedule service, start a deal, check trade value, etc.
+
+**Smart defaults and context** - When creating a service appointment, pre-fill the customer’s preferred technician, usual service time, vehicle details.
+
+## Role-Based Interface Adaptation
+
+Different roles see different things first:
+
+- **Sales staff** - leads, follow-ups, inventory matching customer needs
+- **Service advisors** - today’s appointments, parts availability, technician schedules
+- **Finance** - pending deals, payment processing, compliance checks
+- **Management** - KPIs, staff performance, inventory turns
+
+What roles are your primary users? I can help design specific navigation flows for their daily tasks.​​​​​​​​​​​​​​​​
