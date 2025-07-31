@@ -17,7 +17,9 @@ import {
   DollarSign,
   TrendingUp,
   Shield,
-  Database
+  Database,
+  Menu,
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -114,6 +116,7 @@ export default function TopNavigation() {
     return workflowTabs.find(tab => location.startsWith(tab.path))?.id || 'inventory';
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const currentTab = workflowTabs.find(tab => tab.id === activeTab);
 
@@ -132,18 +135,28 @@ export default function TopNavigation() {
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 shadow-sm">
+    <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
       {/* Main Navigation Bar */}
       <div className="px-4 lg:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo and Brand */}
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-2">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Car className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">AutolytiQ</span>
+              <span className="text-xl font-bold text-gray-900 hidden sm:inline">AutolytiQ</span>
             </Link>
+            
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
 
             {/* Workflow Tabs */}
             <nav className="hidden lg:flex items-center space-x-1">
@@ -196,9 +209,9 @@ export default function TopNavigation() {
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center gap-4">
-            {/* Quick Search */}
-            <div className="hidden md:flex relative">
+          <div className="flex items-center gap-2">
+            {/* Quick Search - Desktop Only */}
+            <div className="hidden lg:flex relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 type="text"
@@ -209,12 +222,12 @@ export default function TopNavigation() {
               />
             </div>
 
-            {/* Quick Actions */}
+            {/* Quick Actions - Hidden on mobile */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" className="flex items-center gap-2">
+                <Button size="sm" className="hidden sm:flex items-center gap-2">
                   <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Quick Action</span>
+                  <span className="hidden md:inline">Quick Action</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
@@ -236,7 +249,7 @@ export default function TopNavigation() {
             </DropdownMenu>
 
             {/* Notifications */}
-            <Button variant="ghost" size="sm" className="relative">
+            <Button variant="ghost" size="sm" className="relative hidden sm:flex">
               <Bell className="w-5 h-5" />
               <Badge variant="destructive" className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs">
                 3
@@ -250,10 +263,10 @@ export default function TopNavigation() {
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <User className="w-5 h-5 text-blue-600" />
                   </div>
-                  <span className="hidden sm:inline text-sm font-medium">
+                  <span className="hidden md:inline text-sm font-medium">
                     {(user as any)?.firstName || 'User'}
                   </span>
-                  <ChevronDown className="w-3 h-3" />
+                  <ChevronDown className="w-3 h-3 hidden sm:inline" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -289,9 +302,114 @@ export default function TopNavigation() {
         </div>
       </div>
 
-      {/* Contextual Sub-Navigation */}
-      {currentTab?.subItems && (
-        <div className="bg-gray-50 border-t border-gray-200 px-4 lg:px-6 py-2">
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden absolute top-16 left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-50">
+          <div className="px-4 py-4 space-y-4">
+            {/* Mobile Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                type="text"
+                placeholder="Search vehicles, customers..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-full"
+              />
+            </div>
+
+            {/* Mobile Navigation Tabs */}
+            <div className="space-y-2">
+              {workflowTabs.map((tab) => {
+                const isActive = activeTab === tab.id;
+                const Icon = tab.icon;
+                
+                return (
+                  <div key={tab.id}>
+                    <Button
+                      variant={isActive ? "default" : "ghost"}
+                      className={`w-full justify-start gap-2 ${
+                        isActive ? 'bg-blue-600 text-white' : 'text-gray-600'
+                      }`}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      <Icon className="w-4 h-4" />
+                      {tab.label}
+                    </Button>
+                    
+                    {/* Mobile Sub-items */}
+                    {isActive && tab.subItems && (
+                      <div className="ml-6 mt-2 space-y-1">
+                        {tab.subItems.map((item) => {
+                          const ItemIcon = item.icon;
+                          const isSubActive = location === item.path;
+                          
+                          return (
+                            <Link
+                              key={item.path}
+                              href={item.path}
+                              className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md ${
+                                isSubActive
+                                  ? 'bg-blue-100 text-blue-700'
+                                  : 'text-gray-600 hover:bg-gray-100'
+                              }`}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                              <ItemIcon className="w-4 h-4" />
+                              {item.label}
+                              {item.badge && (
+                                <Badge variant="destructive" className="text-xs ml-auto">
+                                  {item.badge}
+                                </Badge>
+                              )}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Mobile Quick Actions */}
+            <div className="border-t pt-4 space-y-2">
+              <p className="text-sm font-medium text-gray-700">Quick Actions</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start gap-2"
+                onClick={() => {
+                  handleQuickAction('new-deal');
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                <Calculator className="w-4 h-4" />
+                Start New Deal
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start gap-2"
+                onClick={() => {
+                  handleQuickAction('add-vehicle');
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                <Car className="w-4 h-4" />
+                Add Vehicle
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Sub-Navigation */}
+      {currentTab?.subItems && !isMobileMenuOpen && (
+        <div className="hidden lg:block bg-gray-50 border-t border-gray-200 px-4 lg:px-6 py-2">
           <nav className="flex items-center space-x-6 overflow-x-auto">
             {currentTab.subItems.map((item) => {
               const isActive = location === item.path;
