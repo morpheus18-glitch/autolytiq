@@ -41,7 +41,7 @@ import FinancialReportsPage from "@/pages/accounting/reports";
 import PayrollPage from "@/pages/accounting/payroll";
 import TransactionsPage from "@/pages/accounting/transactions";
 import AccountingDashboard from "@/pages/accounting/accounting-dashboard";
-import SidebarNavigation from "@/components/sidebar-navigation";
+import TopNavigation from "@/components/top-navigation";
 import { usePixelTracker } from "@/hooks/use-pixel-tracker";
 import { TrackingPixel } from "@/components/tracking-pixel";
 import AuthTest from "@/pages/auth-test";
@@ -75,6 +75,7 @@ import CustomerLifecycle from "@/pages/analytics/customer-lifecycle";
 import MarketLeads from "@/pages/market-leads";
 import MLModelComparison from "@/pages/ml-model-comparison";
 import AutomotiveDataCenter from "@/pages/automotive-data-center";
+import LotManagement from "@/pages/lot-management";
 // Professional deal desk removed - using unified deal desk
 import ComplianceManager from "@/pages/finance/compliance-manager";
 import FinanceReports from "@/pages/finance/finance-reports";
@@ -89,7 +90,6 @@ function Router() {
   usePixelTracker();
   
   const { isAuthenticated, isLoading } = useAuth();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   if (isLoading) {
     return (
@@ -113,16 +113,14 @@ function Router() {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
-      <SidebarNavigation 
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-      />
-      <main className="flex-1 overflow-auto">
-        <div className="h-full bg-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <TopNavigation />
+      <main className="flex-1">
+        <div className="container mx-auto px-6 py-8 max-w-7xl pb-20 md:pb-8">
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/inventory" component={Inventory} />
+            <Route path="/inventory/lot-management" component={LotManagement} />
             <Route path="/inventory/:id" component={InventoryDetail} />
             <Route path="/leads" component={Sales} />
             <Route path="/customers" component={Customers} />
