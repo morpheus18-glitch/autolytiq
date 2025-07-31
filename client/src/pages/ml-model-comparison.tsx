@@ -311,23 +311,35 @@ export default function MLModelComparison() {
   const selectedModelData = models.filter(m => selectedModels.includes(m.id));
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Model Performance Comparison</h1>
-          <p className="text-gray-600">Compare ML model performance metrics side-by-side</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button onClick={exportComparison} variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Button onClick={loadModelMetrics} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
+    <div className="min-h-screen bg-gray-50 mobile-scroll">
+      {/* Mobile-Optimized Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-14 lg:top-16 z-40">
+        <div className="p-4 lg:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold truncate">
+                Model Performance Comparison
+              </h1>
+              <p className="text-sm lg:text-base text-gray-600 mt-1">
+                Compare ML model performance metrics side-by-side
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button onClick={exportComparison} variant="outline" size="sm" className="w-full sm:w-auto">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+              <Button onClick={loadModelMetrics} variant="outline" size="sm" className="w-full sm:w-auto">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Mobile-Optimized Content */}
+      <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
 
       {/* Model Selection */}
       <Card>
@@ -338,7 +350,7 @@ export default function MLModelComparison() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">Select Models (2-4)</label>
               <div className="space-y-2">
@@ -402,7 +414,7 @@ export default function MLModelComparison() {
       {selectedModels.length >= 2 && (
         <>
           {/* Model Overview Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {selectedModelData.map((model, index) => (
               <Card key={model.id}>
                 <CardHeader className="pb-2">
@@ -701,7 +713,8 @@ export default function MLModelComparison() {
             Select at least 2 models to start comparison analysis.
           </AlertDescription>
         </Alert>
-      )}
+        )}
+      </div>
     </div>
   );
 }
