@@ -163,9 +163,7 @@ export default function Inventory() {
 
   const getPricingInsightsMutation = useMutation({
     mutationFn: async (vehicleId: number) => {
-      return await apiRequest(`/api/pricing-insights/${vehicleId}`, {
-        method: 'POST',
-      });
+      return await apiRequest(`/api/ml/pricing/${vehicleId}`);
     },
     onSuccess: (data, vehicleId) => {
       const vehicle = vehicles?.find(v => v.id === vehicleId);
@@ -614,9 +612,13 @@ export default function Inventory() {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => getPricingInsightsMutation.mutate(vehicle.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      getPricingInsightsMutation.mutate(vehicle.id);
+                    }}
                     disabled={getPricingInsightsMutation.isPending}
                     className="p-2"
+                    title={getPricingInsightsMutation.isPending ? 'Analyzing...' : 'Real ML Analysis'}
                   >
                     <TrendingUp className="h-3 w-3" />
                   </Button>
@@ -676,8 +678,12 @@ export default function Inventory() {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => getPricingInsightsMutation.mutate(vehicle.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              getPricingInsightsMutation.mutate(vehicle.id);
+                            }}
                             disabled={getPricingInsightsMutation.isPending}
+                            title={getPricingInsightsMutation.isPending ? 'Analyzing...' : 'Real ML Analysis'}
                           >
                             <TrendingUp className="h-4 w-4" />
                           </Button>
@@ -740,62 +746,88 @@ export default function Inventory() {
                 </CardContent>
               </Card>
 
-              {/* Market Analysis */}
-              {valuationModal.data.marketAnalysis && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <BarChart3 className="h-5 w-5" />
-                      Market Analysis
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid md:grid-cols-3 gap-4">
-                      <div className="text-center p-4 bg-gray-50 rounded-lg">
-                        <Label className="text-sm font-medium text-gray-600">Average Market Value</Label>
-                        <p className="text-2xl font-bold text-green-600">
-                          {valuationModal.data.marketAnalysis.averageMarketValue 
-                            ? `$${valuationModal.data.marketAnalysis.averageMarketValue.toLocaleString()}`
-                            : 'N/A'}
+              {/* Real ML Pricing Analysis */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Real ML Pricing Analysis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <Label className="text-sm font-medium text-gray-600">Current Price</Label>
+                      <p className="text-2xl font-bold text-gray-600">
+                        ${valuationModal.vehicle.price.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <Label className="text-sm font-medium text-gray-600">ML Suggested Price</Label>
+                      <p className="text-2xl font-bold text-blue-600">
+                        ${valuationModal.data.suggestedPrice?.toLocaleString() || 'Calculating...'}
+                      </p>
+                    </div>
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <Label className="text-sm font-medium text-gray-600">Market Position</Label>
+                      <div className="flex items-center justify-center gap-2">
+                        {valuationModal.data.marketPosition === 'above' ? (
+                          <>
+                            <AlertCircle className="h-5 w-5 text-orange-500" />
+                            <span className="text-orange-600 font-semibold">Above Market</span>
+                          </>
+                        ) : valuationModal.data.marketPosition === 'below' ? (
+                          <>
+                            <CheckCircle className="h-5 w-5 text-green-500" />
+                            <span className="text-green-600 font-semibold">Below Market</span>
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="h-5 w-5 text-blue-500" />
+                            <span className="text-blue-600 font-semibold">At Market</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* ML Confidence and Factors */}
+                  {valuationModal.data.confidence && (
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="p-4 bg-blue-50 rounded-lg">
+                        <Label className="text-sm font-medium text-blue-800">ML Confidence Score</Label>
+                        <p className="text-blue-700 mt-1 text-2xl font-bold">
+                          {Math.round(valuationModal.data.confidence * 100)}%
                         </p>
                       </div>
-                      <div className="text-center p-4 bg-gray-50 rounded-lg">
-                        <Label className="text-sm font-medium text-gray-600">Recommended Price</Label>
-                        <p className="text-2xl font-bold text-blue-600">
-                          {valuationModal.data.marketAnalysis.recommendedPrice 
-                            ? `$${valuationModal.data.marketAnalysis.recommendedPrice.toLocaleString()}`
-                            : 'N/A'}
-                        </p>
-                      </div>
-                      <div className="text-center p-4 bg-gray-50 rounded-lg">
-                        <Label className="text-sm font-medium text-gray-600">Competitive Position</Label>
-                        <div className="flex items-center justify-center gap-2">
-                          {valuationModal.data.marketAnalysis.competitivePosition === 'above_market' ? (
-                            <>
-                              <AlertCircle className="h-5 w-5 text-orange-500" />
-                              <span className="text-orange-600 font-semibold">Above Market</span>
-                            </>
-                          ) : valuationModal.data.marketAnalysis.competitivePosition === 'below_market' ? (
-                            <>
-                              <CheckCircle className="h-5 w-5 text-green-500" />
-                              <span className="text-green-600 font-semibold">Below Market</span>
-                            </>
-                          ) : (
-                            <span className="text-gray-600">Unknown</span>
-                          )}
+                      <div className="p-4 bg-green-50 rounded-lg">
+                        <Label className="text-sm font-medium text-green-800">Analysis Factors</Label>
+                        <div className="text-green-700 mt-1 text-sm space-y-1">
+                          <div>Year: {valuationModal.data.factors?.year}</div>
+                          <div>Mileage: {valuationModal.data.factors?.mileage?.toLocaleString()}</div>
+                          <div>Condition: {valuationModal.data.factors?.condition}</div>
+                          <div>Market Demand: {Math.round((valuationModal.data.factors?.marketDemand || 0) * 100)}%</div>
                         </div>
                       </div>
                     </div>
-                    
-                    {valuationModal.data.marketAnalysis.pricingRecommendation && (
-                      <div className="p-4 bg-blue-50 rounded-lg">
-                        <Label className="text-sm font-medium text-blue-800">Pricing Recommendation</Label>
-                        <p className="text-blue-700 mt-1">{valuationModal.data.marketAnalysis.pricingRecommendation}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
+                  )}
+                  
+                  {/* ML Recommendations */}
+                  {valuationModal.data.recommendations && valuationModal.data.recommendations.length > 0 && (
+                    <div className="p-4 bg-amber-50 rounded-lg">
+                      <Label className="text-sm font-medium text-amber-800">ML Recommendations</Label>
+                      <ul className="text-amber-700 mt-1 space-y-1">
+                        {valuationModal.data.recommendations.map((rec: string, index: number) => (
+                          <li key={index} className="text-sm flex items-start gap-2">
+                            <span className="text-amber-600">•</span>
+                            {rec}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* Valuation Sources */}
               {valuationModal.data.valuations && valuationModal.data.valuations.length > 0 && (
