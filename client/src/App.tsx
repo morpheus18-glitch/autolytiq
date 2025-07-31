@@ -23,6 +23,7 @@ import MLDashboard from "@/pages/ml-dashboard";
 import MLDashboardControl from "@/pages/ml-dashboard-control";
 import MLDeveloperAdmin from "@/pages/ml-developer-admin";
 import MLEnterpriseDashboard from "@/pages/ml-enterprise-dashboard";
+import CausalMLOpsDashboard from "@/pages/causal-mlops-dashboard";
 import ShowroomManager from "@/pages/showroom-manager";
 // Deal Pages
 import DealDeskUnified from "@/pages/deal-desk-unified";
@@ -187,6 +188,7 @@ function Router() {
             <Route path="/ml-developer-admin" component={MLDeveloperAdmin} />
             <Route path="/ml-enterprise" component={MLEnterpriseDashboard} />
             <Route path="/ml-enterprise-dashboard" component={lazy(() => import("@/pages/ml-enterprise-dashboard-fixed"))} />
+            <Route path="/causal-mlops" component={CausalMLOpsDashboard} />
             <Route path="/fi-dashboard" component={FiDashboardPage} />
             <Route path="/fi-configuration" component={FiConfigurationPage} />
             <Route path="/settings" component={Settings} />
