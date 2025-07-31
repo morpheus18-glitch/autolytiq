@@ -56,6 +56,7 @@ const navigationSections: NavSection[] = [
     icon: Handshake,
     items: [
       { label: "Dashboard", href: "/", icon: BarChart3 },
+      { label: "Vehicle Inventory", href: "/inventory", icon: Car },
       { label: "AI Market Leads", href: "/market-leads", icon: Brain, badge: "AI" },
       { label: "Data Center", href: "/automotive-data-center", icon: Database, badge: "API" },
       { label: "Leads & Prospects", href: "/leads", icon: Target },
@@ -90,6 +91,19 @@ const navigationSections: NavSection[] = [
     ]
   },
   {
+    title: "Intelligence",
+    icon: Brain,
+    items: [
+      { label: "ML Control Center", href: "/ml-control", icon: Brain },
+      { label: "Model Comparison", href: "/ml-model-comparison", icon: BarChart3, badge: "NEW" },
+      { label: "ML Developer Admin", href: "/ml-developer-admin", icon: Terminal, badge: "DEV" },
+      { label: "ML Enterprise Stack", href: "/ml-enterprise", icon: Server, badge: "PROD" },
+      { label: "Causal MLOps", href: "/causal-mlops", icon: Brain, badge: "AI" },
+      { label: "Analytics", href: "/analytics", icon: TrendingUp },
+      { label: "Competitive Pricing", href: "/competitive-pricing", icon: Target },
+    ]
+  },
+  {
     title: "Admin",
     icon: Shield,
     items: [
@@ -98,11 +112,6 @@ const navigationSections: NavSection[] = [
       { label: "Dealership Config", href: "/admin/dealership", icon: Building },
       { label: "Integration Setup", href: "/admin/integrations", icon: Archive },
       { label: "Security Center", href: "/admin/security", icon: Shield },
-      { label: "ML Control Center", href: "/ml-control", icon: Brain },
-      { label: "Model Comparison", href: "/ml-model-comparison", icon: BarChart3, badge: "NEW" },
-      { label: "ML Developer Admin", href: "/ml-developer-admin", icon: Terminal, badge: "DEV" },
-      { label: "ML Enterprise Stack", href: "/ml-enterprise", icon: Server, badge: "PROD" },
-      { label: "Causal MLOps", href: "/causal-mlops", icon: Brain, badge: "AI" },
     ]
   },
   {
