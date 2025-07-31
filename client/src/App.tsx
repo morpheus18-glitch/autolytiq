@@ -73,6 +73,7 @@ import DealJacket from "@/pages/deal-jacket";
 import MultiStoreManagement from "@/pages/multi-store-management";
 import CustomerLifecycle from "@/pages/analytics/customer-lifecycle";
 import MarketLeads from "@/pages/market-leads";
+import MLModelComparison from "@/pages/ml-model-comparison";
 import AutomotiveDataCenter from "@/pages/automotive-data-center";
 // Professional deal desk removed - using unified deal desk
 import ComplianceManager from "@/pages/finance/compliance-manager";
@@ -188,6 +189,7 @@ function Router() {
             <Route path="/ml-developer-admin" component={MLDeveloperAdmin} />
             <Route path="/ml-enterprise" component={MLEnterpriseDashboard} />
             <Route path="/ml-enterprise-dashboard" component={lazy(() => import("@/pages/ml-enterprise-dashboard-fixed"))} />
+            <Route path="/ml-model-comparison" component={MLModelComparison} />
             <Route path="/causal-mlops" component={CausalMLOpsDashboard} />
             <Route path="/fi-dashboard" component={FiDashboardPage} />
             <Route path="/fi-configuration" component={FiConfigurationPage} />

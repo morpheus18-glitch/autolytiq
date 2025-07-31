@@ -99,6 +99,7 @@ const navigationSections: NavSection[] = [
       { label: "Integration Setup", href: "/admin/integrations", icon: Archive },
       { label: "Security Center", href: "/admin/security", icon: Shield },
       { label: "ML Control Center", href: "/ml-control", icon: Brain },
+      { label: "Model Comparison", href: "/ml-model-comparison", icon: BarChart3, badge: "NEW" },
       { label: "ML Developer Admin", href: "/ml-developer-admin", icon: Terminal, badge: "DEV" },
       { label: "ML Enterprise Stack", href: "/ml-enterprise", icon: Server, badge: "PROD" },
       { label: "Causal MLOps", href: "/causal-mlops", icon: Brain, badge: "AI" },
