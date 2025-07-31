@@ -427,7 +427,7 @@ export default function MLEnterpriseDashboard() {
                     <div>
                       <h4 className="font-medium mb-2">Explainability</h4>
                       <div className="space-y-1 text-sm">
-                        {model.explainability && Object.entries(model.explainability.featureImportance).slice(0, 3).map(([feature, importance]: [string, any]) => (
+                        {model.explainability?.featureImportance && Object.entries(model.explainability.featureImportance).slice(0, 3).map(([feature, importance]: [string, any]) => (
                           <div key={feature} className="flex justify-between">
                             <span>{feature}</span>
                             <span>{Math.round(importance * 100)}%</span>
@@ -471,7 +471,7 @@ export default function MLEnterpriseDashboard() {
                     <div>
                       <h4 className="font-medium mb-2">Feature-Level Drift</h4>
                       <div className="space-y-2">
-                        {Object.entries(detector.features).map(([feature, data]: [string, any]) => (
+                        {detector.features && Object.entries(detector.features).map(([feature, data]: [string, any]) => (
                           <div key={feature} className="flex items-center justify-between">
                             <span className="text-sm">{feature}</span>
                             <div className="flex items-center gap-2">
