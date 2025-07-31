@@ -1,0 +1,51 @@
+Here’s a comprehensive checklist for debugging ML/AI integration issues in your Next.js + Python setup:
+
+## Python Environment & Dependencies
+
+**Virtual environment isolation** - Ensure your Python ML components are running in a properly configured virtual environment with locked dependency versions (requirements.txt or poetry.lock).
+
+**Memory management** - Check if your Python processes are running out of memory, especially with large models. Monitor with `htop` or similar tools.
+
+**Model loading** - Verify models are loading correctly on startup, not on each request. Implement model caching and warm-up procedures.
+
+## API Integration Issues
+
+**Request/response timeouts** - ML inference can be slow. Set appropriate timeouts in your Next.js API routes and implement loading states.
+
+**Data serialization** - Ensure proper JSON serialization between Next.js and Python. Watch for numpy arrays, datetime objects, and NaN values that don’t serialize cleanly.
+
+**Error handling** - Python exceptions need to be caught and converted to proper HTTP responses that your frontend can handle gracefully.
+
+## Performance Bottlenecks
+
+**Async processing** - Long-running ML tasks should be asynchronous with job queues (Celery, RQ) rather than blocking API calls.
+
+**Caching strategies** - Cache ML predictions when possible, especially for similar inputs (customer scoring, vehicle valuations).
+
+**Batch processing** - Process multiple items together when possible rather than individual API calls.
+
+## Common Technical Issues
+
+**CORS configuration** - If your Python API is on a different port/domain than your Next.js app.
+
+**Environment variables** - ML model paths, API keys, and configuration need to be properly set in both development and production.
+
+**File paths** - Model files, data files, and temporary files need correct absolute paths in production environments.
+
+## Next.js Specific
+
+**API route optimization** - Use Next.js API routes as a proxy to your Python services, handling authentication and rate limiting.
+
+**Client-side vs server-side** - Determine what ML operations should happen server-side (sensitive data, heavy computation) vs client-side (real-time UI updates).
+
+**Build process** - Ensure your Python services are properly deployed and accessible when your Next.js app builds and runs.
+
+## Debugging Steps
+
+**Logging setup** - Comprehensive logging in both Python (structured logging with JSON) and Next.js (error boundaries, API logging).
+
+**Health checks** - Simple endpoints to verify your Python services are running and models are loaded.
+
+**Development vs production** - Test that your setup works identically in both environments.
+
+What specific symptoms are you seeing? Model errors, slow responses, or integration failures?​​​​​​​​​​​​​​​​
