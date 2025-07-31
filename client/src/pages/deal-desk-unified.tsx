@@ -43,47 +43,6 @@ export default function DealDeskUnified() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { trackInteraction } = usePixelTracker();
-  const { isAuthenticated, isLoading } = useAuth();
-
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading deal desk...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show login required message if not authenticated
-  if (!isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="flex items-center justify-center gap-2">
-              <Shield className="h-6 w-6 text-blue-600" />
-              Authentication Required
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-gray-600">
-              You need to log in to access the deal desk.
-            </p>
-            <Button 
-              onClick={() => window.location.href = '/api/login'}
-              className="w-full"
-            >
-              <LogIn className="h-4 w-4 mr-2" />
-              Log In with Replit
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   // Deal state
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
