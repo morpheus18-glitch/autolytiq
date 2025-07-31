@@ -226,30 +226,39 @@ export default function AIUnifiedDashboard() {
   };
 
   return (
-    <div className="p-4 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Target className="w-8 h-8 text-purple-600" />
-          <div>
-            <h2 className="text-2xl font-bold">Executive Overview</h2>
-            <p className="text-sm text-gray-600">AI-powered business intelligence and strategic insights</p>
+    <div className="min-h-screen mobile-scroll">
+      {/* Mobile-Optimized Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-14 lg:top-16 z-40">
+        <div className="p-4 lg:p-6">
+          <div className="flex flex-col space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <Target className="w-6 h-6 lg:w-8 lg:h-8 text-purple-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <h2 className="text-xl sm:text-2xl font-bold truncate">Executive Overview</h2>
+                  <p className="text-sm text-gray-600 truncate">AI-powered business intelligence</p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Badge className="bg-purple-100 text-purple-800 text-center">
+                  <Brain className="w-3 h-3 mr-1" />
+                  AI Intelligence Active
+                </Badge>
+                <Button onClick={() => queryClient.invalidateQueries()} variant="outline" size="sm" className="w-full sm:w-auto">
+                  <Activity className="w-4 h-4 mr-2" />
+                  Refresh Data
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge className="bg-purple-100 text-purple-800">
-            <Brain className="w-3 h-3 mr-1" />
-            AI Intelligence Active
-          </Badge>
-          <Button onClick={() => queryClient.invalidateQueries()} variant="outline" size="sm">
-            <Activity className="w-4 h-4 mr-2" />
-            Refresh Data
-          </Button>
         </div>
       </div>
 
-      {/* Executive Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Mobile-Optimized Content */}
+      <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
+        
+        {/* Executive Metrics Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {executiveMetrics.map((metric) => (
           <Card 
             key={metric.id} 
@@ -363,8 +372,8 @@ export default function AIUnifiedDashboard() {
         </div>
       </div>
 
-      {/* Quick Actions Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Quick Actions Dashboard */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="text-center">
           <CardContent className="p-6">
             <DollarSign className="w-12 h-12 text-green-600 mx-auto mb-4" />
@@ -404,6 +413,7 @@ export default function AIUnifiedDashboard() {
             <Button size="sm" className="w-full">Market Trends</Button>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

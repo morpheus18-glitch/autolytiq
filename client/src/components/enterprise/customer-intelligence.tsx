@@ -264,27 +264,38 @@ export default function CustomerIntelligence() {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Customer Intelligence</h1>
-          <p className="text-gray-600">AI-powered customer insights and behavioral analytics</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <Badge variant="outline" className="bg-green-50 text-green-700">
-            <Brain className="w-3 h-3 mr-1" />
-            AI Active
-          </Badge>
-          <Button variant="outline">
-            <BarChart3 className="w-4 h-4 mr-2" />
-            Export Data
-          </Button>
+    <div className="min-h-screen mobile-scroll">
+      {/* Mobile-Optimized Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-14 lg:top-16 z-40">
+        <div className="p-4 lg:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
+                Customer Intelligence
+              </h1>
+              <p className="text-sm lg:text-base text-gray-600 mt-1">
+                AI-powered customer insights and behavioral analytics
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Badge variant="outline" className="bg-green-50 text-green-700 text-center">
+                <Brain className="w-3 h-3 mr-1" />
+                AI Active
+              </Badge>
+              <Button variant="outline" className="w-full sm:w-auto">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Export Data
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Intelligence Insights */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Mobile-Optimized Content */}
+      <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
+        
+        {/* Intelligence Insights */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {intelligenceInsights.map((insight, index) => (
           <Card key={index}>
             <CardContent className="p-4">
@@ -311,7 +322,7 @@ export default function CustomerIntelligence() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {customerSegments.map((segment, index) => (
               <CustomerSegment key={index} {...segment} />
             ))}
@@ -321,7 +332,7 @@ export default function CustomerIntelligence() {
 
       {/* Customer Intelligence Tabs */}
       <Tabs defaultValue="prospects" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
           <TabsTrigger value="prospects">Hot Prospects</TabsTrigger>
           <TabsTrigger value="behavior">Behavior Analysis</TabsTrigger>
           <TabsTrigger value="lifecycle">Lifecycle Stage</TabsTrigger>
@@ -532,7 +543,8 @@ export default function CustomerIntelligence() {
             </Card>
           </div>
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   );
 }
