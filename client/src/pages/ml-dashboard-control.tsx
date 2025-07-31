@@ -281,30 +281,48 @@ export default function MLDashboardControl() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">ML Pipeline Control Center</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage machine learning models, parameters, and training pipelines</p>
-        </div>
-        <div className="flex gap-3">
-          <Button onClick={loadDashboardData} variant="outline">
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button onClick={() => triggerTraining('pricing_analysis')}>
-            <Play className="h-4 w-4 mr-2" />
-            Start Pricing Pipeline
-          </Button>
-          <Button onClick={() => triggerTraining('customer_segmentation')} variant="secondary">
-            <Brain className="h-4 w-4 mr-2" />
-            Start Customer Pipeline
-          </Button>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 mobile-scroll">
+      {/* Mobile-Optimized Header */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-14 lg:top-16 z-40">
+        <div className="p-4 lg:p-6">
+          <div className="flex flex-col space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">
+                  ML Control Center
+                </h1>
+                <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
+                  Manage ML models, parameters, and training pipelines
+                </p>
+              </div>
+            </div>
+            
+            {/* Mobile-First Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button onClick={loadDashboardData} variant="outline" className="flex-1 sm:flex-none">
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+              <Button onClick={() => triggerTraining('pricing_analysis')} className="flex-1 sm:flex-none">
+                <Play className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Start Pricing Pipeline</span>
+                <span className="sm:hidden">Pricing</span>
+              </Button>
+              <Button onClick={() => triggerTraining('customer_segmentation')} variant="secondary" className="flex-1 sm:flex-none">
+                <Brain className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Start Customer Pipeline</span>
+                <span className="sm:hidden">Customer</span>
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* System Health Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Mobile-Optimized Content Container */}
+      <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
+
+        {/* Mobile-Optimized System Health Overview */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -361,7 +379,7 @@ export default function MLDashboardControl() {
       </div>
 
       <Tabs defaultValue="pipelines" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
           <TabsTrigger value="pipelines">Pipeline Status</TabsTrigger>
           <TabsTrigger value="parameters">Model Parameters</TabsTrigger>
           <TabsTrigger value="training">Training Jobs</TabsTrigger>
@@ -389,7 +407,7 @@ export default function MLDashboardControl() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
                     <div>
                       <p className="text-sm font-medium">Accuracy</p>
                       <p className="text-xl font-bold text-green-600">{pipeline.accuracy}%</p>
@@ -406,7 +424,7 @@ export default function MLDashboardControl() {
                         {new Date(pipeline.nextRun).toLocaleString()}
                       </p>
                     </div>
-                    <div className="flex space-x-2">
+                    <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                       {pipeline.status === 'running' ? (
                         <Button
                           size="sm"
@@ -459,7 +477,7 @@ export default function MLDashboardControl() {
             </Select>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
             {/* Hyperparameters */}
             <Card>
               <CardHeader>
@@ -633,7 +651,7 @@ export default function MLDashboardControl() {
                   <CardTitle className="capitalize">{key.replace('_', ' ')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
                     <div>
                       <p className="text-sm font-medium">Records</p>
                       <p className="text-xl font-bold">{dataset.records?.toLocaleString()}</p>
@@ -659,6 +677,7 @@ export default function MLDashboardControl() {
           </div>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }
