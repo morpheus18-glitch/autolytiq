@@ -116,7 +116,7 @@ function Router() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <TopNavigation />
       <main className="flex-1">
-        <div className="container mx-auto px-6 py-8 max-w-7xl pb-20 md:pb-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 max-w-7xl mx-auto pb-20 md:pb-8">
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/inventory" component={Inventory} />
