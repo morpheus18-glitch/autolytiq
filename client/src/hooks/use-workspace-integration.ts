@@ -38,7 +38,7 @@ export function useWorkspaceVehicle(vehicleId?: number) {
   const { session, setVehicle } = useActiveSession();
   
   const { data: vehicle } = useQuery({
-    queryKey: [`/api/inventory/${vehicleId}`],
+    queryKey: [`/api/vehicles/${vehicleId}`],
     enabled: !!vehicleId,
   });
 

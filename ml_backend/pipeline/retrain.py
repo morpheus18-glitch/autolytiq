@@ -7,7 +7,7 @@ import sys
 import logging
 import pandas as pd
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from pathlib import Path
 
 # Add parent directory to path

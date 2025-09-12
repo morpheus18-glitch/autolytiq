@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,7 @@ export default function CustomerDetail() {
   const { id } = useParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { trackInteraction } = usePixelTracker();
+  const { trackInteraction, setTrackedCustomer } = usePixelTracker();
   
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<Customer>>({});
@@ -43,6 +43,13 @@ export default function CustomerDetail() {
       return response.json();
     }
   });
+
+  // Associate pixel tracker with this customer for lifecycle tracking
+  useEffect(() => {
+    if (customer) {
+      setTrackedCustomer(customer.id.toString());
+    }
+  }, [customer, setTrackedCustomer]);
 
   // Fetch customer leads
   const { data: leads = [] } = useQuery<Lead[]>({

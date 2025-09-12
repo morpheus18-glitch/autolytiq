@@ -9,6 +9,7 @@
  */
 
 let sessionId: string | null = null;
+let customerId: string | null = null;
 let startTime: number = Date.now();
 let lastActivityTime: number = Date.now();
 
@@ -17,6 +18,7 @@ export const initPixelTracker = () => {
   // Create or resume session
   sessionId = localStorage.getItem('dealer_session_id') || generateSessionId();
   localStorage.setItem('dealer_session_id', sessionId);
+  customerId = localStorage.getItem('customer_id');
   
   // Start session tracking
   trackSession();
@@ -31,6 +33,12 @@ export const initPixelTracker = () => {
   setupSessionEndTrackers();
   
   console.log('🎯 Pixel Tracker initialized:', sessionId);
+};
+
+// Associate tracker with a CRM customer
+export const setCustomerId = (id: string) => {
+  customerId = id;
+  localStorage.setItem('customer_id', id);
 };
 
 // Generate unique session ID
@@ -94,6 +102,20 @@ const trackPageView = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(pageData)
     });
+
+    if (customerId) {
+      fetch('/api/tracking/lifecycle/pageview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId,
+          site: 'dealer_website',
+          url: pageData.pageUrl,
+          timeSpent: 0,
+          interactions: []
+        })
+      }).catch(() => {});
+    }
   } catch (error) {
     console.error('Page view tracking error:', error);
   }
@@ -146,7 +168,20 @@ export const trackInteraction = async (type: string, data: any = {}) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(interactionData)
     });
-    
+
+    if (customerId) {
+      fetch('/api/tracking/lifecycle/interaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId,
+          type,
+          element: data.elementId || null,
+          metadata: data
+        })
+      }).catch(() => {});
+    }
+
     console.log('🎯 Tracked interaction:', type, data);
   } catch (error) {
     console.error('Interaction tracking error:', error);
