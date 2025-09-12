@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { apiRequest } from '@/lib/queryClient';
 
 // Core workspace entities
 export interface WorkspaceCustomer {
@@ -164,19 +165,69 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
       },
       
       pivotToCustomer: (sessionId: string, customerId: number) => {
-        // This would typically fetch customer data and set it
         get().setCurrentModule(sessionId, 'customer');
-        // TODO: Fetch customer data and call setCustomer
+        (async () => {
+          try {
+            const res = await apiRequest('GET', `/api/customers/${customerId}`);
+            const data = await res.json();
+            get().setCustomer(sessionId, {
+              id: data.id ?? customerId,
+              firstName: data.firstName ?? 'Unknown',
+              lastName: data.lastName ?? '',
+              email: data.email ?? '',
+              phone: data.phone,
+              creditScore: data.creditScore,
+              leadScore: data.leadScore,
+            });
+          } catch (error) {
+            console.error('Failed to fetch customer', error);
+          }
+        })();
       },
-      
+
       pivotToVehicle: (sessionId: string, vehicleId: number) => {
         get().setCurrentModule(sessionId, 'inventory');
-        // TODO: Fetch vehicle data and call setVehicle
+        (async () => {
+          try {
+            const res = await apiRequest('GET', `/api/vehicles/${vehicleId}`);
+            const data = await res.json();
+            get().setVehicle(sessionId, {
+              id: data.id ?? vehicleId,
+              make: data.make ?? 'Unknown',
+              model: data.model ?? '',
+              year: data.year ?? new Date().getFullYear(),
+              vin: data.vin ?? '',
+              price: data.price ?? 0,
+              status: data.status ?? '',
+              stockNumber: data.stockNumber ?? '',
+            });
+          } catch (error) {
+            console.error('Failed to fetch vehicle', error);
+          }
+        })();
       },
-      
+
       pivotToDeal: (sessionId: string, dealId: string) => {
         get().setCurrentModule(sessionId, 'deal-desk');
-        // TODO: Fetch deal data and call setDeal
+        (async () => {
+          try {
+            const res = await apiRequest('GET', `/api/deals/${dealId}`);
+            const data = await res.json();
+            get().setDeal(sessionId, {
+              id: data.id ?? dealId,
+              customerId: data.customerId,
+              vehicleId: data.vehicleId,
+              status: data.status ?? 'draft',
+              totalAmount: data.totalAmount,
+              tradeInId: data.tradeInId,
+              notes: data.notes,
+              createdAt: data.createdAt ?? new Date().toISOString(),
+              updatedAt: data.updatedAt ?? new Date().toISOString(),
+            });
+          } catch (error) {
+            console.error('Failed to fetch deal', error);
+          }
+        })();
       },
       
       toggleSessionBar: () => {

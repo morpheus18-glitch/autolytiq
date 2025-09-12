@@ -10,14 +10,12 @@ selenium>=4.15.0
 undetected-chromedriver>=3.5.3
 beautifulsoup4>=4.12.2
 requests>=2.31.0
+fake-useragent>=1.2.1
 lxml>=4.9.3
 
 # NLP and Text Processing
 textblob>=0.17.1
 nltk>=3.8.1
-
-# Database
-sqlite3  # Built-in with Python
 
 # Web Framework
 flask>=2.3.3

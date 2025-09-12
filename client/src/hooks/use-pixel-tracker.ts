@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { initPixelTracker, trackInteraction as trackPixelInteraction } from '@/lib/pixel-tracker';
+import { initPixelTracker, trackInteraction as trackPixelInteraction, setCustomerId } from '@/lib/pixel-tracker';
 
 export const usePixelTracker = () => {
   const [location] = useLocation();
@@ -19,9 +19,19 @@ export const usePixelTracker = () => {
     }
   }, [location]);
 
-  // Return the tracking function for use in components
+  const trackVehicleView = (vehicleId: number) =>
+    trackPixelInteraction('vehicle_view', { vehicleId });
+  const trackSearch = (term: string) =>
+    trackPixelInteraction('search', { term });
+  const trackFilterUsage = (filter: string, value: string) =>
+    trackPixelInteraction('filter_use', { filter, value });
+
   return {
-    trackInteraction: trackPixelInteraction
+    trackInteraction: trackPixelInteraction,
+    trackVehicleView,
+    trackSearch,
+    trackFilterUsage,
+    setTrackedCustomer: setCustomerId
   };
 };
 

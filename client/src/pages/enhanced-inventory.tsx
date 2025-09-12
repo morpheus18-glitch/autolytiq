@@ -153,12 +153,16 @@ export default function EnhancedInventory() {
     description: vehicle.description || 'No description available',
     badges: [
       { label: vehicle.status || 'Unknown', variant: vehicle.status === 'available' ? 'default' : 'secondary' as const },
-      { label: `$${vehicle.price?.toLocaleString()}`, variant: 'outline' as const }
+      { label: `$${vehicle.price?.toLocaleString()}`, variant: 'outline' as const },
+      ...(vehicle.valuations?.aiEstimate
+        ? [{ label: `Est. $${vehicle.valuations.aiEstimate.toLocaleString()}`, variant: 'secondary' as const }]
+        : [])
     ],
     metadata: {
       year: vehicle.year,
       mileage: vehicle.mileage ? `${vehicle.mileage.toLocaleString()} miles` : 'N/A',
       price: `$${vehicle.price?.toLocaleString()}`,
+      estValue: vehicle.valuations?.aiEstimate ? `$${vehicle.valuations.aiEstimate.toLocaleString()}` : 'N/A',
       dateAdded: vehicle.createdAt ? new Date(vehicle.createdAt).toLocaleDateString() : 'N/A'
     },
     actions: [
