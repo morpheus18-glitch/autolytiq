@@ -119,73 +119,74 @@ export default function MLPerformanceHeatmap() {
       // Generate demo data if API failed or returned empty
       if (data.length === 0) {
         if (filterDimension === 'model') {
-        // Model x Time heatmap
-        const timeSlots = ['00-04', '04-08', '08-12', '12-16', '16-20', '20-24'];
-        
-        models.forEach(model => {
-          timeSlots.forEach(timeSlot => {
-            const baseAccuracy = 0.85 + Math.random() * 0.15;
-            const predictions = Math.floor(Math.random() * 10000) + 1000;
-            const errors = Math.floor(predictions * (1 - baseAccuracy));
-            const drift = Math.random() * 0.2;
-            
-            let value = baseAccuracy;
-            let color = getHeatmapColor(value, selectedMetric);
-            
-            if (selectedMetric === 'latency') {
-              value = 5 + Math.random() * 50;
-              color = getHeatmapColor(1 - (value / 55), selectedMetric);
-            } else if (selectedMetric === 'error_rate') {
-              value = 1 - baseAccuracy;
-              color = getHeatmapColor(1 - value, selectedMetric);
-            } else if (selectedMetric === 'drift_score') {
-              value = drift;
-              color = getHeatmapColor(1 - value, selectedMetric);
-            }
-            
-            data.push({
-              x: model,
-              y: timeSlot,
-              value,
-              color,
-              metadata: {
-                accuracy: baseAccuracy,
-                predictions,
-                errors,
-                lastUpdated: new Date(),
-                drift,
-                confidence: 0.8 + Math.random() * 0.2
+          // Model x Time heatmap
+          const timeSlots = ['00-04', '04-08', '08-12', '12-16', '16-20', '20-24'];
+
+          models.forEach(model => {
+            timeSlots.forEach(timeSlot => {
+              const baseAccuracy = 0.85 + Math.random() * 0.15;
+              const predictions = Math.floor(Math.random() * 10000) + 1000;
+              const errors = Math.floor(predictions * (1 - baseAccuracy));
+              const drift = Math.random() * 0.2;
+
+              let value = baseAccuracy;
+              let color = getHeatmapColor(value, selectedMetric);
+
+              if (selectedMetric === 'latency') {
+                value = 5 + Math.random() * 50;
+                color = getHeatmapColor(1 - (value / 55), selectedMetric);
+              } else if (selectedMetric === 'error_rate') {
+                value = 1 - baseAccuracy;
+                color = getHeatmapColor(1 - value, selectedMetric);
+              } else if (selectedMetric === 'drift_score') {
+                value = drift;
+                color = getHeatmapColor(1 - value, selectedMetric);
               }
+
+              data.push({
+                x: model,
+                y: timeSlot,
+                value,
+                color,
+                metadata: {
+                  accuracy: baseAccuracy,
+                  predictions,
+                  errors,
+                  lastUpdated: new Date(),
+                  drift,
+                  confidence: 0.8 + Math.random() * 0.2
+                }
+              });
             });
           });
-        });
-      } else if (filterDimension === 'feature') {
-        // Feature x Model heatmap
-        const features = ['vehicle_age', 'mileage', 'make_model', 'condition', 'location', 'season'];
-        
-        models.forEach(model => {
-          features.forEach(feature => {
-            const importance = Math.random();
-            const stability = 0.7 + Math.random() * 0.3;
-            
-            data.push({
-              x: model,
-              y: feature,
-              value: selectedMetric === 'accuracy' ? importance : stability,
-              color: getHeatmapColor(selectedMetric === 'accuracy' ? importance : stability, selectedMetric),
-              metadata: {
-                accuracy: importance,
-                predictions: 1000,
-                errors: 50,
-                lastUpdated: new Date(),
-                drift: 1 - stability,
-                confidence: stability
-              }
+        } else if (filterDimension === 'feature') {
+          // Feature x Model heatmap
+          const features = ['vehicle_age', 'mileage', 'make_model', 'condition', 'location', 'season'];
+
+          models.forEach(model => {
+            features.forEach(feature => {
+              const importance = Math.random();
+              const stability = 0.7 + Math.random() * 0.3;
+
+              data.push({
+                x: model,
+                y: feature,
+                value: selectedMetric === 'accuracy' ? importance : stability,
+                color: getHeatmapColor(selectedMetric === 'accuracy' ? importance : stability, selectedMetric),
+                metadata: {
+                  accuracy: importance,
+                  predictions: 1000,
+                  errors: 50,
+                  lastUpdated: new Date(),
+                  drift: 1 - stability,
+                  confidence: stability
+                }
+              });
             });
           });
-        });
+        }
       }
-      
+
       setHeatmapData(data);
       setLoading(false);
     } catch (error) {
