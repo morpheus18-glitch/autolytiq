@@ -105,29 +105,59 @@ Located in `repo-sweep/`:
 
 ## Implementation Notes
 
-### Stub Endpoint Strategy (Revised After Architect Review)
-**Initial Implementation Issue:** Original stubs returned static empty arrays/404s which caused silent data loss - POST/PUT appeared to succeed but data was immediately lost.
+### Stub Endpoint Strategy (Revised Through Multiple Architect Reviews)
 
-**Fixed Implementation:** After architect review, implemented proper in-memory persistence:
-1. **Parts, Notifications, Lot Positions**: Use Map-based in-memory storage with auto-incrementing IDs
-2. **Full CRUD Support**: Created items can be retrieved, updated, and deleted
-3. **Data Consistency**: GET by ID returns actual created items, not hardcoded 404s
-4. **Proper Error Handling**: 404 only when item truly doesn't exist
-5. **Timestamps**: CreatedAt/UpdatedAt fields added automatically
+**Evolution of Implementation:**
 
-**In-Memory Store Structure:**
+**Round 1 - Initial Stubs (Failed):**
+- Returned static empty arrays/404s 
+- POST/PUT appeared to succeed but data was immediately lost
+- Silent data loss worse than original 404 errors
+
+**Round 2 - Basic Persistence (Failed):**
+- Added Map-based storage with auto-incrementing IDs
+- Fixed CRUD round-tripping for Parts and Lot Positions
+- ❌ Notifications had no POST endpoint - Map remained empty
+- ❌ Duplicate route definitions caused handler conflicts
+
+**Round 3 - Complete CRUD (Failed):**
+- Added POST/PATCH for notifications
+- Removed duplicate routes (/api/admin/users, /api/permissions)
+- ❌ No schema validation - violated project requirements
+- ❌ Wrong ID types (integers vs UUIDs for notifications)
+
+**Round 4 - Schema Validation (Failed):**
+- Added insertNotificationSchema with Zod validation
+- Changed notifications to use UUID strings (matching DB schema)
+- ❌ Incomplete field initialization (missing readAt, createdAt)
+- ❌ Field name mismatches (read vs isRead)
+
+**Final Implementation (✅ Approved):**
+1. **Full Schema Validation**: All endpoints validate with Drizzle-Zod schemas
+2. **Type Safety**: ID types match database (UUIDs for notifications, integers for parts)
+3. **Complete Initialization**: All required fields (id, isRead, readAt, createdAt) properly set
+4. **Smart Defaults**: Auto-stamp readAt when isRead flips to true
+5. **No Duplicates**: Single authoritative handler per endpoint
+
+**Final In-Memory Store Structure:**
 ```typescript
 const inMemoryStore = {
-  parts: new Map<number, any>(),
-  notifications: new Map<number, any>(),
-  lotPositions: new Map<number, any>(),
+  parts: new Map<number, any>(),          // Auto-increment IDs
+  notifications: new Map<string, any>(),   // UUID IDs (matches DB)
+  lotPositions: new Map<number, any>(),    // Auto-increment IDs
   nextPartId: 1,
-  nextNotificationId: 1,
   nextLotPositionId: 1,
 };
 ```
 
-This ensures endpoints work correctly until database tables are added.
+**Notification Endpoint Implementation:**
+- POST: Validates with insertNotificationSchema, generates UUID, sets isRead=false, readAt=null, createdAt
+- PATCH: Validates with insertNotificationSchema.partial(), auto-stamps readAt when marking as read
+- GET: Returns all from Map
+- GET /unread-count: Counts notifications where isRead=false
+- POST /read-all: Sets isRead=true and readAt timestamp for all
+
+This ensures endpoints work correctly until database storage is implemented.
 
 ### Endpoint Consolidation Recommendations
 
@@ -186,17 +216,37 @@ This ensures endpoints work correctly until database tables are added.
 
 ✅ Build passes without errors  
 ✅ No unresolved imports  
-✅ All critical API endpoints have handlers  
+✅ All critical API endpoints have handlers with proper CRUD persistence  
+✅ Schema validation implemented for all stub endpoints  
 ✅ No duplicate files in codebase  
+✅ No duplicate route definitions  
 ✅ Comprehensive route documentation created  
-⚠️ Some endpoint path mismatches remain (tracking endpoints)  
-⚠️ Duplicate endpoint definitions need resolution (admin/users vs users)  
-⚠️ Pre-existing type errors in routes.ts (62) not addressed in this cleanup  
+✅ ID types match database schema (UUIDs vs integers)  
+✅ All required fields properly initialized  
+⚠️ Some endpoint path mismatches remain (tracking endpoints - frontend vs backend naming)  
+⚠️ Pre-existing type errors in routes.ts (62) and storage.ts (1 duplicate method) not addressed in this cleanup  
+⚠️ Architect recommends adding regression tests for POST/PATCH round-trips  
 
 ## Architecture Impact
 
-- **Positive:** Clean separation of concerns with stub endpoints
-- **Positive:** Comprehensive route documentation for future development
-- **Positive:** Analysis tooling for ongoing repo hygiene
-- **Concern:** Endpoint duplication between admin-routes and userRoutes
-- **Concern:** ML endpoints return empty data (expected until implementation)
+### Positive Changes
+- ✅ Clean separation of concerns with properly implemented stub endpoints
+- ✅ Full CRUD persistence with Map-based in-memory storage
+- ✅ Schema validation ensuring type safety and data integrity
+- ✅ ID type consistency with database schema
+- ✅ Comprehensive route documentation for future development
+- ✅ Analysis tooling (repo_sweep.py) for ongoing repo hygiene
+- ✅ Eliminated all duplicate route definitions
+
+### Technical Debt
+- ⚠️ Pre-existing LSP errors remain (62 in routes.ts, 1 in storage.ts)
+- ⚠️ Tracking endpoint naming mismatches between frontend/backend
+- ⚠️ Stub endpoints need migration to database storage
+- ⚠️ Need regression tests for CRUD round-trips
+- ⚠️ Date serialization may need normalization for database migration
+
+### Lessons Learned
+1. **Schema-First**: Always validate with Zod schemas per project guidelines
+2. **Type Consistency**: Match in-memory types to database schema from the start
+3. **Complete Initialization**: Set all required fields including defaults
+4. **Architect Review**: Iterative feedback caught 4 critical issues before production
