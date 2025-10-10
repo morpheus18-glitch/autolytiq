@@ -1,0 +1,575 @@
+# AutolytiQ Route Truth Map
+# Canonical definition of all routes and API endpoints
+# Generated: 2025-10-10
+
+frontend_routes:
+  # Authentication
+  - path: /login
+    component: Login
+    description: User login page
+  
+  - path: /auth-test
+    component: AuthTest
+    description: Authentication testing page
+  
+  # Main Dashboard
+  - path: /
+    component: Dashboard
+    description: Main dashboard
+  
+  # Inventory Management
+  - path: /inventory
+    component: Inventory
+    description: Vehicle inventory list
+  
+  - path: /inventory/lot-management
+    component: LotManagement
+    description: Physical lot position management
+  
+  - path: /inventory/:id
+    component: InventoryDetail
+    description: Vehicle detail page
+  
+  # Sales & Leads
+  - path: /leads
+    component: Sales
+    description: Lead management
+  
+  - path: /sales-mobile
+    component: Sales
+    description: Mobile sales view
+  
+  # Customer Management
+  - path: /customers
+    component: Customers
+    description: Customer list
+  
+  - path: /customers/:id
+    component: CustomerDetail
+    description: Customer detail page
+  
+  - path: /customers/:id/texting
+    component: TextingPortal
+    description: Customer texting interface
+  
+  - path: /customers/:id/calls
+    component: PhoneCalls
+    description: Customer call history
+  
+  # Deals & Finance
+  - path: /deals
+    component: DealDeskUnified
+    description: Deal management
+  
+  - path: /deals/:id
+    component: DealDeskUnified
+    description: Deal detail and structuring
+  
+  - path: /deals-list
+    component: DealDeskUnified
+    description: Deal list view
+  
+  - path: /deals-finance
+    component: DealDeskUnified
+    description: Finance-focused deal view
+  
+  - path: /deal-desk
+    component: DealDeskUnified
+    description: Deal desk workspace
+  
+  - path: /deal-working
+    component: DealDeskUnified
+    description: Active deal workspace
+  
+  - path: /deal-jackets/:id
+    component: DealJacket
+    description: Complete deal jacket view
+  
+  # Finance & Insurance
+  - path: /finance
+    component: FiDashboardPage
+    description: F&I dashboard
+  
+  - path: /finance/structuring
+    component: DealDeskUnified
+    description: Deal structuring
+  
+  - path: /finance/lenders
+    component: LenderManagement
+    description: Lender management
+  
+  - path: /finance/rates
+    component: RateSheets
+    description: Rate sheets
+  
+  - path: /finance/compliance
+    component: ComplianceManager
+    description: Compliance management
+  
+  - path: /finance/reports
+    component: FinanceReports
+    description: Finance reports
+  
+  - path: /fi-dashboard
+    component: FiDashboardPage
+    description: F&I dashboard (alternate)
+  
+  - path: /fi-configuration
+    component: FiConfigurationPage
+    description: F&I configuration
+  
+  # Accounting
+  - path: /accounting
+    component: AccountingDashboard
+    description: Accounting dashboard
+  
+  - path: /accounting/deals
+    component: DealFinalization
+    description: Deal finalization
+  
+  - path: /accounting/chart
+    component: ChartOfAccounts
+    description: Chart of accounts
+  
+  - path: /accounting/profit
+    component: VehicleProfit
+    description: Vehicle profit tracking
+  
+  - path: /accounting/reserves
+    component: FinanceReserves
+    description: Finance reserves
+  
+  - path: /accounting/close
+    component: MonthlyClose
+    description: Monthly close process
+  
+  - path: /accounting/reports
+    component: FinancialReportsPage
+    description: Financial reports
+  
+  - path: /accounting/payroll
+    component: PayrollPage
+    description: Payroll management
+  
+  - path: /accounting/transactions
+    component: TransactionsPage
+    description: Transaction log
+  
+  # Analytics & Reporting
+  - path: /analytics
+    component: Analytics
+    description: Analytics dashboard
+  
+  - path: /analytics/customer-lifecycle
+    component: CustomerLifecycle
+    description: Customer lifecycle analytics
+  
+  - path: /reports
+    component: Reports
+    description: Reports center
+  
+  # Market Intelligence
+  - path: /competitive-pricing
+    component: CompetitivePricing
+    description: Competitive pricing analysis
+  
+  - path: /market-leads
+    component: MarketLeads
+    description: Market leads
+  
+  - path: /automotive-data-center
+    component: AutomotiveDataCenter
+    description: Automotive data center
+  
+  # ML & AI
+  - path: /ml-dashboard
+    component: MLDashboard
+    description: ML dashboard
+  
+  - path: /ml-control
+    component: MLDashboardControl
+    description: ML control center
+  
+  - path: /ml-developer-admin
+    component: MLDeveloperAdmin
+    description: ML developer admin
+  
+  - path: /ml-enterprise
+    component: MLEnterpriseDashboard
+    description: ML enterprise dashboard
+  
+  - path: /ml-enterprise-dashboard
+    component: MLEnterpriseDashboardFixed
+    description: ML enterprise dashboard (fixed)
+  
+  - path: /ml-model-comparison
+    component: MLModelComparison
+    description: ML model comparison
+  
+  - path: /mlops-dashboard
+    component: MLOpsDashboard
+    description: MLOps dashboard
+  
+  - path: /causal-mlops
+    component: CausalMLOpsDashboard
+    description: Causal MLOps dashboard
+  
+  # AI Features
+  - path: /ai-smart-search
+    component: AISmartSearch
+    description: AI-powered smart search
+  
+  - path: /workflow-assistant
+    component: WorkflowAssistant
+    description: AI workflow assistant
+  
+  # Administration
+  - path: /admin/settings
+    component: SystemSettings
+    description: System settings
+  
+  - path: /admin/users
+    component: UserManagement
+    description: User management (admin)
+  
+  - path: /admin/dealership
+    component: ComprehensiveSettings
+    description: Dealership settings
+  
+  - path: /admin/integrations
+    component: IntegrationSetup
+    description: Integration setup
+  
+  - path: /admin/security
+    component: SecurityCenter
+    description: Security center
+  
+  - path: /admin/health
+    component: SystemHealth
+    description: System health monitoring
+  
+  - path: /admin/comprehensive-settings
+    component: ComprehensiveSettings
+    description: Comprehensive settings
+  
+  - path: /admin/lead-distribution
+    component: LeadDistribution
+    description: Lead distribution config
+  
+  - path: /admin/communication-settings
+    component: CommunicationSettings
+    description: Communication settings
+  
+  - path: /admin/system-configuration
+    component: SystemConfiguration
+    description: System configuration
+  
+  - path: /admin/user-management
+    component: UserManagement
+    description: User management
+  
+  - path: /admin/user-profile
+    component: UserProfile
+    description: User profile
+  
+  # User Management
+  - path: /users
+    component: UserManagement
+    description: User management
+  
+  - path: /users/staff
+    component: UserManagement
+    description: Staff management
+  
+  - path: /users/roles
+    component: RoleManagement
+    description: Role management
+  
+  - path: /users/performance
+    component: PerformanceTracking
+    description: Performance tracking
+  
+  - path: /users/training
+    component: TrainingCenter
+    description: Training center
+  
+  # Enterprise Features
+  - path: /enterprise-admin
+    component: EnterpriseAdmin
+    description: Enterprise admin
+  
+  - path: /multi-store-management
+    component: MultiStoreManagement
+    description: Multi-store management
+  
+  # Service Department
+  - path: /service/orders
+    component: ServiceOrdersPage
+    description: Service orders
+  
+  - path: /service/parts
+    component: PartsInventoryPage
+    description: Parts inventory
+  
+  - path: /service/reports
+    component: ServiceReportsPage
+    description: Service reports
+  
+  # Showroom
+  - path: /showroom
+    component: ShowroomManager
+    description: Showroom manager
+  
+  - path: /showroom-manager
+    component: ShowroomManager
+    description: Showroom manager (alternate)
+  
+  # Settings & Configuration
+  - path: /settings
+    component: Settings
+    description: User settings
+  
+  # Communication
+  - path: /communication-demo
+    component: CommunicationDemo
+    description: Communication demo
+
+api_endpoints:
+  # Authentication
+  - path: /api/auth/user
+    methods: [GET]
+    description: Get current user
+  
+  - path: /api/auth/login
+    methods: [POST]
+    description: User login
+  
+  - path: /api/auth/logout
+    methods: [POST]
+    description: User logout
+  
+  - path: /api/auth/session
+    methods: [GET]
+    description: Get session info
+  
+  # Vehicles & Inventory
+  - path: /api/vehicles
+    methods: [GET, POST]
+    description: Vehicle CRUD operations
+  
+  - path: /api/vehicles/:id
+    methods: [GET, PUT, DELETE]
+    description: Single vehicle operations
+  
+  - path: /api/vehicles/:id/photos
+    methods: [POST]
+    description: Upload vehicle photos
+  
+  - path: /api/vehicles/:id/pricing
+    methods: [PUT]
+    description: Update vehicle pricing
+  
+  - path: /api/pricing-insights/:id
+    methods: [POST, PUT, DELETE]
+    description: Pricing insights CRUD
+  
+  # VIN Decoding
+  - path: /api/decode-vin
+    methods: [POST]
+    description: Decode VIN
+  
+  - path: /api/decode-vin/:vin
+    methods: [GET]
+    description: Decode VIN by param
+  
+  - path: /api/legacy-decode-vin/:vin
+    methods: [GET]
+    description: Legacy VIN decoder
+  
+  # Valuations
+  - path: /api/valuations/:id
+    methods: [GET]
+    description: Get valuation
+  
+  - path: /api/valuations/batch
+    methods: [POST]
+    description: Batch valuations
+  
+  - path: /api/valuations/quick
+    methods: [POST]
+    description: Quick valuation
+  
+  - path: /api/valuations/refresh/:id
+    methods: [POST]
+    description: Refresh valuation
+  
+  # Customers
+  - path: /api/customers
+    methods: [GET, POST]
+    description: Customer CRUD operations
+  
+  - path: /api/customers/:id
+    methods: [GET, PUT, DELETE]
+    description: Single customer operations
+  
+  - path: /api/customers/:id/notes
+    methods: [GET, POST]
+    description: Customer notes
+  
+  - path: /api/customers/:id/calls
+    methods: [GET, POST]
+    description: Customer calls
+  
+  - path: /api/customers/:id/documents
+    methods: [GET, POST]
+    description: Customer documents
+  
+  - path: /api/customers/:id/vehicles-of-interest
+    methods: [GET, POST]
+    description: Vehicles of interest
+  
+  # Leads & Sales
+  - path: /api/leads
+    methods: [GET, POST]
+    description: Lead CRUD operations
+  
+  - path: /api/leads/:id
+    methods: [PUT, DELETE]
+    description: Single lead operations
+  
+  - path: /api/sales
+    methods: [GET, POST]
+    description: Sales operations
+  
+  # Deals
+  - path: /api/deals
+    methods: [GET, POST]
+    description: Deal CRUD operations
+  
+  - path: /api/deals/:id
+    methods: [GET, PUT]
+    description: Single deal operations
+  
+  - path: /api/deals/:id/status
+    methods: [PATCH]
+    description: Update deal status
+  
+  - path: /api/deals/:id/products
+    methods: [GET, POST]
+    description: Deal products (F&I)
+  
+  - path: /api/deals/:id/gross
+    methods: [GET]
+    description: Deal gross profit
+  
+  - path: /api/deals/:id/accounting
+    methods: [GET]
+    description: Deal accounting data
+  
+  - path: /api/deals/:id/finalize
+    methods: [POST, PUT]
+    description: Finalize deal
+  
+  # Deal Jackets
+  - path: /api/deal-jackets
+    methods: [GET]
+    description: List deal jackets
+  
+  - path: /api/deal-jackets/:id
+    methods: [GET, PATCH]
+    description: Deal jacket operations
+  
+  # Machine Learning
+  - path: /api/ml/pricing-analysis
+    methods: [POST]
+    description: ML pricing analysis
+  
+  - path: /api/ml/competitive-intel
+    methods: [POST]
+    description: ML competitive intelligence
+  
+  - path: /api/ml/market-trends
+    methods: [GET, POST]
+    description: ML market trends
+  
+  # Dashboard & Metrics
+  - path: /api/dashboard/metrics
+    methods: [GET]
+    description: Dashboard metrics
+  
+  - path: /api/activities
+    methods: [GET]
+    description: Activity feed
+  
+  # System
+  - path: /api/system/health
+    methods: [GET]
+    description: System health check
+  
+  - path: /api/stores
+    methods: [GET]
+    description: Multi-store data
+
+# Missing endpoints that need to be created or removed
+missing_endpoints:
+  # These endpoints are called but don't exist - need to be created or calls removed
+  - /api/accounting
+  - /api/accounting/dashboard/metrics
+  - /api/admin/users
+  - /api/automotive/competition
+  - /api/automotive/incentives
+  - /api/automotive/market-data
+  - /api/departments
+  - /api/employees
+  - /api/inventory
+  - /api/inventory/insights
+  - /api/lot/positions
+  - /api/ml-admin/export-traces
+  - /api/ml-admin/pipeline-traces
+  - /api/ml-admin/pixel-tracking
+  - /api/ml-admin/scraping-status
+  - /api/ml-admin/system-health
+  - /api/ml-control/params
+  - /api/ml-control/restart
+  - /api/ml-control/start
+  - /api/ml-control/status
+  - /api/ml-control/stop
+  - /api/ml-enterprise/drift-detection
+  - /api/ml-enterprise/model-registry
+  - /api/ml-enterprise/orchestration/status
+  - /api/ml-enterprise/orchestration/trigger
+  - /api/ml-enterprise/production-metrics
+  - /api/ml-enterprise/resources
+  - /api/ml-enterprise/retrain-triggers
+  - /api/ml-enterprise/shadow-deployments
+  - /api/ml-enterprise/swarm-collapse
+  - /api/ml/data/stats
+  - /api/ml/metrics
+  - /api/ml/pipeline/status
+  - /api/notifications
+  - /api/notifications/read-all
+  - /api/notifications/unread-count
+  - /api/parts
+  - /api/payroll
+  - /api/permissions
+  - /api/roles
+  - /api/service-orders
+  - /api/tracking/event
+  - /api/tracking/form
+  - /api/tracking/time
+  - /api/tracking/vehicle
+  - /api/transactions
+  - /api/users
+
+# Route redirects/aliases for backward compatibility
+route_aliases:
+  /deals-list: /deals
+  /deals-finance: /deals
+  /deal-desk: /deals
+  /deal-working: /deals
+  /showroom-manager: /showroom
+  /fi-dashboard: /finance
+  /sales-mobile: /leads
+  /admin/comprehensive-settings: /admin/dealership
+  /admin/user-management: /admin/users
+  /ml-enterprise-dashboard: /ml-enterprise
