@@ -1048,6 +1048,63 @@ export type InsertNotificationTemplate = typeof notificationTemplates.$inferInse
 export type NotificationPreference = typeof notificationPreferences.$inferSelect;
 export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;
 
+// Parts Inventory Schema
+export const parts = pgTable("parts", {
+  id: serial("id").primaryKey(),
+  partNumber: varchar("part_number").notNull().unique(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  category: varchar("category"), // engine, transmission, body, electrical, etc.
+  manufacturer: varchar("manufacturer"),
+  manufacturerPartNumber: varchar("manufacturer_part_number"),
+  vehicleMake: varchar("vehicle_make"),
+  vehicleModel: varchar("vehicle_model"),
+  vehicleYear: integer("vehicle_year"),
+  quantity: integer("quantity").default(0).notNull(),
+  minQuantity: integer("min_quantity").default(0),
+  location: varchar("location"), // warehouse location/bin
+  cost: integer("cost"), // cost in cents
+  retailPrice: integer("retail_price"), // price in cents
+  condition: varchar("condition").default("new"), // new, used, refurbished
+  status: varchar("status").default("active"), // active, discontinued, backordered
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertPartSchema = createInsertSchema(parts).omit({ 
+  id: true, 
+  createdAt: true,
+  updatedAt: true 
+});
+
+export type Part = typeof parts.$inferSelect;
+export type InsertPart = z.infer<typeof insertPartSchema>;
+
+// Lot Positions Schema
+export const lotPositions = pgTable("lot_positions", {
+  id: serial("id").primaryKey(),
+  vehicleId: integer("vehicle_id").references(() => vehicles.id),
+  zone: varchar("zone").notNull(), // A, B, C, etc.
+  row: varchar("row").notNull(), // 1, 2, 3, etc.
+  spot: varchar("spot").notNull(), // 1, 2, 3, etc.
+  fullPosition: varchar("full_position").notNull(), // e.g., "A-1-5"
+  isOccupied: boolean("is_occupied").default(false).notNull(),
+  notes: text("notes"),
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertLotPositionSchema = createInsertSchema(lotPositions).omit({ 
+  id: true, 
+  createdAt: true,
+  updatedAt: true,
+  lastUpdated: true
+});
+
+export type LotPosition = typeof lotPositions.$inferSelect;
+export type InsertLotPosition = z.infer<typeof insertLotPositionSchema>;
+
 // F&I Types
 export type CreditPull = typeof creditPulls.$inferSelect;
 export type LenderApplication = typeof lenderApplications.$inferSelect;
