@@ -179,7 +179,7 @@ export const taxRulesSeed: InsertTaxRule[] = [
     notes: 'IL state sales tax 6.25%',
   },
   {
-    jurisdictionId: 14, // Chicago local
+    jurisdictionId: 14, // Cook County
     appliesTo: 'both',
     basis: 'net_of_trade',
     rate: '0.0175',
@@ -187,7 +187,18 @@ export const taxRulesSeed: InsertTaxRule[] = [
     effectiveFrom: new Date('2025-01-01'),
     effectiveTo: null,
     isCompound: false,
-    notes: 'Chicago local sales tax 1.75%',
+    notes: 'Cook County sales tax 1.75%',
+  },
+  {
+    jurisdictionId: 14, // Chicago city
+    appliesTo: 'both',
+    basis: 'net_of_trade',
+    rate: '0.0175',
+    precedence: 2,
+    effectiveFrom: new Date('2025-01-01'),
+    effectiveTo: null,
+    isCompound: false,
+    notes: 'Chicago city sales tax 1.75%',
   },
   
   // Georgia - Tax on net of trade
