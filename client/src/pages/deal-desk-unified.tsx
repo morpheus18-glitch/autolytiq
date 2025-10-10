@@ -312,26 +312,29 @@ export default function DealDeskUnified() {
   const selectedCustomer = customers.find(c => c.id === deal.customerId);
 
   return (
-    <div className="w-full space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Deal Desk</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Structure and calculate deals with precision</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" data-testid="button-save-deal">
-            <Save className="h-4 w-4 mr-2" />
-            Save Deal
-          </Button>
-          <Button variant="outline" size="sm" data-testid="button-print-deal">
-            <Printer className="h-4 w-4 mr-2" />
-            Print
-          </Button>
+    <div className="w-full min-h-screen pb-20 md:pb-6">
+      {/* Mobile Sticky Header */}
+      <div className="mobile-sticky-header md:static md:mb-6 md:px-0 md:border-0 md:backdrop-filter-none">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Deal Desk</h1>
+            <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-0.5">Structure and calculate deals with precision</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none min-h-[44px] md:min-h-0" data-testid="button-save-deal">
+              <Save className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Save Deal</span>
+            </Button>
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none min-h-[44px] md:min-h-0" data-testid="button-print-deal">
+              <Printer className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Print</span>
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="px-4 md:px-0">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Left Column - Deal Inputs */}
         <div className="lg:col-span-2 space-y-4">
           {/* Vehicle Lookup */}
@@ -877,6 +880,7 @@ export default function DealDeskUnified() {
             } : undefined}
           />
         </div>
+      </div>
       </div>
     </div>
   );
