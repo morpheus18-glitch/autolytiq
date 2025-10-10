@@ -297,8 +297,8 @@ export default function DealDeskUnified() {
   };
 
   const calculateDeal = () => {
-    // Net trade value (trade minus payoff)
-    const netTradeValue = Math.max(0, deal.tradeValue - deal.tradePayoff);
+    // Net trade value (trade minus payoff) - can be negative if upside down
+    const netTradeValue = deal.tradeValue - deal.tradePayoff;
     
     // Sales tax calculation - with trade-in credit if applicable
     let taxableAmount = deal.vehiclePrice;
