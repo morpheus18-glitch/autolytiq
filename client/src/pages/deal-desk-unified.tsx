@@ -25,6 +25,7 @@ import {
   Receipt
 } from 'lucide-react';
 import type { Vehicle, Customer } from '@shared/schema';
+import { AINext } from '@/components/ai-negotiation-assistant';
 
 // Sales tax rates by state (simplified - in production use API)
 const STATE_TAX_RATES: Record<string, { salesTax: number; titleFee: number; regFee: number }> = {
@@ -858,6 +859,23 @@ export default function DealDeskUnified() {
               )}
             </CardContent>
           </Card>
+
+          {/* AI Negotiation Assistant */}
+          <AINext
+            vehiclePrice={deal.vehiclePrice}
+            vehicleMake={selectedVehicle?.make || ''}
+            vehicleModel={selectedVehicle?.model || ''}
+            vehicleYear={selectedVehicle?.year || 0}
+            tradeValue={deal.tradeValue}
+            downPayment={deal.downPayment}
+            financeRate={deal.financeRate}
+            termMonths={deal.termMonths}
+            marketValue={deal.vehiclePrice}
+            customerProfile={selectedCustomer ? {
+              creditScore: selectedCustomer.creditScore || undefined,
+              income: selectedCustomer.income ? parseFloat(selectedCustomer.income) : undefined
+            } : undefined}
+          />
         </div>
       </div>
     </div>
