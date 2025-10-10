@@ -1,0 +1,1887 @@
+[
+  {
+    "file": "client/src/components/activity-feed.tsx",
+    "url": "/api/activities",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/competitive-insights.tsx",
+    "url": "/api/competitive-pricing",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/competitive-insights.tsx",
+    "url": "/api/pricing-insights",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/competitive-insights.tsx",
+    "url": "/api/market-trends",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/competitive-insights.tsx",
+    "url": "/api/competitive-pricing",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/competitive-insights.tsx",
+    "url": "/api/pricing-insights",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/competitive-insights.tsx",
+    "url": "/api/market-trends",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/competitive-insights.tsx",
+    "url": "/competitive-pricing",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/competitive-insights.tsx",
+    "url": "/competitive-pricing",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/lead-modal.tsx",
+    "url": "/api/admin/users",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/lead-modal.tsx",
+    "url": "/api/leads",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/lead-modal.tsx",
+    "url": "/api/leads",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/customer-modal.tsx",
+    "url": "/api/admin/users",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/customer-modal.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/customer-modal.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/vehicle-modal.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/vehicle-modal.tsx",
+    "url": "/api/dashboard/metrics",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/vehicle-modal.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/vehicle-modal.tsx",
+    "url": "/api/dashboard/metrics",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/logout-button.tsx",
+    "url": "/api/auth/session",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/metrics-grid.tsx",
+    "url": "/api/dashboard/metrics",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/top-nav.tsx",
+    "url": "/settings",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/top-nav.tsx",
+    "url": "/reports",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/top-nav.tsx",
+    "url": "/analytics",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/lead-distribution-config.tsx",
+    "url": "/api/lead-distribution-rules",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/role-permissions-config.tsx",
+    "url": "/api/system-roles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/inventory-table.tsx",
+    "url": "/api/generate-pricing-insights",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/inventory-table.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/inventory-table.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/inventory-table.tsx",
+    "url": "/api/dashboard/metrics",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/inventory-table.tsx",
+    "url": "/api/pricing-insights",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise-header.tsx",
+    "url": "/api/notifications/read-all",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise-header.tsx",
+    "url": "/api/notifications",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise-header.tsx",
+    "url": "/api/notifications/unread-count",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise-header.tsx",
+    "url": "/api/notifications",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise-header.tsx",
+    "url": "/api/notifications/unread-count",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise-header.tsx",
+    "url": "/api/notifications",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise-header.tsx",
+    "url": "/api/notifications/unread-count",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise-header.tsx",
+    "url": "/",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise-header.tsx",
+    "url": "/communication-demo",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise-header.tsx",
+    "url": "/ai-smart-search",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise-header.tsx",
+    "url": "/admin/user-profile",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise-header.tsx",
+    "url": "/admin/settings",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/intelligent-inventory-manager.tsx",
+    "url": "/api/inventory/insights",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/intelligent-inventory-manager.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/intelligent-inventory-manager.tsx",
+    "url": "/api/inventory/insights",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/intelligent-inventory-manager.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/intelligent-inventory-manager.tsx",
+    "url": "/api/inventory/insights",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/intelligent-inventory-manager.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/unified-dashboard.tsx",
+    "url": "/api/dashboard/metrics",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/unified-dashboard.tsx",
+    "url": "/customers",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/unified-dashboard.tsx",
+    "url": "/inventory",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/unified-dashboard.tsx",
+    "url": "/ai-smart-search",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/unified-dashboard.tsx",
+    "url": "/communication-demo",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/unified-dashboard.tsx",
+    "url": "/activity-log",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/unified-dashboard.tsx",
+    "url": "/customers?filter=priority_leads",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/unified-dashboard.tsx",
+    "url": "/competitive-pricing",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/unified-dashboard.tsx",
+    "url": "/ai-smart-search?tab=recommendations",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/quick-deal-creator.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/quick-deal-creator.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/quick-deal-creator.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/mobile-footer-menu.tsx",
+    "url": "/customers",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/mobile-footer-menu.tsx",
+    "url": "/inventory",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/mobile-footer-menu.tsx",
+    "url": "/deal-desk",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/mobile-footer-menu.tsx",
+    "url": "/showroom-manager",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/tracking-pixel.tsx",
+    "url": "/api/tracking/pageview",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/tracking-pixel.tsx",
+    "url": "/api/tracking/interaction",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/tracking-pixel.tsx",
+    "url": "/api/tracking/event",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/tracking-pixel.tsx",
+    "url": "/api/tracking/time",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/tracking-pixel.tsx",
+    "url": "/api/tracking/form",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/tracking-pixel.tsx",
+    "url": "/api/tracking/vehicle",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/top-navbar.tsx",
+    "url": "/",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enhanced-work-deal.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enhanced-work-deal.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/top-navigation.tsx",
+    "url": "/",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/inventory/inventory-table.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/advanced-analytics-dashboard.tsx",
+    "url": "/analytics",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/enterprise-dashboard-integration.tsx",
+    "url": "/workflow-assistant",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/enterprise-dashboard-integration.tsx",
+    "url": "/ai-smart-search",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/enterprise-dashboard-integration.tsx",
+    "url": "/analytics",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/enterprise-dashboard-integration.tsx",
+    "url": "/inventory",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/enterprise-dashboard-integration.tsx",
+    "url": "/customers",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/enterprise-dashboard-integration.tsx",
+    "url": "/deal-desk",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/enterprise-dashboard-integration.tsx",
+    "url": "/reports",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/production-dashboard.tsx",
+    "url": "/inventory",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/production-dashboard.tsx",
+    "url": "/customers",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/production-dashboard.tsx",
+    "url": "/sales",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/production-dashboard.tsx",
+    "url": "/showroom-manager",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/production-dashboard.tsx",
+    "url": "/reports",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/production-dashboard.tsx",
+    "url": "/competitive-pricing",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/production-suite.tsx",
+    "url": "/",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/production-suite.tsx",
+    "url": "/enterprise-admin",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/production-suite.tsx",
+    "url": "/inventory",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/production-suite.tsx",
+    "url": "/showroom-manager",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-production-suite.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-production-suite.tsx",
+    "url": "/api/sales",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-production-suite.tsx",
+    "url": "/api/leads",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-production-suite.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-advanced-reporting.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-advanced-reporting.tsx",
+    "url": "/api/sales",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-advanced-reporting.tsx",
+    "url": "/api/leads",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-advanced-reporting.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-workflow-automation.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-workflow-automation.tsx",
+    "url": "/api/sales",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-workflow-automation.tsx",
+    "url": "/api/leads",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-workflow-automation.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-customer-intelligence.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-customer-intelligence.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-customer-intelligence.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-system-health.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-system-health.tsx",
+    "url": "/api/sales",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-system-health.tsx",
+    "url": "/api/leads",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-system-health.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-unified-dashboard.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-unified-dashboard.tsx",
+    "url": "/api/sales",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-unified-dashboard.tsx",
+    "url": "/api/leads",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/enterprise/ai-unified-dashboard.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/fi/fi-dashboard.tsx",
+    "url": "/api/fi/credit-pulls",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/fi/fi-dashboard.tsx",
+    "url": "/api/fi/lender-applications",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/fi/fi-dashboard.tsx",
+    "url": "/api/fi/products",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/fi/fi-dashboard.tsx",
+    "url": "/api/fi/credit-pulls",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/fi/fi-dashboard.tsx",
+    "url": "/api/fi/lender-applications",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/fi/fi-dashboard.tsx",
+    "url": "/api/fi/products",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/fi/fi-dashboard.tsx",
+    "url": "/api/fi/finance-menus",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/fi/fi-dashboard.tsx",
+    "url": "/api/fi/credit-pulls",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/fi/fi-dashboard.tsx",
+    "url": "/api/fi/lender-applications",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/fi/fi-dashboard.tsx",
+    "url": "/api/fi/products",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/admin/user-form.tsx",
+    "url": "/api/users",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/workspace/simple-session-bar.tsx",
+    "url": "/deal-desk",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/layout/mobile-responsive-layout.tsx",
+    "url": "/",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/layout/mobile-responsive-layout.tsx",
+    "url": "/",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/layout/mobile-responsive-layout.tsx",
+    "url": "/sales",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/layout/mobile-responsive-layout.tsx",
+    "url": "/inventory",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/layout/mobile-responsive-layout.tsx",
+    "url": "/analytics",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/widgets/ml-dashboard-widget.tsx",
+    "url": "/api/ml-control/status",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/components/widgets/ml-dashboard-widget.tsx",
+    "url": "/ml-control",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/widgets/ml-dashboard-widget.tsx",
+    "url": "/ml-control",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/components/widgets/ml-dashboard-widget.tsx",
+    "url": "/ml-control",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/pages/competitive-pricing.tsx",
+    "url": "/api/pricing-insights",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/competitive-pricing.tsx",
+    "url": "/api/merchandising-strategies",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/competitive-pricing.tsx",
+    "url": "/api/market-trends",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/competitive-pricing.tsx",
+    "url": "/api/scrape-competitive-pricing",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/competitive-pricing.tsx",
+    "url": "/api/generate-pricing-insights",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/competitive-pricing.tsx",
+    "url": "/api/generate-merchandising-strategies",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/competitive-pricing.tsx",
+    "url": "/api/analyze-market-trends",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/competitive-pricing.tsx",
+    "url": "/api/competitive-pricing",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/competitive-pricing.tsx",
+    "url": "/api/pricing-insights",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/competitive-pricing.tsx",
+    "url": "/api/merchandising-strategies",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/competitive-pricing.tsx",
+    "url": "/api/market-trends",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/competitive-pricing.tsx",
+    "url": "/api/competitive-pricing",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/competitive-pricing.tsx",
+    "url": "/api/pricing-insights",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/competitive-pricing.tsx",
+    "url": "/api/merchandising-strategies",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/competitive-pricing.tsx",
+    "url": "/api/market-trends",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-dashboard.tsx",
+    "url": "/api/ml/status",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-dashboard.tsx",
+    "url": "/api/ml/status",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-dashboard.tsx",
+    "url": "/api/ml/status",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/showroom-manager-clean.tsx",
+    "url": "/api/showroom-sessions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/showroom-manager-clean.tsx",
+    "url": "/api/showroom-sessions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/showroom-manager-clean.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/showroom-manager-clean.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/showroom-manager-clean.tsx",
+    "url": "/api/showroom-sessions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/showroom-manager-clean.tsx",
+    "url": "/api/showroom-sessions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/showroom-manager-clean.tsx",
+    "url": "/api/showroom-sessions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/showroom-manager-clean.tsx",
+    "url": "/api/showroom-sessions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/showroom-manager-clean.tsx",
+    "url": "/customers",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/pages/showroom-manager-clean.tsx",
+    "url": "/inventory",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/pages/showroom-manager-clean.tsx",
+    "url": "/deal-desk",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/pages/communication-demo.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/communication-demo.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/communication-demo.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/communication-demo.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/communication-demo.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/settings.tsx",
+    "url": "/api/departments",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/settings.tsx",
+    "url": "/api/roles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/fi-configuration.tsx",
+    "url": "/api/fi/products",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/fi-configuration.tsx",
+    "url": "/api/fi/products",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/fi-configuration.tsx",
+    "url": "/api/fi/products",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/fi-configuration.tsx",
+    "url": "/api/fi/products",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/fi-configuration.tsx",
+    "url": "/api/fi/products",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/login.tsx",
+    "url": "/",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/pages/vehicle-detail.tsx",
+    "url": "/inventory",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/pages/vehicle-detail.tsx",
+    "url": "/inventory",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/pages/deals.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals.tsx",
+    "url": "/deal-desk",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/pages/deal-desk.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deal-desk.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deal-desk.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deal-desk.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deal-desk.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals-unified.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals-unified.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals-unified.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals-unified.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals-unified.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deal-working-screen.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deal-working-screen.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals-list.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals-list.tsx",
+    "url": "/showroom-manager",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/pages/multi-store-management.tsx",
+    "url": "/api/stores",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/multi-store-management.tsx",
+    "url": "/api/system/health",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/multi-store-management.tsx",
+    "url": "/api/stores",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/multi-store-management.tsx",
+    "url": "/api/stores",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/multi-store-management.tsx",
+    "url": "/api/stores",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deal-jacket.tsx",
+    "url": "/api/deal-jackets",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deal-jacket.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deal-jacket.tsx",
+    "url": "/api/users",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deal-jacket.tsx",
+    "url": "/api/deal-jackets",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deal-jacket.tsx",
+    "url": "/api/deal-jackets",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deal-jacket.tsx",
+    "url": "/api/deal-jackets",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals-finance.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals-finance.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals-finance.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals-finance.tsx",
+    "url": "/deals-list",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/pages/automotive-data-center.tsx",
+    "url": "/api/automotive/health",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/automotive-data-center.tsx",
+    "url": "/api/automotive/market-data",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/automotive-data-center.tsx",
+    "url": "/api/automotive/incentives",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/automotive-data-center.tsx",
+    "url": "/api/automotive/competition",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/automotive-data-center.tsx",
+    "url": "/api/inventory",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ai-smart-search.tsx",
+    "url": "/api/semantic-search",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/dashboard.tsx",
+    "url": "/workflow-assistant",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/pages/market-leads.tsx",
+    "url": "/api/market-leads",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/enhanced-customers.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/enhanced-sales.tsx",
+    "url": "/api/leads",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/enhanced-sales.tsx",
+    "url": "/api/sales",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/inventory-detail.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/inventory-detail.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customers-broken.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customers-broken.tsx",
+    "url": "/api/users",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customers-broken.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customers-broken.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customers.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customers.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customers.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customers.tsx",
+    "url": "/customers/new",
+    "type": "navigation"
+  },
+  {
+    "file": "client/src/pages/showroom-manager.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/showroom-manager.tsx",
+    "url": "/api/showroom/sessions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/showroom-manager.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/showroom-manager.tsx",
+    "url": "/api/showroom/sessions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/showroom-manager.tsx",
+    "url": "/api/showroom/sessions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/showroom-manager.tsx",
+    "url": "/api/showroom/sessions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/sales.tsx",
+    "url": "/api/leads",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/sales.tsx",
+    "url": "/api/sales",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/sales.tsx",
+    "url": "/api/leads",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customer-detail.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customer-detail.tsx",
+    "url": "/api/leads",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customer-detail.tsx",
+    "url": "/api/sales",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customer-detail.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/enhanced-inventory.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/enhanced-inventory.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-developer-admin.tsx",
+    "url": "/api/ml-admin/scraping-status",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-developer-admin.tsx",
+    "url": "/api/ml-admin/pixel-tracking",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-developer-admin.tsx",
+    "url": "/api/ml-admin/pipeline-traces",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-developer-admin.tsx",
+    "url": "/api/ml-admin/system-health",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-developer-admin.tsx",
+    "url": "/api/ml-admin/export-traces",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/causal-mlops-dashboard.tsx",
+    "url": "/api/causal/graph",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/causal-mlops-dashboard.tsx",
+    "url": "/api/causal/health",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/causal-mlops-dashboard.tsx",
+    "url": "/api/causal/metrics/telemetry",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/causal-mlops-dashboard.tsx",
+    "url": "/api/causal/discovery/history",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/causal-mlops-dashboard.tsx",
+    "url": "/api/causal/discover",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/inventory.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/inventory.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/inventory.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/inventory.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/inventory.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/inventory.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-enterprise-dashboard.tsx",
+    "url": "/api/ml-enterprise/production-metrics",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-enterprise-dashboard.tsx",
+    "url": "/api/ml-enterprise/model-registry",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-enterprise-dashboard.tsx",
+    "url": "/api/ml-enterprise/drift-detection",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-enterprise-dashboard.tsx",
+    "url": "/api/ml-enterprise/swarm-collapse",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-enterprise-dashboard.tsx",
+    "url": "/api/ml-enterprise/orchestration/status",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-enterprise-dashboard.tsx",
+    "url": "/api/ml-enterprise/shadow-deployments",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-enterprise-dashboard.tsx",
+    "url": "/api/ml-enterprise/retrain-triggers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-enterprise-dashboard.tsx",
+    "url": "/api/ml-enterprise/resources",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-enterprise-dashboard.tsx",
+    "url": "/api/ml-enterprise/orchestration/trigger",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deal-desk-unified.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deal-desk-unified.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/lot-management.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/lot-management.tsx",
+    "url": "/api/lot/positions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/mlops-dashboard.tsx",
+    "url": "/api/ml/pipelines",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/mlops-dashboard.tsx",
+    "url": "/api/ml/metrics",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/mlops-dashboard.tsx",
+    "url": "/api/ml/pipelines",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/mlops-dashboard.tsx",
+    "url": "/api/ml/metrics",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-dashboard-control.tsx",
+    "url": "/api/ml/pipeline/status",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-dashboard-control.tsx",
+    "url": "/api/ml/data/stats",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-dashboard-control.tsx",
+    "url": "/api/ml-control/status",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-dashboard-control.tsx",
+    "url": "/api/ml-control/params",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-dashboard-control.tsx",
+    "url": "/api/ml-control/start",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-dashboard-control.tsx",
+    "url": "/api/ml-control/stop",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-dashboard-control.tsx",
+    "url": "/api/ml-control/restart",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-model-comparison.tsx",
+    "url": "/api/ml/models/comparison-data",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/ml-model-comparison.tsx",
+    "url": "/api/ml/models/compare",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/departments.tsx",
+    "url": "/api/departments",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/departments.tsx",
+    "url": "/api/departments",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/departments.tsx",
+    "url": "/api/roles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/departments.tsx",
+    "url": "/api/users",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/departments.tsx",
+    "url": "/api/departments",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/departments.tsx",
+    "url": "/api/departments",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/departments.tsx",
+    "url": "/api/departments",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/roles.tsx",
+    "url": "/api/roles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/roles.tsx",
+    "url": "/api/roles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/roles.tsx",
+    "url": "/api/departments",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/roles.tsx",
+    "url": "/api/permissions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/roles.tsx",
+    "url": "/api/roles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/roles.tsx",
+    "url": "/api/roles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/roles.tsx",
+    "url": "/api/roles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/lead-distribution.tsx",
+    "url": "/api/lead-distribution-rules",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/lead-distribution.tsx",
+    "url": "/api/lead-sources",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/lead-distribution.tsx",
+    "url": "/api/lead-distribution-rules",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/lead-distribution.tsx",
+    "url": "/api/lead-sources",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/lead-distribution.tsx",
+    "url": "/api/lead-distribution-rules",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/lead-distribution.tsx",
+    "url": "/api/lead-sources",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/communication-settings.tsx",
+    "url": "/api/communication-settings",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/communication-settings.tsx",
+    "url": "/api/message-templates",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/communication-settings.tsx",
+    "url": "/api/communication-settings",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/communication-settings.tsx",
+    "url": "/api/message-templates",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/communication-settings.tsx",
+    "url": "/api/communication-settings",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/communication-settings.tsx",
+    "url": "/api/message-templates",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/system-configuration.tsx",
+    "url": "/api/fi/products",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/system-configuration.tsx",
+    "url": "/api/fi/products",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/system-configuration.tsx",
+    "url": "/api/fi/products",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/users.tsx",
+    "url": "/api/users",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/users.tsx",
+    "url": "/api/roles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/users.tsx",
+    "url": "/api/users",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/users.tsx",
+    "url": "/api/users",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/users.tsx",
+    "url": "/api/users",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/users.tsx",
+    "url": "/api/users",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/user-management.tsx",
+    "url": "/api/users",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/user-management.tsx",
+    "url": "/api/roles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/user-management.tsx",
+    "url": "/api/users",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/admin/role-management.tsx",
+    "url": "/api/roles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/service/service-orders.tsx",
+    "url": "/api/service-orders",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/service/service-orders.tsx",
+    "url": "/api/service-orders",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/service/service-orders.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/service/service-orders.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/service/service-orders.tsx",
+    "url": "/api/users",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/service/service-orders.tsx",
+    "url": "/api/service-orders",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/service/service-orders.tsx",
+    "url": "/api/service-orders",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/service/service-orders.tsx",
+    "url": "/api/service-orders",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/service/parts.tsx",
+    "url": "/api/parts",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/service/parts.tsx",
+    "url": "/api/parts",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/service/parts.tsx",
+    "url": "/api/parts",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/service/parts.tsx",
+    "url": "/api/parts",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/service/parts.tsx",
+    "url": "/api/parts",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/accounting/payroll.tsx",
+    "url": "/api/payroll",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/accounting/payroll.tsx",
+    "url": "/api/payroll",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/accounting/payroll.tsx",
+    "url": "/api/employees",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/accounting/payroll.tsx",
+    "url": "/api/payroll",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/accounting/payroll.tsx",
+    "url": "/api/payroll",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/accounting/payroll.tsx",
+    "url": "/api/payroll",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/accounting/transactions.tsx",
+    "url": "/api/transactions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/accounting/transactions.tsx",
+    "url": "/api/transactions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/accounting/transactions.tsx",
+    "url": "/api/transactions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/accounting/transactions.tsx",
+    "url": "/api/transactions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/accounting/transactions.tsx",
+    "url": "/api/transactions",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/accounting/deal-finalization.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/accounting/deal-finalization.tsx",
+    "url": "/api/accounting",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/accounting/accounting-dashboard.tsx",
+    "url": "/api/accounting/dashboard/metrics",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals/index.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals/index.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals/[id]/accounting.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals/[id]/finance.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals/[id]/index.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals/[id]/index.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals/[id]/structure.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals/[id]/structure.tsx",
+    "url": "/api/vehicles",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/deals/[id]/structure.tsx",
+    "url": "/api/deals",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customers/texting-portal.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customers/texting-portal.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customers/texting-portal.tsx",
+    "url": "/api/message-templates",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customers/texting-portal.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customers/phone-calls.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customers/phone-calls.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  },
+  {
+    "file": "client/src/pages/customers/phone-calls.tsx",
+    "url": "/api/customers",
+    "type": "api_call"
+  }
+]

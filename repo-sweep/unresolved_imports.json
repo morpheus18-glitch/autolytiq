@@ -1,0 +1,14 @@
+[
+  {
+    "file": "client/src/pages/sales-management.tsx",
+    "import": "@/components/enterprise/production-deal-desk"
+  },
+  {
+    "file": "client/src/pages/dashboard.tsx",
+    "import": "@/components/enhanced-vehicle-listing"
+  },
+  {
+    "file": "client/src/pages/customers-broken.tsx",
+    "import": "@/components/enhanced-customer-search"
+  }
+]
