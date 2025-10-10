@@ -4720,6 +4720,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI-Powered Deal Negotiation Assistant
+  app.post("/api/ai/analyze-deal", async (req, res) => {
+    try {
+      const { aiNegotiationService } = await import("./ai-negotiation-service");
+      const dealData = req.body;
+      
+      if (!dealData.vehiclePrice || !dealData.vehicleMake || !dealData.vehicleModel) {
+        return res.status(400).json({ message: "Missing required deal information" });
+      }
+
+      const analysis = await aiNegotiationService.analyzeDeal(dealData);
+      res.json(analysis);
+    } catch (error) {
+      console.error("Error analyzing deal:", error);
+      res.status(500).json({ message: "Failed to analyze deal" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // Initialize Enterprise WebSocket Manager 
