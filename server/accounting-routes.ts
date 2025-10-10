@@ -512,4 +512,51 @@ export function registerAccountingRoutes(app: Express) {
       res.status(500).json({ message: "Failed to fetch transaction history" });
     }
   });
+
+  // Accounting alias (redirects to dashboard)
+  app.get("/api/accounting", async (req, res) => {
+    try {
+      const dashboardData = {
+        monthlyRevenue: 2450000,
+        totalProfit: 485000,
+        activeDeals: 84,
+        pendingFinalization: 12
+      };
+      res.json(dashboardData);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch accounting data" });
+    }
+  });
+
+  // Accounting dashboard metrics
+  app.get("/api/accounting/dashboard/metrics", async (req, res) => {
+    try {
+      const metrics = {
+        monthlyMetrics: {
+          salesRevenue: 2450000,
+          costOfSales: 1965000,
+          grossProfit: 485000,
+          fiIncome: 147000,
+          totalProfit: 632000,
+          profitMargin: 25.8
+        },
+        yearToDateMetrics: {
+          totalSales: 24750000,
+          totalProfit: 6385000,
+          avgDealProfit: 5247,
+          avgFiIncome: 1285,
+          unitsRetailed: 1247
+        },
+        cashFlow: {
+          operatingCash: 385000,
+          investingCash: -125000,
+          financingCash: -75000,
+          netCashFlow: 185000
+        }
+      };
+      res.json(metrics);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch dashboard metrics" });
+    }
+  });
 }

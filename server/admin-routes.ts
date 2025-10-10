@@ -5,6 +5,17 @@ import { sendVerificationEmail } from "./services/email-service";
 
 const storage = new DatabaseStorage();
 
+// In-memory storage for stub endpoints (until proper database tables are added)
+const inMemoryStore = {
+  parts: new Map<number, any>(),
+  notifications: new Map<number, any>(),
+  lotPositions: new Map<number, any>(),
+  permissions: [] as any[],
+  nextPartId: 1,
+  nextNotificationId: 1,
+  nextLotPositionId: 1,
+};
+
 export function registerAdminRoutes(app: Express) {
   // Department routes
   app.get("/api/departments", async (req, res) => {
@@ -647,6 +658,232 @@ export function registerAdminRoutes(app: Express) {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // Parts inventory routes (in-memory implementation)
+  app.get("/api/parts", async (req, res) => {
+    try {
+      const parts = Array.from(inMemoryStore.parts.values());
+      res.json(parts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch parts" });
+    }
+  });
+
+  app.get("/api/parts/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const part = inMemoryStore.parts.get(id);
+      if (!part) {
+        return res.status(404).json({ message: "Part not found" });
+      }
+      res.json(part);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch part" });
+    }
+  });
+
+  app.post("/api/parts", async (req, res) => {
+    try {
+      const id = inMemoryStore.nextPartId++;
+      const part = { id, ...req.body, createdAt: new Date().toISOString() };
+      inMemoryStore.parts.set(id, part);
+      res.status(201).json(part);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid part data" });
+    }
+  });
+
+  app.put("/api/parts/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const existingPart = inMemoryStore.parts.get(id);
+      if (!existingPart) {
+        return res.status(404).json({ message: "Part not found" });
+      }
+      const part = { ...existingPart, ...req.body, id, updatedAt: new Date().toISOString() };
+      inMemoryStore.parts.set(id, part);
+      res.json(part);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid part data" });
+    }
+  });
+
+  app.delete("/api/parts/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (!inMemoryStore.parts.has(id)) {
+        return res.status(404).json({ message: "Part not found" });
+      }
+      inMemoryStore.parts.delete(id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete part" });
+    }
+  });
+
+  // Transactions alias (points to financial-transactions)
+  app.get("/api/transactions", async (req, res) => {
+    try {
+      const transactions = await storage.getFinancialTransactions();
+      res.json(transactions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch transactions" });
+    }
+  });
+
+  app.post("/api/transactions", async (req, res) => {
+    try {
+      const validatedData = insertFinancialTransactionSchema.parse(req.body);
+      const transaction = await storage.createFinancialTransaction(validatedData);
+      res.status(201).json(transaction);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid transaction data" });
+    }
+  });
+
+  // Notifications routes (in-memory implementation)
+  app.get("/api/notifications", async (req, res) => {
+    try {
+      const notifications = Array.from(inMemoryStore.notifications.values());
+      res.json(notifications);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  app.get("/api/notifications/unread-count", async (req, res) => {
+    try {
+      const notifications = Array.from(inMemoryStore.notifications.values());
+      const unreadCount = notifications.filter((n: any) => !n.read).length;
+      res.json({ count: unreadCount });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch unread count" });
+    }
+  });
+
+  app.post("/api/notifications/read-all", async (req, res) => {
+    try {
+      for (const [id, notification] of inMemoryStore.notifications) {
+        inMemoryStore.notifications.set(id, { ...notification, read: true });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark notifications as read" });
+    }
+  });
+
+  // Inventory routes
+  app.get("/api/inventory", async (req, res) => {
+    try {
+      const vehicles = await storage.getVehicles();
+      res.json(vehicles);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch inventory" });
+    }
+  });
+
+  app.get("/api/inventory/insights", async (req, res) => {
+    try {
+      // Stub: return empty insights until inventory insights is implemented
+      const insights = {
+        totalVehicles: 0,
+        avgDaysOnLot: 0,
+        topModels: [],
+        agingInventory: []
+      };
+      res.json(insights);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch inventory insights" });
+    }
+  });
+
+  // Lot management routes (in-memory implementation)
+  app.get("/api/lot/positions", async (req, res) => {
+    try {
+      const positions = Array.from(inMemoryStore.lotPositions.values());
+      res.json(positions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch lot positions" });
+    }
+  });
+
+  app.post("/api/lot/positions", async (req, res) => {
+    try {
+      const id = inMemoryStore.nextLotPositionId++;
+      const position = { id, ...req.body, createdAt: new Date().toISOString() };
+      inMemoryStore.lotPositions.set(id, position);
+      res.status(201).json(position);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid lot position data" });
+    }
+  });
+
+  app.put("/api/lot/positions/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const existingPosition = inMemoryStore.lotPositions.get(id);
+      if (!existingPosition) {
+        return res.status(404).json({ message: "Lot position not found" });
+      }
+      const position = { ...existingPosition, ...req.body, id, updatedAt: new Date().toISOString() };
+      inMemoryStore.lotPositions.set(id, position);
+      res.json(position);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid lot position data" });
+    }
+  });
+
+  // Permissions routes (stub implementation)
+  app.get("/api/permissions", async (req, res) => {
+    try {
+      // Stub: return empty array until permissions storage is implemented
+      res.json([]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch permissions" });
+    }
+  });
+
+  // Automotive data routes (stub implementation)
+  app.get("/api/automotive/competition", async (req, res) => {
+    try {
+      // Stub: return empty array until automotive competition data is implemented
+      res.json([]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch competition data" });
+    }
+  });
+
+  app.get("/api/automotive/incentives", async (req, res) => {
+    try {
+      // Stub: return empty array until automotive incentives data is implemented
+      res.json([]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch incentives data" });
+    }
+  });
+
+  app.get("/api/automotive/market-data", async (req, res) => {
+    try {
+      // Stub: return empty market data until implementation
+      res.json({
+        marketTrends: [],
+        pricingData: [],
+        inventoryLevels: {}
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch market data" });
+    }
+  });
+
+  // Employee routes (stub implementation)
+  app.get("/api/employees", async (req, res) => {
+    try {
+      // Stub: return empty array until employees storage is implemented
+      res.json([]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch employees" });
     }
   });
 }
