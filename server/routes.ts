@@ -4738,6 +4738,140 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ========================================
+  // Desking Module - Jurisdiction & Rates API
+  // ========================================
+
+  // Get jurisdiction by ZIP code
+  app.get("/api/jurisdiction", async (req, res) => {
+    try {
+      const { JurisdictionService } = await import("./services/jurisdiction-service");
+      const zip = req.query.zip as string;
+
+      if (!zip) {
+        return res.status(400).json({ message: "ZIP code is required" });
+      }
+
+      const jurisdiction = await JurisdictionService.resolveByZip(zip, db);
+
+      if (!jurisdiction) {
+        return res.status(404).json({ message: "Jurisdiction not found for ZIP code" });
+      }
+
+      res.json({
+        jurisdiction,
+        display: JurisdictionService.formatJurisdiction(jurisdiction),
+      });
+    } catch (error) {
+      console.error("Error resolving jurisdiction:", error);
+      res.status(500).json({ message: "Failed to resolve jurisdiction" });
+    }
+  });
+
+  // Get rates preview (tax rules + fees) for a ZIP code
+  app.get("/api/rates/preview", async (req, res) => {
+    try {
+      const { JurisdictionService } = await import("./services/jurisdiction-service");
+      const zip = req.query.zip as string;
+      const dealType = (req.query.dealType as 'purchase' | 'lease') || 'purchase';
+
+      if (!zip) {
+        return res.status(400).json({ message: "ZIP code is required" });
+      }
+
+      const details = await JurisdictionService.getJurisdictionDetails(zip, dealType, db);
+
+      if (!details.jurisdiction) {
+        return res.status(404).json({ message: "Jurisdiction not found for ZIP code" });
+      }
+
+      res.json({
+        jurisdiction: details.jurisdiction,
+        jurisdictionDisplay: JurisdictionService.formatJurisdiction(details.jurisdiction),
+        taxRules: details.taxRules,
+        fees: details.fees,
+        estimatedTaxRate: details.estimatedTaxRate,
+        estimatedTaxRatePercent: `${(details.estimatedTaxRate * 100).toFixed(2)}%`,
+        estimatedFeesTotal: details.estimatedFees / 100, // Convert cents to dollars
+      });
+    } catch (error) {
+      console.error("Error getting rates preview:", error);
+      res.status(500).json({ message: "Failed to get rates preview" });
+    }
+  });
+
+  // Calculate deal with jurisdiction-based taxes and fees
+  app.post("/api/deals/calculate", async (req, res) => {
+    try {
+      const { JurisdictionService } = await import("./services/jurisdiction-service");
+      const { CalculationEngine } = await import("./services/calculation-engine");
+
+      const {
+        zip,
+        dealType = 'purchase',
+        vehiclePrice,
+        vehicleCost,
+        tradeValue = 0,
+        tradePayoff = 0,
+        downPayment = 0,
+        rebates = 0,
+        warrantyPrice = 0,
+        gapPrice = 0,
+        financeReserveAmount = 0,
+        financeReserveType = 'percent',
+      } = req.body;
+
+      // Validate inputs
+      if (!zip || vehiclePrice === undefined) {
+        return res.status(400).json({ message: "ZIP code and vehicle price are required" });
+      }
+
+      // Get jurisdiction details
+      const details = await JurisdictionService.getJurisdictionDetails(zip, dealType, db);
+
+      if (!details.jurisdiction) {
+        return res.status(404).json({ message: "Jurisdiction not found for ZIP code" });
+      }
+
+      // Prepare deal inputs
+      const dealInputs = {
+        vehiclePrice: parseFloat(vehiclePrice) || 0,
+        vehicleCost: vehicleCost ? parseFloat(vehicleCost) : undefined,
+        tradeValue: parseFloat(tradeValue) || 0,
+        tradePayoff: parseFloat(tradePayoff) || 0,
+        downPayment: parseFloat(downPayment) || 0,
+        rebates: parseFloat(rebates) || 0,
+        warrantyPrice: parseFloat(warrantyPrice) || 0,
+        gapPrice: parseFloat(gapPrice) || 0,
+        financeReserveAmount: parseFloat(financeReserveAmount) || 0,
+        financeReserveType,
+      };
+
+      // Calculate deal
+      const calculation = CalculationEngine.calculateDeal(
+        dealInputs,
+        details.fees,
+        details.taxRules
+      );
+
+      res.json({
+        jurisdiction: {
+          id: details.jurisdiction.id,
+          display: JurisdictionService.formatJurisdiction(details.jurisdiction),
+          state: details.jurisdiction.state,
+          county: details.jurisdiction.county,
+          city: details.jurisdiction.city,
+          zip: details.jurisdiction.zip,
+        },
+        calculation,
+        dealType,
+      });
+    } catch (error) {
+      console.error("Error calculating deal:", error);
+      res.status(500).json({ message: "Failed to calculate deal" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // Initialize Enterprise WebSocket Manager 
