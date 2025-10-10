@@ -69,7 +69,6 @@ import RateSheets from "@/pages/finance/rates";
 
 import { ThemeProvider } from "@/contexts/theme-context";
 import { MobileFooterMenu } from "@/components/mobile-footer-menu";
-import DealJacket from "@/pages/deal-jacket";
 import MultiStoreManagement from "@/pages/multi-store-management";
 import CustomerLifecycle from "@/pages/analytics/customer-lifecycle";
 import MarketLeads from "@/pages/market-leads";
@@ -206,8 +205,7 @@ function Router() {
             <Route path="/workflow-assistant" component={WorkflowAssistant} />
             <Route path="/enterprise-admin" component={EnterpriseAdmin} />
             
-            {/* Deal Jacket & Multi-Store Routes */}
-            <Route path="/deal-jackets/:id" component={DealJacket} />
+            {/* Multi-Store Routes */}
             <Route path="/multi-store-management" component={MultiStoreManagement} />
             
             {/* Service Routes */}
