@@ -36,7 +36,8 @@ Preferred communication style: Simple, everyday language.
 - **Analytics**: Performance metrics, data visualization, and comprehensive reporting.
 - **Competitive Pricing**: ML-powered analysis, market trends, and automated merchandising.
 - **Pixel Tracking**: Customer behavior and visitor insights for online journey mapping.
-- **Deal Desk**: Fully functional, mobile-optimized, interactive deal calculation engine.
+- **Deal Desk**: Fully functional, mobile-optimized, interactive deal calculation engine with stock lookup, ZIP-based tax/fees, finance/lease calculators.
+- **AI Negotiation Assistant**: OpenAI-powered deal analysis providing deal scoring, close probability, strategic recommendations, counter-offer generation (conservative/moderate/aggressive), objection handlers, and talking points for sales teams. Includes smart defaults when AI is unavailable.
 - **Security**: SSL certificates, HTTPS redirection, security headers (HSTS, CSP), and authentication middleware.
 - **Data Flow**: Client (React Query) -> API (Express) -> Business Logic -> Data Layer (Drizzle ORM) -> PostgreSQL.
 
