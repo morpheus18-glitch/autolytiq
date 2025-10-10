@@ -1,0 +1,177 @@
+Here’s a tight, end-to-end agent prompt you can paste into your build agent. It tells it what to deliver, how to structure it, and how you’ll verify it. No hand-holding, just the blueprint.
+
+⸻
+
+Agent Prompt — AutolytiQ Desking Core (VIN→Stock, Taxes/Fees, Mobile UX)
+
+Role: You are the Lead Engineer shipping a production-ready desking module for an automotive DMS/CRM.
+
+Objectives (must implement):
+	1.	Stock # auto-generation from VIN
+	•	Default stock number = last 8 characters of the 17-char VIN, uppercase.
+	•	Allow manual override on create/edit with uniqueness validation.
+	•	Persist to DB; expose in API; audit overrides (who/when/old→new).
+	2.	ZIP → State → Accurate Taxes & Title/Reg Fees (Purchase & Lease)
+	•	Given a ZIP code, determine state (and county/city if needed).
+	•	Pull state auto sales tax, local add-ons, title/registration fees, doc fees, and lease-specific taxes/fees.
+	•	Normalize into a canonical Fee/Tax Matrix and map correctly into the deal worksheet for both purchase and lease scenarios.
+	•	Provide refresh + versioning so calculations are traceable (rate source, effective date, jurisdiction chain).
+	•	Support cap reductions, rebates, trade-ins, taxable/non-taxable fees, tax on payment vs tax on total options per state.
+	3.	Deal Working UI/UX
+	•	Replicate the best ergonomics from Reynolds, VinSolutions, and DriveCentric:
+	•	Single-screen Deal Worksheet with sticky pencil panel (price, fees, tax, payment).
+	•	Fast toggles: cash / finance / lease; term, APR/MF, residual, down, trade, rebates.
+	•	Inline disclosures, recalcs in <100ms.
+	•	Mobile-first layout that renders like a native app (responsive, touch targets, keyboard-safe inputs, offline tolerance).
+	4.	Engineering Quality
+	•	Full DB migrations, seed data, API endpoints, services, unit/integration tests, and a CI job.
+	•	Strict validation (VIN, ZIP, stock # uniqueness per dealer), error handling, audit logs.
+	•	Clear separation: domain services (calc), adapters (tax source), presentation (API/UI).
+
+⸻
+
+Deliverables
+
+A. Data Model & Migrations (SQL)
+	•	dealers(id, name, timezone, …)
+	•	vehicles(id, dealer_id, vin CHAR(17) UNIQUE, stock_no VARCHAR(32), stock_is_override BOOLEAN DEFAULT FALSE, year, make, model, trim, …, created_at, updated_at)
+	•	Index: (dealer_id, stock_no) UNIQUE
+	•	customers(id, dealer_id, …)
+	•	deals(id, dealer_id, vehicle_id, customer_id, deal_type ENUM('cash','finance','lease'), zip CHAR(5), state CHAR(2), msrp, selling_price, rebates_total, trade_allowance, trade_payoff, doc_fee, taxable_fees, nontax_fees, calc_version_id, payment_result JSONB, created_at, updated_at)
+	•	calc_versions(id, source_name, source_version, effective_from, effective_to, notes)
+	•	jurisdictions(id, country, state, county, city, zip, geo_hash, UNIQUE(state, county, city, zip))
+	•	tax_rules(id, jurisdiction_id, applies_to ENUM('purchase','lease','both'), basis ENUM('price','payment','cap_cost','net_of_trade'), rate DECIMAL(6,4), precedence INT, effective_from, effective_to, is_compound BOOLEAN, notes)
+	•	fee_catalog(id, jurisdiction_id, code, label, applies_to ENUM('purchase','lease','both'), amount_cents INT, taxable BOOLEAN, effective_from, effective_to)
+	•	audit_logs(id, actor_id, entity_type, entity_id, action, before JSONB, after JSONB, created_at)
+	•	lease_programs(id, brand, residual_source, mf_source, term, mileage, residual_pct, money_factor, effective_from, effective_to) (seed example only)
+
+B. Business Rules
+	•	VIN→Stock: stock_no = upper(substr(VIN, 10, 8)) if not overridden. Enforce uniqueness per dealer.
+	•	ZIP→State: resolve via local jurisdictions table (with seed mapping). If multiple, pick most specific (zip+city → county → state).
+	•	Taxes:
+	•	Respect state logic: tax basis (on total vs on payment), include/exclude trade credits, taxable doc/fees, compounding rules.
+	•	Lease taxes can be monthly or up-front depending on state; support both.
+	•	Fees:
+	•	Title, registration, lien, electronic filing, emissions, use tax edge cases; mark taxable flags per rule.
+
+C. Services & API
+	•	Vehicles
+	•	POST /api/vehicles → payload { dealerId, vin, stockNo? }
+	•	Validate VIN(17). If stockNo missing → generate default. Check uniqueness. Create audit if override.
+	•	PATCH /api/vehicles/:id → allow changing stockNo (creates audit).
+	•	GET /api/vehicles?dealerId=&vin=&stockNo=
+	•	Jurisdiction & Rates
+	•	GET /api/jurisdiction?zip=46204 → { state, county?, city?, jurisdictionId }
+	•	POST /api/rates/refresh → fetch adapter, upsert tax_rules, fee_catalog, bump calc_versions
+	•	GET /api/rates/preview?zip=&dealType=purchase|lease
+	•	Deals
+	•	POST /api/deals → base deal (vehicleId, customerId, zip, dealType, price inputs)
+	•	POST /api/deals/:id/calc → returns canonical breakdown { taxes[], fees[], subtotals, payment }
+	•	GET /api/deals/:id/worksheet → normalized worksheet for UI
+	•	Audit
+	•	GET /api/audit?entityType=vehicle&entityId=…
+
+D. Calculation Engine
+	•	Pure functions with deterministic inputs:
+	•	resolveJurisdiction(zip) -> jurisdiction
+	•	loadRules(jurisdiction, dealType, onDate) -> {taxRules[], feeDefs[]}
+	•	computeFees(dealInputs, feeDefs) -> {taxableFees, nontaxFees}
+	•	computeTaxBase(dealInputs, fees, rules) -> base
+	•	computeTaxes(base, rules) -> {taxLines[], totalTax}
+	•	computeFinanceOrLease(dealInputs, totals, leaseProgram?) -> paymentSchedule
+	•	Return a line-item ledger with rule IDs and math so auditors can follow it.
+
+E. Adapters (pluggable)
+	•	ZipToStateAdapter: initially local table; interface allows swap to external service later.
+	•	TaxFeeAdapter: seed with curated CSV/JSON; interface to swap for a paid provider later.
+	•	LeaseProgramAdapter: stub + seeding for demo.
+
+F. UI/UX (mobile-first)
+	•	Deal Worksheet screen (one page):
+	•	Top: vehicle chip (VIN, Stock, price), customer chip, ZIP field (auto-detect state, recalc on change).
+	•	Mode tabs: Cash / Finance / Lease.
+	•	Inputs grid: price, doc fee, taxable checkboxes, trade, payoff, rebates, term/APR or term/MF/Residual.
+	•	Right sticky panel (or bottom sheet on mobile): payment, DAS, taxes, fees line items with expand/collapse.
+	•	Inline state rule hints: e.g., “State taxes lease monthly on payment.”
+	•	Vehicle form:
+	•	VIN field → auto derives stock; toggle “Custom Stock #” → input enabled with uniqueness check; shows audit on change.
+
+G. Testing & CI
+	•	Unit tests: VIN→stock logic, uniqueness, ZIP resolution, tax bases (purchase vs lease) for 5 exemplar states, taxable fee toggles, compounding.
+	•	Integration tests: POST /deals … then /calc → verify totals vs golden files.
+	•	Snapshot tests: worksheet JSON schema.
+	•	CI: run tests + lint + build; seed demo data; export calc report artifact.
+
+H. Non-functional
+	•	Typesafe (TS), strict schemas (Zod/JSON Schema).
+	•	Performance: calc path under 50ms median.
+	•	Logging: structured logs with calc version + jurisdiction IDs.
+	•	Security: RBAC (desk manager vs salesperson), tenant scoping by dealer_id.
+
+⸻
+
+Implementation Hints (the “how”)
+
+Sample VIN→Stock rule (server):
+
+function deriveStockFromVin(vin: string) {
+  if (!vin || vin.length !== 17) throw new Error('VIN must be 17 chars');
+  return vin.slice(-8).toUpperCase();
+}
+
+Vehicle creation flow:
+
+// on POST /api/vehicles
+const vin = body.vin.toUpperCase();
+const stockNo = body.stockNo?.trim() ?? deriveStockFromVin(vin);
+await db.tx(async t => {
+  await t.insert('vehicles', { dealer_id, vin, stock_no: stockNo, stock_is_override: !!body.stockNo });
+  if (body.stockNo) await t.insert('audit_logs', { ... });
+});
+
+Deal calc outline:
+
+const j = await resolveJurisdiction(zip);
+const { taxRules, feeDefs, version } = await loadRules(j, dealType, now);
+const fees = computeFees(inputs, feeDefs);
+const taxBase = computeTaxBase(inputs, fees, taxRules);
+const taxes = computeTaxes(taxBase, taxRules);
+const payment = dealType === 'lease'
+  ? leaseMath(inputs, fees, taxes, program)
+  : financeMath(inputs, fees, taxes, apr, term);
+return { version, j, lines: { fees, taxes }, totals: { ... }, payment };
+
+DB indices (required):
+
+CREATE UNIQUE INDEX ux_vehicle_vin ON vehicles (vin);
+CREATE UNIQUE INDEX ux_dealer_stock ON vehicles (dealer_id, stock_no);
+CREATE INDEX ix_deals_dealer ON deals (dealer_id);
+CREATE INDEX ix_jurisdiction_zip ON jurisdictions (zip);
+CREATE INDEX ix_tax_rules_jurisdiction ON tax_rules (jurisdiction_id, effective_from, effective_to);
+
+
+⸻
+
+Acceptance Criteria (sign-off)
+	•	Creating a vehicle with only VIN auto-assigns stock = last 8, uppercase.
+	•	Overriding stock creates an audit record and remains unique per dealer.
+	•	Entering ZIP recalculates deal with correct state logic for both purchase and lease; fee/tax lines show rule IDs and math.
+	•	Worksheet updates in <100ms on common changes; mobile layout fits iOS/Android viewports cleanly.
+	•	Demo seeds include at least 5 states that exercise: tax-on-payment, tax-on-total, trade credit affects base, title/registration fee taxable vs not.
+	•	CI passes: unit + integration + lint + build.
+
+⸻
+
+Initial Tasks for You (Agent)
+	1.	Scaffold modules: domain/, adapters/, services/, routes/, ui/.
+	2.	Ship migrations and seed data (jurisdictions, example rules/fees, 2–3 lease programs).
+	3.	Implement VIN→stock + uniqueness + audit.
+	4.	Implement calc engine + sample rules for 5 diverse states.
+	5.	Build the Deal Worksheet UI (mobile-first).
+	6.	Write tests & wire CI.
+
+If anything’s ambiguous (like exact fee tables), stub adapters with sample datasets and make the source hot-swappable. Deliver code, tests, seeds, and a short README explaining data assumptions and how to swap to a live tax provider later.
+
+⸻
+
+If you want this trimmed to your exact stack (Next.js + FastAPI, or React Native + NestJS, pnpm vs npm), say the word and I’ll snap it to your scaffolding.
