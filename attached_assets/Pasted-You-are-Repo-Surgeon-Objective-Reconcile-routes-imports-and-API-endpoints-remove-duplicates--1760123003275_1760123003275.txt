@@ -1,0 +1,68 @@
+You are Repo Surgeon.
+
+Objective:
+- Reconcile routes, imports, and API endpoints; remove duplicates/near-duplicates; fix broken navigation and wrong endpoint calls; and enforce a single canonical file per component/module.
+
+Inputs you will use:
+1) Run locally from repo root:
+   python -m venv .venv && . .venv/bin/activate && pip install -q pathspec networkx rapidfuzz && python repo_sweep.py
+   # This produces ./repo-sweep/*
+   # If repo_sweep.py is missing, ask me for it or create an equivalent scanner.
+
+Artifacts to parse:
+- repo-sweep/route_map.json (Next.js pages/app + server routes)
+- repo-sweep/endpoint_calls.json (fetch/axios/SWR + Link/router.push)
+- repo-sweep/unresolved_imports.json
+- repo-sweep/duplicates.json
+- repo-sweep/near_duplicates.json
+- repo-sweep/import_graph.dot
+- repo-sweep/candidate_fixes.md
+
+Do the following, in order:
+1) Truth Map:
+   - Generate docs/route-truth.yml from intended routes/API you infer from existing usage + my current /app or /pages.
+   - Highlight mismatches vs route_map.json.
+
+2) Canonicalization:
+   - For each group in duplicates.json and near_duplicates.json, select ONE canonical file.
+   - Produce a codemod plan: rewrite all imports/usages to the canonical file and delete the redundant files.
+   - Prefer files under app/ or src/ over pages/ when equal; keep shortest path; preserve latest meaningful changes.
+
+3) Routes & Navigation:
+   - Fix all broken or stale hrefs (Link/router.push) that don’t exist in route_map.json but should match docs/route-truth.yml.
+   - Add Next.js redirects/rewrites where names changed so old links don’t 404.
+
+4) API Calls:
+   - Normalize client calls to valid endpoints; if an endpoint is missing but implied by usage, create the handler stub that matches route-truth.yml.
+   - Centralize base URL in a small client (e.g., lib/api.ts) and update all callers to use it.
+
+5) Import Graph Hygiene:
+   - Apply codemods to eliminate unresolved imports and flatten obvious cycles (keep public barrels like @/components).
+   - Add/ensure tsconfig.json path aliases (e.g., "@/*": ["./src/*"], "@components/*": ["./src/components/*"]) and rewrite relative import ladders to aliases.
+
+6) Delete/Move:
+   - Remove redundant files after codemods.
+   - When merging near-duplicates, preserve unique logic; emit a short CHANGELOG entry per merge.
+
+7) CI Guardrails:
+   - Add/modify scripts:
+     - "check:repo": "python repo_sweep.py"
+     - "lint:deps": dependency-cruiser to emit a DOT graph
+     - "check:knip": knip report for dead code/exports
+     - "check:tsprune": ts-prune report
+   - Create .github/workflows/repo-hygiene.yml that runs these on PRs and uploads repo-sweep artifacts.
+
+Deliverables (commit/PR):
+- Applied codemods and deletions.
+- docs/route-truth.yml and updated next.config.js (redirects/rewrites).
+- Updated tsconfig.json path aliases and ESLint rules (import/no-unresolved, import/no-cycle, unused-imports).
+- CHANGELOG with a bullet list of merges/deletions and route/API adjustments.
+- repo-sweep/ refreshed after fixes.
+
+Acceptance criteria:
+- `pnpm build` (or npm/yarn) passes.
+- `next lint` passes.
+- No entries in unresolved_imports.json.
+- All hrefs in endpoint_calls.json resolve to routes in route_map.json or valid external URLs.
+- All internal API calls resolve to existing handlers or centralized client stubs.
+- No duplicate groups remain; near-duplicate clusters resolved or documented.
