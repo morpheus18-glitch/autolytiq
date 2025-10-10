@@ -449,6 +449,16 @@ body {
   overscroll-behavior: contain;
 }
 
+/* Hide scrollbars */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Mobile-optimized tab navigation */
 @media (max-width: 768px) {
   .mobile-tabs {

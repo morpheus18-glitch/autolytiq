@@ -31,42 +31,42 @@ export default function Dashboard() {
     <div className="w-full min-h-screen pb-6">
       <div className="px-4 md:px-6 pt-4">
         <Tabs defaultValue="production" className="space-y-4">
-          <div className="mobile-tabs overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-            <TabsList className="inline-flex w-max min-w-full md:grid md:w-full grid-cols-7 h-12 md:h-10 gap-1">
-          <TabsTrigger value="production" className="text-sm">
-            <BarChart3 className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Production</span>
-            <span className="sm:hidden">Prod</span>
+          <div className="mobile-tabs overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
+            <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-7 h-12 md:h-10 gap-1">
+          <TabsTrigger value="production" className="mobile-tab-item text-sm min-h-[48px] md:min-h-0 px-4">
+            <BarChart3 className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">Production</span>
+            <span className="sm:hidden whitespace-nowrap">Prod</span>
           </TabsTrigger>
-          <TabsTrigger value="overview" className="text-sm">
-            <Target className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Overview</span>
-            <span className="sm:hidden">Over</span>
+          <TabsTrigger value="overview" className="mobile-tab-item text-sm min-h-[48px] md:min-h-0 px-4">
+            <Target className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">Overview</span>
+            <span className="sm:hidden whitespace-nowrap">Over</span>
           </TabsTrigger>
-          <TabsTrigger value="intelligence" className="text-sm">
-            <Brain className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Intelligence</span>
-            <span className="sm:hidden">AI</span>
+          <TabsTrigger value="intelligence" className="mobile-tab-item text-sm min-h-[48px] md:min-h-0 px-4">
+            <Brain className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">Intelligence</span>
+            <span className="sm:hidden whitespace-nowrap">AI</span>
           </TabsTrigger>
-          <TabsTrigger value="lifecycle" className="text-sm">
-            <Users className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Lifecycle</span>
-            <span className="sm:hidden">Life</span>
+          <TabsTrigger value="lifecycle" className="mobile-tab-item text-sm min-h-[48px] md:min-h-0 px-4">
+            <Users className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">Lifecycle</span>
+            <span className="sm:hidden whitespace-nowrap">Life</span>
           </TabsTrigger>
-          <TabsTrigger value="workflows" className="text-sm">
-            <Workflow className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Automation</span>
-            <span className="sm:hidden">Auto</span>
+          <TabsTrigger value="workflows" className="mobile-tab-item text-sm min-h-[48px] md:min-h-0 px-4">
+            <Workflow className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">Automation</span>
+            <span className="sm:hidden whitespace-nowrap">Auto</span>
           </TabsTrigger>
-          <TabsTrigger value="reports" className="text-sm">
-            <BarChart3 className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Reports</span>
-            <span className="sm:hidden">Rep</span>
+          <TabsTrigger value="reports" className="mobile-tab-item text-sm min-h-[48px] md:min-h-0 px-4">
+            <BarChart3 className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">Reports</span>
+            <span className="sm:hidden whitespace-nowrap">Rep</span>
           </TabsTrigger>
-          <TabsTrigger value="health" className="text-sm">
-            <Shield className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Health</span>
-            <span className="sm:hidden">HP</span>
+          <TabsTrigger value="health" className="mobile-tab-item text-sm min-h-[48px] md:min-h-0 px-4">
+            <Shield className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">Health</span>
+            <span className="sm:hidden whitespace-nowrap">HP</span>
           </TabsTrigger>
             </TabsList>
           </div>
