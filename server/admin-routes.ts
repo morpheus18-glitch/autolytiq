@@ -1,20 +1,10 @@
 import type { Express } from "express";
 import { DatabaseStorage } from "./database-storage";
-import { insertDepartmentSchema, insertRoleSchema, insertPermissionSchema, insertUserSchema, insertEmployeeSchema, insertServiceOrderSchema, insertServicePartSchema, insertPayrollSchema, insertFinancialTransactionSchema, insertNotificationSchema } from "@shared/schema";
+import { insertDepartmentSchema, insertRoleSchema, insertPermissionSchema, insertUserSchema, insertEmployeeSchema, insertServiceOrderSchema, insertServicePartSchema, insertPayrollSchema, insertFinancialTransactionSchema, insertNotificationSchema, insertPartSchema, insertLotPositionSchema } from "@shared/schema";
 import { sendVerificationEmail } from "./services/email-service";
 import { randomUUID } from "crypto";
 
 const storage = new DatabaseStorage();
-
-// In-memory storage for stub endpoints (until proper database tables are added)
-const inMemoryStore = {
-  parts: new Map<number, any>(),
-  notifications: new Map<string, any>(),
-  lotPositions: new Map<number, any>(),
-  permissions: [] as any[],
-  nextPartId: 1,
-  nextLotPositionId: 1,
-};
 
 export function registerAdminRoutes(app: Express) {
   // Department routes
@@ -604,10 +594,10 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
-  // Parts inventory routes (in-memory implementation)
+  // Parts inventory routes (database implementation)
   app.get("/api/parts", async (req, res) => {
     try {
-      const parts = Array.from(inMemoryStore.parts.values());
+      const parts = await storage.getParts();
       res.json(parts);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch parts" });
@@ -617,7 +607,7 @@ export function registerAdminRoutes(app: Express) {
   app.get("/api/parts/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const part = inMemoryStore.parts.get(id);
+      const part = await storage.getPart(id);
       if (!part) {
         return res.status(404).json({ message: "Part not found" });
       }
@@ -629,9 +619,8 @@ export function registerAdminRoutes(app: Express) {
 
   app.post("/api/parts", async (req, res) => {
     try {
-      const id = inMemoryStore.nextPartId++;
-      const part = { id, ...req.body, createdAt: new Date().toISOString() };
-      inMemoryStore.parts.set(id, part);
+      const validatedData = insertPartSchema.parse(req.body);
+      const part = await storage.createPart(validatedData);
       res.status(201).json(part);
     } catch (error) {
       res.status(400).json({ message: "Invalid part data" });
@@ -641,12 +630,11 @@ export function registerAdminRoutes(app: Express) {
   app.put("/api/parts/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const existingPart = inMemoryStore.parts.get(id);
-      if (!existingPart) {
+      const validatedData = insertPartSchema.partial().parse(req.body);
+      const part = await storage.updatePart(id, validatedData);
+      if (!part) {
         return res.status(404).json({ message: "Part not found" });
       }
-      const part = { ...existingPart, ...req.body, id, updatedAt: new Date().toISOString() };
-      inMemoryStore.parts.set(id, part);
       res.json(part);
     } catch (error) {
       res.status(400).json({ message: "Invalid part data" });
@@ -656,10 +644,7 @@ export function registerAdminRoutes(app: Express) {
   app.delete("/api/parts/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      if (!inMemoryStore.parts.has(id)) {
-        return res.status(404).json({ message: "Part not found" });
-      }
-      inMemoryStore.parts.delete(id);
+      await storage.deletePart(id);
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete part" });
@@ -686,10 +671,11 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
-  // Notifications routes (in-memory implementation)
+  // Notifications routes (database implementation)
   app.get("/api/notifications", async (req, res) => {
     try {
-      const notifications = Array.from(inMemoryStore.notifications.values());
+      const userId = req.query.userId as string | undefined;
+      const notifications = await storage.getNotifications(userId);
       res.json(notifications);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch notifications" });
@@ -698,9 +684,12 @@ export function registerAdminRoutes(app: Express) {
 
   app.get("/api/notifications/unread-count", async (req, res) => {
     try {
-      const notifications = Array.from(inMemoryStore.notifications.values());
-      const unreadCount = notifications.filter((n: any) => !n.isRead).length;
-      res.json({ count: unreadCount });
+      const userId = req.query.userId as string;
+      if (!userId) {
+        return res.status(400).json({ message: "userId is required" });
+      }
+      const count = await storage.getUnreadNotificationCount(userId);
+      res.json({ count });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch unread count" });
     }
@@ -708,10 +697,11 @@ export function registerAdminRoutes(app: Express) {
 
   app.post("/api/notifications/read-all", async (req, res) => {
     try {
-      const now = new Date();
-      for (const [id, notification] of inMemoryStore.notifications) {
-        inMemoryStore.notifications.set(id, { ...notification, isRead: true, readAt: now });
+      const userId = req.body.userId as string;
+      if (!userId) {
+        return res.status(400).json({ message: "userId is required" });
       }
+      await storage.markAllNotificationsAsRead(userId);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to mark notifications as read" });
@@ -722,15 +712,13 @@ export function registerAdminRoutes(app: Express) {
     try {
       const validatedData = insertNotificationSchema.parse(req.body);
       const id = randomUUID();
-      const now = new Date();
-      const notification = { 
+      const notification = await storage.createNotification({ 
         id, 
         ...validatedData, 
         isRead: false,
         readAt: null,
-        createdAt: now
-      };
-      inMemoryStore.notifications.set(id, notification);
+        createdAt: new Date()
+      });
       res.status(201).json(notification);
     } catch (error) {
       res.status(400).json({ message: "Invalid notification data" });
@@ -740,24 +728,21 @@ export function registerAdminRoutes(app: Express) {
   app.patch("/api/notifications/:id", async (req, res) => {
     try {
       const id = req.params.id;
-      const existingNotification = inMemoryStore.notifications.get(id);
-      if (!existingNotification) {
-        return res.status(404).json({ message: "Notification not found" });
-      }
       const validatedData = insertNotificationSchema.partial().parse(req.body);
       
-      // If marking as read, set readAt timestamp
-      const updates = { ...validatedData };
-      if (updates.isRead === true && !existingNotification.readAt) {
-        updates.readAt = new Date();
+      // If marking as read, use the specialized method
+      if (validatedData.isRead === true) {
+        const notification = await storage.markNotificationAsRead(id);
+        if (!notification) {
+          return res.status(404).json({ message: "Notification not found" });
+        }
+        return res.json(notification);
       }
       
-      const notification = { 
-        ...existingNotification, 
-        ...updates, 
-        id 
-      };
-      inMemoryStore.notifications.set(id, notification);
+      const notification = await storage.updateNotification(id, validatedData);
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
       res.json(notification);
     } catch (error) {
       res.status(400).json({ message: "Invalid notification data" });
@@ -789,10 +774,10 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
-  // Lot management routes (in-memory implementation)
+  // Lot management routes (database implementation)
   app.get("/api/lot/positions", async (req, res) => {
     try {
-      const positions = Array.from(inMemoryStore.lotPositions.values());
+      const positions = await storage.getLotPositions();
       res.json(positions);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch lot positions" });
@@ -801,9 +786,8 @@ export function registerAdminRoutes(app: Express) {
 
   app.post("/api/lot/positions", async (req, res) => {
     try {
-      const id = inMemoryStore.nextLotPositionId++;
-      const position = { id, ...req.body, createdAt: new Date().toISOString() };
-      inMemoryStore.lotPositions.set(id, position);
+      const validatedData = insertLotPositionSchema.parse(req.body);
+      const position = await storage.createLotPosition(validatedData);
       res.status(201).json(position);
     } catch (error) {
       res.status(400).json({ message: "Invalid lot position data" });
@@ -813,12 +797,11 @@ export function registerAdminRoutes(app: Express) {
   app.put("/api/lot/positions/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const existingPosition = inMemoryStore.lotPositions.get(id);
-      if (!existingPosition) {
+      const validatedData = insertLotPositionSchema.partial().parse(req.body);
+      const position = await storage.updateLotPosition(id, validatedData);
+      if (!position) {
         return res.status(404).json({ message: "Lot position not found" });
       }
-      const position = { ...existingPosition, ...req.body, id, updatedAt: new Date().toISOString() };
-      inMemoryStore.lotPositions.set(id, position);
       res.json(position);
     } catch (error) {
       res.status(400).json({ message: "Invalid lot position data" });
