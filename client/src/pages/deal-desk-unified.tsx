@@ -261,70 +261,188 @@ export default function DealDeskUnified() {
     }
   };
 
-  const lookupTaxesByZip = () => {
-    if (!deal.customerZip || deal.customerZip.length < 2) {
+  const lookupTaxesByZip = async () => {
+    if (!deal.customerZip || deal.customerZip.length < 5) {
       toast({
         title: "ZIP Code Required",
-        description: "Please enter a valid ZIP code",
+        description: "Please enter a valid 5-digit ZIP code",
         variant: "destructive"
       });
       return;
     }
 
-    const zipPrefix = deal.customerZip.substring(0, 2);
-    const state = ZIP_TO_STATE[zipPrefix] || '';
-    
-    if (state && STATE_TAX_RATES[state]) {
-      const taxInfo = STATE_TAX_RATES[state];
+    try {
+      // Use actual deal type (purchase vs lease)
+      const dealType = paymentType === 'lease' ? 'lease' : 'purchase';
+      const response = await fetch(`/api/rates/preview?zip=${deal.customerZip}&dealType=${dealType}`);
+      
+      if (!response.ok) {
+        // Fallback to old logic if API fails
+        const zipPrefix = deal.customerZip.substring(0, 2);
+        const state = ZIP_TO_STATE[zipPrefix] || '';
+        
+        if (state && STATE_TAX_RATES[state]) {
+          const taxInfo = STATE_TAX_RATES[state];
+          setDeal(prev => ({
+            ...prev,
+            customerState: state,
+            salesTaxRate: taxInfo.salesTax,
+            titleFee: taxInfo.titleFee,
+            registrationFee: taxInfo.regFee
+          }));
+          toast({
+            title: "Tax Rates Loaded (Fallback)",
+            description: `${state}: ${(taxInfo.salesTax * 100).toFixed(2)}% sales tax`
+          });
+        } else {
+          toast({
+            title: "State Not Found",
+            description: "Could not determine state from ZIP code. Please select manually.",
+            variant: "destructive"
+          });
+        }
+        return;
+      }
+
+      const data = await response.json();
+      
+      // Guard against missing jurisdiction
+      if (!data.jurisdiction) {
+        toast({
+          title: "Jurisdiction Not Found",
+          description: "No tax/fee data available for this ZIP code. Please verify the ZIP or enter manually.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Calculate total tax rate from all tax rules
+      const totalTaxRate = data.estimatedTaxRate || 0;
+      
+      // Extract fees from the catalog (safe access with defaults)
+      const titleFee = data.fees?.find((f: any) => f.code === 'TITLE')?.amountCents / 100 || 0;
+      const regFee = data.fees?.find((f: any) => f.code === 'REG')?.amountCents / 100 || 0;
+      const docFee = data.fees?.find((f: any) => f.code === 'DOC')?.amountCents / 100 || 0;
+      
       setDeal(prev => ({
         ...prev,
-        customerState: state,
-        salesTaxRate: taxInfo.salesTax,
-        titleFee: taxInfo.titleFee,
-        registrationFee: taxInfo.regFee
+        customerState: data.jurisdiction.state || '',
+        salesTaxRate: totalTaxRate,
+        titleFee,
+        registrationFee: regFee,
+        dealerDocFee: docFee
       }));
+      
       toast({
-        title: "Tax Rates Loaded",
-        description: `${state}: ${(taxInfo.salesTax * 100).toFixed(2)}% sales tax, $${taxInfo.titleFee} title, $${taxInfo.regFee} registration`
+        title: "Jurisdiction & Rates Loaded",
+        description: `${data.jurisdictionDisplay || data.jurisdiction.state}: ${data.estimatedTaxRatePercent || '0.00%'} total tax, $${titleFee} title, $${regFee} reg`,
+        duration: 5000
       });
-    } else {
+    } catch (error) {
+      console.error('Error loading tax rates:', error);
       toast({
-        title: "State Not Found",
-        description: "Could not determine state from ZIP code. Please select manually.",
+        title: "Error Loading Rates",
+        description: "Failed to load tax rates. Please verify ZIP code and try again.",
         variant: "destructive"
       });
     }
   };
 
-  const calculateDeal = () => {
-    // Net trade value (trade minus payoff) - can be negative if upside down
+  const calculateDeal = async (useAPI: boolean = true) => {
+    // Try API-based calculation first if enabled and ZIP is available
+    if (useAPI && deal.customerZip && deal.customerZip.length === 5) {
+      try {
+        const dealType = paymentType === 'lease' ? 'lease' : 'purchase';
+        const response = await fetch('/api/deals/calculate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            zip: deal.customerZip,
+            dealType,
+            vehiclePrice: deal.vehiclePrice,
+            vehicleCost: deal.vehicleCost,
+            tradeValue: deal.tradeValue,
+            tradePayoff: deal.tradePayoff,
+            downPayment: deal.downPayment,
+            rebates: 0,
+            warrantyPrice: deal.warrantyPrice,
+            gapPrice: deal.gapPrice,
+            financeReserveAmount: deal.financeReserveAmount,
+            financeReserveType: deal.financeReserveType,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const calc = data.calculation;
+          
+          // Calculate amount financed from API results
+          const amountFinanced = Math.max(0, calc.totals.grandTotal - calc.tradeEquity.netTradeValue - deal.downPayment);
+          
+          // Calculate monthly finance payment
+          let financePayment = 0;
+          if (amountFinanced > 0 && deal.financeRate > 0) {
+            const monthlyRate = deal.financeRate / 100 / 12;
+            const numPayments = deal.termMonths;
+            financePayment = amountFinanced * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
+                           (Math.pow(1 + monthlyRate, numPayments) - 1);
+          }
+          
+          // Calculate lease payment
+          let leasePayment = 0;
+          if (deal.vehiclePrice > 0 && deal.leaseResidual > 0) {
+            const residualValue = deal.vehiclePrice * deal.leaseResidual;
+            const depreciation = (deal.vehiclePrice - residualValue) / deal.leaseTerm;
+            const financeCharge = (deal.vehiclePrice + residualValue) * deal.leaseMoneyFactor;
+            leasePayment = depreciation + financeCharge;
+          }
+          
+          // Update deal with API calculation results + computed payments
+          setDeal(prev => ({
+            ...prev,
+            netTradeValue: calc.tradeEquity.netTradeValue,
+            salesTaxAmount: calc.taxes.totalTax,
+            totalFees: calc.fees.taxableFees + calc.fees.nontaxFees,
+            totalPrice: calc.totals.grandTotal,
+            amountFinanced,
+            cashPayment: calc.totals.grandTotal - calc.tradeEquity.netTradeValue,
+            financePayment: isNaN(financePayment) ? 0 : financePayment,
+            leasePayment: isNaN(leasePayment) ? 0 : leasePayment,
+            frontEndProfit: calc.profit?.frontEnd || 0,
+            backEndProfit: calc.profit?.backEnd || 0,
+            totalProfit: calc.profit?.total || 0,
+            financeReserve: calc.profit?.backEnd || 0, // Approximation
+          }));
+          
+          toast({
+            title: "Deal Calculated",
+            description: `Total: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(calc.totals.grandTotal)}`,
+            duration: 3000
+          });
+          return;
+        }
+      } catch (error) {
+        console.error('API calculation failed, falling back to client-side:', error);
+      }
+    }
+
+    // Fallback to client-side calculation
     const netTradeValue = deal.tradeValue - deal.tradePayoff;
     
-    // Sales tax calculation - with trade-in credit if applicable
     let taxableAmount = deal.vehiclePrice;
     if (deal.taxOnTradeCredit && deal.tradeValue > 0) {
-      // Tax only on the difference (sales price - trade allowance)
       taxableAmount = Math.max(0, deal.vehiclePrice - deal.tradeValue);
     }
     const salesTaxAmount = taxableAmount * deal.salesTaxRate;
     
-    // Backend products total
     const aftermarketTotal = deal.aftermarketProducts.reduce((sum, p) => sum + p.price, 0);
     const backendProductsTotal = aftermarketTotal + deal.warrantyPrice + deal.gapPrice;
     
-    // Total fees
     const totalFees = salesTaxAmount + deal.titleFee + deal.registrationFee + deal.dealerDocFee;
-    
-    // Total price (vehicle + backend products + fees)
     const totalPrice = deal.vehiclePrice + backendProductsTotal + totalFees;
-    
-    // Amount financed (total - trade - down payment)
     const amountFinanced = Math.max(0, totalPrice - netTradeValue - deal.downPayment);
-    
-    // Cash payment (if paying cash)
     const cashPayment = totalPrice - netTradeValue;
     
-    // Finance reserve calculation
     let financeReserve = 0;
     if (deal.financeReserveType === 'percent') {
       financeReserve = amountFinanced * (deal.financeReserveAmount / 100);
@@ -332,7 +450,6 @@ export default function DealDeskUnified() {
       financeReserve = deal.financeReserveAmount;
     }
     
-    // Finance payment calculation (using customer's rate, not buy rate)
     let financePayment = 0;
     if (amountFinanced > 0 && deal.financeRate > 0) {
       const monthlyRate = deal.financeRate / 100 / 12;
@@ -341,7 +458,6 @@ export default function DealDeskUnified() {
                        (Math.pow(1 + monthlyRate, numPayments) - 1);
     }
     
-    // Lease payment calculation
     let leasePayment = 0;
     if (deal.vehiclePrice > 0 && deal.leaseResidual > 0) {
       const residualValue = deal.vehiclePrice * deal.leaseResidual;
@@ -350,15 +466,9 @@ export default function DealDeskUnified() {
       leasePayment = depreciation + financeCharge;
     }
     
-    // PROFIT CALCULATIONS
-    // Front-end profit: Sales price - Cost
     const frontEndProfit = deal.vehiclePrice - deal.vehicleCost;
-    
-    // Backend profit: Aftermarket + Warranty + GAP + Finance Reserve
     const aftermarketProfit = deal.aftermarketProducts.reduce((sum, p) => sum + (p.price - p.cost), 0);
     const backEndProfit = aftermarketProfit + deal.warrantyPrice + deal.gapPrice + financeReserve;
-    
-    // Total profit
     const totalProfit = frontEndProfit + backEndProfit;
     
     setDeal(prev => ({
