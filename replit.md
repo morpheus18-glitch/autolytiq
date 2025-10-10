@@ -30,13 +30,27 @@ Preferred communication style: Simple, everyday language.
 
 ### Key Features & Design Choices
 - **Dashboard**: Centralized overview with metrics, inventory, competitive insights, and activity feed.
-- **Inventory Management**: CRUD operations with search, filtering, and ML-powered pricing insights.
+- **Inventory Management**: CRUD operations with search, filtering, ML-powered pricing insights, and VIN→Stock auto-generation.
 - **Sales & Leads**: Tracking and management with status progression.
 - **Customer Management**: CRM functionalities including lifecycle tracking and behavioral analytics.
 - **Analytics**: Performance metrics, data visualization, and comprehensive reporting.
 - **Competitive Pricing**: ML-powered analysis, market trends, and automated merchandising.
 - **Pixel Tracking**: Customer behavior and visitor insights for online journey mapping.
-- **Deal Desk**: Fully functional, mobile-optimized, interactive deal calculation engine with stock lookup, ZIP-based tax/fees, finance/lease calculators.
+- **Deal Desk**: Production-ready desking with:
+  - Mobile-optimized deal structuring interface
+  - Vehicle cost tracking with front-end profit calculation (sales price - cost)
+  - Back-end profit tracking (warranty + GAP + finance reserve)
+  - Trade-in tax credit support (tax on net-of-trade or full price by jurisdiction)
+  - Negative equity handling (rolls into amount financed)
+  - Jurisdiction-based tax and fee calculations
+  - Comprehensive audit trail for all deal changes
+- **VIN Services**: Auto-generates stock numbers from VIN (last 8 chars, uppercase) with manual override capability and audit logging.
+- **Tax & Fee Engine**: Production database architecture for:
+  - ZIP→State/County/City jurisdiction resolution
+  - State-specific tax rules (trade credit, compound taxes, different bases)
+  - DMV fee catalogs (title, registration, doc fees)
+  - Calculation versioning and audit trails
+  - Lease program residuals and money factors
 - **AI Negotiation Assistant**: OpenAI-powered deal analysis providing deal scoring, close probability, strategic recommendations, counter-offer generation (conservative/moderate/aggressive), objection handlers, and talking points for sales teams. Includes smart defaults when AI is unavailable.
 - **Security**: SSL certificates, HTTPS redirection, security headers (HSTS, CSP), and authentication middleware.
 - **Data Flow**: Client (React Query) -> API (Express) -> Business Logic -> Data Layer (Drizzle ORM) -> PostgreSQL.
