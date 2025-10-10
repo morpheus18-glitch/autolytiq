@@ -1,18 +1,18 @@
 import type { Express } from "express";
 import { DatabaseStorage } from "./database-storage";
-import { insertDepartmentSchema, insertRoleSchema, insertPermissionSchema, insertUserSchema, insertEmployeeSchema, insertServiceOrderSchema, insertServicePartSchema, insertPayrollSchema, insertFinancialTransactionSchema } from "@shared/schema";
+import { insertDepartmentSchema, insertRoleSchema, insertPermissionSchema, insertUserSchema, insertEmployeeSchema, insertServiceOrderSchema, insertServicePartSchema, insertPayrollSchema, insertFinancialTransactionSchema, insertNotificationSchema } from "@shared/schema";
 import { sendVerificationEmail } from "./services/email-service";
+import { randomUUID } from "crypto";
 
 const storage = new DatabaseStorage();
 
 // In-memory storage for stub endpoints (until proper database tables are added)
 const inMemoryStore = {
   parts: new Map<number, any>(),
-  notifications: new Map<number, any>(),
+  notifications: new Map<string, any>(),
   lotPositions: new Map<number, any>(),
   permissions: [] as any[],
   nextPartId: 1,
-  nextNotificationId: 1,
   nextLotPositionId: 1,
 };
 
@@ -604,63 +604,6 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
-  // User management routes
-  app.get("/api/admin/users", async (req, res) => {
-    try {
-      const users = await storage.getUsers();
-      res.json(users);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch users" });
-    }
-  });
-
-  app.get("/api/admin/users/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const user = await storage.getUser(id);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      res.json(user);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
-
-  app.post("/api/admin/users", async (req, res) => {
-    try {
-      const validatedData = insertUserSchema.parse(req.body);
-      const user = await storage.createUser(validatedData);
-      res.status(201).json(user);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid user data" });
-    }
-  });
-
-  app.put("/api/admin/users/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const validatedData = insertUserSchema.partial().parse(req.body);
-      const user = await storage.updateUser(id, validatedData);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      res.json(user);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid user data" });
-    }
-  });
-
-  app.delete("/api/admin/users/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      await storage.deleteUser(id);
-      res.status(204).send();
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete user" });
-    }
-  });
-
   // Parts inventory routes (in-memory implementation)
   app.get("/api/parts", async (req, res) => {
     try {
@@ -756,7 +699,7 @@ export function registerAdminRoutes(app: Express) {
   app.get("/api/notifications/unread-count", async (req, res) => {
     try {
       const notifications = Array.from(inMemoryStore.notifications.values());
-      const unreadCount = notifications.filter((n: any) => !n.read).length;
+      const unreadCount = notifications.filter((n: any) => !n.isRead).length;
       res.json({ count: unreadCount });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch unread count" });
@@ -765,12 +708,59 @@ export function registerAdminRoutes(app: Express) {
 
   app.post("/api/notifications/read-all", async (req, res) => {
     try {
+      const now = new Date();
       for (const [id, notification] of inMemoryStore.notifications) {
-        inMemoryStore.notifications.set(id, { ...notification, read: true });
+        inMemoryStore.notifications.set(id, { ...notification, isRead: true, readAt: now });
       }
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to mark notifications as read" });
+    }
+  });
+
+  app.post("/api/notifications", async (req, res) => {
+    try {
+      const validatedData = insertNotificationSchema.parse(req.body);
+      const id = randomUUID();
+      const now = new Date();
+      const notification = { 
+        id, 
+        ...validatedData, 
+        isRead: false,
+        readAt: null,
+        createdAt: now
+      };
+      inMemoryStore.notifications.set(id, notification);
+      res.status(201).json(notification);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid notification data" });
+    }
+  });
+
+  app.patch("/api/notifications/:id", async (req, res) => {
+    try {
+      const id = req.params.id;
+      const existingNotification = inMemoryStore.notifications.get(id);
+      if (!existingNotification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      const validatedData = insertNotificationSchema.partial().parse(req.body);
+      
+      // If marking as read, set readAt timestamp
+      const updates = { ...validatedData };
+      if (updates.isRead === true && !existingNotification.readAt) {
+        updates.readAt = new Date();
+      }
+      
+      const notification = { 
+        ...existingNotification, 
+        ...updates, 
+        id 
+      };
+      inMemoryStore.notifications.set(id, notification);
+      res.json(notification);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid notification data" });
     }
   });
 
@@ -832,16 +822,6 @@ export function registerAdminRoutes(app: Express) {
       res.json(position);
     } catch (error) {
       res.status(400).json({ message: "Invalid lot position data" });
-    }
-  });
-
-  // Permissions routes (stub implementation)
-  app.get("/api/permissions", async (req, res) => {
-    try {
-      // Stub: return empty array until permissions storage is implemented
-      res.json([]);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch permissions" });
     }
   });
 
