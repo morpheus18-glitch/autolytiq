@@ -7,7 +7,7 @@ import {
   leads, sales, activities, visitorSessions, pageViews,
   customerInteractions, competitorAnalytics,
   competitivePricing, pricingInsights, merchandisingStrategies,
-  marketTrends, showroomSessions
+  marketTrends, showroomSessions, parts, notifications, lotPositions
 } from "@shared/schema";
 import type { 
   User, InsertUser, 
@@ -32,7 +32,10 @@ import type {
   ServicePart, InsertServicePart,
   ServiceOrder, InsertServiceOrder,
   Payroll, InsertPayroll,
-  FinancialTransaction, InsertFinancialTransaction
+  FinancialTransaction, InsertFinancialTransaction,
+  Part, InsertPart,
+  Notification, InsertNotification,
+  LotPosition, InsertLotPosition
 } from "@shared/schema";
 import type { IStorage } from "./storage";
 
@@ -679,5 +682,116 @@ export class DatabaseStorage implements IStorage {
       console.error('Error ending showroom session:', error);
       throw error;
     }
+  }
+
+  // Parts operations
+  async getParts(): Promise<Part[]> {
+    return await db.select().from(parts);
+  }
+
+  async getPart(id: number): Promise<Part | undefined> {
+    const [part] = await db.select().from(parts).where(eq(parts.id, id));
+    return part;
+  }
+
+  async createPart(insertPart: InsertPart): Promise<Part> {
+    const [part] = await db.insert(parts).values(insertPart).returning();
+    return part;
+  }
+
+  async updatePart(id: number, updates: Partial<InsertPart>): Promise<Part | undefined> {
+    const [part] = await db
+      .update(parts)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(parts.id, id))
+      .returning();
+    return part;
+  }
+
+  async deletePart(id: number): Promise<void> {
+    await db.delete(parts).where(eq(parts.id, id));
+  }
+
+  // Notifications operations
+  async getNotifications(userId?: string): Promise<Notification[]> {
+    if (userId) {
+      return await db.select().from(notifications).where(eq(notifications.userId, userId));
+    }
+    return await db.select().from(notifications);
+  }
+
+  async getNotification(id: string): Promise<Notification | undefined> {
+    const [notification] = await db.select().from(notifications).where(eq(notifications.id, id));
+    return notification;
+  }
+
+  async createNotification(insertNotification: InsertNotification & { id: string }): Promise<Notification> {
+    const [notification] = await db.insert(notifications).values(insertNotification).returning();
+    return notification;
+  }
+
+  async updateNotification(id: string, updates: Partial<InsertNotification>): Promise<Notification | undefined> {
+    const [notification] = await db
+      .update(notifications)
+      .set(updates)
+      .where(eq(notifications.id, id))
+      .returning();
+    return notification;
+  }
+
+  async deleteNotification(id: string): Promise<void> {
+    await db.delete(notifications).where(eq(notifications.id, id));
+  }
+
+  async markNotificationAsRead(id: string): Promise<Notification | undefined> {
+    const [notification] = await db
+      .update(notifications)
+      .set({ isRead: true, readAt: new Date() })
+      .where(eq(notifications.id, id))
+      .returning();
+    return notification;
+  }
+
+  async markAllNotificationsAsRead(userId: string): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ isRead: true, readAt: new Date() })
+      .where(eq(notifications.userId, userId));
+  }
+
+  async getUnreadNotificationCount(userId: string): Promise<number> {
+    const result = await db
+      .select()
+      .from(notifications)
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+    return result.length;
+  }
+
+  // Lot Positions operations
+  async getLotPositions(): Promise<LotPosition[]> {
+    return await db.select().from(lotPositions);
+  }
+
+  async getLotPosition(id: number): Promise<LotPosition | undefined> {
+    const [position] = await db.select().from(lotPositions).where(eq(lotPositions.id, id));
+    return position;
+  }
+
+  async createLotPosition(insertLotPosition: InsertLotPosition): Promise<LotPosition> {
+    const [position] = await db.insert(lotPositions).values(insertLotPosition).returning();
+    return position;
+  }
+
+  async updateLotPosition(id: number, updates: Partial<InsertLotPosition>): Promise<LotPosition | undefined> {
+    const [position] = await db
+      .update(lotPositions)
+      .set({ ...updates, lastUpdated: new Date(), updatedAt: new Date() })
+      .where(eq(lotPositions.id, id))
+      .returning();
+    return position;
+  }
+
+  async deleteLotPosition(id: number): Promise<void> {
+    await db.delete(lotPositions).where(eq(lotPositions.id, id));
   }
 }
