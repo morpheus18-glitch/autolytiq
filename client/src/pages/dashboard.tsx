@@ -28,11 +28,11 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="space-y-6">
-
-
-      <Tabs defaultValue="production" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 h-10">
+    <div className="w-full min-h-screen pb-6">
+      <div className="px-4 md:px-6 pt-4">
+        <Tabs defaultValue="production" className="space-y-4">
+          <div className="mobile-tabs overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+            <TabsList className="inline-flex w-max min-w-full md:grid md:w-full grid-cols-7 h-12 md:h-10 gap-1">
           <TabsTrigger value="production" className="text-sm">
             <BarChart3 className="w-4 h-4 mr-2" />
             <span className="hidden sm:inline">Production</span>
@@ -68,7 +68,8 @@ export default function Dashboard() {
             <span className="hidden sm:inline">Health</span>
             <span className="sm:hidden">HP</span>
           </TabsTrigger>
-        </TabsList>
+            </TabsList>
+          </div>
 
         <TabsContent value="production">
           <AIProductionSuite />
@@ -97,7 +98,8 @@ export default function Dashboard() {
         <TabsContent value="health">
           <AISystemHealth />
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   );
 }
