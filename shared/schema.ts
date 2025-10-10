@@ -78,6 +78,8 @@ export const vehicles = pgTable("vehicles", {
   model: text("model").notNull(),
   year: integer("year").notNull(),
   vin: text("vin").notNull().unique(),
+  stockNo: varchar("stock_no", { length: 32 }), // Auto-generated from VIN (last 8 chars) or manually overridden
+  stockIsOverride: boolean("stock_is_override").default(false), // True if manually set, false if auto-generated
   trim: text("trim"),
   mileage: integer("mileage"),
   price: integer("price").notNull(),
@@ -1930,6 +1932,108 @@ export const intentScores = pgTable("intent_scores", {
   calculatedAt: timestamp("calculated_at").defaultNow(),
 });
 
+// ========================================
+// Enhanced Desking Module Tables
+// ========================================
+
+// Calculation Versions - track tax/fee rule sources and versions
+export const calcVersions = pgTable("calc_versions", {
+  id: serial("id").primaryKey(),
+  sourceName: varchar("source_name").notNull(), // "Internal", "Avalara", "Vertex", etc.
+  sourceVersion: varchar("source_version").notNull(),
+  effectiveFrom: timestamp("effective_from").notNull(),
+  effectiveTo: timestamp("effective_to"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Jurisdictions - ZIP to State/County/City mapping
+export const jurisdictions = pgTable("jurisdictions", {
+  id: serial("id").primaryKey(),
+  country: varchar("country", { length: 2 }).notNull().default("US"),
+  state: varchar("state", { length: 2 }).notNull(),
+  county: varchar("county"),
+  city: varchar("city"),
+  zip: varchar("zip", { length: 10 }).notNull(),
+  geoHash: varchar("geo_hash"), // For spatial indexing
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueJurisdiction: unique("unique_jurisdiction").on(table.state, table.county, table.city, table.zip),
+  zipIndex: index("idx_jurisdiction_zip").on(table.zip),
+}));
+
+// Tax Rules - state/local tax rules for purchase and lease
+export const taxRules = pgTable("tax_rules", {
+  id: serial("id").primaryKey(),
+  jurisdictionId: integer("jurisdiction_id").notNull().references(() => jurisdictions.id),
+  appliesTo: varchar("applies_to").notNull(), // 'purchase', 'lease', 'both'
+  basis: varchar("basis").notNull(), // 'price', 'payment', 'cap_cost', 'net_of_trade'
+  rate: decimal("rate", { precision: 6, scale: 4 }).notNull(),
+  precedence: integer("precedence").default(0), // For ordering compound taxes
+  effectiveFrom: timestamp("effective_from").notNull(),
+  effectiveTo: timestamp("effective_to"),
+  isCompound: boolean("is_compound").default(false), // Tax on tax
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  jurisdictionIndex: index("idx_tax_rules_jurisdiction").on(table.jurisdictionId, table.effectiveFrom, table.effectiveTo),
+}));
+
+// Fee Catalog - title, registration, doc fees, etc.
+export const feeCatalog = pgTable("fee_catalog", {
+  id: serial("id").primaryKey(),
+  jurisdictionId: integer("jurisdiction_id").notNull().references(() => jurisdictions.id),
+  code: varchar("code").notNull(), // 'TITLE', 'REG', 'DOC', 'LIEN', 'EMISSION', etc.
+  label: varchar("label").notNull(),
+  appliesTo: varchar("applies_to").notNull(), // 'purchase', 'lease', 'both'
+  amountCents: integer("amount_cents").notNull(),
+  taxable: boolean("taxable").default(false),
+  effectiveFrom: timestamp("effective_from").notNull(),
+  effectiveTo: timestamp("effective_to"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Audit Logs - comprehensive audit trail for all changes
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  actorId: varchar("actor_id"), // User who made the change
+  actorName: varchar("actor_name"),
+  entityType: varchar("entity_type").notNull(), // 'vehicle', 'deal', 'customer', etc.
+  entityId: varchar("entity_id").notNull(),
+  action: varchar("action").notNull(), // 'create', 'update', 'delete', 'override_stock', etc.
+  before: jsonb("before"), // State before change
+  after: jsonb("after"), // State after change
+  changes: jsonb("changes"), // Specific fields changed
+  metadata: jsonb("metadata"), // Additional context
+  ipAddress: varchar("ip_address"),
+  userAgent: varchar("user_agent"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  entityIndex: index("idx_audit_entity").on(table.entityType, table.entityId),
+  actorIndex: index("idx_audit_actor").on(table.actorId),
+  createdIndex: index("idx_audit_created").on(table.createdAt),
+}));
+
+// Lease Programs - manufacturer lease programs with residuals and money factors
+export const leasePrograms = pgTable("lease_programs", {
+  id: serial("id").primaryKey(),
+  brand: varchar("brand").notNull(), // 'Toyota', 'Honda', etc.
+  model: varchar("model"),
+  year: integer("year"),
+  residualSource: varchar("residual_source"), // 'ALG', 'Manufacturer', etc.
+  mfSource: varchar("mf_source"), // Money factor source
+  term: integer("term").notNull(), // Months (24, 36, 39, 48)
+  mileage: integer("mileage").notNull(), // Annual mileage (10000, 12000, 15000)
+  residualPct: decimal("residual_pct", { precision: 5, scale: 4 }).notNull(), // 0.6000 = 60%
+  moneyFactor: decimal("money_factor", { precision: 8, scale: 6 }).notNull(), // 0.001250 = 3% APR
+  effectiveFrom: timestamp("effective_from").notNull(),
+  effectiveTo: timestamp("effective_to"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Zod schemas for validation
 export const insertMarketLeadSchema = createInsertSchema(marketLeads);
 export const insertLeadActivitySchema = createInsertSchema(leadActivity);
@@ -1952,3 +2056,29 @@ export type InsertLeadSource = z.infer<typeof insertLeadSourceSchema>;
 
 export type IntentScore = typeof intentScores.$inferSelect;
 export type InsertIntentScore = z.infer<typeof insertIntentScoreSchema>;
+
+// Enhanced Desking Module Schemas and Types
+export const insertCalcVersionSchema = createInsertSchema(calcVersions).omit({ id: true, createdAt: true });
+export const insertJurisdictionSchema = createInsertSchema(jurisdictions).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertTaxRuleSchema = createInsertSchema(taxRules).omit({ id: true, createdAt: true });
+export const insertFeeCatalogSchema = createInsertSchema(feeCatalog).omit({ id: true, createdAt: true });
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({ id: true, createdAt: true });
+export const insertLeaseProgramSchema = createInsertSchema(leasePrograms).omit({ id: true, createdAt: true });
+
+export type CalcVersion = typeof calcVersions.$inferSelect;
+export type InsertCalcVersion = z.infer<typeof insertCalcVersionSchema>;
+
+export type Jurisdiction = typeof jurisdictions.$inferSelect;
+export type InsertJurisdiction = z.infer<typeof insertJurisdictionSchema>;
+
+export type TaxRule = typeof taxRules.$inferSelect;
+export type InsertTaxRule = z.infer<typeof insertTaxRuleSchema>;
+
+export type FeeCatalogItem = typeof feeCatalog.$inferSelect;
+export type InsertFeeCatalogItem = z.infer<typeof insertFeeCatalogSchema>;
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+
+export type LeaseProgram = typeof leasePrograms.$inferSelect;
+export type InsertLeaseProgram = z.infer<typeof insertLeaseProgramSchema>;
