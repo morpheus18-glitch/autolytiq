@@ -92,11 +92,18 @@ const ZIP_TO_STATE: Record<string, string> = {
   // Add more as needed
 };
 
+interface AftermarketProduct {
+  name: string;
+  cost: number;
+  price: number;
+}
+
 interface DealStructure {
   // Vehicle Info
   stockNumber: string;
   vehicleId?: number;
   vehiclePrice: number;
+  vehicleCost: number;
   
   // Customer Info
   customerId?: number;
@@ -113,14 +120,25 @@ interface DealStructure {
   titleFee: number;
   registrationFee: number;
   dealerDocFee: number;
+  taxOnTradeCredit: boolean; // Most states allow tax credit on trade
   
   // Down Payment
   downPayment: number;
   
   // Finance Terms
   financeRate: number;
+  buyRate: number; // Bank's buy rate
   financeCompany: string;
   termMonths: number;
+  
+  // Backend Products
+  aftermarketProducts: AftermarketProduct[];
+  warrantyPrice: number;
+  gapPrice: number;
+  
+  // Finance Reserve
+  financeReserveType: 'percent' | 'flat';
+  financeReserveAmount: number;
   
   // Lease Terms
   leaseMoneyFactor: number;
@@ -135,6 +153,12 @@ interface DealStructure {
   cashPayment: number;
   financePayment: number;
   leasePayment: number;
+  
+  // Profit Calculations
+  frontEndProfit: number;
+  backEndProfit: number;
+  totalProfit: number;
+  financeReserve: number;
 }
 
 export default function DealDeskUnified() {
@@ -144,6 +168,7 @@ export default function DealDeskUnified() {
   const [deal, setDeal] = useState<DealStructure>({
     stockNumber: '',
     vehiclePrice: 0,
+    vehicleCost: 0,
     customerId: undefined,
     customerZip: '',
     customerState: '',
@@ -154,10 +179,17 @@ export default function DealDeskUnified() {
     titleFee: 0,
     registrationFee: 0,
     dealerDocFee: 699,
+    taxOnTradeCredit: true, // Most states allow this
     downPayment: 0,
     financeRate: 6.99,
+    buyRate: 5.99,
     financeCompany: '',
     termMonths: 72,
+    aftermarketProducts: [],
+    warrantyPrice: 0,
+    gapPrice: 0,
+    financeReserveType: 'percent',
+    financeReserveAmount: 0,
     leaseMoneyFactor: 0.00125,
     leaseResidual: 0.60,
     leaseTerm: 36,
@@ -167,7 +199,11 @@ export default function DealDeskUnified() {
     amountFinanced: 0,
     cashPayment: 0,
     financePayment: 0,
-    leasePayment: 0
+    leasePayment: 0,
+    frontEndProfit: 0,
+    backEndProfit: 0,
+    totalProfit: 0,
+    financeReserve: 0
   });
 
   // Fetch vehicles and customers
@@ -183,9 +219,11 @@ export default function DealDeskUnified() {
   useEffect(() => {
     calculateDeal();
   }, [
-    deal.vehiclePrice, deal.tradeValue, deal.tradePayoff, deal.downPayment,
+    deal.vehiclePrice, deal.vehicleCost, deal.tradeValue, deal.tradePayoff, deal.downPayment,
     deal.customerState, deal.dealerDocFee, deal.financeRate, deal.termMonths,
-    deal.leaseMoneyFactor, deal.leaseResidual, deal.leaseTerm
+    deal.leaseMoneyFactor, deal.leaseResidual, deal.leaseTerm, deal.salesTaxRate,
+    deal.taxOnTradeCredit, deal.warrantyPrice, deal.gapPrice, deal.aftermarketProducts,
+    deal.financeReserveType, deal.financeReserveAmount, deal.buyRate
   ]);
 
   const lookupVehicleByStock = () => {
@@ -262,14 +300,23 @@ export default function DealDeskUnified() {
     // Net trade value (trade minus payoff)
     const netTradeValue = Math.max(0, deal.tradeValue - deal.tradePayoff);
     
-    // Sales tax on vehicle price
-    const salesTaxAmount = deal.vehiclePrice * deal.salesTaxRate;
+    // Sales tax calculation - with trade-in credit if applicable
+    let taxableAmount = deal.vehiclePrice;
+    if (deal.taxOnTradeCredit && deal.tradeValue > 0) {
+      // Tax only on the difference (sales price - trade allowance)
+      taxableAmount = Math.max(0, deal.vehiclePrice - deal.tradeValue);
+    }
+    const salesTaxAmount = taxableAmount * deal.salesTaxRate;
+    
+    // Backend products total
+    const aftermarketTotal = deal.aftermarketProducts.reduce((sum, p) => sum + p.price, 0);
+    const backendProductsTotal = aftermarketTotal + deal.warrantyPrice + deal.gapPrice;
     
     // Total fees
     const totalFees = salesTaxAmount + deal.titleFee + deal.registrationFee + deal.dealerDocFee;
     
-    // Total price (vehicle + fees)
-    const totalPrice = deal.vehiclePrice + totalFees;
+    // Total price (vehicle + backend products + fees)
+    const totalPrice = deal.vehiclePrice + backendProductsTotal + totalFees;
     
     // Amount financed (total - trade - down payment)
     const amountFinanced = Math.max(0, totalPrice - netTradeValue - deal.downPayment);
@@ -277,7 +324,15 @@ export default function DealDeskUnified() {
     // Cash payment (if paying cash)
     const cashPayment = totalPrice - netTradeValue;
     
-    // Finance payment calculation
+    // Finance reserve calculation
+    let financeReserve = 0;
+    if (deal.financeReserveType === 'percent') {
+      financeReserve = amountFinanced * (deal.financeReserveAmount / 100);
+    } else {
+      financeReserve = deal.financeReserveAmount;
+    }
+    
+    // Finance payment calculation (using customer's rate, not buy rate)
     let financePayment = 0;
     if (amountFinanced > 0 && deal.financeRate > 0) {
       const monthlyRate = deal.financeRate / 100 / 12;
@@ -295,6 +350,17 @@ export default function DealDeskUnified() {
       leasePayment = depreciation + financeCharge;
     }
     
+    // PROFIT CALCULATIONS
+    // Front-end profit: Sales price - Cost
+    const frontEndProfit = deal.vehiclePrice - deal.vehicleCost;
+    
+    // Backend profit: Aftermarket + Warranty + GAP + Finance Reserve
+    const aftermarketProfit = deal.aftermarketProducts.reduce((sum, p) => sum + (p.price - p.cost), 0);
+    const backEndProfit = aftermarketProfit + deal.warrantyPrice + deal.gapPrice + financeReserve;
+    
+    // Total profit
+    const totalProfit = frontEndProfit + backEndProfit;
+    
     setDeal(prev => ({
       ...prev,
       netTradeValue,
@@ -304,7 +370,11 @@ export default function DealDeskUnified() {
       amountFinanced,
       cashPayment,
       financePayment: isNaN(financePayment) ? 0 : financePayment,
-      leasePayment: isNaN(leasePayment) ? 0 : leasePayment
+      leasePayment: isNaN(leasePayment) ? 0 : leasePayment,
+      frontEndProfit,
+      backEndProfit,
+      totalProfit,
+      financeReserve
     }));
   };
 
@@ -374,19 +444,36 @@ export default function DealDeskUnified() {
                 </div>
               )}
               
-              <div>
-                <Label htmlFor="vehiclePrice">Vehicle Price</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="vehiclePrice"
-                    data-testid="input-vehicle-price"
-                    type="number"
-                    value={deal.vehiclePrice || ''}
-                    onChange={(e) => setDeal(prev => ({ ...prev, vehiclePrice: parseFloat(e.target.value) || 0 }))}
-                    className="pl-9"
-                    placeholder="0.00"
-                  />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="vehicleCost">Vehicle Cost</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="vehicleCost"
+                      data-testid="input-vehicle-cost"
+                      type="number"
+                      value={deal.vehicleCost || ''}
+                      onChange={(e) => setDeal(prev => ({ ...prev, vehicleCost: parseFloat(e.target.value) || 0 }))}
+                      className="pl-9"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="vehiclePrice">Vehicle Price</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="vehiclePrice"
+                      data-testid="input-vehicle-price"
+                      type="number"
+                      value={deal.vehiclePrice || ''}
+                      onChange={(e) => setDeal(prev => ({ ...prev, vehiclePrice: parseFloat(e.target.value) || 0 }))}
+                      className="pl-9"
+                      placeholder="0.00"
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -509,6 +596,20 @@ export default function DealDeskUnified() {
                   </div>
                 </div>
               </div>
+
+              <div className="flex items-center space-x-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <input
+                  type="checkbox"
+                  id="taxOnTradeCredit"
+                  data-testid="checkbox-tax-trade-credit"
+                  checked={deal.taxOnTradeCredit}
+                  onChange={(e) => setDeal(prev => ({ ...prev, taxOnTradeCredit: e.target.checked }))}
+                  className="w-4 h-4 text-blue-600 rounded"
+                />
+                <Label htmlFor="taxOnTradeCredit" className="text-sm cursor-pointer">
+                  Apply tax credit for trade-in (tax only on difference)
+                </Label>
+              </div>
             </CardContent>
           </Card>
 
@@ -558,6 +659,95 @@ export default function DealDeskUnified() {
                 <span className="text-lg font-bold" data-testid="text-net-trade">
                   ${deal.netTradeValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Backend Products & Finance Reserve */}
+          <Card data-testid="card-backend-products">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2">
+                <Receipt className="h-5 w-5" />
+                Backend Products & Finance Reserve
+              </CardTitle>
+              <CardDescription>Aftermarket products and finance reserve income</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="warrantyPrice">Warranty</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="warrantyPrice"
+                      data-testid="input-warranty-price"
+                      type="number"
+                      value={deal.warrantyPrice || ''}
+                      onChange={(e) => setDeal(prev => ({ ...prev, warrantyPrice: parseFloat(e.target.value) || 0 }))}
+                      className="pl-9"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="gapPrice">GAP Insurance</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="gapPrice"
+                      data-testid="input-gap-price"
+                      type="number"
+                      value={deal.gapPrice || ''}
+                      onChange={(e) => setDeal(prev => ({ ...prev, gapPrice: parseFloat(e.target.value) || 0 }))}
+                      className="pl-9"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div>
+                <Label className="mb-2 block">Finance Reserve</Label>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Select 
+                      value={deal.financeReserveType} 
+                      onValueChange={(val) => setDeal(prev => ({ ...prev, financeReserveType: val as 'percent' | 'flat' }))}
+                    >
+                      <SelectTrigger data-testid="select-reserve-type">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="percent">Percent</SelectItem>
+                        <SelectItem value="flat">Flat</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-2">
+                    <div className="relative">
+                      {deal.financeReserveType === 'percent' ? (
+                        <Percent className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      ) : (
+                        <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      )}
+                      <Input
+                        id="financeReserveAmount"
+                        data-testid="input-finance-reserve-amount"
+                        type="number"
+                        step="0.01"
+                        value={deal.financeReserveAmount || ''}
+                        onChange={(e) => setDeal(prev => ({ ...prev, financeReserveAmount: parseFloat(e.target.value) || 0 }))}
+                        className="pl-9"
+                        placeholder={deal.financeReserveType === 'percent' ? "1.00 %" : "0.00"}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Finance reserve: ${deal.financeReserve.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -860,6 +1050,72 @@ export default function DealDeskUnified() {
                   </div>
                 </>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Profit Analysis */}
+          <Card className="border-green-200 dark:border-green-800" data-testid="card-profit-analysis">
+            <CardHeader className="bg-green-50 dark:bg-green-900/20">
+              <CardTitle className="flex items-center gap-2 text-green-900 dark:text-green-100">
+                <TrendingUp className="h-5 w-5" />
+                Profit Analysis
+              </CardTitle>
+              <CardDescription>Deal profitability breakdown</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4 space-y-3">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Front-End Profit</span>
+                  <span className={`font-semibold ${deal.frontEndProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`} data-testid="text-front-profit">
+                    ${deal.frontEndProfit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 pl-2">
+                  Vehicle: ${deal.vehiclePrice.toLocaleString()} - ${deal.vehicleCost.toLocaleString()} (cost)
+                </p>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm font-medium">
+                  <span>Back-End Profit</span>
+                  <span className="text-green-600 dark:text-green-400" data-testid="text-back-profit">
+                    ${deal.backEndProfit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="pl-2 space-y-1 text-xs text-gray-600 dark:text-gray-400">
+                  {deal.warrantyPrice > 0 && (
+                    <div className="flex justify-between">
+                      <span>Warranty</span>
+                      <span>${deal.warrantyPrice.toLocaleString()}</span>
+                    </div>
+                  )}
+                  {deal.gapPrice > 0 && (
+                    <div className="flex justify-between">
+                      <span>GAP Insurance</span>
+                      <span>${deal.gapPrice.toLocaleString()}</span>
+                    </div>
+                  )}
+                  {deal.financeReserve > 0 && (
+                    <div className="flex justify-between">
+                      <span>Finance Reserve</span>
+                      <span>${deal.financeReserve.toLocaleString()}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-green-900 dark:text-green-100">Total Profit</span>
+                  <span className={`text-xl font-bold ${deal.totalProfit >= 0 ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'}`} data-testid="text-total-profit">
+                    ${deal.totalProfit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
