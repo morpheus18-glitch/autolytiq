@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, TrendingUp, DollarSign, Car, FileText, Calendar, Clock, CheckCircle, AlertTriangle, Phone, Mail } from "lucide-react";
-import ProductionDealDesk from "@/components/enterprise/production-deal-desk";
+import DealDeskUnified from "@/pages/deal-desk-unified";
 
 interface SalesData {
   totalLeads: number;
@@ -218,11 +218,7 @@ export default function SalesManagement() {
           </Button>
           <h1 className="text-2xl font-bold">Deal Desk - {selectedDeal}</h1>
         </div>
-        <ProductionDealDesk 
-          dealId={selectedDeal}
-          onDealSave={(data) => console.log("Deal saved:", data)}
-          onDealSubmit={(data) => console.log("Deal submitted:", data)}
-        />
+        <DealDeskUnified />
       </div>
     );
   }
