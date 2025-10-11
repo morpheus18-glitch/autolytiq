@@ -125,6 +125,7 @@ function Router() {
             <Route path="/inventory/lot-management" component={LotManagement} />
             <Route path="/inventory/:id" component={InventoryDetail} />
             <Route path="/leads" component={Sales} />
+            <Route path="/sales" component={Sales} />
             <Route path="/customers" component={Customers} />
             <Route path="/customers/:id" component={CustomerDetail} />
             <Route path="/deals" component={ProfessionalDealDesk} />
