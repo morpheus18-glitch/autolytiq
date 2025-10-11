@@ -26,7 +26,7 @@ import MLEnterpriseDashboard from "@/pages/ml-enterprise-dashboard";
 import CausalMLOpsDashboard from "@/pages/causal-mlops-dashboard";
 import ShowroomManager from "@/pages/showroom-manager";
 // Deal Pages
-import DealDeskUnified from "@/pages/deal-desk-unified";
+import DealDeskProduction from "@/pages/deal-desk-production";
 import InventoryDetail from "@/pages/inventory-detail";
 // Admin Pages
 import SystemSettings from "@/pages/admin/system-settings";
@@ -127,7 +127,7 @@ function Router() {
             <Route path="/leads" component={Sales} />
             <Route path="/customers" component={Customers} />
             <Route path="/customers/:id" component={CustomerDetail} />
-            <Route path="/deals" component={DealDeskUnified} />
+            <Route path="/deals" component={DealDeskProduction} />
             <Route path="/showroom" component={ShowroomManager} />
             <Route path="/reports" component={Reports} />
             <Route path="/sales-mobile" component={Sales} />
@@ -136,11 +136,11 @@ function Router() {
             <Route path="/competitive-pricing" component={CompetitivePricing} />
             <Route path="/market-leads" component={MarketLeads} />
             <Route path="/automotive-data-center" component={AutomotiveDataCenter} />
-            <Route path="/deals-list" component={DealDeskUnified} />
+            <Route path="/deals-list" component={DealDeskProduction} />
 
             {/* Finance Routes */}
             <Route path="/finance" component={FiDashboardPage} />
-            <Route path="/finance/structuring" component={DealDeskUnified} />
+            <Route path="/finance/structuring" component={DealDeskProduction} />
             <Route path="/finance/lenders" component={() => <LenderManagement />} />
             <Route path="/finance/rates" component={() => <RateSheets />} />
             <Route path="/finance/compliance" component={ComplianceManager} />
@@ -179,10 +179,10 @@ function Router() {
             <Route path="/admin/user-profile" component={UserProfile} />
 
             {/* Legacy Routes */}
-            <Route path="/deals-finance" component={DealDeskUnified} />
-            <Route path="/deals/:id" component={DealDeskUnified} />
-            <Route path="/deal-desk" component={DealDeskUnified} />
-            <Route path="/deal-working" component={DealDeskUnified} />
+            <Route path="/deals-finance" component={DealDeskProduction} />
+            <Route path="/deals/:id" component={DealDeskProduction} />
+            <Route path="/deal-desk" component={DealDeskProduction} />
+            <Route path="/deal-working" component={DealDeskProduction} />
             <Route path="/showroom-manager" component={ShowroomManager} />
             <Route path="/ml-dashboard" component={MLDashboard} />
             <Route path="/ml-control" component={MLDashboardControl} />
