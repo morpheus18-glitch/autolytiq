@@ -566,31 +566,31 @@ export default function ShowroomManager() {
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Customer
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Sales Consultant
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Duration
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Interest Level
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Vehicles Viewed
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="hidden xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Estimated Value
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Next Action
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -598,37 +598,37 @@ export default function ShowroomManager() {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {getFilteredSessions().map((session) => (
                 <tr key={session.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
-                          <span className="text-sm font-medium text-white">
+                      <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
+                        <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
+                          <span className="text-xs sm:text-sm font-medium text-white">
                             {session.customerName?.split(' ').map(n => n[0]).join('') || 'C'}
                           </span>
                         </div>
                       </div>
-                      <div className="ml-4">
+                      <div className="ml-2 sm:ml-4">
                         <button
                           onClick={() => handleCustomerClick(session.customerId, session.customerName)}
-                          className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
+                          className="text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
                         >
                           {session.customerName || `Customer ${session.customerId}`}
                         </button>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
                           ID: {session.customerId}
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900 dark:text-gray-100">{session.salesConsultant}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                     <Select
                       value={session.status}
                       onValueChange={(value) => updateSessionStatus.mutate({ sessionId: session.id, status: value })}
                     >
-                      <SelectTrigger className={`w-32 h-8 text-xs ${getStatusColor(session.status)} border`}>
+                      <SelectTrigger className={`w-20 sm:w-32 h-8 text-xs ${getStatusColor(session.status)} border`}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -639,7 +639,7 @@ export default function ShowroomManager() {
                       </SelectContent>
                     </Select>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center text-sm text-gray-900 dark:text-gray-100">
                       <Timer className="h-4 w-4 mr-1 text-gray-400" />
                       {formatDuration(session.startTime, session.endTime)}
@@ -648,12 +648,12 @@ export default function ShowroomManager() {
                       Started: {formatTime(session.startTime)}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                     <Select
                       value={session.interestLevel}
                       onValueChange={(value) => updateInterestLevel.mutate({ sessionId: session.id, level: value })}
                     >
-                      <SelectTrigger className={`w-24 h-8 text-xs ${getInterestColor(session.interestLevel)}`}>
+                      <SelectTrigger className={`w-20 sm:w-24 h-8 text-xs ${getInterestColor(session.interestLevel)}`}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -663,7 +663,7 @@ export default function ShowroomManager() {
                       </SelectContent>
                     </Select>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="hidden lg:table-cell px-6 py-4">
                     <div className="text-sm text-gray-900 dark:text-gray-100">
                       {session.vehiclesViewed.map((vehicle, index) => (
                         <div key={index} className="flex items-center mb-1">
@@ -673,17 +673,17 @@ export default function ShowroomManager() {
                       ))}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="hidden xl:table-cell px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {session.estimatedValue ? `$${session.estimatedValue.toLocaleString()}` : '-'}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="hidden sm:table-cell px-6 py-4">
                     <Select
                       value={session.nextAction || ''}
                       onValueChange={(value) => updateNextAction.mutate({ sessionId: session.id, action: value })}
                     >
-                      <SelectTrigger className="w-48 h-8 text-xs">
+                      <SelectTrigger className="w-40 sm:w-48 h-8 text-xs">
                         <SelectValue placeholder="Select action..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -700,15 +700,16 @@ export default function ShowroomManager() {
                       </SelectContent>
                     </Select>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center space-x-1 sm:space-x-2">
                       <Button
                         size="sm"
                         onClick={() => handleDeskClick(session.id, session.customerId)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1"
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 sm:px-3 py-1"
                       >
                         <Calculator className="h-3 w-3 mr-1" />
-                        Deal Working
+                        <span className="hidden sm:inline">Deal Working</span>
+                        <span className="sm:hidden">Desk</span>
                       </Button>
                       
                       <DropdownMenu>

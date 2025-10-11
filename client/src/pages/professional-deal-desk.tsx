@@ -495,21 +495,23 @@ export default function ProfessionalDealDesk() {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Tabs defaultValue="structure" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="structure" data-testid="tab-structure">
-              <Car className="h-4 w-4 mr-2" />
-              Structure
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2">
+            <TabsTrigger value="structure" data-testid="tab-structure" className="text-xs sm:text-sm">
+              <Car className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Structure</span>
+              <span className="sm:hidden">Deal</span>
             </TabsTrigger>
-            <TabsTrigger value="backend" data-testid="tab-backend">
-              <Package className="h-4 w-4 mr-2" />
-              Backend
+            <TabsTrigger value="backend" data-testid="tab-backend" className="text-xs sm:text-sm">
+              <Package className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Backend</span>
+              <span className="sm:hidden">Products</span>
             </TabsTrigger>
-            <TabsTrigger value="summary" data-testid="tab-summary">
-              <FileText className="h-4 w-4 mr-2" />
+            <TabsTrigger value="summary" data-testid="tab-summary" className="text-xs sm:text-sm">
+              <FileText className="h-4 w-4 mr-1 sm:mr-2" />
               Summary
             </TabsTrigger>
-            <TabsTrigger value="profit" data-testid="tab-profit">
-              <TrendingUp className="h-4 w-4 mr-2" />
+            <TabsTrigger value="profit" data-testid="tab-profit" className="text-xs sm:text-sm">
+              <TrendingUp className="h-4 w-4 mr-1 sm:mr-2" />
               Profit
             </TabsTrigger>
           </TabsList>
