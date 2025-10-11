@@ -29,26 +29,29 @@ Preferred communication style: Simple, everyday language.
 - **Architectural Principles**: Cloud-native, microservices-ready, event-driven patterns, and scalable technology stack.
 
 ### Key Features & Design Choices
-- **Dashboard**: Centralized overview with metrics, inventory, competitive insights, and activity feed.
-- **Inventory Management**: CRUD operations with search, filtering, ML-powered pricing insights, and VIN→Stock auto-generation.
-- **Sales & Leads**: Tracking and management with status progression.
-- **Customer Management**: CRM functionalities including lifecycle tracking and behavioral analytics.
+- **Dashboard**: Centralized overview with metrics, inventory, competitive insights, and activity feed. Quick action cards use client-side navigation with Button asChild pattern for proper accessibility.
+- **Inventory Management**: CRUD operations with search, filtering, ML-powered pricing insights, and VIN→Stock auto-generation. Table rows are clickable and navigate using client-side routing (setLocation) to preserve SPA state and React Query cache.
+- **Sales & Leads**: Tracking and management with status progression. All sales entries clickable from customer detail pages.
+- **Customer Management**: CRM functionalities including lifecycle tracking and behavioral analytics. Table rows clickable with client-side navigation, detail pages include "Create Deal" action buttons.
 - **Analytics**: Performance metrics, data visualization, and comprehensive reporting.
 - **Competitive Pricing**: ML-powered analysis, market trends, and automated merchandising.
 - **Pixel Tracking**: Customer behavior and visitor insights for online journey mapping across all customer touchpoints.
 - **Professional Deal Desk** (single unified page at /professional-deal-desk): Production-ready desking with:
   - **Professional Deal Desk**: Full-featured desking tool (not calculator-only) with:
     - Vehicle/customer selection from inventory/CRM with auto-populate
+    - Clickable vehicle/customer info panels that navigate to detail pages for complete workflow loops
     - Monthly payment calculator with APR (6.99%) and term selection (36-84 months)  
     - Backend products (warranty, GAP, maintenance, tire/wheel) with retail/cost/profit tracking
     - Accurate tax/payment calculations including all products (no double-counting)
     - Deal persistence to database with product save via /api/deals/{id}/products
     - Professional tabbed UI: Structure, Backend, Summary, Profit Analysis
     - Mobile-optimized interface for showroom use
+    - Debounced autosave (2 seconds after editing stops) to prevent data loss
   - Trade-in tax credit support (tax on net-of-trade or full price by jurisdiction)
   - Negative equity handling (rolls into amount financed)
   - Jurisdiction-based tax and fee calculations
   - Comprehensive audit trail for all deal changes
+  - Reciprocal navigation: Deal desk → Customer detail, Customer detail → Deal desk, Inventory detail → Deal desk
 - **VIN Services**: Auto-generates stock numbers from VIN (last 8 chars, uppercase) with manual override capability and audit logging.
 - **Tax & Fee Engine**: Production database architecture for:
   - ZIP→State/County/City jurisdiction resolution
@@ -58,6 +61,7 @@ Preferred communication style: Simple, everyday language.
   - Lease program residuals and money factors
 - **AI Negotiation Assistant**: OpenAI-powered deal analysis providing deal scoring, close probability, strategic recommendations, counter-offer generation (conservative/moderate/aggressive), objection handlers, and talking points for sales teams. Includes smart defaults when AI is unavailable.
 - **Security**: SSL certificates, HTTPS redirection, security headers (HSTS, CSP), and authentication middleware.
+- **Navigation Pattern**: All navigation uses client-side routing (wouter's setLocation or Link component) to preserve SPA state and React Query cache. Button/Link combinations use asChild pattern to avoid nested interactive elements and maintain accessibility compliance.
 - **Data Flow**: Client (React Query) -> API (Express) -> Business Logic -> Data Layer (Drizzle ORM) -> PostgreSQL.
 
 ## External Dependencies
