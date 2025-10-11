@@ -4742,7 +4742,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Desking Module - Jurisdiction & Rates API
   // ========================================
 
-  // Get jurisdiction by ZIP code
+  // Get ALL jurisdictions for a ZIP code (supports multiple matches)
+  app.get("/api/jurisdictions/lookup", async (req, res) => {
+    try {
+      const { JurisdictionService } = await import("./services/jurisdiction-service");
+      const { jurisdictions } = await import("@shared/schema");
+      const { eq } = await import("drizzle-orm");
+      const zip = req.query.zip as string;
+
+      if (!zip) {
+        return res.status(400).json({ message: "ZIP code is required" });
+      }
+
+      const normalizedZip = zip.replace(/[^0-9]/g, '').slice(0, 5);
+      if (normalizedZip.length !== 5) {
+        return res.status(400).json({ message: "Invalid ZIP code format" });
+      }
+
+      // Get ALL jurisdictions for this ZIP
+      const jurisdictionsList = await db
+        .select()
+        .from(jurisdictions)
+        .where(eq(jurisdictions.zip, normalizedZip));
+
+      if (jurisdictionsList.length === 0) {
+        return res.status(404).json({ message: "No jurisdictions found for ZIP code" });
+      }
+
+      res.json({
+        zip: normalizedZip,
+        count: jurisdictionsList.length,
+        jurisdictions: jurisdictionsList.map(j => ({
+          ...j,
+          display: JurisdictionService.formatJurisdiction(j)
+        }))
+      });
+    } catch (error) {
+      console.error("Error looking up jurisdictions:", error);
+      res.status(500).json({ message: "Failed to lookup jurisdictions" });
+    }
+  });
+
+  // Get jurisdiction by ZIP code (legacy - returns first match)
   app.get("/api/jurisdiction", async (req, res) => {
     try {
       const { JurisdictionService } = await import("./services/jurisdiction-service");

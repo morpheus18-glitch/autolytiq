@@ -111,6 +111,8 @@ export default function ProfessionalDealDesk() {
   const [vehicleId, setVehicleId] = useState<number | null>(null);
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [customerZip, setCustomerZip] = useState('');
+  const [jurisdictionData, setJurisdictionData] = useState<any[]>([]);
+  const [selectedJurisdiction, setSelectedJurisdiction] = useState<any | null>(null);
   
   // Deal structure
   const [dealType, setDealType] = useState<'retail' | 'lease' | 'cash'>('retail');
@@ -201,6 +203,41 @@ export default function ProfessionalDealDesk() {
       setVehicleCost(selectedVehicle.costPrice || 0);
     }
   }, [selectedVehicle]);
+
+  // Lookup jurisdiction when ZIP is entered
+  useEffect(() => {
+    if (customerZip.length === 5) {
+      fetch(`/api/jurisdictions/lookup?zip=${customerZip}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.jurisdictions && data.jurisdictions.length > 0) {
+            setJurisdictionData(data.jurisdictions);
+            
+            // Auto-select if only one jurisdiction
+            if (data.jurisdictions.length === 1) {
+              setSelectedJurisdiction(data.jurisdictions[0]);
+              toast({
+                title: "Location Found",
+                description: `${data.jurisdictions[0].city}, ${data.jurisdictions[0].state}`,
+              });
+            } else {
+              toast({
+                title: "Multiple Locations Found",
+                description: `Please select your city/county`,
+              });
+            }
+          }
+        })
+        .catch(err => {
+          console.error("Error looking up ZIP:", err);
+          setJurisdictionData([]);
+          setSelectedJurisdiction(null);
+        });
+    } else {
+      setJurisdictionData([]);
+      setSelectedJurisdiction(null);
+    }
+  }, [customerZip, toast]);
   
   // Save deal mutation
   const saveDealMutation = useMutation({
@@ -477,6 +514,45 @@ export default function ProfessionalDealDesk() {
                       data-testid="input-customer-zip"
                     />
                   </div>
+
+                  {/* Show city/state when jurisdiction is found */}
+                  {selectedJurisdiction && (
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                        📍 {selectedJurisdiction.city}, {selectedJurisdiction.state}
+                      </p>
+                      {selectedJurisdiction.county && (
+                        <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                          {selectedJurisdiction.county} County
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Show jurisdiction selector if multiple matches */}
+                  {jurisdictionData.length > 1 && (
+                    <div>
+                      <Label htmlFor="jurisdiction">Select City/County</Label>
+                      <Select 
+                        value={selectedJurisdiction?.id?.toString()} 
+                        onValueChange={(v) => {
+                          const selected = jurisdictionData.find(j => j.id.toString() === v);
+                          setSelectedJurisdiction(selected || null);
+                        }}
+                      >
+                        <SelectTrigger id="jurisdiction" data-testid="select-jurisdiction">
+                          <SelectValue placeholder="Choose location..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {jurisdictionData.map((j) => (
+                            <SelectItem key={j.id} value={j.id.toString()}>
+                              {j.display}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
