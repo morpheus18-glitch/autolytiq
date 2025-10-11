@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { 
   Calculator, 
@@ -107,6 +108,7 @@ interface DealCalculation {
 export default function ProfessionalDealDesk() {
   const { toast } = useToast();
   const [location] = useLocation();
+  const { trackInteraction, setTrackedCustomer } = usePixelTracker();
   
   // Core deal state
   const [dealId, setDealId] = useState<string | null>(null);
@@ -222,6 +224,17 @@ export default function ProfessionalDealDesk() {
       });
     }
   }, [location, toast]);
+
+  // Track customer when selected
+  useEffect(() => {
+    if (customerId && selectedCustomer) {
+      setTrackedCustomer(customerId.toString());
+      trackInteraction('deal_desk_opened', { 
+        customerId: customerId.toString(),
+        customerName: `${selectedCustomer.firstName} ${selectedCustomer.lastName}`
+      });
+    }
+  }, [customerId, selectedCustomer, setTrackedCustomer, trackInteraction]);
 
   // Debounced autosave - triggers 2 seconds after user stops editing
   useEffect(() => {
