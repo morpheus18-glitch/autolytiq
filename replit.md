@@ -8,6 +8,17 @@ AutolytiQ is an enterprise-grade dealership management system providing a comple
 
 Preferred communication style: Simple, everyday language.
 
+### Standard Format
+When referring to layout, format, or styling, use the term **"Standard"** which means:
+- **Layout**: UniformPage wrapper component for consistent page structure
+- **Styling**: Tailwind CSS utility classes (inline, no separate CSS files)
+- **UI Components**: shadcn/ui library (Card, Table, Dialog, Button, etc.)
+- **Icons**: Lucide React
+- **Mobile-First**: Responsive breakpoints (mobile → sm: → md: → lg:)
+- **Spacing**: Mobile padding `px-4 py-4`, desktop `lg:px-8 lg:py-8`
+- **Colors**: Gray neutrals, blue primary, green success, amber/orange warnings, with dark mode variants
+- **Locked Pages**: Home = `/` (Dashboard with tabs), Inventory = `/inventory` (vehicle list with ML pricing)
+
 ## Recent Changes
 
 ### Dashboard & Component Cleanup (October 2025)
@@ -23,6 +34,14 @@ Preferred communication style: Simple, everyday language.
   - Removed client/src/components/enterprise/system-health.tsx (kept pages/system-health.tsx)
   - Removed unused inventory-table.tsx duplicates (both component and inventory versions)
   - Updated imports and defined SearchFilters interface in use-advanced-search.ts hook
+- **Showroom Manager Rebuild**: Completely rebuilt `/showroom-manager` with Standard format:
+  - Live floor manager for active customers on the lot (replacing old mock-data version)
+  - Real-time session tracking with active/completed/sold/conversion metrics
+  - Quick action buttons: Work Deal, Add Vehicle, Add Notes, Trade-In, Call, Text, View Profile
+  - Clickable customer names navigate to customer detail pages
+  - Trade-in display section with vehicle and value tracking
+  - Mobile-optimized card layout with all functionality accessible on phone/tablet
+  - Integration with professional deal desk, CRM, and texting portal
 
 ## System Architecture
 
