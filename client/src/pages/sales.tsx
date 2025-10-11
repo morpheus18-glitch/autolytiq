@@ -10,7 +10,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { LeadManagementGrid } from '@/components/lead-management-grid';
-import { QuoteWorksheet } from '@/components/quote-worksheet';
 import { 
   Plus, 
   Search, 
@@ -80,7 +79,6 @@ export default function Sales() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterTemperature, setFilterTemperature] = useState('all');
-  const [showQuoteWorksheet, setShowQuoteWorksheet] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -234,35 +232,14 @@ export default function Sales() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="leads">Professional Leads</TabsTrigger>
-          <TabsTrigger value="quotes">Quote Worksheets</TabsTrigger>
           <TabsTrigger value="sales">Closed Sales</TabsTrigger>
         </TabsList>
 
         {/* Leads Tab - Professional Lead Management Grid */}
         <TabsContent value="leads" className="space-y-4">
           <LeadManagementGrid />
-        </TabsContent>
-
-        {/* Quote Worksheet Tab */}
-        <TabsContent value="quotes" className="space-y-4">
-          {showQuoteWorksheet ? (
-            <QuoteWorksheet onSave={(data) => {
-              console.log('Quote saved:', data);
-              setShowQuoteWorksheet(false);
-            }} />
-          ) : (
-            <div className="text-center py-12">
-              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Create Quote Worksheet</h3>
-              <p className="text-gray-600 mb-4">Generate professional quotes for customers</p>
-              <Button onClick={() => setShowQuoteWorksheet(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                New Quote Worksheet
-              </Button>
-            </div>
-          )}
         </TabsContent>
 
         {/* Original Leads Tab Content - Now Hidden */}
