@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'wouter';
+import { useParams, useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,12 +21,14 @@ import {
   Star,
   Edit,
   Save,
-  X
+  X,
+  Calculator
 } from 'lucide-react';
 import type { Customer, Lead, Sale } from '@shared/schema';
 
 export default function CustomerDetail() {
   const { id } = useParams();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { trackInteraction, setTrackedCustomer } = usePixelTracker();
@@ -144,6 +146,17 @@ export default function CustomerDetail() {
         </>
       ) : (
         <>
+          <Button 
+            variant="default" 
+            onClick={() => {
+              trackInteraction('button_click', { action: 'new_deal', customerId: id });
+              setLocation(`/professional-deal-desk?customerId=${id}`);
+            }}
+            data-testid="button-new-deal"
+          >
+            <Calculator className="w-4 h-4 mr-2" />
+            New Deal
+          </Button>
           <Button variant="outline" onClick={() => window.open(`tel:${customer.phone}`)}>
             <Phone className="w-4 h-4 mr-2" />
             Call
@@ -152,7 +165,7 @@ export default function CustomerDetail() {
             <Mail className="w-4 h-4 mr-2" />
             Email
           </Button>
-          <Button onClick={() => setIsEditing(true)}>
+          <Button variant="outline" onClick={() => setIsEditing(true)}>
             <Edit className="w-4 h-4 mr-2" />
             Edit
           </Button>

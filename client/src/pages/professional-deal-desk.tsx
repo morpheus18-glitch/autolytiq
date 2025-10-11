@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -105,6 +106,7 @@ interface DealCalculation {
 
 export default function ProfessionalDealDesk() {
   const { toast } = useToast();
+  const [location] = useLocation();
   
   // Core deal state
   const [dealId, setDealId] = useState<string | null>(null);
@@ -203,6 +205,19 @@ export default function ProfessionalDealDesk() {
       setVehicleCost(selectedVehicle.costPrice || 0);
     }
   }, [selectedVehicle]);
+
+  // Auto-select customer from URL parameter
+  useEffect(() => {
+    const params = new URLSearchParams(location.split('?')[1] || '');
+    const customerIdParam = params.get('customerId');
+    if (customerIdParam) {
+      setCustomerId(parseInt(customerIdParam));
+      toast({
+        title: "Customer Selected",
+        description: "Customer pre-selected from profile",
+      });
+    }
+  }, [location, toast]);
 
   // Lookup jurisdiction when ZIP is entered
   useEffect(() => {
