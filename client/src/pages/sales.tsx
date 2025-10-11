@@ -163,19 +163,19 @@ export default function Sales() {
   const totalSalesValue = sales.reduce((sum: number, sale: Sale) => sum + sale.salePrice, 0);
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col gap-3 md:gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Sales Management</h1>
-          <p className="text-gray-600">Manage leads and track sales performance</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Sales Management</h1>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Manage leads and track sales performance</p>
         </div>
-        <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-          <Button className="w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Add Lead
           </Button>
-          <Button variant="outline" className="w-full md:w-auto">
+          <Button variant="outline" className="w-full sm:w-auto">
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
@@ -183,48 +183,48 @@ export default function Sales() {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Leads</p>
-                <p className="text-2xl font-bold">{leads.length}</p>
+          <CardContent className="p-2 sm:p-3 md:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
+              <div className="flex-1">
+                <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">Leads</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold">{leads.length}</p>
               </div>
-              <Users className="h-8 w-8 text-blue-600" />
+              <Users className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-blue-600 self-end sm:self-auto" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Pipeline Value</p>
-                <p className="text-2xl font-bold">${totalLeadValue.toLocaleString()}</p>
+          <CardContent className="p-2 sm:p-3 md:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
+              <div className="flex-1">
+                <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">Pipeline</p>
+                <p className="text-base sm:text-lg md:text-xl font-bold">${(totalLeadValue / 1000).toFixed(0)}k</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-green-600" />
+              <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-green-600 self-end sm:self-auto" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Avg. Conversion</p>
-                <p className="text-2xl font-bold">{avgConversionProbability.toFixed(0)}%</p>
+          <CardContent className="p-2 sm:p-3 md:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
+              <div className="flex-1">
+                <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">Conversion</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold">{avgConversionProbability.toFixed(0)}%</p>
               </div>
-              <Target className="h-8 w-8 text-orange-600" />
+              <Target className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-orange-600 self-end sm:self-auto" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Sales</p>
-                <p className="text-2xl font-bold">${totalSalesValue.toLocaleString()}</p>
+          <CardContent className="p-2 sm:p-3 md:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
+              <div className="flex-1">
+                <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">Sales</p>
+                <p className="text-base sm:text-lg md:text-xl font-bold">${(totalSalesValue / 1000).toFixed(0)}k</p>
               </div>
-              <DollarSign className="h-8 w-8 text-purple-600" />
+              <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-purple-600 self-end sm:self-auto" />
             </div>
           </CardContent>
         </Card>
