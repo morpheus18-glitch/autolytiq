@@ -21,6 +21,11 @@ import {
   // F&I Insert Types
   type InsertCreditPull, type InsertLenderApplication, type InsertFiProduct, type InsertFinanceMenu, type InsertFiAuditLog
 } from "@shared/schema";
+import { 
+  stores, storeLenders, storeProductPresets, storeFinanceSettings, storePageSettings,
+  type Store, type StoreLender, type StoreProductPreset, type StoreFinanceSettings, type StorePageSettings,
+  type InsertStore, type InsertStoreLender, type InsertStoreProductPreset, type InsertStoreFinanceSettings, type InsertStorePageSettings
+} from "@shared/deal-jacket-schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 
@@ -332,6 +337,29 @@ export interface IStorage {
   
   // Dashboard Metrics
   getAccountingDashboardMetrics(): Promise<any>;
+  
+  // Dealer Configuration Methods
+  // Store Lenders
+  getStoreLenders(storeId: string): Promise<StoreLender[]>;
+  createStoreLender(lender: InsertStoreLender): Promise<StoreLender>;
+  updateStoreLender(id: string, updates: Partial<InsertStoreLender>): Promise<StoreLender | undefined>;
+  deleteStoreLender(id: string): Promise<void>;
+  
+  // Store Product Presets
+  getStoreProductPresets(storeId: string): Promise<StoreProductPreset[]>;
+  createStoreProductPreset(preset: InsertStoreProductPreset): Promise<StoreProductPreset>;
+  updateStoreProductPreset(id: string, updates: Partial<InsertStoreProductPreset>): Promise<StoreProductPreset | undefined>;
+  deleteStoreProductPreset(id: string): Promise<void>;
+  
+  // Store Finance Settings
+  getStoreFinanceSettings(storeId: string): Promise<StoreFinanceSettings | undefined>;
+  createStoreFinanceSettings(settings: InsertStoreFinanceSettings): Promise<StoreFinanceSettings>;
+  updateStoreFinanceSettings(id: string, updates: Partial<InsertStoreFinanceSettings>): Promise<StoreFinanceSettings | undefined>;
+  
+  // Store Page Settings
+  getStorePageSettings(storeId: string, pageName: string): Promise<StorePageSettings | undefined>;
+  createStorePageSettings(settings: InsertStorePageSettings): Promise<StorePageSettings>;
+  updateStorePageSettings(id: string, updates: Partial<InsertStorePageSettings>): Promise<StorePageSettings | undefined>;
 }
 
 export class MemStorage implements IStorage {

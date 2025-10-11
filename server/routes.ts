@@ -10,7 +10,15 @@ import {
   insertCreditApplicationSchema, 
   insertDealDocumentSchema, 
   insertDealHistorySchema, 
-  insertDealProductSchema 
+  insertDealProductSchema,
+  storeLenders,
+  storeProductPresets,
+  storeFinanceSettings,
+  storePageSettings,
+  insertStoreLenderSchema,
+  insertStoreProductPresetSchema,
+  insertStoreFinanceSettingsSchema,
+  insertStorePageSettingsSchema
 } from "@shared/deal-jacket-schema";
 import { competitiveScraper } from "./services/competitive-scraper";
 import { registerAdminRoutes } from "./admin-routes";
@@ -1039,6 +1047,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(stores);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch stores" });
+    }
+  });
+
+  // Dealer Configuration Routes
+  app.get("/api/dealer-config/lenders/:storeId", async (req, res) => {
+    try {
+      const { storeId } = req.params;
+      const lenders = await db.select().from(storeLenders).where(eq(storeLenders.storeId, storeId));
+      res.json(lenders);
+    } catch (error) {
+      console.error("Error fetching lenders:", error);
+      res.status(500).json({ message: "Failed to fetch lenders" });
+    }
+  });
+
+  app.post("/api/dealer-config/lenders", async (req, res) => {
+    try {
+      const validatedData = insertStoreLenderSchema.parse(req.body);
+      const [lender] = await db.insert(storeLenders).values(validatedData).returning();
+      res.status(201).json(lender);
+    } catch (error) {
+      console.error("Error creating lender:", error);
+      res.status(400).json({ message: "Invalid lender data" });
+    }
+  });
+
+  app.get("/api/dealer-config/products/:storeId", async (req, res) => {
+    try {
+      const { storeId } = req.params;
+      const products = await db.select().from(storeProductPresets).where(eq(storeProductPresets.storeId, storeId));
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching product presets:", error);
+      res.status(500).json({ message: "Failed to fetch product presets" });
+    }
+  });
+
+  app.post("/api/dealer-config/products", async (req, res) => {
+    try {
+      const validatedData = insertStoreProductPresetSchema.parse(req.body);
+      const [product] = await db.insert(storeProductPresets).values(validatedData).returning();
+      res.status(201).json(product);
+    } catch (error) {
+      console.error("Error creating product preset:", error);
+      res.status(400).json({ message: "Invalid product data" });
+    }
+  });
+
+  app.get("/api/dealer-config/finance/:storeId", async (req, res) => {
+    try {
+      const { storeId } = req.params;
+      const [settings] = await db.select().from(storeFinanceSettings).where(eq(storeFinanceSettings.storeId, storeId)).limit(1);
+      res.json(settings || null);
+    } catch (error) {
+      console.error("Error fetching finance settings:", error);
+      res.status(500).json({ message: "Failed to fetch finance settings" });
+    }
+  });
+
+  app.post("/api/dealer-config/finance", async (req, res) => {
+    try {
+      const validatedData = insertStoreFinanceSettingsSchema.parse(req.body);
+      const [settings] = await db.insert(storeFinanceSettings).values(validatedData).returning();
+      res.status(201).json(settings);
+    } catch (error) {
+      console.error("Error creating finance settings:", error);
+      res.status(400).json({ message: "Invalid finance settings" });
+    }
+  });
+
+  app.get("/api/dealer-config/page-settings/:storeId/:pageName", async (req, res) => {
+    try {
+      const { storeId, pageName } = req.params;
+      // Use existing eq import with array for multiple conditions
+      const [settings] = await db.select().from(storePageSettings)
+        .where(eq(storePageSettings.storeId, storeId))
+        .where(eq(storePageSettings.pageName, pageName))
+        .limit(1);
+      res.json(settings || null);
+    } catch (error) {
+      console.error("Error fetching page settings:", error);
+      res.status(500).json({ message: "Failed to fetch page settings" });
+    }
+  });
+
+  app.post("/api/dealer-config/page-settings", async (req, res) => {
+    try {
+      const validatedData = insertStorePageSettingsSchema.parse(req.body);
+      const [settings] = await db.insert(storePageSettings).values(validatedData).returning();
+      res.status(201).json(settings);
+    } catch (error) {
+      console.error("Error creating page settings:", error);
+      res.status(400).json({ message: "Invalid page settings" });
     }
   });
 
