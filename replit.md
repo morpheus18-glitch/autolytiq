@@ -8,6 +8,15 @@ AutolytiQ is an enterprise-grade dealership management system providing a comple
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### Dashboard & Component Cleanup (October 2025)
+- **Consolidated Dashboards**: Removed 7 duplicate ML/enterprise dashboard pages, keeping only the main production dashboard at `/` with tabbed interface (Production, Overview, Intelligence, Lifecycle, Workflows, Reports, Health)
+- **Cleaned Routes**: Removed duplicate routes for ml-dashboard, ml-control, ml-enterprise, mlops-dashboard, causal-mlops
+- **User Navigation**: Fixed dropdown menu - Profile, Security, and Preferences are now clickable links to `/admin/user-profile`, `/admin/security-center`, and `/admin/system-settings`
+- **FI Dashboard**: Consolidated FI dashboard to use component wrapper pattern
+- **Removed Components**: Deleted unused widgets and duplicate dashboard components (production-dashboard.tsx, enterprise-dashboard-integration.tsx, advanced-analytics-dashboard.tsx, ml-dashboard-widget.tsx)
+
 ## System Architecture
 
 ### Frontend Architecture
