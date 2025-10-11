@@ -48,7 +48,6 @@ const getPageTitle = (path: string): string => {
     '/reports': 'AutolytiQ - Professional Reports',
     '/settings': 'AutolytiQ - Settings',
     '/showroom-manager': 'AutolytiQ - Showroom Manager',
-    '/ml-dashboard': 'AutolytiQ - ML Analytics Dashboard',
   };
   
   // Handle dynamic routes

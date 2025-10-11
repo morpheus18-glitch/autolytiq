@@ -92,8 +92,6 @@ const workflowTabs: WorkflowTab[] = [
     path: '/analytics',
     subItems: [
       { label: 'Performance Dashboard', path: '/analytics', icon: BarChart3 },
-      { label: 'ML Control Center', path: '/ml-control', icon: TrendingUp },
-      { label: 'MLOps Dashboard', path: '/mlops-dashboard', icon: Database },
       { label: 'Market Intelligence', path: '/competitive-pricing', icon: BarChart3 },
       { label: 'Predictive Analytics', path: '/ml-model-comparison', icon: Database }
     ]
