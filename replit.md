@@ -16,6 +16,13 @@ Preferred communication style: Simple, everyday language.
 - **User Navigation**: Fixed dropdown menu - Profile, Security, and Preferences are now clickable links to `/admin/user-profile`, `/admin/security-center`, and `/admin/system-settings`
 - **FI Dashboard**: Consolidated FI dashboard to use component wrapper pattern
 - **Removed Components**: Deleted unused widgets and duplicate dashboard components (production-dashboard.tsx, enterprise-dashboard-integration.tsx, advanced-analytics-dashboard.tsx, ml-dashboard-widget.tsx)
+- **Canonical Audit Cleanup**: Ran canonical audit script to identify and remove 6 duplicate files:
+  - Removed client/src/components/advanced-search.tsx (kept search/advanced-search.tsx)
+  - Removed client/src/components/mobile-responsive-layout.tsx (kept layout/mobile-responsive-layout.tsx)
+  - Removed client/src/components/ui/sidebar.tsx (kept components/sidebar.tsx)
+  - Removed client/src/components/enterprise/system-health.tsx (kept pages/system-health.tsx)
+  - Removed unused inventory-table.tsx duplicates (both component and inventory versions)
+  - Updated imports and defined SearchFilters interface in use-advanced-search.ts hook
 
 ## System Architecture
 
