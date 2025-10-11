@@ -83,7 +83,7 @@ export default function ShowroomManager() {
   });
 
   // Fetch showroom sessions
-  const { data: sessions = [], isLoading: loadingSessions } = useQuery({
+  const { data: sessions = [], isLoading: loadingSessions } = useQuery<ShowroomSession[]>({
     queryKey: ['/api/showroom/sessions'],
   });
 
@@ -197,8 +197,9 @@ export default function ShowroomManager() {
       customerName: 'Jennifer Wilson'
     }
       ]);
+      }
     }
-  }, [sessions]);
+  }, [sessions, localSessions.length]);
 
   // Use local sessions for real-time updates
   const sessionsData = localSessions;
@@ -734,7 +735,7 @@ export default function ShowroomManager() {
                           <DropdownMenuSeparator />
                           {session.status === 'active' && (
                             <DropdownMenuItem 
-                              onClick={() => closeVisit.mutate(session.id)}
+                              onClick={() => updateSessionStatus.mutate({ sessionId: session.id, status: 'left' })}
                               className="text-red-600"
                             >
                               <X className="h-4 w-4 mr-2" />
