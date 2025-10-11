@@ -27,6 +27,7 @@ import CausalMLOpsDashboard from "@/pages/causal-mlops-dashboard";
 import ShowroomManager from "@/pages/showroom-manager";
 // Deal Pages
 import DealDeskProduction from "@/pages/deal-desk-production";
+import ProfessionalDealDesk from "@/pages/professional-deal-desk";
 import InventoryDetail from "@/pages/inventory-detail";
 // Admin Pages
 import SystemSettings from "@/pages/admin/system-settings";
@@ -179,10 +180,10 @@ function Router() {
             <Route path="/admin/user-profile" component={UserProfile} />
 
             {/* Legacy Routes */}
-            <Route path="/deals-finance" component={DealDeskProduction} />
-            <Route path="/deals/:id" component={DealDeskProduction} />
-            <Route path="/deal-desk" component={DealDeskProduction} />
-            <Route path="/deal-working" component={DealDeskProduction} />
+            <Route path="/deals-finance" component={ProfessionalDealDesk} />
+            <Route path="/deals/:id" component={ProfessionalDealDesk} />
+            <Route path="/deal-desk" component={ProfessionalDealDesk} />
+            <Route path="/deal-working" component={ProfessionalDealDesk} />
             <Route path="/showroom-manager" component={ShowroomManager} />
             <Route path="/ml-dashboard" component={MLDashboard} />
             <Route path="/ml-control" component={MLDashboardControl} />
