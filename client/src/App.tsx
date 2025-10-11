@@ -79,6 +79,7 @@ import PerformanceTracking from "@/pages/admin/performance-tracking";
 import TrainingCenter from "@/pages/admin/training-center";
 import IntegrationSetup from "@/pages/admin/integration-setup";
 import SecurityCenter from "@/pages/admin/security-center";
+import DealerConfiguration from "@/pages/admin/dealer-configuration";
 
 function Router() {
   // Initialize pixel tracking for the entire app
@@ -158,6 +159,7 @@ function Router() {
             <Route path="/admin/settings" component={SystemSettings} />
             <Route path="/admin/users" component={UserManagement} />
             <Route path="/admin/dealership" component={ComprehensiveSettings} />
+            <Route path="/admin/dealer-configuration" component={DealerConfiguration} />
             <Route path="/admin/integrations" component={IntegrationSetup} />
             <Route path="/admin/security" component={SecurityCenter} />
             <Route path="/admin/health" component={SystemHealth} />
