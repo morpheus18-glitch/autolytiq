@@ -111,23 +111,23 @@ export default function Customers() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col gap-3 md:gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Customers</h1>
-          <p className="text-gray-600">Manage your customer relationships and contacts</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Customers</h1>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Manage your customer relationships and contacts</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" size="sm" className="w-full sm:w-auto">
             <Upload className="h-4 w-4 mr-2" />
             Import
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="w-full sm:w-auto">
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
-          <Link href="/customers/new">
-            <Button size="sm">
+          <Link href="/customers/new" className="w-full sm:w-auto">
+            <Button size="sm" className="w-full">
               <Plus className="h-4 w-4 mr-2" />
               Add Customer
             </Button>
@@ -136,61 +136,61 @@ export default function Customers() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Customers</p>
-                <p className="text-2xl font-bold">{customers.length}</p>
+          <CardContent className="p-2 sm:p-3 md:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
+              <div className="flex-1">
+                <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">Total</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold">{customers.length}</p>
               </div>
-              <User className="h-8 w-8 text-blue-600" />
+              <User className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-blue-600 self-end sm:self-auto" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Hot Leads</p>
-                <p className="text-2xl font-bold text-red-600">
+          <CardContent className="p-2 sm:p-3 md:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
+              <div className="flex-1">
+                <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">Hot</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold text-red-600">
                   {customers.filter(c => c.status === 'hot').length}
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-red-600" />
+              <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-red-600 self-end sm:self-auto" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Warm Leads</p>
-                <p className="text-2xl font-bold text-yellow-600">
+          <CardContent className="p-2 sm:p-3 md:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
+              <div className="flex-1">
+                <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">Warm</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold text-yellow-600">
                   {customers.filter(c => c.status === 'warm').length}
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-yellow-600" />
+              <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-yellow-600 self-end sm:self-auto" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Active Customers</p>
-                <p className="text-2xl font-bold text-green-600">
+          <CardContent className="p-2 sm:p-3 md:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
+              <div className="flex-1">
+                <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">Active</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold text-green-600">
                   {customers.filter(c => c.status === 'customer').length}
                 </p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-green-600 self-end sm:self-auto" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
         <div className="flex-1">
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -217,18 +217,100 @@ export default function Customers() {
         </Select>
       </div>
 
-      {/* Customer Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Customer Directory</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-          ) : (
-            <Table>
+      {/* Customer List */}
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      ) : (
+        <>
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {filteredCustomers.map((customer) => (
+              <Card 
+                key={customer.id} 
+                className="p-3 cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setLocation(`/customers/${customer.id}`)}
+                data-testid={`row-customer-${customer.id}`}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm">{customer.firstName} {customer.lastName}</h3>
+                    <p className="text-xs text-gray-500">Customer #{customer.id}</p>
+                  </div>
+                  <Badge className={`${getStatusColor(customer.status || 'prospect')} text-xs px-2 py-1 ml-2`}>
+                    {getStatusIcon(customer.status || 'prospect')}
+                    <span className="ml-1 capitalize">{customer.status || 'prospect'}</span>
+                  </Badge>
+                </div>
+                <div className="space-y-1 mb-3 text-xs">
+                  <div className="flex items-center gap-1">
+                    <Mail className="h-3 w-3 text-gray-400" />
+                    <span className="truncate">{customer.email}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Phone className="h-3 w-3 text-gray-400" />
+                    <span>{customer.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3 text-gray-400" />
+                    <span>{customer.city}, {customer.state}</span>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-1">
+                  <Link href={`/professional-deal-desk?customerId=${customer.id}`}>
+                    <Button variant="outline" size="sm" className="p-2" title="Create Deal" onClick={(e) => e.stopPropagation()}>
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </Link>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="p-2"
+                    title="Call"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(`tel:${customer.phone}`);
+                    }}
+                  >
+                    <Phone className="h-3 w-3" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="p-2"
+                    title="Email"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(`mailto:${customer.email}`);
+                    }}
+                  >
+                    <Mail className="h-3 w-3" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="p-2"
+                    title="Delete"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(customer.id);
+                    }}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          {/* Desktop Table */}
+          <Card className="hidden md:block">
+            <CardHeader>
+              <CardTitle>Customer Directory</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
@@ -327,10 +409,11 @@ export default function Customers() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+              </Table>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
