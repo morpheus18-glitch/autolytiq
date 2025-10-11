@@ -795,19 +795,19 @@ export default function ProfessionalDealDesk() {
           <TabsContent value="backend" className="space-y-6">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Package className="h-5 w-5" />
                     Backend Products
                   </CardTitle>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => addProduct('warranty')} data-testid="button-add-warranty">
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" onClick={() => addProduct('warranty')} data-testid="button-add-warranty" className="whitespace-nowrap">
                       <Plus className="h-4 w-4 mr-1" /> Warranty
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => addProduct('gap')} data-testid="button-add-gap">
+                    <Button size="sm" variant="outline" onClick={() => addProduct('gap')} data-testid="button-add-gap" className="whitespace-nowrap">
                       <Plus className="h-4 w-4 mr-1" /> GAP
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => addProduct('maintenance')} data-testid="button-add-maintenance">
+                    <Button size="sm" variant="outline" onClick={() => addProduct('maintenance')} data-testid="button-add-maintenance" className="whitespace-nowrap">
                       <Plus className="h-4 w-4 mr-1" /> Maintenance
                     </Button>
                   </div>
@@ -941,28 +941,98 @@ export default function ProfessionalDealDesk() {
 
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Tax & Fee Breakdown</CardTitle>
+                    <CardTitle className="text-lg">Payment Breakdown</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {/* Vehicle & Backend Products */}
                     <div>
-                      <p className="text-sm font-medium mb-2">Taxes</p>
+                      <p className="text-sm font-medium mb-2 text-gray-900 dark:text-white">Vehicle & Products</p>
+                      <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        <span>Vehicle Sale Price</span>
+                        <span className="font-medium">${salePrice.toLocaleString()}</span>
+                      </div>
+                      {products.length > 0 && (
+                        <>
+                          {products.map((product, idx) => (
+                            <div key={idx} className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1 ml-4">
+                              <span>• {product.productName}</span>
+                              <span>${product.retailPrice.toLocaleString()}</span>
+                            </div>
+                          ))}
+                          <div className="flex justify-between text-sm font-medium text-gray-700 dark:text-gray-300 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                            <span>Subtotal (with backend)</span>
+                            <span>${(salePrice + totalBackendProducts).toLocaleString()}</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    
+                    <Separator />
+                    
+                    {/* Taxes */}
+                    <div>
+                      <p className="text-sm font-medium mb-2 text-gray-900 dark:text-white">Taxes</p>
                       {calc.calculation.taxes.lineItems.map((tax, idx) => (
                         <div key={idx} className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
-                          <span>{tax.label}</span>
+                          <span>{tax.label} ({(tax.rate * 100).toFixed(2)}%)</span>
                           <span>${tax.amount.toLocaleString()}</span>
                         </div>
                       ))}
+                      <div className="flex justify-between text-sm font-medium text-gray-700 dark:text-gray-300 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <span>Total Tax</span>
+                        <span>${calc.calculation.taxes.totalTax.toLocaleString()}</span>
+                      </div>
                     </div>
+                    
                     <Separator />
+                    
+                    {/* Fees */}
                     <div>
-                      <p className="text-sm font-medium mb-2">Fees</p>
+                      <p className="text-sm font-medium mb-2 text-gray-900 dark:text-white">Fees</p>
                       {calc.calculation.fees.lineItems.map((fee, idx) => (
                         <div key={idx} className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
                           <span>{fee.label}</span>
                           <span>${fee.amount.toLocaleString()}</span>
                         </div>
                       ))}
+                      <div className="flex justify-between text-sm font-medium text-gray-700 dark:text-gray-300 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <span>Total Fees</span>
+                        <span>${calc.calculation.fees.nontaxFees.toLocaleString()}</span>
+                      </div>
                     </div>
+                    
+                    <Separator />
+                    
+                    {/* Finance Calculation */}
+                    {monthlyPayment > 0 && (
+                      <div>
+                        <p className="text-sm font-medium mb-2 text-gray-900 dark:text-white">Finance Details</p>
+                        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                          <span>Amount Financed</span>
+                          <span>${(calc.calculation.totals.grandTotal - netTrade - cashDown).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                          <span>Term</span>
+                          <span>{term} months</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                          <span>APR</span>
+                          <span>{apr}%</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                          <span>Total Finance Charge</span>
+                          <span>${((monthlyPayment * term) - (calc.calculation.totals.grandTotal - netTrade - cashDown)).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                          <span>Total of Payments</span>
+                          <span>${(monthlyPayment * term).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between font-bold text-lg text-blue-600 dark:text-blue-400 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                          <span>Monthly Payment</span>
+                          <span>${monthlyPayment.toLocaleString()}/mo</span>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
