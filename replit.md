@@ -35,8 +35,8 @@ Preferred communication style: Simple, everyday language.
 - **Customer Management**: CRM functionalities including lifecycle tracking and behavioral analytics.
 - **Analytics**: Performance metrics, data visualization, and comprehensive reporting.
 - **Competitive Pricing**: ML-powered analysis, market trends, and automated merchandising.
-- **Pixel Tracking**: Customer behavior and visitor insights for online journey mapping.
-- **Deal Desk**: Production-ready desking with:
+- **Pixel Tracking**: Customer behavior and visitor insights for online journey mapping across all customer touchpoints.
+- **Professional Deal Desk** (single unified page at /professional-deal-desk): Production-ready desking with:
   - **Professional Deal Desk**: Full-featured desking tool (not calculator-only) with:
     - Vehicle/customer selection from inventory/CRM with auto-populate
     - Monthly payment calculator with APR (6.99%) and term selection (36-84 months)  
