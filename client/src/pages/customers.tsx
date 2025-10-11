@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,6 +33,7 @@ export default function Customers() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { trackInteraction } = usePixelTracker();
+  const [, setLocation] = useLocation();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -240,7 +241,12 @@ export default function Customers() {
               </TableHeader>
               <TableBody>
                 {filteredCustomers.map((customer) => (
-                  <TableRow key={customer.id}>
+                  <TableRow 
+                    key={customer.id}
+                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                    onClick={() => setLocation(`/customers/${customer.id}`)}
+                    data-testid={`row-customer-${customer.id}`}
+                  >
                     <TableCell>
                       <div className="font-medium">
                         {customer.firstName} {customer.lastName}
@@ -276,20 +282,43 @@ export default function Customers() {
                     <TableCell>
                       <span className="text-sm capitalize">{customer.leadSource || 'website'}</span>
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-1">
-                        <Link href={`/customers/${customer.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
+                        <Link href={`/professional-deal-desk?customerId=${customer.id}`}>
+                          <Button variant="ghost" size="sm" title="Create Deal" data-testid={`button-deal-${customer.id}`}>
+                            <Plus className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Button variant="ghost" size="sm">
-                          <Edit className="h-4 w-4" />
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          title="Call"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`tel:${customer.phone}`);
+                          }}
+                        >
+                          <Phone className="h-4 w-4" />
                         </Button>
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          onClick={() => handleDelete(customer.id)}
+                          title="Email"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`mailto:${customer.email}`);
+                          }}
+                        >
+                          <Mail className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          title="Delete"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(customer.id);
+                          }}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

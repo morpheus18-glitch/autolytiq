@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams } from 'wouter';
+import { useParams, useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,12 +21,15 @@ import {
   Eye,
   TrendingUp,
   MapPin,
-  User
+  User,
+  Calculator,
+  Share2
 } from 'lucide-react';
 import type { Vehicle } from '@shared/schema';
 
 export default function InventoryDetail() {
   const { id } = useParams();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { trackInteraction } = usePixelTracker();
@@ -119,11 +122,22 @@ export default function InventoryDetail() {
         </>
       ) : (
         <>
+          <Button 
+            variant="default" 
+            onClick={() => {
+              trackInteraction('button_click', { action: 'create_deal', vehicleId: id });
+              setLocation(`/professional-deal-desk?vehicleId=${id}`);
+            }}
+            data-testid="button-create-deal"
+          >
+            <Calculator className="w-4 h-4 mr-2" />
+            Create Deal
+          </Button>
           <Button variant="outline" onClick={() => trackInteraction('button_click', { action: 'view_pricing', vehicleId: id })}>
             <TrendingUp className="w-4 h-4 mr-2" />
-            Pricing Analysis
+            Pricing
           </Button>
-          <Button onClick={() => setIsEditing(true)}>
+          <Button variant="outline" onClick={() => setIsEditing(true)}>
             <Edit className="w-4 h-4 mr-2" />
             Edit
           </Button>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -543,14 +543,19 @@ export default function ProfessionalDealDesk() {
                   </div>
                   
                   {selectedVehicle && (
-                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                        {selectedVehicle.year} {selectedVehicle.make} {selectedVehicle.model}
-                      </p>
-                      <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                        VIN: {selectedVehicle.vin} | Stock: {selectedVehicle.stockNo}
-                      </p>
-                    </div>
+                    <Link href={`/inventory/${selectedVehicle.id}`}>
+                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                          {selectedVehicle.year} {selectedVehicle.make} {selectedVehicle.model}
+                        </p>
+                        <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                          VIN: {selectedVehicle.vin} | Stock: {selectedVehicle.stockNo}
+                        </p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium">
+                          Click to view vehicle details →
+                        </p>
+                      </div>
+                    </Link>
                   )}
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -604,14 +609,19 @@ export default function ProfessionalDealDesk() {
                   </div>
                   
                   {selectedCustomer && (
-                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                        {selectedCustomer.firstName} {selectedCustomer.lastName}
-                      </p>
-                      <p className="text-xs text-green-700 dark:text-green-300 mt-1">
-                        {selectedCustomer.email} | {selectedCustomer.phone}
-                      </p>
-                    </div>
+                    <Link href={`/customers/${selectedCustomer.id}`}>
+                      <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
+                        <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                          {selectedCustomer.firstName} {selectedCustomer.lastName}
+                        </p>
+                        <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+                          {selectedCustomer.email} | {selectedCustomer.phone}
+                        </p>
+                        <p className="text-xs text-green-600 dark:text-green-400 mt-1 font-medium">
+                          Click to view customer details →
+                        </p>
+                      </div>
+                    </Link>
                   )}
                   
                   <div>
