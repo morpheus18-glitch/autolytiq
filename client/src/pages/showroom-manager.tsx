@@ -92,13 +92,15 @@ export default function ShowroomManager() {
     trackInteraction('showroom_page_view', 'showroom-manager-page');
   }, [trackInteraction]);
 
-  // Initialize local sessions from API data or mock data
+  // Initialize local sessions from API data or mock data (only once on mount)
   useEffect(() => {
-    if (sessions && sessions.length > 0) {
-      setLocalSessions(sessions);
-    } else if (localSessions.length === 0) {
-      // Only set mock data if we don't have local sessions yet
-      setLocalSessions([
+    // Only initialize if localSessions is empty
+    if (localSessions.length === 0) {
+      if (sessions && sessions.length > 0) {
+        setLocalSessions(sessions);
+      } else {
+        // Set mock data if no API data available
+        setLocalSessions([
     {
       id: 'session-1',
       customerId: 1,
