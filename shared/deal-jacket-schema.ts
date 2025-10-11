@@ -235,11 +235,159 @@ export const dealProductsRelations = relations(dealProducts, ({ one }) => ({
   }),
 }));
 
+// Store Lenders - Dealer-specific lender configurations
+export const storeLenders = pgTable("store_lenders", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  storeId: uuid("store_id").references(() => stores.id).notNull(),
+  lenderName: varchar("lender_name", { length: 255 }).notNull(),
+  lenderCode: varchar("lender_code", { length: 50 }),
+  isActive: boolean("is_active").default(true),
+  isPreferred: boolean("is_preferred").default(false),
+  creditTiers: jsonb("credit_tiers").$type<Array<{
+    tier: string; // A+, A, B, C, D
+    minScore: number;
+    maxScore: number;
+    baseRate: number;
+    maxLTV: number;
+    maxTerm: number;
+  }>>(),
+  contactInfo: jsonb("contact_info").$type<{
+    primaryContact: string;
+    phone: string;
+    email: string;
+    submissionUrl?: string;
+  }>(),
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("store_lenders_store_idx").on(table.storeId),
+]);
+
+// Store Product Presets - Dealer-specific backend product defaults
+export const storeProductPresets = pgTable("store_product_presets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  storeId: uuid("store_id").references(() => stores.id).notNull(),
+  productType: varchar("product_type", { length: 100 }).notNull(), // warranty, gap, maintenance, tire_wheel
+  productName: varchar("product_name", { length: 255 }).notNull(),
+  provider: varchar("provider", { length: 255 }),
+  defaultRetailPrice: decimal("default_retail_price", { precision: 10, scale: 2 }),
+  defaultCost: decimal("default_cost", { precision: 10, scale: 2 }),
+  isActive: boolean("is_active").default(true),
+  terms: jsonb("terms").$type<{
+    coverageMonths?: number;
+    mileageLimit?: number;
+    deductible?: number;
+    features?: string[];
+  }>(),
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("store_product_presets_store_idx").on(table.storeId),
+  index("store_product_presets_type_idx").on(table.productType),
+]);
+
+// Store Finance Settings - Dealer-specific finance configurations
+export const storeFinanceSettings = pgTable("store_finance_settings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  storeId: uuid("store_id").references(() => stores.id).notNull(),
+  defaultTerm: integer("default_term").default(72), // months
+  availableTerms: integer("available_terms").array().notNull().default([36, 48, 60, 72, 84]),
+  defaultAPR: decimal("default_apr", { precision: 5, scale: 3 }).default('6.990'),
+  minDownPaymentPercent: decimal("min_down_payment_percent", { precision: 5, scale: 2 }).default('0.00'),
+  maxLTV: decimal("max_ltv", { precision: 5, scale: 2 }).default('125.00'), // Loan to value %
+  financeReservePercent: decimal("finance_reserve_percent", { precision: 5, scale: 2 }).default('2.00'),
+  taxCalculation: jsonb("tax_calculation").$type<{
+    includeTrade: boolean;
+    includeBackend: boolean;
+    roundTax: boolean;
+  }>().default({ includeTrade: true, includeBackend: true, roundTax: true }),
+  fees: jsonb("fees").$type<{
+    docFee: number;
+    titleFee: number;
+    registrationFee: number;
+    electronFilingFee?: number;
+  }>(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("store_finance_settings_store_idx").on(table.storeId),
+]);
+
+// Store Page Settings - Page-specific UI/UX preferences
+export const storePageSettings = pgTable("store_page_settings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  storeId: uuid("store_id").references(() => stores.id).notNull(),
+  pageName: varchar("page_name", { length: 100 }).notNull(), // deal-desk, inventory, showroom-manager, etc.
+  settings: jsonb("settings").$type<{
+    defaultValues?: Record<string, any>;
+    visibleFields?: string[];
+    requiredFields?: string[];
+    layout?: string;
+    customizations?: Record<string, any>;
+  }>(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("store_page_settings_store_idx").on(table.storeId),
+  index("store_page_settings_page_idx").on(table.pageName),
+]);
+
+// Relations
+export const storeLendersRelations = relations(storeLenders, ({ one }) => ({
+  store: one(stores, {
+    fields: [storeLenders.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export const storeProductPresetsRelations = relations(storeProductPresets, ({ one }) => ({
+  store: one(stores, {
+    fields: [storeProductPresets.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export const storeFinanceSettingsRelations = relations(storeFinanceSettings, ({ one }) => ({
+  store: one(stores, {
+    fields: [storeFinanceSettings.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export const storePageSettingsRelations = relations(storePageSettings, ({ one }) => ({
+  store: one(stores, {
+    fields: [storePageSettings.storeId],
+    references: [stores.id],
+  }),
+}));
+
 // Zod Schemas
 export const insertStoreSchema = createInsertSchema(stores);
 export const selectStoreSchema = createSelectSchema(stores);
 export type InsertStore = z.infer<typeof insertStoreSchema>;
 export type Store = z.infer<typeof selectStoreSchema>;
+
+export const insertStoreLenderSchema = createInsertSchema(storeLenders).omit({ id: true, createdAt: true, updatedAt: true });
+export const selectStoreLenderSchema = createSelectSchema(storeLenders);
+export type InsertStoreLender = z.infer<typeof insertStoreLenderSchema>;
+export type StoreLender = z.infer<typeof selectStoreLenderSchema>;
+
+export const insertStoreProductPresetSchema = createInsertSchema(storeProductPresets).omit({ id: true, createdAt: true, updatedAt: true });
+export const selectStoreProductPresetSchema = createSelectSchema(storeProductPresets);
+export type InsertStoreProductPreset = z.infer<typeof insertStoreProductPresetSchema>;
+export type StoreProductPreset = z.infer<typeof selectStoreProductPresetSchema>;
+
+export const insertStoreFinanceSettingsSchema = createInsertSchema(storeFinanceSettings).omit({ id: true, createdAt: true, updatedAt: true });
+export const selectStoreFinanceSettingsSchema = createSelectSchema(storeFinanceSettings);
+export type InsertStoreFinanceSettings = z.infer<typeof insertStoreFinanceSettingsSchema>;
+export type StoreFinanceSettings = z.infer<typeof selectStoreFinanceSettingsSchema>;
+
+export const insertStorePageSettingsSchema = createInsertSchema(storePageSettings).omit({ id: true, createdAt: true, updatedAt: true });
+export const selectStorePageSettingsSchema = createSelectSchema(storePageSettings);
+export type InsertStorePageSettings = z.infer<typeof insertStorePageSettingsSchema>;
+export type StorePageSettings = z.infer<typeof selectStorePageSettingsSchema>;
 
 export const insertDealJacketSchema = createInsertSchema(dealJackets);
 export const selectDealJacketSchema = createSelectSchema(dealJackets);
