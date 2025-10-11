@@ -1,0 +1,230 @@
+{
+  "groups": [
+    {
+      "base": "collapsible-sidebar.tsx",
+      "rows": [
+        {
+          "file": "client/src/components/collapsible-sidebar.tsx",
+          "score": 5.492854020704703,
+          "indegree": 0,
+          "hrefs": 0,
+          "ageDays": 81.12862762731534,
+          "dupePenalty": 0,
+          "status": "REVIEW"
+        }
+      ]
+    },
+    {
+      "base": "routes.ts",
+      "rows": [
+        {
+          "file": "server/routes.ts",
+          "score": 11.48597947273664,
+          "indegree": 1,
+          "hrefs": 0,
+          "ageDays": 0.2523694907404758,
+          "dupePenalty": 0,
+          "status": "FIX"
+        }
+      ]
+    },
+    {
+      "base": "storage.ts",
+      "rows": [
+        {
+          "file": "server/storage.ts",
+          "score": 23.919259995498958,
+          "indegree": 12,
+          "hrefs": 0,
+          "ageDays": 73.45332008101875,
+          "dupePenalty": 0,
+          "status": "KEEP"
+        }
+      ]
+    },
+    {
+      "base": "schema.ts",
+      "rows": [
+        {
+          "file": "shared/schema.ts",
+          "score": 11.452500604423905,
+          "indegree": 1,
+          "hrefs": 0,
+          "ageDays": 0.8549891203697081,
+          "dupePenalty": 0,
+          "status": "FIX"
+        }
+      ]
+    },
+    {
+      "base": "fi-dashboard.tsx",
+      "rows": [
+        {
+          "file": "client/src/pages/fi-dashboard.tsx",
+          "score": 9.490033963477323,
+          "indegree": 1,
+          "hrefs": 0,
+          "ageDays": 0.17938865740818005,
+          "dupePenalty": 1,
+          "status": "FIX"
+        },
+        {
+          "file": "client/src/components/fi/fi-dashboard.tsx",
+          "score": 4.96634673804014,
+          "indegree": 1,
+          "hrefs": 0,
+          "ageDays": 81.60575871527747,
+          "dupePenalty": 1,
+          "status": "REVIEW"
+        }
+      ]
+    },
+    {
+      "base": "reports.tsx",
+      "rows": [
+        {
+          "file": "client/src/pages/reports.tsx",
+          "score": 2.756033711419766,
+          "indegree": 1,
+          "hrefs": 0,
+          "ageDays": 85.3913931944442,
+          "dupePenalty": 2,
+          "status": "RETIRE"
+        },
+        {
+          "file": "client/src/pages/service/reports.tsx",
+          "score": 2.7394707799640017,
+          "indegree": 1,
+          "hrefs": 0,
+          "ageDays": 85.68952596064796,
+          "dupePenalty": 2,
+          "status": "RETIRE"
+        },
+        {
+          "file": "client/src/pages/accounting/reports.tsx",
+          "score": 2.739470277777853,
+          "indegree": 1,
+          "hrefs": 0,
+          "ageDays": 85.68953499999863,
+          "dupePenalty": 2,
+          "status": "RETIRE"
+        }
+      ]
+    },
+    {
+      "base": "system-health.tsx",
+      "rows": [
+        {
+          "file": "client/src/pages/system-health.tsx",
+          "score": 5.051628341049324,
+          "indegree": 1,
+          "hrefs": 0,
+          "ageDays": 80.07068986111217,
+          "dupePenalty": 1,
+          "status": "REVIEW"
+        },
+        {
+          "file": "client/src/components/enterprise/system-health.tsx",
+          "score": 3.5083756397891435,
+          "indegree": 0,
+          "hrefs": 0,
+          "ageDays": 80.84923848379542,
+          "dupePenalty": 1,
+          "status": "RETIRE"
+        }
+      ]
+    },
+    {
+      "base": "advanced-search.tsx",
+      "rows": [
+        {
+          "file": "client/src/components/search/advanced-search.tsx",
+          "score": 5.420190715663626,
+          "indegree": 1,
+          "hrefs": 0,
+          "ageDays": 73.43656711805474,
+          "dupePenalty": 1,
+          "status": "REVIEW"
+        },
+        {
+          "file": "client/src/components/advanced-search.tsx",
+          "score": 4.743950675797376,
+          "indegree": 1,
+          "hrefs": 0,
+          "ageDays": 85.60888783564722,
+          "dupePenalty": 1,
+          "status": "REVIEW"
+        }
+      ]
+    },
+    {
+      "base": "inventory-table.tsx",
+      "rows": [
+        {
+          "file": "client/src/components/inventory-table.tsx",
+          "score": 3.465576197273661,
+          "indegree": 0,
+          "hrefs": 0,
+          "ageDays": 81.6196284490741,
+          "dupePenalty": 1,
+          "status": "RETIRE"
+        },
+        {
+          "file": "client/src/components/inventory/inventory-table.tsx",
+          "score": 3.2448343621399784,
+          "indegree": 0,
+          "hrefs": 0,
+          "ageDays": 85.59298148148038,
+          "dupePenalty": 1,
+          "status": "RETIRE"
+        }
+      ]
+    },
+    {
+      "base": "mobile-responsive-layout.tsx",
+      "rows": [
+        {
+          "file": "client/src/components/layout/mobile-responsive-layout.tsx",
+          "score": 15.990213252314874,
+          "indegree": 2,
+          "hrefs": 5,
+          "ageDays": 0.17616145833222954,
+          "dupePenalty": 1,
+          "status": "FIX"
+        },
+        {
+          "file": "client/src/components/mobile-responsive-layout.tsx",
+          "score": 7.677576429398094,
+          "indegree": 0,
+          "hrefs": 0,
+          "ageDays": 5.803624270834304,
+          "dupePenalty": 1,
+          "status": "REVIEW"
+        }
+      ]
+    },
+    {
+      "base": "sidebar.tsx",
+      "rows": [
+        {
+          "file": "client/src/components/sidebar.tsx",
+          "score": 7.990213213091556,
+          "indegree": 0,
+          "hrefs": 0,
+          "ageDays": 0.17616216435200638,
+          "dupePenalty": 1,
+          "status": "REVIEW"
+        },
+        {
+          "file": "client/src/components/ui/sidebar.tsx",
+          "score": 3.216178620756132,
+          "indegree": 0,
+          "hrefs": 0,
+          "ageDays": 86.10878482638962,
+          "dupePenalty": 1,
+          "status": "RETIRE"
+        }
+      ]
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { SearchFilters } from "@/components/advanced-search";
+import { SearchFilters } from "@/components/search/advanced-search";
 
 export interface UseAdvancedSearchOptions<T> {
   data: T[];
