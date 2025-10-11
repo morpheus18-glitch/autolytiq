@@ -257,3 +257,20 @@ Client UI ← JSON Response ← Route Handler ← Storage Method ← Query Resul
 - **Canonical Files Preserved**: `sidebar-manager.tsx`, `collapsible-sidebar.tsx`, `navigation-config.tsx`, `enhanced-work-deal.tsx`, `deal-desk.tsx`
 - **Impact**: Cleaner codebase architecture, reduced confusion for AI development
 - **Migration**: All imports now reference canonical files only
+
+### [October 11, 2025] - Major Codebase Consolidation
+- **What Changed**: Removed 17 duplicate pages and components causing code fragmentation
+- **Files Removed**: 
+  - **Pages (7)**: `deal-desk-production.tsx`, `deal-desk-unified.tsx`, `enhanced-customers.tsx`, `enhanced-inventory.tsx`, `enhanced-sales.tsx`, `showroom-manager-clean.tsx`, `sales-management.tsx`
+  - **Components (10)**: `top-nav.tsx`, `top-navbar.tsx`, `sidebar-navigation.tsx`, `sidebar-manager.tsx`, `enhanced-work-deal.tsx`, `enterprise-header.tsx`, `quick-deal-creator.tsx`, `quote-worksheet.tsx`, `unified-dashboard.tsx`, `navigation-config.tsx`
+- **Canonical Files Preserved**: 
+  - **Deal Desk**: `professional-deal-desk.tsx` (single source of truth)
+  - **Navigation**: `top-navigation.tsx` (single source of truth)
+  - **Customers**: `customers.tsx` (single source of truth)
+- **Routes Consolidated**: All deal desk routes (`/deals`, `/professional-deal-desk`, `/finance/structuring`, `/deals-list`) now use `professional-deal-desk.tsx`
+- **Impact**: 
+  - Reduced from 43 to 36 active pages
+  - Reduced from 123 to 113 components
+  - Zero LSP errors
+  - Cleaner routing and single source of truth for each feature
+- **Migration**: All routes updated in App.tsx to reference canonical files only
