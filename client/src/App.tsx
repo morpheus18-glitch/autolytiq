@@ -26,7 +26,6 @@ import MLEnterpriseDashboard from "@/pages/ml-enterprise-dashboard";
 import CausalMLOpsDashboard from "@/pages/causal-mlops-dashboard";
 import ShowroomManager from "@/pages/showroom-manager";
 // Deal Pages
-import DealDeskProduction from "@/pages/deal-desk-production";
 import ProfessionalDealDesk from "@/pages/professional-deal-desk";
 import InventoryDetail from "@/pages/inventory-detail";
 // Admin Pages
@@ -128,7 +127,7 @@ function Router() {
             <Route path="/leads" component={Sales} />
             <Route path="/customers" component={Customers} />
             <Route path="/customers/:id" component={CustomerDetail} />
-            <Route path="/deals" component={DealDeskProduction} />
+            <Route path="/deals" component={ProfessionalDealDesk} />
             <Route path="/showroom" component={ShowroomManager} />
             <Route path="/reports" component={Reports} />
             <Route path="/sales-mobile" component={Sales} />
@@ -137,11 +136,12 @@ function Router() {
             <Route path="/competitive-pricing" component={CompetitivePricing} />
             <Route path="/market-leads" component={MarketLeads} />
             <Route path="/automotive-data-center" component={AutomotiveDataCenter} />
-            <Route path="/deals-list" component={DealDeskProduction} />
+            <Route path="/deals-list" component={ProfessionalDealDesk} />
+            <Route path="/professional-deal-desk" component={ProfessionalDealDesk} />
 
             {/* Finance Routes */}
             <Route path="/finance" component={FiDashboardPage} />
-            <Route path="/finance/structuring" component={DealDeskProduction} />
+            <Route path="/finance/structuring" component={ProfessionalDealDesk} />
             <Route path="/finance/lenders" component={() => <LenderManagement />} />
             <Route path="/finance/rates" component={() => <RateSheets />} />
             <Route path="/finance/compliance" component={ComplianceManager} />
