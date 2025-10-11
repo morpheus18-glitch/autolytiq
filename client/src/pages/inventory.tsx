@@ -322,14 +322,14 @@ export default function Inventory() {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col gap-3 md:gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">AutolytiQ - Inventory Management</h1>
-          <p className="text-gray-600">Manage your vehicle inventory with VIN decoding and pricing insights</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Inventory Management</h1>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Manage your vehicle inventory with VIN decoding and pricing insights</p>
         </div>
-        <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
               <Button className="w-full md:w-auto">
