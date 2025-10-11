@@ -135,6 +135,10 @@ export default function ProfessionalDealDesk() {
   // Backend products
   const [products, setProducts] = useState<BackendProduct[]>([]);
   
+  // Autosave state
+  const [autosaving, setAutosaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  
   // Fetch vehicles
   const { data: vehicles = [] } = useQuery<Vehicle[]>({
     queryKey: ['/api/vehicles'],
@@ -219,6 +223,18 @@ export default function ProfessionalDealDesk() {
     }
   }, [location, toast]);
 
+  // Debounced autosave - triggers 2 seconds after user stops editing
+  useEffect(() => {
+    if (!selectedCustomer || !salePrice) return;
+    
+    setAutosaving(true);
+    const timer = setTimeout(() => {
+      autosaveMutation.mutate();
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  }, [salePrice, vehicleCost, cashDown, rebates, tradeValue, tradePayoff, term, apr, products, dealType]);
+
   // Lookup jurisdiction when ZIP is entered
   useEffect(() => {
     if (customerZip.length === 5) {
@@ -254,7 +270,62 @@ export default function ProfessionalDealDesk() {
     }
   }, [customerZip, toast]);
   
-  // Save deal mutation
+  // Autosave mutation (saves draft)
+  const autosaveMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedCustomer) return null;
+      
+      const draftData: Partial<Deal> = {
+        dealNumber: dealId ? undefined : `DRAFT-${Date.now()}`,
+        status: 'draft',
+        vehicleId: vehicleId || undefined,
+        customerId: customerId || undefined,
+        buyerName: `${selectedCustomer.firstName} ${selectedCustomer.lastName}`,
+        dealType: dealType,
+        salePrice: salePrice,
+        cashDown: cashDown,
+        rebates: rebates,
+        tradeAllowance: tradeValue,
+        tradePayoff: tradePayoff,
+        salesTax: calc?.calculation.taxes.totalTax || 0,
+        docFee: calc?.calculation.fees.lineItems.find(f => f.code === 'DOC')?.amount || 0,
+        titleFee: calc?.calculation.fees.lineItems.find(f => f.code === 'TITLE')?.amount || 0,
+        registrationFee: calc?.calculation.fees.lineItems.find(f => f.code === 'REG')?.amount || 0,
+        financeBalance: calc?.calculation.totals.grandTotal || 0,
+        term: term,
+        rate: apr.toString(),
+        creditTier: creditTier,
+      };
+      
+      if (dealId) {
+        // Update existing deal
+        const response = await apiRequest(`/api/deals/${dealId}`, {
+          method: 'PATCH',
+          body: JSON.stringify(draftData)
+        });
+        return response.json();
+      } else {
+        // Create new draft deal
+        const response = await apiRequest('/api/deals', {
+          method: 'POST',
+          body: JSON.stringify(draftData)
+        });
+        const savedDeal = await response.json();
+        setDealId(savedDeal.id);
+        return savedDeal;
+      }
+    },
+    onSuccess: () => {
+      setLastSaved(new Date());
+      setAutosaving(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
+    },
+    onError: () => {
+      setAutosaving(false);
+    }
+  });
+
+  // Save deal mutation (final save)
   const saveDealMutation = useMutation({
     mutationFn: async () => {
       if (!calc || !selectedCustomer) {
@@ -365,6 +436,18 @@ export default function ProfessionalDealDesk() {
             {dealId && (
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Deal ID: {dealId}
+              </p>
+            )}
+            {/* Autosave status indicator */}
+            {autosaving && (
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Autosaving draft...
+              </p>
+            )}
+            {!autosaving && lastSaved && (
+              <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                ✓ Draft saved
               </p>
             )}
           </div>
