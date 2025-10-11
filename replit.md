@@ -37,9 +37,14 @@ Preferred communication style: Simple, everyday language.
 - **Competitive Pricing**: ML-powered analysis, market trends, and automated merchandising.
 - **Pixel Tracking**: Customer behavior and visitor insights for online journey mapping.
 - **Deal Desk**: Production-ready desking with:
-  - Mobile-optimized deal structuring interface
-  - Vehicle cost tracking with front-end profit calculation (sales price - cost)
-  - Back-end profit tracking (warranty + GAP + finance reserve)
+  - **Professional Deal Desk**: Full-featured desking tool (not calculator-only) with:
+    - Vehicle/customer selection from inventory/CRM with auto-populate
+    - Monthly payment calculator with APR (6.99%) and term selection (36-84 months)  
+    - Backend products (warranty, GAP, maintenance, tire/wheel) with retail/cost/profit tracking
+    - Accurate tax/payment calculations including all products (no double-counting)
+    - Deal persistence to database with product save via /api/deals/{id}/products
+    - Professional tabbed UI: Structure, Backend, Summary, Profit Analysis
+    - Mobile-optimized interface for showroom use
   - Trade-in tax credit support (tax on net-of-trade or full price by jurisdiction)
   - Negative equity handling (rolls into amount financed)
   - Jurisdiction-based tax and fee calculations
