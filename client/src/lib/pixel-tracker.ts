@@ -213,10 +213,11 @@ const setupInteractionTrackers = () => {
       });
     }
     
-    // Track form submissions
-    if (target.type === 'submit' || target.closest('[type="submit"]')) {
+    // Track form submissions (only if actually inside a form)
+    if ((target.type === 'submit' || target.closest('[type="submit"]')) && target.closest('form')) {
+      const form = target.closest('form');
       trackInteraction('form_submit', {
-        formId: target.closest('form')?.id || 'unknown_form',
+        formId: form?.id || 'unknown_form',
         elementId: target.id || target.className
       });
     }
