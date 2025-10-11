@@ -301,7 +301,15 @@ export default function CustomerDetail() {
                 ) : (
                   <div className="space-y-4">
                     {leads.map((lead) => (
-                      <div key={lead.id} className="border rounded-lg p-4">
+                      <div 
+                        key={lead.id} 
+                        className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                        onClick={() => {
+                          trackInteraction('button_click', { action: 'view_lead', leadId: lead.id });
+                          setLocation(`/leads/${lead.id}`);
+                        }}
+                        data-testid={`card-lead-${lead.id}`}
+                      >
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium">{lead.leadNumber}</h4>
                           <Badge variant="outline">{lead.status}</Badge>
@@ -330,7 +338,15 @@ export default function CustomerDetail() {
                 ) : (
                   <div className="space-y-4">
                     {sales.map((sale) => (
-                      <div key={sale.id} className="border rounded-lg p-4">
+                      <div 
+                        key={sale.id} 
+                        className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                        onClick={() => {
+                          trackInteraction('button_click', { action: 'view_sale', saleId: sale.id });
+                          setLocation(`/sales/${sale.id}`);
+                        }}
+                        data-testid={`card-sale-${sale.id}`}
+                      >
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium">Sale #{sale.id}</h4>
                           <Badge variant="default">${sale.finalPrice?.toLocaleString()}</Badge>

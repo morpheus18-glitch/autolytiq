@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { Link } from "wouter";
 import { 
   Target,
   TrendingUp,
@@ -374,43 +375,51 @@ export default function AIUnifiedDashboard() {
 
         {/* Quick Actions Dashboard */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="text-center">
+        <Card className="text-center" data-testid="card-revenue-forecast">
           <CardContent className="p-6">
             <DollarSign className="w-12 h-12 text-green-600 mx-auto mb-4" />
             <h3 className="font-semibold text-lg mb-2">Revenue Forecast</h3>
             <div className="text-2xl font-bold mb-2">${((sales.length * 45000) * 1.2).toLocaleString()}</div>
             <p className="text-sm text-gray-600 mb-4">Projected next month</p>
-            <Button size="sm" className="w-full">View Forecast</Button>
+            <Button size="sm" className="w-full" asChild>
+              <Link href="/analytics">View Forecast</Link>
+            </Button>
           </CardContent>
         </Card>
 
-        <Card className="text-center">
+        <Card className="text-center" data-testid="card-team-performance">
           <CardContent className="p-6">
             <Users className="w-12 h-12 text-blue-600 mx-auto mb-4" />
             <h3 className="font-semibold text-lg mb-2">Team Performance</h3>
             <div className="text-2xl font-bold mb-2">91%</div>
             <p className="text-sm text-gray-600 mb-4">Average efficiency</p>
-            <Button size="sm" className="w-full">Team Analytics</Button>
+            <Button size="sm" className="w-full" asChild>
+              <Link href="/sales">Team Analytics</Link>
+            </Button>
           </CardContent>
         </Card>
 
-        <Card className="text-center">
+        <Card className="text-center" data-testid="card-inventory-insights">
           <CardContent className="p-6">
             <Car className="w-12 h-12 text-purple-600 mx-auto mb-4" />
             <h3 className="font-semibold text-lg mb-2">Inventory Insights</h3>
             <div className="text-2xl font-bold mb-2">{Math.round((sales.length / Math.max(vehicles.length, 1)) * 100)}%</div>
             <p className="text-sm text-gray-600 mb-4">Turnover rate</p>
-            <Button size="sm" className="w-full">Optimize Stock</Button>
+            <Button size="sm" className="w-full" asChild>
+              <Link href="/inventory">Optimize Stock</Link>
+            </Button>
           </CardContent>
         </Card>
 
-        <Card className="text-center">
+        <Card className="text-center" data-testid="card-market-analysis">
           <CardContent className="p-6">
             <BarChart3 className="w-12 h-12 text-orange-600 mx-auto mb-4" />
             <h3 className="font-semibold text-lg mb-2">Market Analysis</h3>
             <div className="text-2xl font-bold mb-2">+12%</div>
             <p className="text-sm text-gray-600 mb-4">Market share growth</p>
-            <Button size="sm" className="w-full">Market Trends</Button>
+            <Button size="sm" className="w-full" asChild>
+              <Link href="/competitive-pricing">Market Trends</Link>
+            </Button>
           </CardContent>
         </Card>
         </div>

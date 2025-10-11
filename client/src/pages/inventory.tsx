@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -57,6 +57,7 @@ export default function Inventory() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { trackInteraction } = usePixelTracker();
+  const [, setLocation] = useLocation();
 
   // Enhanced search functionality
   const {
@@ -651,12 +652,12 @@ export default function Inventory() {
                   {filteredVehicles.map((vehicle: Vehicle) => (
                     <TableRow 
                       key={vehicle.id} 
-                      className="cursor-pointer hover:bg-gray-50 transition-colors"
+                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                       onClick={() => {
                         trackInteraction('vehicle_view', `vehicle-${vehicle.id}`, vehicle.id);
-                        setSelectedVehicle(vehicle);
-                        setIsModalOpen(true);
+                        setLocation(`/inventory/${vehicle.id}`);
                       }}
+                      data-testid={`row-vehicle-${vehicle.id}`}
                     >
                       <TableCell>
                         <div>
@@ -673,10 +674,20 @@ export default function Inventory() {
                         </Badge>
                       </TableCell>
                       <TableCell>{new Date(vehicle.createdAt).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <div className="flex gap-1">
+                          <Link href={`/professional-deal-desk?vehicleId=${vehicle.id}`}>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              title="Create Deal"
+                              data-testid={`button-deal-${vehicle.id}`}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </Link>
                           <Button 
-                            variant="outline" 
+                            variant="ghost" 
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -687,10 +698,26 @@ export default function Inventory() {
                           >
                             <TrendingUp className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditVehicle(vehicle);
+                            }}
+                            title="Edit"
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="sm" onClick={() => deleteVehicleMutation.mutate(vehicle.id)}>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteVehicleMutation.mutate(vehicle.id);
+                            }}
+                            title="Delete"
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
