@@ -141,6 +141,54 @@ export default function ProfessionalDealDesk() {
   const [autosaving, setAutosaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
+  // TODO: Proper multi-tenant implementation - fetch user's storeId from session/auth
+  // For now, fetch the first available store from the database
+  const { data: stores = [] } = useQuery({
+    queryKey: ['/api/stores'],
+    queryFn: async () => {
+      const response = await fetch('/api/stores');
+      if (!response.ok) return [];
+      return response.json();
+    }
+  });
+  
+  // Use first store for now (will be replaced with user's authenticated store)
+  const storeId = stores[0]?.id || 'store_default';
+  
+  // Fetch dealer product presets
+  const { data: productPresets = [] } = useQuery({
+    queryKey: ['/api/dealer-config/products', storeId],
+    queryFn: async () => {
+      const response = await fetch(`/api/dealer-config/products/${storeId}`);
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!storeId
+  });
+  
+  // Fetch dealer finance settings
+  const { data: financeSettings } = useQuery({
+    queryKey: ['/api/dealer-config/finance', storeId],
+    queryFn: async () => {
+      const response = await fetch(`/api/dealer-config/finance/${storeId}`);
+      if (!response.ok) return null;
+      return response.json();
+    },
+    enabled: !!storeId
+  });
+  
+  // Set default finance values from dealer settings
+  useEffect(() => {
+    if (financeSettings && !dealId) { // Only apply defaults for new deals
+      if (financeSettings.defaultAPR) {
+        setApr(parseFloat(financeSettings.defaultAPR));
+      }
+      if (financeSettings.defaultTerm) {
+        setTerm(financeSettings.defaultTerm);
+      }
+    }
+  }, [financeSettings, dealId]);
+  
   // Fetch vehicles
   const { data: vehicles = [] } = useQuery<Vehicle[]>({
     queryKey: ['/api/vehicles'],
@@ -410,15 +458,28 @@ export default function ProfessionalDealDesk() {
   
   // Add product
   const addProduct = (category: 'warranty' | 'gap' | 'maintenance' | 'tire_wheel') => {
+    // Find dealer preset for this product type
+    const preset = productPresets.find((p: any) => p.productType === category);
+    
     const newProduct: BackendProduct = {
-      productName: category === 'warranty' ? 'Extended Warranty' : 
-                   category === 'gap' ? 'GAP Insurance' :
-                   category === 'maintenance' ? 'Maintenance Plan' : 'Tire & Wheel',
-      retailPrice: 0,
-      cost: 0,
+      productName: preset?.productName || (
+        category === 'warranty' ? 'Extended Warranty' : 
+        category === 'gap' ? 'GAP Insurance' :
+        category === 'maintenance' ? 'Maintenance Plan' : 'Tire & Wheel'
+      ),
+      retailPrice: preset?.defaultRetailPrice ? parseFloat(preset.defaultRetailPrice) : 0,
+      cost: preset?.defaultCost ? parseFloat(preset.defaultCost) : 0,
       category: category,
     };
     setProducts([...products, newProduct]);
+    
+    // Show toast when using dealer presets
+    if (preset) {
+      toast({
+        title: "Using Dealer Preset",
+        description: `${newProduct.productName}: $${newProduct.retailPrice.toLocaleString()} retail, $${newProduct.cost.toLocaleString()} cost`,
+      });
+    }
   };
   
   const updateProduct = (index: number, field: 'retailPrice' | 'cost', value: number) => {
@@ -734,11 +795,9 @@ export default function ProfessionalDealDesk() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="36">36 months</SelectItem>
-                          <SelectItem value="48">48 months</SelectItem>
-                          <SelectItem value="60">60 months</SelectItem>
-                          <SelectItem value="72">72 months</SelectItem>
-                          <SelectItem value="84">84 months</SelectItem>
+                          {(financeSettings?.availableTerms || [36, 48, 60, 72, 84]).map((t: number) => (
+                            <SelectItem key={t} value={t.toString()}>{t} months</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>

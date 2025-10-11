@@ -21,6 +21,36 @@ When referring to layout, format, or styling, use the term **"Standard"** which 
 
 ## Recent Changes
 
+### Multi-Tenant Dealer Configuration (October 2025)
+- **Dealer Configuration System**: Added comprehensive dealer management at `/admin/dealer-config` with 8 operational tabs:
+  - General Settings: Store info, business hours, messaging templates
+  - Lead Management: Lead sources, assignment rules, scoring, follow-up automation
+  - Finance & Products: Lenders (credit tiers A+ to D with rates/terms), backend products (warranty/GAP/maintenance with cost/retail/profit), finance defaults (APR, terms, fees)
+  - Tax Configuration: Jurisdiction-based tax rules, fee structures, trade credit rules
+  - User Management: Roles, permissions, performance tracking
+  - Inventory Settings: Stock number formats, pricing rules, photo requirements
+  - Service Settings: Labor rates, job codes, service packages
+  - Parts Settings: Parts catalog, pricing matrices, vendor management
+- **Database Schema**: Extended multi-tenant architecture with 4 new tables in deal-jacket-schema.ts:
+  - `store_lenders`: Credit tiers (A+ through D) with rates, LTV limits, max terms per tier
+  - `store_product_presets`: Backend products (warranty, GAP, maintenance, tire/wheel) with default retail/cost/terms
+  - `store_finance_settings`: Default APR (6.99%), available terms (36-84mo), fees (doc/title/registration/filing), tax calculation rules
+  - `store_page_settings`: Page-specific UI/UX preferences and field configurations
+- **API Implementation**: Backend routes with proper Zod validation and PostgreSQL persistence:
+  - GET/POST `/api/dealer-config/lenders/:storeId` - Fetch and create lender configurations
+  - GET/POST `/api/dealer-config/products/:storeId` - Fetch and create product presets
+  - GET/POST `/api/dealer-config/finance/:storeId` - Fetch and create finance settings  
+  - GET/POST `/api/dealer-config/page-settings/:storeId/:pageName` - Fetch and create page-specific settings
+- **Integration Ready**: System designed to provide dealer-specific defaults to professional deal desk, inventory pricing, lead management, and all operational pages
+- **Deal Desk Integration**: Professional deal desk loads dealer product presets (warranty/GAP/maintenance with retail/cost), finance settings (default APR/terms), and dynamically populates backend products with dealer-specific defaults
+- **⚠️ Multi-Tenant Incomplete**: Currently uses first available store from database as temporary solution. **Requires proper implementation**:
+  1. Add `storeId` field to users table in shared/schema.ts
+  2. Update auth system to include user's store in session (server/auth.ts)
+  3. Expose storeId via `/api/auth/user` endpoint  
+  4. Update deal desk to use authenticated user's storeId instead of fetching from /api/stores
+  5. Block all dealer config queries until legitimate storeId is available
+  - **Security Risk**: Current implementation allows potential cross-dealership data exposure
+
 ### Dashboard & Component Cleanup (October 2025)
 - **Consolidated Dashboards**: Removed 7 duplicate ML/enterprise dashboard pages, keeping only the main production dashboard at `/` with tabbed interface (Production, Overview, Intelligence, Lifecycle, Workflows, Reports, Health)
 - **Cleaned Routes**: Removed duplicate routes for ml-dashboard, ml-control, ml-enterprise, mlops-dashboard, causal-mlops
