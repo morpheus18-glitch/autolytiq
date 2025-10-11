@@ -299,17 +299,23 @@ export default function TopNavigation() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <User className="w-4 h-4 mr-2" />
-                  Profile Settings
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/user-profile" className="flex items-center cursor-pointer">
+                    <User className="w-4 h-4 mr-2" />
+                    Profile Settings
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Shield className="w-4 h-4 mr-2" />
-                  Security
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/security-center" className="flex items-center cursor-pointer">
+                    <Shield className="w-4 h-4 mr-2" />
+                    Security
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Preferences
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/system-settings" className="flex items-center cursor-pointer">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Preferences
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
