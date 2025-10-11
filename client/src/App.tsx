@@ -19,11 +19,7 @@ import Analytics from "@/pages/analytics";
 import Settings from "@/pages/settings";
 import CompetitivePricing from "@/pages/competitive-pricing";
 import Reports from "@/pages/reports";
-import MLDashboard from "@/pages/ml-dashboard";
-import MLDashboardControl from "@/pages/ml-dashboard-control";
 import MLDeveloperAdmin from "@/pages/ml-developer-admin";
-import MLEnterpriseDashboard from "@/pages/ml-enterprise-dashboard";
-import CausalMLOpsDashboard from "@/pages/causal-mlops-dashboard";
 import ShowroomManager from "@/pages/showroom-manager";
 // Deal Pages
 import ProfessionalDealDesk from "@/pages/professional-deal-desk";
@@ -75,7 +71,6 @@ import MarketLeads from "@/pages/market-leads";
 import MLModelComparison from "@/pages/ml-model-comparison";
 import AutomotiveDataCenter from "@/pages/automotive-data-center";
 import LotManagement from "@/pages/lot-management";
-import MLOpsDashboard from "@/pages/mlops-dashboard";
 // Professional deal desk removed - using unified deal desk
 import ComplianceManager from "@/pages/finance/compliance-manager";
 import FinanceReports from "@/pages/finance/finance-reports";
@@ -186,15 +181,8 @@ function Router() {
             <Route path="/deal-desk" component={ProfessionalDealDesk} />
             <Route path="/deal-working" component={ProfessionalDealDesk} />
             <Route path="/showroom-manager" component={ShowroomManager} />
-            <Route path="/ml-dashboard" component={MLDashboard} />
-            <Route path="/ml-control" component={MLDashboardControl} />
             <Route path="/ml-developer-admin" component={MLDeveloperAdmin} />
-            <Route path="/ml-enterprise" component={MLEnterpriseDashboard} />
-            <Route path="/ml-enterprise-dashboard" component={lazy(() => import("@/pages/ml-enterprise-dashboard-fixed"))} />
             <Route path="/ml-model-comparison" component={MLModelComparison} />
-            <Route path="/mlops-dashboard" component={MLOpsDashboard} />
-            <Route path="/causal-mlops" component={CausalMLOpsDashboard} />
-            <Route path="/fi-dashboard" component={FiDashboardPage} />
             <Route path="/fi-configuration" component={FiConfigurationPage} />
             <Route path="/settings" component={Settings} />
             <Route path="/auth-test" component={AuthTest} />
