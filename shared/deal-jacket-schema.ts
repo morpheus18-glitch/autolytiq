@@ -66,6 +66,8 @@ export const dealStructures = pgTable("deal_structures", {
   dealJacketId: uuid("deal_jacket_id").references(() => dealJackets.id).notNull(),
   saleVehicleId: integer("sale_vehicle_id").references(() => vehicles.id),
   tradeVehicleId: integer("trade_vehicle_id").references(() => vehicles.id),
+  
+  // Legacy pricing fields (kept for compatibility)
   salePrice: decimal("sale_price", { precision: 10, scale: 2 }),
   tradeValue: decimal("trade_value", { precision: 10, scale: 2 }),
   downPayment: decimal("down_payment", { precision: 10, scale: 2 }),
@@ -73,6 +75,52 @@ export const dealStructures = pgTable("deal_structures", {
   apr: decimal("apr", { precision: 5, scale: 3 }),
   termMonths: integer("term_months"),
   monthlyPayment: decimal("monthly_payment", { precision: 10, scale: 2 }),
+  
+  // Vehicle/Desk fields (cents-based for precision)
+  msrpCents: integer("msrp_cents"),
+  salePriceCents: integer("sale_price_cents"),
+  vehicleCostCents: integer("vehicle_cost_cents"),
+  packCents: integer("pack_cents"),
+  holdbackCents: integer("holdback_cents"),
+  rebatesCents: integer("rebates_cents"),
+  docFeeCents: integer("doc_fee_cents"),
+  deliveryFeeCents: integer("delivery_fee_cents"),
+  milesIn: integer("miles_in"),
+  
+  // Trade fields (cents-based)
+  tradeAcvCents: integer("trade_acv_cents"),
+  tradeAllowanceCents: integer("trade_allowance_cents"),
+  tradeReconCents: integer("trade_recon_cents"),
+  tradePayoffCents: integer("trade_payoff_cents"),
+  payoffGoodThru: timestamp("payoff_good_thru"),
+  lienholderName: varchar("lienholder_name", { length: 255 }),
+  titleState: varchar("title_state", { length: 2 }),
+  
+  // Finance/Lender fields
+  cashDownCents: integer("cash_down_cents"),
+  deferredDownCents: integer("deferred_down_cents"),
+  aprBps: integer("apr_bps"), // Basis points (725 = 7.25%)
+  buyRateBps: integer("buy_rate_bps"),
+  reserveBasis: varchar("reserve_basis", { length: 50 }), // "APR Spread", "Flat", "None"
+  reserveAmountCents: integer("reserve_amount_cents"),
+  paymentFrequency: varchar("payment_frequency", { length: 20 }).default('MONTHLY'), // MONTHLY, BIWEEKLY
+  
+  // Tax/Compliance flags
+  rebatesTaxable: boolean("rebates_taxable").default(false),
+  tradeTaxCredit: boolean("trade_tax_credit").default(true),
+  taxOnFees: boolean("tax_on_fees").default(true),
+  taxOnDown: boolean("tax_on_down").default(false),
+  
+  // Compliance/Audit
+  deskingNotes: text("desking_notes"),
+  disclosuresJson: jsonb("disclosures_json").$type<{
+    taxMethod?: string;
+    rebateTaxable?: boolean;
+    tradeCreditLogic?: string;
+    [key: string]: any;
+  }>(),
+  auditId: integer("audit_id").default(1),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -154,20 +202,46 @@ export const dealHistory = pgTable("deal_history", {
 export const dealProducts = pgTable("deal_products", {
   id: uuid("id").primaryKey().defaultRandom(),
   dealJacketId: uuid("deal_jacket_id").references(() => dealJackets.id).notNull(),
+  productCode: varchar("product_code", { length: 50 }), // WARRANTY, GAP, MAINT, WHEEL_TIRE, THEFT, VSC (nullable for backwards compatibility)
   productType: varchar("product_type", { length: 100 }).notNull(), // warranty, insurance, accessories, etc.
   productName: varchar("product_name", { length: 255 }).notNull(),
-  provider: varchar("provider", { length: 255 }),
+  providerName: varchar("provider_name", { length: 255 }),
+  
+  // Pricing (cents-based for precision)
+  retailCents: integer("retail_cents"),
+  costCents: integer("cost_cents"),
+  
+  // Legacy decimal fields (kept for compatibility)
   cost: decimal("cost", { precision: 10, scale: 2 }),
   markup: decimal("markup", { precision: 10, scale: 2 }),
   customerPrice: decimal("customer_price", { precision: 10, scale: 2 }),
+  
+  // Terms and conditions
+  termMonths: integer("term_months"),
+  milesLimit: integer("miles_limit"),
+  cancelable: boolean("cancelable").default(true),
+  taxable: boolean("taxable").default(false),
+  
   isFinanced: boolean("is_financed").default(false),
   status: varchar("status", { length: 50 }).default('quoted'), // quoted, sold, declined
   details: jsonb("details").$type<{
-    coverage: string;
-    term: string;
-    deductible: number;
-    features: string[];
+    coverage?: string;
+    term?: string;
+    deductible?: number;
+    features?: string[];
   }>(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Deal Fees - DMV, doc fees, etc.
+export const dealFees = pgTable("deal_fees", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  dealJacketId: uuid("deal_jacket_id").references(() => dealJackets.id).notNull(),
+  code: varchar("code", { length: 50 }).notNull(), // DOC, TITLE, REG, ELEC, TIRE, SMOG, OTHER
+  description: varchar("description", { length: 255 }).notNull(),
+  amountCents: integer("amount_cents").notNull(),
+  taxable: boolean("taxable").default(false),
+  displayOrder: integer("display_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -190,6 +264,7 @@ export const dealJacketsRelations = relations(dealJackets, ({ one, many }) => ({
   documents: many(dealDocuments),
   history: many(dealHistory),
   products: many(dealProducts),
+  fees: many(dealFees),
 }));
 
 export const dealStructuresRelations = relations(dealStructures, ({ one }) => ({
@@ -231,6 +306,13 @@ export const dealHistoryRelations = relations(dealHistory, ({ one }) => ({
 export const dealProductsRelations = relations(dealProducts, ({ one }) => ({
   dealJacket: one(dealJackets, {
     fields: [dealProducts.dealJacketId],
+    references: [dealJackets.id],
+  }),
+}));
+
+export const dealFeesRelations = relations(dealFees, ({ one }) => ({
+  dealJacket: one(dealJackets, {
+    fields: [dealFees.dealJacketId],
     references: [dealJackets.id],
   }),
 }));
@@ -418,3 +500,8 @@ export const insertDealProductSchema = createInsertSchema(dealProducts);
 export const selectDealProductSchema = createSelectSchema(dealProducts);
 export type InsertDealProduct = z.infer<typeof insertDealProductSchema>;
 export type DealProduct = z.infer<typeof selectDealProductSchema>;
+
+export const insertDealFeeSchema = createInsertSchema(dealFees);
+export const selectDealFeeSchema = createSelectSchema(dealFees);
+export type InsertDealFee = z.infer<typeof insertDealFeeSchema>;
+export type DealFee = z.infer<typeof selectDealFeeSchema>;
