@@ -51,6 +51,22 @@ When referring to layout, format, or styling, use the term **"Standard"** which 
   5. Block all dealer config queries until legitimate storeId is available
   - **Security Risk**: Current implementation allows potential cross-dealership data exposure
 
+### Showroom Manager Enhancements (October 2025)
+- **UniformPage Navigation**: Fixed non-functional top navbar buttons with proper routing
+  - Dashboard → `/`, Sales → `/customers`, Finance → `/professional-deal-desk`
+  - Inventory → `/inventory`, Analytics → `/analytics`, Settings → `/admin/settings`
+  - All buttons now use wouter's setLocation for client-side navigation
+- **Status Management**: Added status change functionality for showroom visits
+  - Status buttons: Sold (green), Completed (outline), Dead/Left (destructive)
+  - Only visible for active sessions, sets endTime when status changes
+  - Visual updates with badge colors reflecting new status
+- **Deal Creation from Showroom**: Implemented real deal creation from showroom sessions
+  - Creates database record with auto-generated deal number
+  - Supports deals without vehicle initially (vehicle selected in deal desk)
+  - Loading state prevents duplicate creation, toast shows deal number
+  - Navigates to professional-deal-desk/{id} after successful creation
+- **Layout Fix**: Removed sticky header positioning to eliminate scroll overlay issues
+
 ### Navigation & Route Consolidation (October 2025)
 - **Deal Desk Route Standardization**: Eliminated 8 duplicate deal desk routes, established `/professional-deal-desk` as canonical route
   - Removed duplicate routes: `/deal-desk`, `/deals-list`, `/deal-manager`, `/deal-structure`, `/f-and-i`, `/finance-desk`, `/desking-tool`, `/sales-desk`

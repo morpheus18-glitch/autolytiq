@@ -492,10 +492,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Creating deal with data:", req.body);
       const dealData = req.body;
       
-      // Validate required fields
-      if (!dealData.customerId || !dealData.vehicleId) {
+      // Validate required fields - customerId is required, vehicleId can be added later
+      if (!dealData.customerId) {
         return res.status(400).json({ 
-          message: "Customer and vehicle are required for deal creation" 
+          message: "Customer is required for deal creation" 
+        });
+      }
+      
+      // Vehicle is optional at deal creation - can be selected in deal desk
+      if (!dealData.buyerName) {
+        return res.status(400).json({ 
+          message: "Buyer name is required for deal creation" 
         });
       }
       

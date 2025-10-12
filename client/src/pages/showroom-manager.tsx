@@ -179,9 +179,45 @@ export default function ShowroomManager() {
     setLocation(`/customers/${customerId}`);
   };
 
+  const createDealMutation = useMutation({
+    mutationFn: async (data: { customerId: number; customerName: string; vehicleId?: number; sessionId: string }) => {
+      return await apiRequest('/api/deals', {
+        method: 'POST',
+        body: JSON.stringify({
+          customerId: data.customerId.toString(),
+          vehicleId: data.vehicleId?.toString(),
+          buyerName: data.customerName,
+          status: 'structuring',
+          dealType: 'retail',
+        }),
+      });
+    },
+    onSuccess: (data: any) => {
+      toast({ title: "Deal created", description: `Deal #${data.dealNumber || data.id} created successfully` });
+      trackInteraction('deal_created', `deal-${data.id}`);
+      setLocation(`/professional-deal-desk/${data.id}`);
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.message || "Failed to create deal";
+      toast({ 
+        title: "Failed to create deal", 
+        description: errorMessage,
+        variant: "destructive" 
+      });
+    },
+  });
+
   const handleWorkDeal = (session: ShowroomSession) => {
     trackInteraction('work_deal', `session-${session.id}`);
-    setLocation(`/professional-deal-desk?customerId=${session.customerId}`);
+    // Disable button while creating deal
+    if (createDealMutation.isPending) return;
+    
+    // Create a deal in the database
+    createDealMutation.mutate({
+      customerId: session.customerId,
+      customerName: session.customerName || `Customer #${session.customerId}`,
+      sessionId: session.id,
+    });
   };
 
   const handleAddVehicle = (session: ShowroomSession) => {
@@ -271,6 +307,17 @@ export default function ShowroomManager() {
       sessionId,
       updates: { interestLevel: level as any },
     });
+  };
+
+  const updateStatus = (sessionId: string, status: 'active' | 'completed' | 'sold' | 'left') => {
+    updateSessionMutation.mutate({
+      sessionId,
+      updates: { 
+        status,
+        endTime: status !== 'active' ? new Date().toISOString() : undefined,
+      },
+    });
+    trackInteraction('status_change', `${sessionId}-${status}`);
   };
 
   const formatDuration = (startTime: string) => {
@@ -506,16 +553,53 @@ export default function ShowroomManager() {
                     </div>
                   )}
 
+                  {/* Status Change Buttons */}
+                  {session.status === 'active' && (
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Update Status:</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        <Button
+                          onClick={() => updateStatus(session.id, 'sold')}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                          size="sm"
+                          data-testid={`button-mark-sold-${session.id}`}
+                        >
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Sold
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(session.id, 'completed')}
+                          variant="outline"
+                          size="sm"
+                          data-testid={`button-mark-completed-${session.id}`}
+                        >
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Completed
+                        </Button>
+                        <Button
+                          onClick={() => updateStatus(session.id, 'left')}
+                          variant="destructive"
+                          size="sm"
+                          data-testid={`button-mark-dead-${session.id}`}
+                        >
+                          <Clock className="h-4 w-4 mr-1" />
+                          Dead/Left
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Action Buttons */}
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 pt-2 border-t dark:border-gray-700">
                     <Button
                       onClick={() => handleWorkDeal(session)}
                       className="w-full"
                       size="sm"
+                      disabled={createDealMutation.isPending}
                       data-testid={`button-work-deal-${session.id}`}
                     >
                       <Calculator className="h-4 w-4 mr-1" />
-                      Work Deal
+                      {createDealMutation.isPending ? 'Creating...' : 'Work Deal'}
                     </Button>
                     <Button
                       onClick={() => handleAddVehicle(session)}

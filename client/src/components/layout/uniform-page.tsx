@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { useLocation } from 'wouter';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +45,8 @@ export default function UniformPage({
   filters,
   stats
 }: UniformPageProps) {
+  const [, setLocation] = useLocation();
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Fixed Uniform Header */}
@@ -51,11 +54,19 @@ export default function UniformPage({
         <div className="flex items-center justify-between px-4 py-3">
           {/* Left - Logo and Mobile Menu */}
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" className="lg:hidden">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="lg:hidden"
+              onClick={() => setLocation('/showroom-manager')}
+            >
               <Menu className="w-5 h-5" />
             </Button>
             
-            <div className="flex items-center gap-2">
+            <div 
+              className="flex items-center gap-2 cursor-pointer" 
+              onClick={() => setLocation('/')}
+            >
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-green-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">AiQ</span>
               </div>
@@ -65,27 +76,67 @@ export default function UniformPage({
 
           {/* Center - Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            <Button variant="ghost" size="sm">Dashboard</Button>
-            <Button variant="ghost" size="sm">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setLocation('/')}
+            >
+              Dashboard
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setLocation('/customers')}
+            >
               Sales <ChevronDown className="w-3 h-3 ml-1" />
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setLocation('/professional-deal-desk')}
+            >
               Finance <ChevronDown className="w-3 h-3 ml-1" />
             </Button>
-            <Button variant="ghost" size="sm">Inventory</Button>
-            <Button variant="ghost" size="sm">Analytics</Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setLocation('/inventory')}
+            >
+              Inventory
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setLocation('/analytics')}
+            >
+              Analytics
+            </Button>
           </nav>
 
           {/* Right - Actions */}
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="relative">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="relative"
+              onClick={() => setLocation('/notifications')}
+            >
               <Bell className="w-4 h-4" />
               <Badge className="absolute -top-1 -right-1 w-2 h-2 p-0 bg-red-500"></Badge>
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setLocation('/admin/settings')}
+            >
               <Settings className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2"
+              onClick={() => setLocation('/admin/user-profile')}
+            >
               <User className="w-4 h-4" />
               <span className="hidden sm:block text-sm">Austin W.</span>
               <ChevronDown className="w-3 h-3" />
@@ -97,7 +148,7 @@ export default function UniformPage({
       {/* Main Content */}
       <main className="pt-16">
         {/* Page Header with Stats */}
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-16 z-40">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           <div className="px-4 sm:px-6 lg:px-8 py-6">
             {/* Title and Actions */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
