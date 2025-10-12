@@ -136,6 +136,12 @@ export function TrackingPixel({ customerId, source = 'dealer_website' }: Trackin
         // Track form interactions
         function trackFormInteraction(event) {
           const form = event.target.form || event.target;
+          
+          // Only create FormData if form is actually an HTMLFormElement
+          if (!(form instanceof HTMLFormElement)) {
+            return;
+          }
+          
           const formData = new FormData(form);
           const fields = {};
           
