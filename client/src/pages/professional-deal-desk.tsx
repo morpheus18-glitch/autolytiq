@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -25,8 +26,15 @@ import {
   TrendingUp,
   FileText,
   Plus,
-  X
+  X,
+  Eye,
+  EyeOff
 } from 'lucide-react';
+import { TradeSection } from '@/components/deal-desk/trade-section';
+import { FeesSection, type DealFee } from '@/components/deal-desk/fees-section';
+import { FinanceSection } from '@/components/deal-desk/finance-section';
+import { ProductsSection, type DealProduct } from '@/components/deal-desk/products-section';
+import { KPICards } from '@/components/deal-desk/kpi-cards';
 
 interface Vehicle {
   id: number;
@@ -137,6 +145,38 @@ export default function ProfessionalDealDesk() {
   
   // Backend products
   const [products, setProducts] = useState<BackendProduct[]>([]);
+  
+  // New F&I fields (cents-based)
+  const [msrpCents, setMsrpCents] = useState<number | null>(null);
+  const [packCents, setPackCents] = useState<number | null>(null);
+  const [holdbackCents, setHoldbackCents] = useState<number | null>(null);
+  const [rebatesCents, setRebatesCents] = useState<number | null>(null);
+  const [rebatesTaxable, setRebatesTaxable] = useState(false);
+  
+  // Trade fields (cents-based)
+  const [tradeAcvCents, setTradeAcvCents] = useState<number | null>(null);
+  const [tradeReconCents, setTradeReconCents] = useState<number | null>(null);
+  const [tradeAllowanceCents, setTradeAllowanceCents] = useState<number | null>(null);
+  const [tradePayoffCents, setTradePayoffCents] = useState<number | null>(null);
+  const [payoffGoodThru, setPayoffGoodThru] = useState<string | null>(null);
+  const [lienholderName, setLienholderName] = useState<string | null>(null);
+  const [titleState, setTitleState] = useState<string | null>(null);
+  
+  // Finance fields (cents-based)
+  const [cashDownCents, setCashDownCents] = useState<number | null>(null);
+  const [deferredDownCents, setDeferredDownCents] = useState<number | null>(null);
+  const [aprBps, setAprBps] = useState<number | null>(null);
+  const [buyRateBps, setBuyRateBps] = useState<number | null>(null);
+  const [reserveBasis, setReserveBasis] = useState<string>('None');
+  const [reserveAmountCents, setReserveAmountCents] = useState<number | null>(null);
+  const [paymentFrequency, setPaymentFrequency] = useState<string>('MONTHLY');
+  
+  // Fees and enhanced products
+  const [dealFees, setDealFees] = useState<DealFee[]>([]);
+  const [enhancedProducts, setEnhancedProducts] = useState<DealProduct[]>([]);
+  
+  // UI state
+  const [managerMode, setManagerMode] = useState(true); // Manager vs Customer view
   
   // Autosave state
   const [autosaving, setAutosaving] = useState(false);
@@ -561,8 +601,27 @@ export default function ProfessionalDealDesk() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <Tabs defaultValue="structure" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2">
+        {/* Manager/Customer Mode Toggle */}
+        <div className="flex items-center justify-end gap-3 mb-4">
+          <Label htmlFor="manager-mode" className="text-sm font-medium flex items-center gap-2">
+            {managerMode ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+            {managerMode ? 'Manager Mode' : 'Customer Mode'}
+          </Label>
+          <Switch
+            id="manager-mode"
+            checked={managerMode}
+            onCheckedChange={setManagerMode}
+            data-testid="switch-manager-mode"
+          />
+        </div>
+
+        <Tabs defaultValue="fi-desk" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-2">
+            <TabsTrigger value="fi-desk" data-testid="tab-fi-desk" className="text-xs sm:text-sm">
+              <DollarSign className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">F&I Desk</span>
+              <span className="sm:hidden">F&I</span>
+            </TabsTrigger>
             <TabsTrigger value="structure" data-testid="tab-structure" className="text-xs sm:text-sm">
               <Car className="h-4 w-4 mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Structure</span>
@@ -582,6 +641,159 @@ export default function ProfessionalDealDesk() {
               Profit
             </TabsTrigger>
           </TabsList>
+
+          {/* F&I Desk Tab - New Enhanced Layout */}
+          <TabsContent value="fi-desk" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Left Column - 8 cols on desktop */}
+              <div className="lg:col-span-8 space-y-6">
+                {/* Vehicle & Customer Selection */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Car className="h-5 w-5" />
+                        Vehicle
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Select value={vehicleId?.toString()} onValueChange={(v) => setVehicleId(parseInt(v))}>
+                        <SelectTrigger data-testid="select-vehicle-fi">
+                          <SelectValue placeholder="Choose vehicle..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {vehicles.map((v) => (
+                            <SelectItem key={v.id} value={v.id.toString()}>
+                              {v.year} {v.make} {v.model} - ${v.price.toLocaleString()}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedVehicle && (
+                        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                          <p className="text-sm font-medium">{selectedVehicle.year} {selectedVehicle.make} {selectedVehicle.model}</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">VIN: {selectedVehicle.vin}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <User className="h-5 w-5" />
+                        Customer
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Select value={customerId?.toString()} onValueChange={(v) => setCustomerId(parseInt(v))}>
+                        <SelectTrigger data-testid="select-customer-fi">
+                          <SelectValue placeholder="Choose customer..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {customers.map((c) => (
+                            <SelectItem key={c.id} value={c.id.toString()}>
+                              {c.firstName} {c.lastName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedCustomer && (
+                        <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                          <p className="text-sm font-medium">{selectedCustomer.firstName} {selectedCustomer.lastName}</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">ZIP: {selectedCustomer.zipCode || 'Not provided'}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Trade Section */}
+                <TradeSection
+                  data={{
+                    tradeAcvCents,
+                    tradeReconCents,
+                    tradeAllowanceCents,
+                    tradePayoffCents,
+                    payoffGoodThru,
+                    lienholderName,
+                    titleState
+                  }}
+                  onChange={(updates) => {
+                    if (updates.tradeAcvCents !== undefined) setTradeAcvCents(updates.tradeAcvCents);
+                    if (updates.tradeReconCents !== undefined) setTradeReconCents(updates.tradeReconCents);
+                    if (updates.tradeAllowanceCents !== undefined) setTradeAllowanceCents(updates.tradeAllowanceCents);
+                    if (updates.tradePayoffCents !== undefined) setTradePayoffCents(updates.tradePayoffCents);
+                    if (updates.payoffGoodThru !== undefined) setPayoffGoodThru(updates.payoffGoodThru);
+                    if (updates.lienholderName !== undefined) setLienholderName(updates.lienholderName);
+                    if (updates.titleState !== undefined) setTitleState(updates.titleState);
+                  }}
+                  readOnly={!managerMode}
+                />
+
+                {/* Fees Section */}
+                <FeesSection
+                  fees={dealFees}
+                  onChange={setDealFees}
+                  readOnly={!managerMode}
+                />
+
+                {/* Finance Section */}
+                <FinanceSection
+                  data={{
+                    cashDownCents,
+                    deferredDownCents,
+                    termMonths: term,
+                    aprBps,
+                    buyRateBps,
+                    reserveBasis,
+                    reserveAmountCents,
+                    paymentFrequency
+                  }}
+                  onChange={(updates) => {
+                    if (updates.cashDownCents !== undefined) setCashDownCents(updates.cashDownCents);
+                    if (updates.deferredDownCents !== undefined) setDeferredDownCents(updates.deferredDownCents);
+                    if (updates.termMonths !== undefined && updates.termMonths !== null) setTerm(updates.termMonths);
+                    if (updates.aprBps !== undefined) setAprBps(updates.aprBps);
+                    if (updates.buyRateBps !== undefined) setBuyRateBps(updates.buyRateBps);
+                    if (updates.reserveBasis !== undefined && updates.reserveBasis !== null) setReserveBasis(updates.reserveBasis);
+                    if (updates.reserveAmountCents !== undefined) setReserveAmountCents(updates.reserveAmountCents);
+                    if (updates.paymentFrequency !== undefined && updates.paymentFrequency !== null) setPaymentFrequency(updates.paymentFrequency);
+                  }}
+                  readOnly={!managerMode}
+                />
+
+                {/* Products Section */}
+                <ProductsSection
+                  products={enhancedProducts}
+                  onChange={setEnhancedProducts}
+                  readOnly={!managerMode}
+                  hideProfit={!managerMode}
+                />
+              </div>
+
+              {/* Right Column - 4 cols on desktop (Sticky KPI Cards) */}
+              <div className="lg:col-span-4">
+                <KPICards
+                  data={{
+                    salePriceCents: salePrice * 100,
+                    vehicleCostCents: vehicleCost * 100,
+                    packCents,
+                    holdbackCents,
+                    rebatesCents,
+                    rebatesTaxable,
+                    tradeAllowanceCents,
+                    cashDownCents,
+                    reserveAmountCents,
+                    productsRetailCents: enhancedProducts.reduce((sum, p) => sum + (p.retailCents || 0), 0),
+                    productsCostCents: enhancedProducts.reduce((sum, p) => sum + (p.costCents || 0), 0),
+                    feesCents: dealFees.reduce((sum, f) => sum + (f.amountCents || 0), 0),
+                    taxCents: calc?.calculation.taxes.totalTax ? Math.round(calc.calculation.taxes.totalTax * 100) : null
+                  }}
+                />
+              </div>
+            </div>
+          </TabsContent>
 
           {/* Structure Tab */}
           <TabsContent value="structure" className="space-y-6">
