@@ -31,12 +31,12 @@ const allNavItems = [
   { name: 'Sales & Leads', href: '/sales', icon: Handshake, color: 'text-indigo-600' },
   { name: 'Customers', href: '/customers', icon: Users, color: 'text-green-600' },
   { name: 'Inventory', href: '/inventory', icon: Car, color: 'text-purple-600' },
-  { name: 'Deal Desk', href: '/deal-desk', icon: Calculator, color: 'text-orange-600' },
+  { name: 'Deal Desk', href: '/professional-deal-desk', icon: Calculator, color: 'text-orange-600' },
   { name: 'Showroom', href: '/showroom-manager', icon: Timer, color: 'text-cyan-600' },
   { name: 'Analytics', href: '/analytics', icon: TrendingUp, color: 'text-pink-600' },
   { name: 'Reports', href: '/reports', icon: BarChart3, color: 'text-yellow-600' },
   { name: 'Settings', href: '/settings', icon: Settings, color: 'text-gray-600' },
-  { name: 'Admin', href: '/admin/system-settings', icon: Building, color: 'text-red-600' }
+  { name: 'Admin', href: '/admin/settings', icon: Building, color: 'text-red-600' }
 ];
 
 export function MobileFooterMenu() {
@@ -169,7 +169,7 @@ export function MobileFooterMenu() {
                       Add Vehicle
                     </Button>
                   </Link>
-                  <Link href="/deal-desk" onClick={() => setIsMenuOpen(false)}>
+                  <Link href="/professional-deal-desk" onClick={() => setIsMenuOpen(false)}>
                     <Button variant="outline" size="sm" className="w-full text-xs justify-start">
                       <Calculator className="w-3 h-3 mr-2" />
                       New Deal

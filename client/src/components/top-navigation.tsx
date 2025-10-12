@@ -67,7 +67,7 @@ const workflowTabs: WorkflowTab[] = [
     icon: DollarSign,
     path: '/sales',
     subItems: [
-      { label: 'Active Deals', path: '/deal-desk', icon: Calculator, badge: '3' },
+      { label: 'Active Deals', path: '/professional-deal-desk', icon: Calculator, badge: '3' },
       { label: 'Leads Pipeline', path: '/leads', icon: Users },
       { label: 'Customer Management', path: '/customers', icon: Users },
       { label: 'Trade Appraisals', path: '/trade-appraisals', icon: Car }
@@ -124,7 +124,7 @@ export default function TopNavigation() {
   const handleQuickAction = (action: string) => {
     switch (action) {
       case 'new-deal':
-        window.location.href = '/deal-desk';
+        window.location.href = '/professional-deal-desk';
         break;
       case 'add-vehicle':
         // Trigger add vehicle modal

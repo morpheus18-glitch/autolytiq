@@ -257,7 +257,7 @@ export default function VehicleDetail() {
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-4">
-        <Link href={`/deal-desk?vehicleId=${vehicle.id}`}>
+        <Link href={`/professional-deal-desk?vehicleId=${vehicle.id}`}>
           <Button>
             Start Deal
           </Button>
