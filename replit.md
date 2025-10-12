@@ -51,6 +51,14 @@ When referring to layout, format, or styling, use the term **"Standard"** which 
   5. Block all dealer config queries until legitimate storeId is available
   - **Security Risk**: Current implementation allows potential cross-dealership data exposure
 
+### Navigation & Route Consolidation (October 2025)
+- **Deal Desk Route Standardization**: Eliminated 8 duplicate deal desk routes, established `/professional-deal-desk` as canonical route
+  - Removed duplicate routes: `/deal-desk`, `/deals-list`, `/deal-manager`, `/deal-structure`, `/f-and-i`, `/finance-desk`, `/desking-tool`, `/sales-desk`
+  - Updated all internal links across 11+ files to use canonical route
+  - Fixed broken Admin button in mobile footer (404 error) - updated from `/admin/system-settings` to `/admin/settings`
+  - Standardized navigation across: mobile footer, sidebar, top nav, session bars, simple session bar
+  - All quick action buttons, deal creation flows, and session continuations now use `/professional-deal-desk`
+
 ### Dashboard & Component Cleanup (October 2025)
 - **Consolidated Dashboards**: Removed 7 duplicate ML/enterprise dashboard pages, keeping only the main production dashboard at `/` with tabbed interface (Production, Overview, Intelligence, Lifecycle, Workflows, Reports, Health)
 - **Cleaned Routes**: Removed duplicate routes for ml-dashboard, ml-control, ml-enterprise, mlops-dashboard, causal-mlops
