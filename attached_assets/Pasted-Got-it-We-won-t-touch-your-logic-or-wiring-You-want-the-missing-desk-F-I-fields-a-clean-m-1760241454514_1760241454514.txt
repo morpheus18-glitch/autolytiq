@@ -1,0 +1,236 @@
+Got it. We won’t touch your logic or wiring. You want:
+	•	the missing desk/F&I fields,
+	•	a clean, minimal accounting look,
+	•	and a data dictionary that would pass a Reynolds/CDK sniff test.
+
+Here’s a drop-in spec you (or an agent) can follow without breaking your current code.
+
+⸻
+
+1) Minimal “Accounting” Visual Spec (non-disruptive)
+
+Layout
+	•	12-col grid, max-width 1200px. Two columns on desktop (8/4), single column on mobile.
+	•	Section order: Vehicle → Customer → Trade → Fees → Products → Totals → Print.
+	•	Sticky right rail: KPIs (Front | Back | Total). Always visible.
+
+Typography
+	•	Inter/System font. Numbers use tabular lining (font-variant-numeric: tabular-nums).
+	•	Font sizes: 16 base / 14 secondary / 20 section headers.
+
+Color (accessible, quiet)
+	•	Text: #111 / Secondary #6B7280.
+	•	Lines: #E5E7EB.
+	•	Accents only for KPIs: Front #1D4ED8 (blue), Back #059669 (green), Total #7C3AED (purple).
+
+Tables
+	•	Right-align all currency/percent. Thousands separators.
+	•	Negatives in (parentheses). Zero shows as —.
+	•	Row hover subtle: background #F9FAFB.
+	•	Footer row with bold totals.
+
+Inputs
+	•	Compact density (36–40px height).
+	•	Inline-edit where possible; Enter = commit, Esc = revert.
+	•	Show calc helpers as muted monospace under fields (e.g., “Sale – Cost – Pack + Holdback”).
+
+Modes
+	•	Manager Mode (default): all fields.
+	•	Customer Mode: hide cost/profit columns; show value statements + monthly (toggle in header).
+
+⸻
+
+2) “Missing Fields” – Desk + F&I (Additive Only)
+
+Names are “safe” and map to what Reynolds/CDK expect. All are optional/nullable so you don’t break existing saves.
+
+Vehicle / Desk
+	•	msrp_cents
+	•	pack_cents (per-unit pack deducted from front)
+	•	holdback_cents (optional income)
+	•	rebates_cents (taxable flag below)
+	•	doc_fee_cents (fee; also listed in Fees)
+	•	delivery_fee_cents
+	•	miles_in (odometer at sale)
+	•	Flags: rebates_taxable (bool), trade_tax_credit (bool), tax_on_fees (bool), tax_on_down (bool)
+
+Trade
+	•	trade_acv_cents
+	•	trade_allowance_cents (if you separate from ACV)
+	•	trade_recon_cents
+	•	trade_payoff_cents
+	•	payoff_good_thru (date)
+	•	lienholder_name
+	•	title_state (2-char)
+
+Fees (table; each item is row)
+	•	code (enum: DOC, TITLE, REG, ELEC, TIRE, SMOG, OTHER)
+	•	description
+	•	amount_cents
+	•	taxable (bool)
+
+Lender/Finance (even if you’re not integrating, store it clean)
+	•	cash_down_cents
+	•	deferred_down_cents
+	•	term_months
+	•	apr_bps (725 = 7.25%)
+	•	buy_rate_bps (for reserve calc)
+	•	reserve_basis (enum: “APR Spread”, “Flat”, “None”)
+	•	reserve_amount_cents (computed or manual override)
+	•	payment_frequency (MONTHLY/BIWEEKLY)
+
+Products (F&I menu rows)
+
+Each product row fields:
+	•	product_code (WARRANTY, GAP, MAINT, WHEEL_TIRE, THEFT, VSC, etc.)
+	•	provider_name
+	•	retail_cents
+	•	cost_cents
+	•	term_months
+	•	miles_limit (optional)
+	•	cancelable (bool)
+	•	taxable (bool)
+
+Customer / Address (for tax + forms)
+	•	email, phone, address1, address2, city, state, zip (you already map ZIP → tax; keep cache fields)
+	•	Cache on deal: tax_state, tax_county, tax_city, tax_rate_bps
+
+Compliance / Audit
+	•	desking_notes (TEXT)
+	•	disclosures_json (e.g., “tax method”, “rebate taxable”, “trade credit state logic”)
+	•	audit_id (increment each change set)
+
+⸻
+
+3) Totals Panel (right rail — always visible)
+
+Cards (compact):
+	•	Front-End = sale_price_cents – vehicle_cost_cents – pack_cents + holdback_cents – discount_cents + (rebates_taxable ? 0 : – rebates_cents)
+	•	Back-End = Σ(products.profit) + reserve_amount_cents
+	•	Total Gross = front + back
+	•	Tax = apply jurisdiction to taxable base:
+
+taxable_vehicle = sale_price – (trade_tax_credit ? trade_allowance : 0)
+taxable_fees = Σ(fee.amount where fee.taxable)
+taxable_products = Σ(product.retail where product.taxable)
+taxable_rebates = (rebates_taxable ? rebates : 0)
+tax = (taxable_vehicle + taxable_fees + taxable_products - taxable_rebates) * rate
+
+
+	•	Out-The-Door (OTD) = sale_price + fees + products + tax – trade_allowance – cash_down
+
+Show a tiny “i” tooltip that expands the above formula with live numbers in monospace.
+
+⸻
+
+4) Screen Structure (safe to add without refactor)
+
+A. Vehicle (card)
+	•	Sale Price, Cost, Pack, Holdback, Rebate (+ taxable checkbox)
+	•	Inline helper: Front = Sale – Cost – Pack + Holdback – Rebate(if nontaxable adj)
+
+B. Customer (card)
+	•	Name (link to profile), ZIP (locked if prefilled), “Resolve tax” badge → fills tax_* and tax_rate_bps quietly.
+
+C. Trade (table)
+	•	ACV, Recon, Allowance (or compute from ACV ± recon), Payoff, Good-thru, Lienholder, Title State.
+
+D. Fees (table)
+	•	Code, Description, Amount, Taxable (checkbox). Footer = total fees.
+
+E. Products (table)
+	•	Product, Provider, Term, Retail, Cost, Profit (calc), Taxable. Footer = products total (retail/cost/profit).
+
+F. Finance (card)
+	•	Down, Deferred, Term, APR, Buy-Rate, Reserve mode (None/Spread/Flat), Payment preview (read-only).
+
+G. Totals (right rail)
+	•	KPI cards (Front, Back, Total, Tax, OTD). Print buttons: Worksheet | Menu | Buyer’s Order.
+
+⸻
+
+5) Data Dictionary (Reynolds/CDK-friendly naming)
+
+Field	Type	Example	Notes
+msrp_cents	int	4999900	cents only
+sale_price_cents	int	4250000	42,500.00
+vehicle_cost_cents	int	3800000	
+pack_cents	int	50000	500.00
+holdback_cents	int	30000	
+rebates_cents	int	100000	
+rebates_taxable	bool	true	affects taxable base
+trade_acv_cents	int	1200000	
+trade_recon_cents	int	30000	
+trade_allowance_cents	int	1234600	
+trade_payoff_cents	int	1100000	
+payoff_good_thru	date	2025-10-22	
+fees[]	rows	see Fees	each has taxable
+products[]	rows	see Products	-
+cash_down_cents	int	200000	
+term_months	int	72	
+apr_bps	int	725	7.25%
+buy_rate_bps	int	599	
+reserve_basis	enum	“APR Spread”	
+reserve_amount_cents	int	35000	calc or override
+tax_*	text/int	IN / Hamilton / Fishers / 725	cached for docs
+calc_json	json	{…}	cache of totals
+desking_notes	text		freeform
+
+All additions are optional/nullable. No renames. No deletions.
+
+⸻
+
+6) Tiny UI Snippets (safe to paste)
+
+Compact money cell (right-aligned, accounting style)
+
+export function Money({cents}:{cents?:number}) {
+  if (cents == null) return <>—</>;
+  const neg = cents < 0;
+  const val = (Math.abs(cents)/100).toLocaleString(undefined,{minimumFractionDigits:2});
+  return <span style={{fontVariantNumeric:'tabular-nums', textAlign:'right', display:'inline-block', minWidth:96}}>
+    {neg ? `(${val})` : val}
+  </span>;
+}
+
+Table footer total
+
+<tfoot>
+  <tr className="border-t">
+    <td colSpan={4} />
+    <td className="text-right font-semibold"><Money cents={feeTotal}/></td>
+  </tr>
+</tfoot>
+
+KPI card (right rail)
+
+<KPI label="Front-End" valueCents={front} color="#1D4ED8" />
+<KPI label="Back-End"  valueCents={back}  color="#059669" />
+<KPI label="Total Gross" valueCents={front+back} color="#7C3AED" />
+<KPI label="Tax" valueCents={tax} />
+<KPI label="OTD" valueCents={otd} />
+
+
+⸻
+
+7) Print Outputs (dealer-grade, minimal)
+	•	Worksheet: vehicle + desk math, no cost/profit in customer mode.
+	•	F&I Menu: product rows with value blurbs; monthly impact shown.
+	•	Buyer’s Order: OTD, tax jurisdiction lines, fee breakdown, signatures.
+
+All use the same cached fields above; no extra logic.
+
+⸻
+
+How to roll this in without breaking anything
+	1.	Add the new fields to your deal/customer models (nullable).
+	2.	Render the new UI sections exactly as tables/cards above; bind to your existing recalc.
+	3.	Do not replace your formulas—just feed them with the extra inputs; where absent, treat as zero.
+	4.	Gate cost/profit with a single customerMode flag so you can demo on the floor.
+
+If you want, hand me a list of the exact components you already have (DealSummaryCard, ProductsList, etc.). I’ll return a surgical diff—only visual and field additions—so nothing in your working math gets touched.
+
+Next prompts you can fire:
+	•	“Generate the Products table component with right-aligned money cells, taxable checkbox, and footer totals; no business logic changes.”
+	•	“Create the Totals right-rail KPI cards using my existing useDealTotals() hook; style only.”
+	•	“Add Trade section fields (ACV, Recon, Allowance, Payoff, Good-thru, Lienholder) with validation and accounting formatting.”
