@@ -340,7 +340,14 @@ export default function ProfessionalDealDesk() {
     }, 2000);
     
     return () => clearTimeout(timer);
-  }, [salePrice, vehicleCost, cashDown, rebates, tradeValue, tradePayoff, term, apr, products, dealType]);
+  }, [
+    salePrice, vehicleCost, cashDown, rebates, tradeValue, tradePayoff, term, apr, products, dealType,
+    // F&I fields that should trigger autosave
+    msrpCents, packCents, holdbackCents, rebatesCents, rebatesTaxable,
+    tradeAcvCents, tradeReconCents, tradeAllowanceCents, tradePayoffCents, payoffGoodThru, lienholderName, titleState,
+    cashDownCents, deferredDownCents, aprBps, buyRateBps, reserveBasis, reserveAmountCents, paymentFrequency,
+    dealFees, enhancedProducts
+  ]);
 
   // Lookup jurisdiction when ZIP is entered
   useEffect(() => {
@@ -402,6 +409,26 @@ export default function ProfessionalDealDesk() {
         term: term,
         rate: apr.toString(),
         creditTier: creditTier,
+        // New F&I cents-based fields
+        msrpCents: msrpCents,
+        packCents: packCents,
+        holdbackCents: holdbackCents,
+        rebatesCents: rebatesCents,
+        rebatesTaxable: rebatesTaxable,
+        tradeAcvCents: tradeAcvCents,
+        tradeReconCents: tradeReconCents,
+        tradeAllowanceCents: tradeAllowanceCents,
+        tradePayoffCents: tradePayoffCents,
+        payoffGoodThru: payoffGoodThru,
+        lienholderName: lienholderName,
+        titleState: titleState,
+        cashDownCents: cashDownCents,
+        deferredDownCents: deferredDownCents,
+        aprBps: aprBps,
+        buyRateBps: buyRateBps,
+        reserveBasis: reserveBasis,
+        reserveAmountCents: reserveAmountCents,
+        paymentFrequency: paymentFrequency,
       };
       
       if (dealId) {
@@ -439,7 +466,7 @@ export default function ProfessionalDealDesk() {
         throw new Error('Missing required data');
       }
       
-      const dealData: Deal = {
+      const dealData: any = {
         dealNumber: `DEAL-${Date.now()}`,
         status: 'open',
         vehicleId: vehicleId || undefined,
@@ -459,6 +486,26 @@ export default function ProfessionalDealDesk() {
         term: term,
         rate: apr.toString(),
         creditTier: creditTier,
+        // New F&I cents-based fields
+        msrpCents: msrpCents,
+        packCents: packCents,
+        holdbackCents: holdbackCents,
+        rebatesCents: rebatesCents,
+        rebatesTaxable: rebatesTaxable,
+        tradeAcvCents: tradeAcvCents,
+        tradeReconCents: tradeReconCents,
+        tradeAllowanceCents: tradeAllowanceCents,
+        tradePayoffCents: tradePayoffCents,
+        payoffGoodThru: payoffGoodThru,
+        lienholderName: lienholderName,
+        titleState: titleState,
+        cashDownCents: cashDownCents,
+        deferredDownCents: deferredDownCents,
+        aprBps: aprBps,
+        buyRateBps: buyRateBps,
+        reserveBasis: reserveBasis,
+        reserveAmountCents: reserveAmountCents,
+        paymentFrequency: paymentFrequency,
       };
       
       const response = await apiRequest('/api/deals', {
@@ -467,16 +514,35 @@ export default function ProfessionalDealDesk() {
       });
       const savedDeal = await response.json();
       
-      // Save backend products if any
-      if (products.length > 0 && savedDeal.id) {
-        for (const product of products) {
+      // Save backend products if any (use enhancedProducts with cents-based data)
+      if (enhancedProducts.length > 0 && savedDeal.id) {
+        for (const product of enhancedProducts) {
           await apiRequest(`/api/deals/${savedDeal.id}/products`, {
             method: 'POST',
             body: JSON.stringify({
-              productName: product.productName,
-              retailPrice: product.retailPrice,
-              cost: product.cost,
-              category: product.category,
+              productCode: product.code,
+              productName: product.name,
+              providerName: product.provider,
+              retailCents: product.retailCents,
+              costCents: product.costCents,
+              termMonths: product.termMonths,
+              mileageLimit: product.mileageLimit,
+              isTaxable: product.isTaxable,
+            }),
+          });
+        }
+      }
+      
+      // Save fees if any
+      if (dealFees.length > 0 && savedDeal.id) {
+        for (const fee of dealFees) {
+          await apiRequest(`/api/deals/${savedDeal.id}/fees`, {
+            method: 'POST',
+            body: JSON.stringify({
+              feeCode: fee.code,
+              description: fee.description,
+              amountCents: fee.amountCents,
+              isTaxable: fee.isTaxable,
             }),
           });
         }
@@ -488,9 +554,10 @@ export default function ProfessionalDealDesk() {
       setDealId(data.id);
       queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
       queryClient.invalidateQueries({ queryKey: [`/api/deals/${data.id}/products`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/deals/${data.id}/fees`] });
       toast({
         title: 'Deal Saved',
-        description: `Deal ${data.dealNumber} has been saved with ${products.length} backend product(s).`,
+        description: `Deal ${data.dealNumber} saved with ${enhancedProducts.length} product(s) and ${dealFees.length} fee(s).`,
       });
     },
     onError: () => {
