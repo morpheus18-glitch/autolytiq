@@ -45,6 +45,7 @@ interface Customer {
   lastName: string;
   email: string;
   phone: string;
+  zipCode?: string;
 }
 
 interface Deal {
@@ -273,7 +274,7 @@ export default function ProfessionalDealDesk() {
     }
   }, [location, toast]);
 
-  // Track customer when selected
+  // Track customer when selected and auto-populate ZIP
   useEffect(() => {
     if (customerId && selectedCustomer) {
       setTrackedCustomer(customerId.toString());
@@ -281,8 +282,13 @@ export default function ProfessionalDealDesk() {
         customerId: customerId.toString(),
         customerName: `${selectedCustomer.firstName} ${selectedCustomer.lastName}`
       });
+      
+      // Auto-populate customer ZIP if available
+      if (selectedCustomer.zipCode && !customerZip) {
+        setCustomerZip(selectedCustomer.zipCode);
+      }
     }
-  }, [customerId, selectedCustomer, setTrackedCustomer, trackInteraction]);
+  }, [customerId, selectedCustomer, setTrackedCustomer, trackInteraction, customerZip]);
 
   // Debounced autosave - triggers 2 seconds after user stops editing
   useEffect(() => {
