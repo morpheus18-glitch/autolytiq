@@ -177,7 +177,7 @@ export const trackInteraction = async (type: string, data: any = {}) => {
           customerId,
           type,
           element: data.elementId || null,
-          metadata: data
+          metadata: typeof data === 'object' ? data : {}
         })
       }).catch(() => {});
     }

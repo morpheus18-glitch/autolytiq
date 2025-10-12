@@ -175,7 +175,7 @@ export default function ShowroomManager() {
 
   // Handlers
   const handleCustomerClick = (customerId: number) => {
-    trackInteraction('customer_click', `customer-${customerId}`);
+    trackInteraction('customer_click', { customerId });
     setLocation(`/customers/${customerId}`);
   };
 
@@ -194,7 +194,7 @@ export default function ShowroomManager() {
     },
     onSuccess: (data: any) => {
       toast({ title: "Deal created", description: `Deal #${data.dealNumber || data.id} created successfully` });
-      trackInteraction('deal_created', `deal-${data.id}`);
+      trackInteraction('deal_created', { dealId: data.id });
       setLocation(`/professional-deal-desk/${data.id}`);
     },
     onError: (error: any) => {
@@ -208,7 +208,7 @@ export default function ShowroomManager() {
   });
 
   const handleWorkDeal = (session: ShowroomSession) => {
-    trackInteraction('work_deal', `session-${session.id}`);
+    trackInteraction('work_deal', { sessionId: session.id });
     // Disable button while creating deal
     if (createDealMutation.isPending) return;
     
@@ -244,7 +244,7 @@ export default function ShowroomManager() {
     const customer = customers.find(c => c.id === session.customerId);
     if (customer?.phone) {
       window.location.href = `tel:${customer.phone}`;
-      trackInteraction('call_customer', `customer-${session.customerId}`);
+      trackInteraction('call_customer', { customerId: session.customerId });
     }
   };
 
@@ -252,7 +252,7 @@ export default function ShowroomManager() {
     const customer = customers.find(c => c.id === session.customerId);
     if (customer?.phone) {
       setLocation(`/customers/texting-portal?customerId=${session.customerId}`);
-      trackInteraction('text_customer', `customer-${session.customerId}`);
+      trackInteraction('text_customer', { customerId: session.customerId });
     }
   };
 
@@ -317,7 +317,7 @@ export default function ShowroomManager() {
         endTime: status !== 'active' ? new Date().toISOString() : undefined,
       },
     });
-    trackInteraction('status_change', `${sessionId}-${status}`);
+    trackInteraction('status_change', { sessionId, status });
   };
 
   const formatDuration = (startTime: string) => {
