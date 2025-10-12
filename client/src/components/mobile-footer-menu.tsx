@@ -36,7 +36,7 @@ const allNavItems = [
   { name: 'Analytics', href: '/analytics', icon: TrendingUp, color: 'text-pink-600' },
   { name: 'Reports', href: '/reports', icon: BarChart3, color: 'text-yellow-600' },
   { name: 'Settings', href: '/settings', icon: Settings, color: 'text-gray-600' },
-  { name: 'Admin', href: '/enterprise-admin', icon: Building, color: 'text-red-600' }
+  { name: 'Admin', href: '/admin/system-settings', icon: Building, color: 'text-red-600' }
 ];
 
 export function MobileFooterMenu() {
