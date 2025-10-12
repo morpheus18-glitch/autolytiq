@@ -315,6 +315,12 @@ export default function TopNavigation() {
                     Preferences
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/dealer-configuration" className="flex items-center cursor-pointer">
+                    <Database className="w-4 h-4 mr-2" />
+                    Dealer Config
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <a href="/api/logout" className="flex items-center w-full">
