@@ -180,7 +180,7 @@ export function SessionBar() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => handleQuickNavigation('deal-desk', `/deal-desk/${session.deal?.id}`)}
+                    onClick={() => handleQuickNavigation('deal-desk', `/professional-deal-desk/${session.deal?.id}`)}
                   >
                     <ExternalLink className="w-3 h-3" />
                   </Button>
@@ -224,7 +224,7 @@ export function SessionBar() {
                 size="sm"
                 variant="outline"
                 className="text-xs"
-                onClick={() => handleQuickNavigation('deal-desk', '/deal-desk')}
+                onClick={() => handleQuickNavigation('deal-desk', '/professional-deal-desk')}
               >
                 <FileText className="w-3 h-3 mr-1" />
                 Deal Desk
@@ -275,7 +275,7 @@ export function SessionBar() {
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString(),
                       });
-                      handleQuickNavigation('deal-desk', `/deal-desk`);
+                      handleQuickNavigation('deal-desk', `/professional-deal-desk`);
                     }}
                   >
                     <DollarSign className="w-3 h-3 mr-1" />
@@ -287,7 +287,7 @@ export function SessionBar() {
                     size="sm"
                     variant="default"
                     className="w-full text-xs"
-                    onClick={() => handleQuickNavigation('deal-desk', `/deal-desk/${session.deal?.id}`)}
+                    onClick={() => handleQuickNavigation('deal-desk', `/professional-deal-desk/${session.deal?.id}`)}
                   >
                     <FileText className="w-3 h-3 mr-1" />
                     Continue Deal

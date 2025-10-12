@@ -17,7 +17,7 @@ const navigationItems = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Sales & Leads", href: "/sales", icon: Users },
   { name: "Inventory", href: "/inventory", icon: Car },
-  { name: "Deal Desk", href: "/deal-desk", icon: Calculator },
+  { name: "Deal Desk", href: "/professional-deal-desk", icon: Calculator },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Settings", href: "/settings", icon: Settings },
 ];

@@ -66,7 +66,7 @@ export function SimpleSessionBar() {
     if (path.startsWith('/customers')) return 'customer';
     if (path.startsWith('/inventory')) return 'inventory';
     if (path.startsWith('/showroom-manager')) return 'showroom';
-    if (path.startsWith('/deal-desk')) return 'deal-desk';
+    if (path.startsWith('/professional-deal-desk')) return 'deal-desk';
     return 'dashboard';
   };
 
@@ -127,7 +127,7 @@ export function SimpleSessionBar() {
           : s
       ));
       
-      navigate('/deal-desk');
+      navigate('/professional-deal-desk');
     }
   };
 
@@ -284,7 +284,7 @@ export function SimpleSessionBar() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => handleQuickNavigation(`/deal-desk`, 'deal-desk')}
+                    onClick={() => handleQuickNavigation(`/professional-deal-desk`, 'deal-desk')}
                     className="text-purple-600"
                   >
                     <ExternalLink className="w-3 h-3" />
@@ -329,7 +329,7 @@ export function SimpleSessionBar() {
                 size="sm"
                 variant="outline"
                 className="text-xs"
-                onClick={() => handleQuickNavigation('/deal-desk', 'deal-desk')}
+                onClick={() => handleQuickNavigation('/professional-deal-desk', 'deal-desk')}
               >
                 <FileText className="w-3 h-3 mr-1" />
                 Deal Desk
@@ -383,7 +383,7 @@ export function SimpleSessionBar() {
                     size="sm"
                     variant="default"
                     className="w-full text-xs bg-purple-500 hover:bg-purple-600"
-                    onClick={() => handleQuickNavigation('/deal-desk', 'deal-desk')}
+                    onClick={() => handleQuickNavigation('/professional-deal-desk', 'deal-desk')}
                   >
                     <FileText className="w-3 h-3 mr-1" />
                     Continue Deal

@@ -34,7 +34,7 @@ const navigation = [
       { name: "Sales & Leads", href: "/sales", icon: Handshake },
       { name: "Mobile Sales", href: "/sales-mobile", icon: Handshake },
       { name: "Customers", href: "/customers", icon: Users },
-      { name: "Deal Desk", href: "/deal-desk", icon: Calculator },
+      { name: "Deal Desk", href: "/professional-deal-desk", icon: Calculator },
       { name: "Deals", href: "/deals", icon: FileText },
       { name: "Showroom Manager", href: "/showroom-manager", icon: Timer },
       { name: "Analytics", href: "/analytics", icon: TrendingUp },
