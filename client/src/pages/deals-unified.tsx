@@ -33,6 +33,7 @@ import {
   Phone,
   Mail
 } from "lucide-react";
+import type { Customer, Vehicle } from "@shared/schema";
 
 // Deal status configurations
 const DEAL_STATUSES = [
@@ -80,12 +81,12 @@ export default function DealsUnified() {
   });
 
   // Fetch customers for new deal creation
-  const { data: customers = [] } = useQuery({
+  const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
   });
 
   // Fetch vehicles for new deal creation
-  const { data: vehicles = [] } = useQuery({
+  const { data: vehicles = [] } = useQuery<Vehicle[]>({
     queryKey: ['/api/vehicles'],
   });
 
@@ -146,8 +147,8 @@ export default function DealsUnified() {
     setCashDown('');
   };
 
-  const selectedCustomer = customers.find((c: any) => c.id.toString() === selectedCustomerId);
-  const selectedVehicle = vehicles.find((v: any) => v.id.toString() === selectedVehicleId);
+  const selectedCustomer = customers.find((c) => c.id.toString() === selectedCustomerId);
+  const selectedVehicle = vehicles.find((v) => v.id.toString() === selectedVehicleId);
 
   const handleCreateDeal = (e: React.FormEvent) => {
     e.preventDefault();

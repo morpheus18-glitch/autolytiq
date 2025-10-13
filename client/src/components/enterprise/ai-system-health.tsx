@@ -34,6 +34,7 @@ import {
   Globe
 } from "lucide-react";
 import { useState } from "react";
+import type { Customer, Lead, Sale, Vehicle } from "@shared/schema";
 
 interface SystemComponent {
   id: string;
@@ -74,10 +75,10 @@ export default function AISystemHealth() {
   const queryClient = useQueryClient();
 
   // Fetch real data for system monitoring
-  const { data: vehicles = [] } = useQuery({ queryKey: ['/api/vehicles'] });
-  const { data: sales = [] } = useQuery({ queryKey: ['/api/sales'] });
-  const { data: leads = [] } = useQuery({ queryKey: ['/api/leads'] });
-  const { data: customers = [] } = useQuery({ queryKey: ['/api/customers'] });
+  const { data: vehicles = [] } = useQuery<Vehicle[]>({ queryKey: ['/api/vehicles'] });
+  const { data: sales = [] } = useQuery<Sale[]>({ queryKey: ['/api/sales'] });
+  const { data: leads = [] } = useQuery<Lead[]>({ queryKey: ['/api/leads'] });
+  const { data: customers = [] } = useQuery<Customer[]>({ queryKey: ['/api/customers'] });
 
   // AI-powered system components monitoring
   const systemComponents: SystemComponent[] = [

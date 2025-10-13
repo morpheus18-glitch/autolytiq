@@ -687,10 +687,30 @@ export const users = pgTable(
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   },
-  (table) => [
-    index("users_org_idx").on(table.organizationId),
-    index("users_unit_idx").on(table.primaryUnitId),
-  ],
+  (table) => ({
+    orgIdx: index("users_org_idx").on(table.organizationId),
+    unitIdx: index("users_unit_idx").on(table.primaryUnitId),
+    organizationFk: foreignKey({
+      name: "users_organization_id_fkey",
+      columns: [table.organizationId],
+      foreignColumns: [organizations.id],
+    }),
+    primaryUnitFk: foreignKey({
+      name: "users_primary_unit_id_fkey",
+      columns: [table.primaryUnitId],
+      foreignColumns: [organizationUnits.id],
+    }),
+    roleFk: foreignKey({
+      name: "users_role_id_fkey",
+      columns: [table.roleId],
+      foreignColumns: [roles.id],
+    }),
+    departmentFk: foreignKey({
+      name: "users_department_id_fkey",
+      columns: [table.departmentId],
+      foreignColumns: [departments.id],
+    }),
+  }),
 );
 
 export const organizationMemberships = pgTable(
@@ -713,15 +733,36 @@ export const organizationMemberships = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (table) => [
-    index("organization_memberships_org_idx").on(table.organizationId),
-    index("organization_memberships_user_idx").on(table.userId),
-    unique("organization_memberships_unique").on(
+  (table) => ({
+    orgIdx: index("organization_memberships_org_idx").on(table.organizationId),
+    userIdx: index("organization_memberships_user_idx").on(table.userId),
+    unitIdx: index("organization_memberships_unit_idx").on(table.unitId),
+    membershipUnique: unique("organization_memberships_unique").on(
       table.organizationId,
       table.userId,
       table.unitId,
     ),
-  ],
+    organizationFk: foreignKey({
+      name: "organization_memberships_organization_id_fkey",
+      columns: [table.organizationId],
+      foreignColumns: [organizations.id],
+    }),
+    userFk: foreignKey({
+      name: "organization_memberships_user_id_fkey",
+      columns: [table.userId],
+      foreignColumns: [users.id],
+    }),
+    roleFk: foreignKey({
+      name: "organization_memberships_role_id_fkey",
+      columns: [table.roleId],
+      foreignColumns: [roles.id],
+    }),
+    unitFk: foreignKey({
+      name: "organization_memberships_unit_id_fkey",
+      columns: [table.unitId],
+      foreignColumns: [organizationUnits.id],
+    }),
+  }),
 );
 
 export const vehicles = pgTable(
@@ -2463,22 +2504,31 @@ export const aiInsights = pgTable("ai_insights", {
 });
 
 // Real-Time Collaboration
-export const collaborationThreads = pgTable("collaboration_threads", {
-  id: serial("id").primaryKey(),
-  entityType: text("entity_type").notNull(), // deal, customer, vehicle
-  entityId: integer("entity_id").notNull(),
-  title: text("title").notNull(),
-  status: text("status").default("active").notNull(), // active, resolved, archived
-  priority: text("priority").default("normal").notNull(), // low, normal, high, urgent
-  assignedTo: varchar("assigned_to").references(() => users.id),
-  createdBy: varchar("created_by").references(() => users.id).notNull(),
+export const collaborationThreads = pgTable(
+  "collaboration_threads",
+  {
+    id: serial("id").primaryKey(),
+    organizationId: uuid("organization_id").references(() => organizations.id),
+    unitId: uuid("unit_id").references(() => organizationUnits.id),
+    pipelineId: uuid("pipeline_id").references(() => salesPipelines.id),
+    stageId: integer("stage_id").references(() => pipelineStages.id),
+    entityType: text("entity_type").notNull(), // deal, customer, vehicle
+    entityId: integer("entity_id").notNull(),
+    title: text("title").notNull(),
+    status: text("status").default("active").notNull(), // active, resolved, archived
+    priority: text("priority").default("normal").notNull(), // low, normal, high, urgent
+    assignedTo: varchar("assigned_to").references(() => users.id),
+    createdBy: varchar("created_by").references(() => users.id).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [
-    index("deals_org_idx").on(table.organizationId),
-    index("deals_unit_idx").on(table.unitId),
-    index("deals_pipeline_idx").on(table.pipelineId, table.stageId),
+    index("collaboration_threads_org_idx").on(table.organizationId),
+    index("collaboration_threads_unit_idx").on(table.unitId),
+    index("collaboration_threads_pipeline_idx").on(
+      table.pipelineId,
+      table.stageId,
+    ),
   ],
 );
 
