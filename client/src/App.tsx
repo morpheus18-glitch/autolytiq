@@ -66,6 +66,17 @@ import FinanceReserves from "@/pages/accounting/finance-reserves";
 import MonthlyClose from "@/pages/accounting/monthly-close";
 import LenderManagement from "@/pages/finance/lenders";
 import RateSheets from "@/pages/finance/rates";
+import LenderSettingsPage from "@/pages/finance/lender-settings";
+import LenderCreate from "@/pages/finance/lender-create";
+import RateImport from "@/pages/finance/rate-import";
+import RateExport from "@/pages/finance/rate-export";
+import ComplianceImport from "@/pages/finance/compliance-import";
+import ComplianceExport from "@/pages/finance/compliance-export";
+import ComplianceItemDetail from "@/pages/finance/compliance-item";
+import ComplianceItemSettings from "@/pages/finance/compliance-item-settings";
+import FinanceMonthlyReport from "@/pages/finance/finance-report-monthly";
+import FinanceLenderReport from "@/pages/finance/finance-report-lender";
+import FinanceProductReport from "@/pages/finance/finance-report-products";
 
 import { ThemeProvider } from "@/contexts/theme-context";
 import { MobileFooterMenu } from "@/components/mobile-footer-menu";
@@ -143,9 +154,20 @@ function Router() {
             <Route path="/finance" component={FiDashboardPage} />
             <Route path="/finance/structuring" component={DealDeskUnified} />
             <Route path="/finance/lenders" component={() => <LenderManagement />} />
+            <Route path="/finance/lenders/new" component={LenderCreate} />
+            <Route path="/finance/lenders/settings" component={LenderSettingsPage} />
             <Route path="/finance/rates" component={() => <RateSheets />} />
+            <Route path="/finance/rates/import" component={RateImport} />
+            <Route path="/finance/rates/export" component={RateExport} />
             <Route path="/finance/compliance" component={ComplianceManager} />
+            <Route path="/finance/compliance/import" component={ComplianceImport} />
+            <Route path="/finance/compliance/export" component={ComplianceExport} />
+            <Route path="/finance/compliance/:id/settings" component={ComplianceItemSettings} />
+            <Route path="/finance/compliance/:id" component={ComplianceItemDetail} />
             <Route path="/finance/reports" component={FinanceReports} />
+            <Route path="/finance/reports/monthly" component={FinanceMonthlyReport} />
+            <Route path="/finance/reports/lender" component={FinanceLenderReport} />
+            <Route path="/finance/reports/products" component={FinanceProductReport} />
 
             {/* Accounting Routes */}
             <Route path="/accounting" component={AccountingDashboard} />

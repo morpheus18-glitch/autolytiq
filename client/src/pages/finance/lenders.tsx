@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Search, Building, DollarSign, TrendingUp, Star, Settings, Phone, Mail, FileText } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const lenderData = [
+export const lenderData = [
   {
     id: "LEN001",
     name: "Honda Finance",
@@ -151,6 +152,7 @@ export default function LenderManagement() {
   const [selectedType, setSelectedType] = useState("all");
   const [selectedPriority, setSelectedPriority] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [, navigate] = useLocation();
 
   const filteredLenders = lenderData.filter(lender => {
     const matchesSearch = lender.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -204,6 +206,12 @@ export default function LenderManagement() {
   const avgApprovalRate = lenderData.reduce((sum, lender) => sum + lender.performance.approvalRate, 0) / lenderData.length;
   const avgReserve = lenderData.reduce((sum, lender) => sum + lender.performance.avgReserve, 0) / lenderData.length;
 
+  const navigateToSettings = (section: string, lenderId?: string) => {
+    const target = lenderId ?? lenderData[0]?.id;
+    if (!target) return;
+    navigate(`/finance/lenders/settings?section=${section}&lender=${target}`);
+  };
+
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
       {/* Header */}
@@ -213,11 +221,15 @@ export default function LenderManagement() {
           <p className="text-gray-600 mt-1">Manage relationships and track performance with finance partners</p>
         </div>
         <div className="flex space-x-3">
-          <Button variant="outline" className="flex items-center space-x-2">
-            <FileText className="h-4 w-4" />
-            <span>Rate Sheets</span>
+          <Button asChild variant="outline" className="flex items-center space-x-2">
+            <Link href="/finance/rates">
+              <span className="flex items-center space-x-2">
+                <FileText className="h-4 w-4" />
+                <span>Rate Sheets</span>
+              </span>
+            </Link>
           </Button>
-          <Button className="flex items-center space-x-2">
+          <Button className="flex items-center space-x-2" onClick={() => navigate('/finance/lenders/new')}>
             <Plus className="h-4 w-4" />
             <span>Add Lender</span>
           </Button>
@@ -374,7 +386,13 @@ export default function LenderManagement() {
                           <p className="font-medium">{lender.contact.rep}</p>
                           <div className="flex items-center space-x-2 text-sm text-gray-500">
                             <Phone className="h-3 w-3" />
-                            <span>{lender.contact.phone}</span>
+                            <button
+                              type="button"
+                              className="underline hover:text-gray-700"
+                              onClick={() => window.open(`tel:${lender.contact.phone}`)}
+                            >
+                              {lender.contact.phone}
+                            </button>
                           </div>
                         </div>
                       </TableCell>
@@ -403,10 +421,18 @@ export default function LenderManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button variant="ghost" size="sm">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigateToSettings('overview', lender.id)}
+                          >
                             <Settings className="h-3 w-3" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => window.open(`mailto:${lender.contact.email}`)}
+                          >
                             <Mail className="h-3 w-3" />
                           </Button>
                         </div>
@@ -544,15 +570,21 @@ export default function LenderManagement() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 border rounded-lg">
                       <span>Auto-route Tier 1 credit (720+ FICO) to captive lenders first</span>
-                      <Button variant="outline" size="sm">Configure</Button>
+                      <Button variant="outline" size="sm" onClick={() => navigateToSettings('routing')}>
+                        Configure
+                      </Button>
                     </div>
                     <div className="flex items-center justify-between p-3 border rounded-lg">
                       <span>Route sub-prime applications (&lt; 600 FICO) to specialty lenders</span>
-                      <Button variant="outline" size="sm">Configure</Button>
+                      <Button variant="outline" size="sm" onClick={() => navigateToSettings('routing')}>
+                        Configure
+                      </Button>
                     </div>
                     <div className="flex items-center justify-between p-3 border rounded-lg">
                       <span>Prioritize lenders by reserve rate for similar credit profiles</span>
-                      <Button variant="outline" size="sm">Configure</Button>
+                      <Button variant="outline" size="sm" onClick={() => navigateToSettings('routing')}>
+                        Configure
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -562,15 +594,21 @@ export default function LenderManagement() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 border rounded-lg">
                       <span>Require manager approval for deals &gt; $75,000</span>
-                      <Button variant="outline" size="sm">Enable</Button>
+                      <Button variant="outline" size="sm" onClick={() => navigateToSettings('approvals')}>
+                        Enable
+                      </Button>
                     </div>
                     <div className="flex items-center justify-between p-3 border rounded-lg">
                       <span>Auto-decline applications below minimum FICO requirements</span>
-                      <Button variant="outline" size="sm">Enable</Button>
+                      <Button variant="outline" size="sm" onClick={() => navigateToSettings('approvals')}>
+                        Enable
+                      </Button>
                     </div>
                     <div className="flex items-center justify-between p-3 border rounded-lg">
                       <span>Send automatic notifications for approval/decline decisions</span>
-                      <Button variant="outline" size="sm">Enable</Button>
+                      <Button variant="outline" size="sm" onClick={() => navigateToSettings('notifications')}>
+                        Enable
+                      </Button>
                     </div>
                   </div>
                 </div>
