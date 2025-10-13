@@ -127,7 +127,7 @@ export default function TopNavigation() {
         window.location.href = '/professional-deal-desk';
         break;
       case 'add-vehicle':
-        // Trigger add vehicle modal
+        window.location.href = '/inventory?view=add-vehicle';
         break;
       case 'schedule-service':
         window.location.href = '/service/appointments';
@@ -487,13 +487,17 @@ export default function TopNavigation() {
                 </div>
                 
                 <div className="space-y-1">
-                  <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto">
-                    <Settings className="w-5 h-5" />
-                    Settings & Preferences
+                  <Button asChild variant="ghost" className="w-full justify-start gap-3 p-3 h-auto">
+                    <Link href="/admin/system-settings">
+                      <Settings className="w-5 h-5" />
+                      Settings & Preferences
+                    </Link>
                   </Button>
-                  <Button variant="ghost" className="w-full justify-start gap-3 p-3 h-auto">
-                    <Shield className="w-5 h-5" />
-                    Security & Privacy
+                  <Button asChild variant="ghost" className="w-full justify-start gap-3 p-3 h-auto">
+                    <Link href="/admin/security-center">
+                      <Shield className="w-5 h-5" />
+                      Security & Privacy
+                    </Link>
                   </Button>
                   <Button 
                     variant="ghost" 
