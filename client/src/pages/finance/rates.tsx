@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
+import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,48 +9,179 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Download, Upload, Search, RefreshCw, TrendingUp, TrendingDown, AlertCircle, FileText } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const rateData = [
+type RateTier = "Tier 1" | "Tier 2" | "Tier 3";
+
+interface VehicleRateDetail {
+  terms: number[];
+  rates: number[];
+  reserves: number[];
+}
+
+interface RateSheetEntry {
+  lender: string;
+  tier: RateTier;
+  newVehicle: VehicleRateDetail;
+  usedVehicle: VehicleRateDetail;
+  requirements: {
+    minFico: number;
+    maxLtv: number;
+    maxAmount: number;
+  };
+  lastUpdated: string;
+  effective: string;
+}
+
+interface LoanCalculatorState {
+  vehiclePrice: number;
+  downPayment: number;
+  tradeValue: number;
+  tradePayoff: number;
+  fico: string;
+  term: number;
+}
+
+type VehicleSelection = "new" | "used";
+
+interface PaymentResult {
+  lender: string;
+  tier: RateTier;
+  rate: number;
+  payment: number;
+  reservePercent: number;
+  reserveAmount: number;
+  highlight: "best" | "competitive" | "standard";
+}
+
+const DEFAULT_LOAN_FORM: LoanCalculatorState = {
+  vehiclePrice: 35000,
+  downPayment: 5000,
+  tradeValue: 15000,
+  tradePayoff: 12000,
+  fico: "700-749",
+  term: 60,
+};
+
+const getEligibleTiers = (ficoRange: string): RateTier[] => {
+  switch (ficoRange) {
+    case "750+":
+      return ["Tier 1"];
+    case "700-749":
+      return ["Tier 1"];
+    case "650-699":
+      return ["Tier 2"];
+    case "600-649":
+      return ["Tier 2", "Tier 3"];
+    default:
+      return ["Tier 3"];
+  }
+};
+
+const calculateFinancedAmount = (loan: LoanCalculatorState) => {
+  const financed = loan.vehiclePrice - loan.downPayment - loan.tradeValue + loan.tradePayoff;
+  return Math.max(financed, 0);
+};
+
+const calculateMonthlyPayment = (principal: number, apr: number, termMonths: number) => {
+  if (termMonths <= 0) {
+    return 0;
+  }
+  const monthlyRate = apr / 1200;
+  if (monthlyRate === 0) {
+    return principal / termMonths;
+  }
+  const factor = Math.pow(1 + monthlyRate, termMonths);
+  return (principal * monthlyRate * factor) / (factor - 1);
+};
+
+const buildPaymentComparison = (
+  rateTable: RateSheetEntry[],
+  loan: LoanCalculatorState,
+  vehicleType: VehicleSelection
+): PaymentResult[] => {
+  const financedAmount = calculateFinancedAmount(loan);
+  if (financedAmount <= 0) {
+    return [];
+  }
+
+  const vehicleKey: "newVehicle" | "usedVehicle" = vehicleType === "new" ? "newVehicle" : "usedVehicle";
+  const eligibleTiers = getEligibleTiers(loan.fico);
+  const comparisonPool = rateTable.filter((entry) => eligibleTiers.includes(entry.tier));
+  const source = comparisonPool.length ? comparisonPool : rateTable;
+
+  return source
+    .map((entry) => {
+      const dataset = entry[vehicleKey];
+      const termIndex = dataset.terms.findIndex((term) => term === loan.term);
+      if (termIndex === -1) {
+        return null;
+      }
+
+      const rate = dataset.rates[termIndex];
+      const reservePercent = dataset.reserves[termIndex];
+      const payment = calculateMonthlyPayment(financedAmount, rate, loan.term);
+      const reserveAmount = financedAmount * (reservePercent / 100);
+
+      return {
+        lender: entry.lender,
+        tier: entry.tier,
+        rate,
+        payment,
+        reservePercent,
+        reserveAmount,
+        highlight: "standard" as const,
+      };
+    })
+    .filter((entry): entry is PaymentResult => entry !== null)
+    .sort((a, b) => a.payment - b.payment)
+    .map((entry, index) => ({
+      ...entry,
+      highlight: index === 0 ? "best" : index === 1 ? "competitive" : "standard",
+    }))
+    .slice(0, 4);
+};
+
+const rateData: RateSheetEntry[] = [
   {
     lender: "Honda Finance",
     tier: "Tier 1",
     newVehicle: {
       terms: [36, 48, 60, 72, 84],
       rates: [3.9, 4.1, 4.3, 4.9, 5.4],
-      reserves: [1.25, 1.35, 1.45, 1.65, 1.85]
+      reserves: [1.25, 1.35, 1.45, 1.65, 1.85],
     },
     usedVehicle: {
       terms: [36, 48, 60, 72, 84],
       rates: [4.4, 4.6, 4.8, 5.4, 5.9],
-      reserves: [1.5, 1.6, 1.7, 1.9, 2.1]
+      reserves: [1.5, 1.6, 1.7, 1.9, 2.1],
     },
     requirements: {
       minFico: 620,
       maxLtv: 125,
-      maxAmount: 150000
+      maxAmount: 150000,
     },
     lastUpdated: "2024-01-22",
-    effective: "2024-01-20"
+    effective: "2024-01-20",
   },
   {
     lender: "Bank of America",
-    tier: "Tier 1", 
+    tier: "Tier 1",
     newVehicle: {
       terms: [36, 48, 60, 72],
       rates: [4.2, 4.5, 4.9, 5.4],
-      reserves: [1.4, 1.5, 1.7, 1.85]
+      reserves: [1.4, 1.5, 1.7, 1.85],
     },
     usedVehicle: {
       terms: [36, 48, 60, 72],
       rates: [4.9, 5.2, 5.6, 6.1],
-      reserves: [1.8, 1.9, 2.0, 2.2]
+      reserves: [1.8, 1.9, 2.0, 2.2],
     },
     requirements: {
       minFico: 650,
       maxLtv: 120,
-      maxAmount: 200000
+      maxAmount: 200000,
     },
     lastUpdated: "2024-01-21",
-    effective: "2024-01-19"
+    effective: "2024-01-19",
   },
   {
     lender: "Wells Fargo Dealer Services",
@@ -57,20 +189,20 @@ const rateData = [
     newVehicle: {
       terms: [36, 48, 60, 72, 75],
       rates: [5.9, 6.2, 6.8, 7.4, 7.9],
-      reserves: [2.0, 2.1, 2.25, 2.4, 2.6]
+      reserves: [2.0, 2.1, 2.25, 2.4, 2.6],
     },
     usedVehicle: {
       terms: [36, 48, 60, 72, 75],
       rates: [6.4, 6.9, 7.5, 8.1, 8.6],
-      reserves: [2.3, 2.4, 2.6, 2.8, 3.0]
+      reserves: [2.3, 2.4, 2.6, 2.8, 3.0],
     },
     requirements: {
       minFico: 580,
       maxLtv: 115,
-      maxAmount: 125000
+      maxAmount: 125000,
     },
     lastUpdated: "2024-01-20",
-    effective: "2024-01-18"
+    effective: "2024-01-18",
   },
   {
     lender: "Capital One Auto Finance",
@@ -78,21 +210,21 @@ const rateData = [
     newVehicle: {
       terms: [36, 48, 60, 72],
       rates: [6.9, 7.4, 7.9, 8.4],
-      reserves: [2.4, 2.6, 2.75, 2.9]
+      reserves: [2.4, 2.6, 2.75, 2.9],
     },
     usedVehicle: {
       terms: [36, 48, 60, 72],
       rates: [7.8, 8.3, 8.9, 9.4],
-      reserves: [2.8, 3.0, 3.2, 3.4]
+      reserves: [2.8, 3.0, 3.2, 3.4],
     },
     requirements: {
       minFico: 540,
       maxLtv: 110,
-      maxAmount: 100000
+      maxAmount: 100000,
     },
     lastUpdated: "2024-01-19",
-    effective: "2024-01-17"
-  }
+    effective: "2024-01-17",
+  },
 ];
 
 const marketRates = {
@@ -105,10 +237,18 @@ const marketRates = {
 
 export default function RateSheets() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTier, setSelectedTier] = useState("all");
-  const [selectedVehicleType, setSelectedVehicleType] = useState("new");
+  const [selectedTier, setSelectedTier] = useState<RateTier | "all">("all");
+  const [selectedVehicleType, setSelectedVehicleType] = useState<VehicleSelection>("new");
+  const [rates, setRates] = useState<RateSheetEntry[]>(rateData);
+  const [previousRates, setPreviousRates] = useState<RateSheetEntry[]>(rateData);
+  const [marketSnapshot, setMarketSnapshot] = useState(marketRates);
+  const [loanForm, setLoanForm] = useState<LoanCalculatorState>(() => ({ ...DEFAULT_LOAN_FORM }));
+  const [paymentResults, setPaymentResults] = useState<PaymentResult[]>(() =>
+    buildPaymentComparison(rateData, DEFAULT_LOAN_FORM, "new")
+  );
+  const [lastCalculatedAt, setLastCalculatedAt] = useState<string>(new Date().toISOString());
 
-  const filteredRates = rateData.filter(rate => {
+  const filteredRates = rates.filter(rate => {
     const matchesSearch = rate.lender.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTier = selectedTier === "all" || rate.tier === selectedTier;
     return matchesSearch && matchesTier;
@@ -118,11 +258,12 @@ export default function RateSheets() {
     return `${value.toFixed(2)}%`;
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, minimumFractionDigits = 0) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 0
+      minimumFractionDigits,
+      maximumFractionDigits: minimumFractionDigits,
     }).format(amount);
   };
 
@@ -139,10 +280,110 @@ export default function RateSheets() {
     }
   };
 
-  const getRateChange = (rate: number) => {
-    // Simulate rate changes for demo
-    const change = (Math.random() - 0.5) * 0.5;
-    return change;
+  const getRateChange = (
+    lenderName: string,
+    termIndex: number,
+    vehicleType: "newVehicle" | "usedVehicle"
+  ) => {
+    const current = rates.find((rate) => rate.lender === lenderName);
+    const previous = previousRates.find((rate) => rate.lender === lenderName);
+    if (!current || !previous) {
+      return 0;
+    }
+    const currentRate = current[vehicleType].rates[termIndex];
+    const previousRate = previous[vehicleType].rates[termIndex];
+    return Number((currentRate - previousRate).toFixed(2));
+  };
+
+  const handleLoanFieldChange = <K extends keyof LoanCalculatorState>(
+    key: K,
+    value: LoanCalculatorState[K]
+  ) => {
+    setLoanForm((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  type NumericLoanField = "vehiclePrice" | "downPayment" | "tradeValue" | "tradePayoff";
+
+  const handleNumericInput = (key: NumericLoanField) => (event: ChangeEvent<HTMLInputElement>) => {
+    const numericValue = Number(event.target.value);
+    const sanitized = Number.isNaN(numericValue) ? 0 : Math.max(numericValue, 0);
+    handleLoanFieldChange(key, sanitized as LoanCalculatorState[NumericLoanField]);
+  };
+
+  const handleCalculate = () => {
+    const nextResults = buildPaymentComparison(rates, loanForm, selectedVehicleType);
+    setPaymentResults(nextResults);
+    setLastCalculatedAt(new Date().toISOString());
+  };
+
+  const handleRefresh = () => {
+    setRates((prevRates) => {
+      setPreviousRates(prevRates);
+      const updatedRates = prevRates.map((rate) => {
+        const adjustRates = (values: number[]) =>
+          values.map((value) => {
+            const delta = (Math.random() - 0.5) * 0.4;
+            return Number(Math.max(value + delta, 0).toFixed(2));
+          });
+
+        const adjustReserves = (values: number[]) =>
+          values.map((value) => {
+            const delta = (Math.random() - 0.5) * 0.2;
+            return Number(Math.max(value + delta, 0).toFixed(2));
+          });
+
+        const effectiveDate = new Date();
+        effectiveDate.setDate(effectiveDate.getDate() + 2);
+
+        return {
+          ...rate,
+          newVehicle: {
+            terms: [...rate.newVehicle.terms],
+            rates: adjustRates(rate.newVehicle.rates),
+            reserves: adjustReserves(rate.newVehicle.reserves)
+          },
+          usedVehicle: {
+            terms: [...rate.usedVehicle.terms],
+            rates: adjustRates(rate.usedVehicle.rates),
+            reserves: adjustReserves(rate.usedVehicle.reserves)
+          },
+          lastUpdated: new Date().toISOString().slice(0, 10),
+          effective: effectiveDate.toISOString().slice(0, 10)
+        };
+      });
+
+      if (paymentResults.length) {
+        const recalculated = buildPaymentComparison(updatedRates, loanForm, selectedVehicleType);
+        setPaymentResults(recalculated);
+        setLastCalculatedAt(new Date().toISOString());
+      }
+
+      return updatedRates;
+    });
+
+    setMarketSnapshot((prev) => {
+      const adjust = (value: number, scale: number) =>
+        Number(Math.max(value + (Math.random() - 0.5) * scale, 0).toFixed(2));
+      return {
+        fedRate: adjust(prev.fedRate, 0.1),
+        primeRate: adjust(prev.primeRate, 0.15),
+        autoLoanAvg: adjust(prev.autoLoanAvg, 0.2),
+        trend:
+          Math.random() > 0.6 ? "rising" : Math.random() > 0.6 ? "declining" : "stable",
+        lastUpdate: new Date().toISOString().slice(0, 10)
+      };
+    });
+  };
+
+  const financedAmount = calculateFinancedAmount(loanForm);
+
+  const highlightStyles: Record<PaymentResult["highlight"], { label: string; badgeClass: string }> = {
+    best: { label: "Best Payment", badgeClass: "bg-green-100 text-green-800" },
+    competitive: { label: "Competitive Option", badgeClass: "bg-blue-100 text-blue-800" },
+    standard: { label: "Additional Option", badgeClass: "bg-gray-100 text-gray-800" },
   };
 
   return (
@@ -154,15 +395,23 @@ export default function RateSheets() {
           <p className="text-gray-600 mt-1">Current lending rates and terms from all finance partners</p>
         </div>
         <div className="flex space-x-3">
-          <Button variant="outline" className="flex items-center space-x-2">
-            <Upload className="h-4 w-4" />
-            <span>Import Rates</span>
+          <Button asChild variant="outline" className="flex items-center space-x-2">
+            <Link href="/finance/rates/import">
+              <span className="flex items-center space-x-2">
+                <Upload className="h-4 w-4" />
+                <span>Import Rates</span>
+              </span>
+            </Link>
           </Button>
-          <Button variant="outline" className="flex items-center space-x-2">
-            <Download className="h-4 w-4" />
-            <span>Export</span>
+          <Button asChild variant="outline" className="flex items-center space-x-2">
+            <Link href="/finance/rates/export">
+              <span className="flex items-center space-x-2">
+                <Download className="h-4 w-4" />
+                <span>Export</span>
+              </span>
+            </Link>
           </Button>
-          <Button className="flex items-center space-x-2">
+          <Button className="flex items-center space-x-2" onClick={handleRefresh}>
             <RefreshCw className="h-4 w-4" />
             <span>Refresh All</span>
           </Button>
@@ -182,23 +431,23 @@ export default function RateSheets() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-600 font-medium">Federal Rate</p>
-              <p className="text-2xl font-bold text-blue-700">{formatPercent(marketRates.fedRate)}</p>
+              <p className="text-2xl font-bold text-blue-700">{formatPercent(marketSnapshot.fedRate)}</p>
               <p className="text-xs text-blue-600">Base rate</p>
             </div>
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <p className="text-sm text-green-600 font-medium">Prime Rate</p>
-              <p className="text-2xl font-bold text-green-700">{formatPercent(marketRates.primeRate)}</p>
+              <p className="text-2xl font-bold text-green-700">{formatPercent(marketSnapshot.primeRate)}</p>
               <p className="text-xs text-green-600">Prime lending</p>
             </div>
             <div className="text-center p-4 bg-purple-50 rounded-lg">
               <p className="text-sm text-purple-600 font-medium">Auto Loan Avg</p>
-              <p className="text-2xl font-bold text-purple-700">{formatPercent(marketRates.autoLoanAvg)}</p>
+              <p className="text-2xl font-bold text-purple-700">{formatPercent(marketSnapshot.autoLoanAvg)}</p>
               <p className="text-xs text-purple-600">National average</p>
             </div>
             <div className="text-center p-4 bg-orange-50 rounded-lg">
               <p className="text-sm text-orange-600 font-medium">Market Trend</p>
-              <p className="text-2xl font-bold text-orange-700 capitalize">{marketRates.trend}</p>
-              <p className="text-xs text-orange-600">Current direction</p>
+              <p className="text-2xl font-bold text-orange-700 capitalize">{marketSnapshot.trend}</p>
+              <p className="text-xs text-orange-600">Last update {marketSnapshot.lastUpdate}</p>
             </div>
           </div>
         </CardContent>
@@ -227,7 +476,7 @@ export default function RateSheets() {
                     />
                   </div>
                 </div>
-                <Select value={selectedTier} onValueChange={setSelectedTier}>
+                <Select value={selectedTier} onValueChange={(value) => setSelectedTier(value as RateTier | "all")}>
                   <SelectTrigger className="w-full md:w-48">
                     <SelectValue placeholder="Credit Tier" />
                   </SelectTrigger>
@@ -238,7 +487,10 @@ export default function RateSheets() {
                     <SelectItem value="Tier 3">Tier 3</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={selectedVehicleType} onValueChange={setSelectedVehicleType}>
+                <Select
+                  value={selectedVehicleType}
+                  onValueChange={(value) => setSelectedVehicleType(value as VehicleSelection)}
+                >
                   <SelectTrigger className="w-full md:w-48">
                     <SelectValue placeholder="Vehicle Type" />
                   </SelectTrigger>
@@ -293,7 +545,7 @@ export default function RateSheets() {
                           </TableHeader>
                           <TableBody>
                             {lender.newVehicle.terms.map((term, index) => {
-                              const change = getRateChange(lender.newVehicle.rates[index]);
+                              const change = getRateChange(lender.lender, index, "newVehicle");
                               return (
                                 <TableRow key={term}>
                                   <TableCell className="font-medium">{term} months</TableCell>
@@ -338,7 +590,7 @@ export default function RateSheets() {
                           </TableHeader>
                           <TableBody>
                             {lender.usedVehicle.terms.map((term, index) => {
-                              const change = getRateChange(lender.usedVehicle.rates[index]);
+                              const change = getRateChange(lender.lender, index, "usedVehicle");
                               return (
                                 <TableRow key={term}>
                                   <TableCell className="font-medium">{term} months</TableCell>
@@ -455,23 +707,54 @@ export default function RateSheets() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-2">Vehicle Price</label>
-                      <Input placeholder="$35,000" />
+                      <Input
+                        type="number"
+                        min={0}
+                        step={500}
+                        value={loanForm.vehiclePrice}
+                        onChange={handleNumericInput("vehiclePrice")}
+                        placeholder="$35,000"
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-2">Down Payment</label>
-                      <Input placeholder="$5,000" />
+                      <Input
+                        type="number"
+                        min={0}
+                        step={500}
+                        value={loanForm.downPayment}
+                        onChange={handleNumericInput("downPayment")}
+                        placeholder="$5,000"
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-2">Trade Value</label>
-                      <Input placeholder="$15,000" />
+                      <Input
+                        type="number"
+                        min={0}
+                        step={500}
+                        value={loanForm.tradeValue}
+                        onChange={handleNumericInput("tradeValue")}
+                        placeholder="$15,000"
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-2">Trade Payoff</label>
-                      <Input placeholder="$12,000" />
+                      <Input
+                        type="number"
+                        min={0}
+                        step={500}
+                        value={loanForm.tradePayoff}
+                        onChange={handleNumericInput("tradePayoff")}
+                        placeholder="$12,000"
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-2">Customer FICO</label>
-                      <Select>
+                      <Select
+                        value={loanForm.fico}
+                        onValueChange={(value) => handleLoanFieldChange("fico", value)}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select FICO Range" />
                         </SelectTrigger>
@@ -486,7 +769,10 @@ export default function RateSheets() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-2">Term</label>
-                      <Select>
+                      <Select
+                        value={loanForm.term.toString()}
+                        onValueChange={(value) => handleLoanFieldChange("term", Number(value))}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select Term" />
                         </SelectTrigger>
@@ -500,75 +786,61 @@ export default function RateSheets() {
                       </Select>
                     </div>
                   </div>
-                  <Button className="w-full">Calculate Payments</Button>
+                  <Button type="button" className="w-full" onClick={handleCalculate}>
+                    Calculate Payments
+                  </Button>
                 </div>
 
                 <div className="space-y-4">
                   <h4 className="font-semibold">Payment Comparison</h4>
+                  <p className="text-sm text-gray-600">
+                    Amount financed {formatCurrency(financedAmount)} over {loanForm.term} months.
+                  </p>
                   <div className="space-y-3">
-                    <div className="p-4 border rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium">Honda Finance</span>
-                        <Badge className="bg-green-100 text-green-800">Best Rate</Badge>
+                    {paymentResults.length === 0 && (
+                      <div className="p-4 border border-dashed rounded-lg text-sm text-gray-600">
+                        Enter deal details and select a term to generate live lender comparisons.
                       </div>
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <p className="text-gray-600">Rate</p>
-                          <p className="font-semibold">4.3%</p>
+                    )}
+                    {paymentResults.map((result) => {
+                      const highlight = highlightStyles[result.highlight];
+                      return (
+                        <div
+                          key={`${result.lender}-${result.tier}-${loanForm.term}-${selectedVehicleType}`}
+                          className="p-4 border rounded-lg"
+                        >
+                          <div className="flex justify-between items-center mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{result.lender}</span>
+                              <Badge variant="outline" className="capitalize">
+                                {result.tier}
+                              </Badge>
+                            </div>
+                            <Badge className={highlight.badgeClass}>{highlight.label}</Badge>
+                          </div>
+                          <div className="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <p className="text-gray-600">Rate</p>
+                              <p className="font-semibold">{formatPercent(result.rate)}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-600">Payment</p>
+                              <p className="font-semibold">{formatCurrency(result.payment, 2)}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-600">Reserve</p>
+                              <p className="font-semibold text-green-600">
+                                {formatCurrency(result.reserveAmount, 2)} ({result.reservePercent.toFixed(2)}%)
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-gray-600">Payment</p>
-                          <p className="font-semibold">$448</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600">Reserve</p>
-                          <p className="font-semibold text-green-600">$362</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-4 border rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium">Bank of America</span>
-                        <Badge className="bg-blue-100 text-blue-800">Good Option</Badge>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <p className="text-gray-600">Rate</p>
-                          <p className="font-semibold">4.9%</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600">Payment</p>
-                          <p className="font-semibold">$465</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600">Reserve</p>
-                          <p className="font-semibold text-green-600">$425</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-4 border rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium">Wells Fargo</span>
-                        <Badge className="bg-orange-100 text-orange-800">Backup</Badge>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <p className="text-gray-600">Rate</p>
-                          <p className="font-semibold">6.8%</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600">Payment</p>
-                          <p className="font-semibold">$515</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600">Reserve</p>
-                          <p className="font-semibold text-green-600">$562</p>
-                        </div>
-                      </div>
-                    </div>
+                      );
+                    })}
                   </div>
+                  <p className="text-xs text-gray-500">
+                    Last calculated {new Date(lastCalculatedAt).toLocaleString()}
+                  </p>
                 </div>
               </div>
             </CardContent>

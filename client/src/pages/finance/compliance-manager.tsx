@@ -1,16 +1,16 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { 
-  Shield, 
-  FileCheck, 
-  AlertTriangle, 
-  CheckCircle, 
+import {
+  Shield,
+  FileCheck,
+  AlertTriangle,
+  CheckCircle,
   Calendar,
   Download,
   Upload,
@@ -19,66 +19,12 @@ import {
   Eye,
   Settings
 } from "lucide-react";
-
-interface ComplianceItem {
-  id: string;
-  type: 'document' | 'training' | 'audit' | 'certification';
-  title: string;
-  status: 'compliant' | 'warning' | 'non-compliant' | 'pending';
-  dueDate: string;
-  lastUpdated: string;
-  assignedTo: string;
-  description: string;
-}
+import { COMPLIANCE_ITEMS, ComplianceItem } from "./compliance-data";
 
 export default function ComplianceManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-
-  // Mock compliance data - would be fetched from backend
-  const complianceItems: ComplianceItem[] = [
-    {
-      id: '1',
-      type: 'document',
-      title: 'Truth in Lending Act Documentation',
-      status: 'compliant',
-      dueDate: '2025-03-15',
-      lastUpdated: '2025-01-15',
-      assignedTo: 'F&I Manager',
-      description: 'Ensure all lending documentation meets TILA requirements'
-    },
-    {
-      id: '2',
-      type: 'training',
-      title: 'Fair Credit Reporting Act Training',
-      status: 'warning',
-      dueDate: '2025-02-01',
-      lastUpdated: '2024-11-15',
-      assignedTo: 'Sales Team',
-      description: 'Annual FCRA compliance training for sales staff'
-    },
-    {
-      id: '3',
-      type: 'certification',
-      title: 'Dealer License Renewal',
-      status: 'pending',
-      dueDate: '2025-04-30',
-      lastUpdated: '2025-01-10',
-      assignedTo: 'General Manager',
-      description: 'State dealer license renewal application'
-    },
-    {
-      id: '4',
-      type: 'audit',
-      title: 'F&I Process Audit',
-      status: 'non-compliant',
-      dueDate: '2025-01-25',
-      lastUpdated: '2025-01-20',
-      assignedTo: 'F&I Manager',
-      description: 'Internal audit of F&I processes and documentation'
-    }
-  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -100,21 +46,21 @@ export default function ComplianceManager() {
     }
   };
 
-  const filteredItems = complianceItems.filter(item => {
+  const filteredItems = COMPLIANCE_ITEMS.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || item.type === filterType;
     const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
-    
+
     return matchesSearch && matchesType && matchesStatus;
   });
 
   const complianceStats = {
-    total: complianceItems.length,
-    compliant: complianceItems.filter(item => item.status === 'compliant').length,
-    warning: complianceItems.filter(item => item.status === 'warning').length,
-    nonCompliant: complianceItems.filter(item => item.status === 'non-compliant').length,
-    pending: complianceItems.filter(item => item.status === 'pending').length
+    total: COMPLIANCE_ITEMS.length,
+    compliant: COMPLIANCE_ITEMS.filter(item => item.status === 'compliant').length,
+    warning: COMPLIANCE_ITEMS.filter(item => item.status === 'warning').length,
+    nonCompliant: COMPLIANCE_ITEMS.filter(item => item.status === 'non-compliant').length,
+    pending: COMPLIANCE_ITEMS.filter(item => item.status === 'pending').length
   };
 
   return (
@@ -129,13 +75,21 @@ export default function ComplianceManager() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Upload className="w-4 h-4 mr-2" />
-            Import Documents
+          <Button asChild variant="outline">
+            <Link href="/finance/compliance/import">
+              <span className="flex items-center">
+                <Upload className="w-4 h-4 mr-2" />
+                Import Documents
+              </span>
+            </Link>
           </Button>
-          <Button>
-            <Download className="w-4 h-4 mr-2" />
-            Export Report
+          <Button asChild>
+            <Link href="/finance/compliance/export">
+              <span className="flex items-center">
+                <Download className="w-4 h-4 mr-2" />
+                Export Report
+              </span>
+            </Link>
           </Button>
         </div>
       </div>
@@ -287,11 +241,15 @@ export default function ComplianceManager() {
                   <TableCell>{item.assignedTo}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <Eye className="w-4 h-4" />
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/finance/compliance/${item.id}`}>
+                          <Eye className="w-4 h-4" />
+                        </Link>
                       </Button>
-                      <Button variant="outline" size="sm">
-                        <Settings className="w-4 h-4" />
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/finance/compliance/${item.id}/settings`}>
+                          <Settings className="w-4 h-4" />
+                        </Link>
                       </Button>
                     </div>
                   </TableCell>
