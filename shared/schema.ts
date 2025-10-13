@@ -14,6 +14,7 @@ import {
   jsonb,
   index,
   uuid,
+  foreignKey,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -38,7 +39,7 @@ export const organizations = pgTable(
   "organizations",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    parentId: uuid("parent_id").references(() => organizations.id),
+    parentId: uuid("parent_id"),
     name: varchar("name", { length: 255 }).notNull(),
     legalName: varchar("legal_name", { length: 255 }),
     slug: varchar("slug", { length: 120 }).notNull().unique(),
@@ -66,7 +67,14 @@ export const organizations = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (table) => [index("organizations_parent_idx").on(table.parentId)],
+  (table) => ({
+    parentIdx: index("organizations_parent_idx").on(table.parentId),
+    parentFk: foreignKey({
+      name: "organizations_parent_id_fkey",
+      columns: [table.parentId],
+      foreignColumns: [table.id],
+    }),
+  }),
 );
 
 export const organizationSettings = pgTable(
@@ -232,7 +240,7 @@ export const organizationUnits = pgTable(
     organizationId: uuid("organization_id")
       .references(() => organizations.id)
       .notNull(),
-    parentUnitId: uuid("parent_unit_id").references(() => organizationUnits.id),
+    parentUnitId: uuid("parent_unit_id"),
     name: varchar("name", { length: 255 }).notNull(),
     code: varchar("code", { length: 50 }),
     unitType: varchar("unit_type", { length: 50 })
@@ -249,10 +257,15 @@ export const organizationUnits = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (table) => [
-    index("organization_units_org_idx").on(table.organizationId),
-    index("organization_units_parent_idx").on(table.parentUnitId),
-  ],
+  (table) => ({
+    orgIdx: index("organization_units_org_idx").on(table.organizationId),
+    parentIdx: index("organization_units_parent_idx").on(table.parentUnitId),
+    parentFk: foreignKey({
+      name: "organization_units_parent_unit_id_fkey",
+      columns: [table.parentUnitId],
+      foreignColumns: [table.id],
+    }),
+  }),
 );
 
 export const organizationUnitSettings = pgTable(
@@ -565,17 +578,25 @@ export const departments = pgTable(
     id: serial("id").primaryKey(),
     organizationId: uuid("organization_id").references(() => organizations.id),
     unitId: uuid("unit_id").references(() => organizationUnits.id),
-    parentDepartmentId: integer("parent_department_id").references(() => departments.id),
+    parentDepartmentId: integer("parent_department_id"),
     name: text("name").notNull(),
     description: text("description"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (table) => [
-    index("departments_org_idx").on(table.organizationId),
-    index("departments_unit_idx").on(table.unitId),
-    unique("departments_org_name_unique").on(table.organizationId, table.name),
-  ],
+  (table) => ({
+    orgIdx: index("departments_org_idx").on(table.organizationId),
+    unitIdx: index("departments_unit_idx").on(table.unitId),
+    orgNameUnique: unique("departments_org_name_unique").on(
+      table.organizationId,
+      table.name,
+    ),
+    parentFk: foreignKey({
+      name: "departments_parent_department_id_fkey",
+      columns: [table.parentDepartmentId],
+      foreignColumns: [table.id],
+    }),
+  }),
 );
 
 // Roles table
