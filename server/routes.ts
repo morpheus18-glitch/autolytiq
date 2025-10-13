@@ -44,7 +44,7 @@ import { registerMLAdminRoutes } from "./ml-admin-routes";
 import { registerMLEnterpriseRoutes } from "./ml-enterprise-routes";
 import { registerMLHeatmapRoutes } from "./ml-heatmap-routes";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { EnterpriseWebSocketManager } from "./enterprise-websocket";
 import { lifecycleTracker } from "./tracking-service";
 import { LeadStorageService, sampleLeadData } from "./lead-engine";
@@ -313,7 +313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('VIN decode error:', error);
-      res.status(500).json({ message: "Failed to decode VIN", error: error.message });
+      res.status(500).json({ message: "Failed to decode VIN", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -343,7 +343,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Batch valuation error:', error);
-      res.status(500).json({ message: "Failed to process batch valuations", error: error.message });
+      res.status(500).json({ message: "Failed to process batch valuations", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -366,7 +366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(valuation);
     } catch (error) {
       console.error('Quick valuation error:', error);
-      res.status(500).json({ message: "Failed to get quick valuation", error: error.message });
+      res.status(500).json({ message: "Failed to get quick valuation", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -391,7 +391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Set session
         req.session.user = masterUser;
-        req.session.loginTime = new Date();
+        req.session.loginTime = new Date().toISOString();
         
         // Save session explicitly
         console.log('🔑 Master account login successful');
@@ -414,8 +414,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // Check if 2FA is required
-      if (user.twoFactorEnabled && !twoFactorCode) {
+      // Check if 2FA is required (placeholder - not implemented in schema)
+      const twoFactorEnabled = false; // user.twoFactorEnabled would go here if added to schema
+      if (twoFactorEnabled && !twoFactorCode) {
         return res.json({
           success: false,
           requiresTwoFactor: true,
@@ -424,7 +425,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verify 2FA if provided
-      if (user.twoFactorEnabled && twoFactorCode) {
+      if (twoFactorEnabled && twoFactorCode) {
         // In production, verify against actual 2FA secret
         if (twoFactorCode !== "123456") { // Demo code
           return res.status(401).json({ message: "Invalid 2FA code" });
@@ -434,11 +435,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set session
       req.session.user = {
         id: user.id,
-        username: user.username,
-        role: user.role || "user",
-        permissions: user.permissions || []
+        username: user.username || user.email || '',
+        role: "user", // Default role - extend schema to add user.roleId lookup if needed
+        permissions: [] // Default permissions - extend schema to add permissions lookup if needed
       };
-      req.session.loginTime = new Date();
+      req.session.loginTime = new Date().toISOString();
 
       console.log(`🔑 User login successful: ${username}`);
       res.json({
@@ -701,7 +702,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(response);
     } catch (error) {
       console.error('Valuation API error:', error);
-      res.status(500).json({ message: "Failed to fetch valuations", error: error.message });
+      res.status(500).json({ message: "Failed to fetch valuations", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -766,7 +767,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(response);
     } catch (error) {
       console.error('Valuation refresh error:', error);
-      res.status(500).json({ message: "Failed to refresh valuations", error: error.message });
+      res.status(500).json({ message: "Failed to refresh valuations", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -856,7 +857,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(customers);
     } catch (error) {
       console.error("Error fetching customers:", error);
-      res.status(500).json({ message: "Failed to fetch customers", error: error.message });
+      res.status(500).json({ message: "Failed to fetch customers", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -1082,7 +1083,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/dealer-config/lenders", async (req, res) => {
     try {
       const validatedData = insertStoreLenderSchema.parse(req.body);
-      const [lender] = await db.insert(storeLenders).values(validatedData).returning();
+      const [lender] = await db.insert(storeLenders).values([validatedData]).returning();
       res.status(201).json(lender);
     } catch (error) {
       console.error("Error creating lender:", error);
@@ -1104,7 +1105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/dealer-config/products", async (req, res) => {
     try {
       const validatedData = insertStoreProductPresetSchema.parse(req.body);
-      const [product] = await db.insert(storeProductPresets).values(validatedData).returning();
+      const [product] = await db.insert(storeProductPresets).values([validatedData]).returning();
       res.status(201).json(product);
     } catch (error) {
       console.error("Error creating product preset:", error);
@@ -1126,7 +1127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/dealer-config/finance", async (req, res) => {
     try {
       const validatedData = insertStoreFinanceSettingsSchema.parse(req.body);
-      const [settings] = await db.insert(storeFinanceSettings).values(validatedData).returning();
+      const [settings] = await db.insert(storeFinanceSettings).values([validatedData]).returning();
       res.status(201).json(settings);
     } catch (error) {
       console.error("Error creating finance settings:", error);
@@ -1137,10 +1138,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/dealer-config/page-settings/:storeId/:pageName", async (req, res) => {
     try {
       const { storeId, pageName } = req.params;
-      // Use existing eq import with array for multiple conditions
+      // Use and to combine multiple conditions
       const [settings] = await db.select().from(storePageSettings)
-        .where(eq(storePageSettings.storeId, storeId))
-        .where(eq(storePageSettings.pageName, pageName))
+        .where(and(
+          eq(storePageSettings.storeId, storeId),
+          eq(storePageSettings.pageName, pageName)
+        ))
         .limit(1);
       res.json(settings || null);
     } catch (error) {
@@ -1152,7 +1155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/dealer-config/page-settings", async (req, res) => {
     try {
       const validatedData = insertStorePageSettingsSchema.parse(req.body);
-      const [settings] = await db.insert(storePageSettings).values(validatedData).returning();
+      const [settings] = await db.insert(storePageSettings).values([validatedData]).returning();
       res.status(201).json(settings);
     } catch (error) {
       console.error("Error creating page settings:", error);
@@ -1178,7 +1181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/customers/:id/notes", async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
-      const notes = [];
+      const notes: any[] = [];
       res.json(notes);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch customer notes" });
@@ -1198,7 +1201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/customers/:id/calls", async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
-      const calls = [];
+      const calls: any[] = [];
       res.json(calls);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch customer calls" });
@@ -1218,7 +1221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/customers/:id/documents", async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
-      const documents = [];
+      const documents: any[] = [];
       res.json(documents);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch customer documents" });
@@ -1238,7 +1241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/customers/:id/vehicles-of-interest", async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
-      const vehiclesOfInterest = [];
+      const vehiclesOfInterest: any[] = [];
       res.json(vehiclesOfInterest);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch vehicles of interest" });
@@ -1349,6 +1352,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Vehicle not found" });
       }
 
+      // Calculate days on lot
+      const daysOnLot = vehicle.createdAt 
+        ? Math.floor((Date.now() - new Date(vehicle.createdAt).getTime()) / (1000 * 60 * 60 * 24))
+        : 0;
+
       // Call ML backend for pricing optimization
       const mlResponse = await fetch('http://localhost:8000/analyze/pricing/' + vehicleId, {
         method: 'POST',
@@ -1360,17 +1368,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           year: vehicle.year,
           mileage: vehicle.mileage || 0,
           price: vehicle.price,
-          category: vehicle.category || 'sedan',
+          category: 'sedan', // Default category
           vin: vehicle.vin,
-          stock_number: vehicle.stockNumber || '',
-          color: vehicle.color || '',
-          transmission: vehicle.transmission || 'automatic',
-          fuel_type: vehicle.fuelType || 'gasoline',
-          body_style: vehicle.bodyStyle || 'sedan',
+          stock_number: vehicle.stockNo || '',
+          color: (vehicle.specifications as any)?.exteriorColor || '',
+          transmission: (vehicle.specifications as any)?.transmission || 'automatic',
+          fuel_type: (vehicle.specifications as any)?.fuelType || 'gasoline',
+          body_style: 'sedan', // Default body style
           condition: vehicle.condition || 'excellent',
           features: [],
-          days_on_lot: vehicle.daysOnLot || 0,
-          cost_basis: vehicle.cost || null,
+          days_on_lot: daysOnLot,
+          cost_basis: vehicle.costPrice || null,
           market_value: vehicle.price
         })
       });
@@ -4394,7 +4402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Calculate real causal relationships
       const causalParents = [];
-      const causalChildren = [];
+      const causalChildren: any[] = [];
       
       if (nodeId === "sales_conversion") {
         causalParents.push(
