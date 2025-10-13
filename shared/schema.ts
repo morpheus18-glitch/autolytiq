@@ -745,77 +745,77 @@ export const vehicles = pgTable(
     condition: text("condition").default("good"), // excellent, good, fair, poor
     description: text("description"),
     imageUrl: text("image_url"),
-  
-  // Enhanced listing capabilities
-  listing: json("listing").$type<{
-    isListed: boolean;
-    listingSites: string[]; // autotrader, cars.com, etc.
-    listingStatus: string;
-    seoTitle?: string;
-    seoDescription?: string;
-    keywords?: string[];
-    featuredUntil?: string;
-  }>(),
-  
-  // Enhanced media management
-  media: json("media").$type<Array<{
-    url: string; 
-    label: string; 
-    type: 'image' | 'video' | 'document' | '360-view';
-    order: number;
-    isMain?: boolean;
-  }>>(),
-  
-  // AI-enhanced valuations
-  valuations: json("valuations").$type<{
-    kbb?: number; 
-    mmr?: number; 
-    blackBook?: number; 
-    jdPower?: number;
-    aiEstimate?: number;
-    marketTrend?: 'rising' | 'stable' | 'falling';
-    confidenceScore?: number;
-    lastUpdated?: string;
-  }>(),
-  
-  // Enhanced specifications
-  specifications: json("specifications").$type<{
-    engine?: string;
-    transmission?: string;
-    drivetrain?: string;
-    fuelType?: string;
-    mpgCity?: number;
-    mpgHighway?: number;
-    exteriorColor?: string;
-    interiorColor?: string;
-    features?: string[];
-    safetyRating?: number;
-    warrantyInfo?: string;
-  }>(),
-  
-  // Location and logistics
-  location: json("location").$type<{
-    lot?: string;
-    row?: string;
-    space?: string;
-    building?: string;
-    notes?: string;
-  }>(),
-  
-  // Enhanced tracking
-  auditLogs: json("audit_logs").$type<Array<{user: string; action: string; timestamp: string; details?: string}>>(),
-  priceHistory: json("price_history").$type<Array<{price: number; user: string; timestamp: string; reason?: string}>>(),
-  tags: json("tags").$type<string[]>(),
-  
-  // AI/ML insights
-  aiInsights: json("ai_insights").$type<{
-    demandScore?: number;
-    priceOptimal?: boolean;
-    recommendedActions?: string[];
-    marketPosition?: string;
-    daysToSell?: number;
-    lastAnalyzed?: string;
-  }>(),
+
+    // Enhanced listing capabilities
+    listing: json("listing").$type<{
+      isListed: boolean;
+      listingSites: string[]; // autotrader, cars.com, etc.
+      listingStatus: string;
+      seoTitle?: string;
+      seoDescription?: string;
+      keywords?: string[];
+      featuredUntil?: string;
+    }>(),
+
+    // Enhanced media management
+    media: json("media").$type<Array<{
+      url: string;
+      label: string;
+      type: 'image' | 'video' | 'document' | '360-view';
+      order: number;
+      isMain?: boolean;
+    }>>(),
+
+    // AI-enhanced valuations
+    valuations: json("valuations").$type<{
+      kbb?: number;
+      mmr?: number;
+      blackBook?: number;
+      jdPower?: number;
+      aiEstimate?: number;
+      marketTrend?: 'rising' | 'stable' | 'falling';
+      confidenceScore?: number;
+      lastUpdated?: string;
+    }>(),
+
+    // Enhanced specifications
+    specifications: json("specifications").$type<{
+      engine?: string;
+      transmission?: string;
+      drivetrain?: string;
+      fuelType?: string;
+      mpgCity?: number;
+      mpgHighway?: number;
+      exteriorColor?: string;
+      interiorColor?: string;
+      features?: string[];
+      safetyRating?: number;
+      warrantyInfo?: string;
+    }>(),
+
+    // Location and logistics
+    location: json("location").$type<{
+      lot?: string;
+      row?: string;
+      space?: string;
+      building?: string;
+      notes?: string;
+    }>(),
+
+    // Enhanced tracking
+    auditLogs: json("audit_logs").$type<Array<{user: string; action: string; timestamp: string; details?: string}>>(),
+    priceHistory: json("price_history").$type<Array<{price: number; user: string; timestamp: string; reason?: string}>>(),
+    tags: json("tags").$type<string[]>(),
+
+    // AI/ML insights
+    aiInsights: json("ai_insights").$type<{
+      demandScore?: number;
+      priceOptimal?: boolean;
+      recommendedActions?: string[];
+      marketPosition?: string;
+      daysToSell?: number;
+      lastAnalyzed?: string;
+    }>(),
   
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -862,42 +862,42 @@ export const customers = pgTable(
     followUpSchedule: json("follow_up_schedule"),
     tags: json("tags"),
     notes: text("notes"),
-  
-  // Enhanced CRM capabilities
-  leadScore: integer("lead_score").default(0),
-  buyingTimeframe: text("buying_timeframe"), // immediate, 30-days, 90-days, future
-  budgetRange: json("budget_range").$type<{min?: number; max?: number}>(),
-  tradeInVehicle: json("trade_in_vehicle").$type<{
-    make?: string;
-    model?: string;
-    year?: number;
-    mileage?: number;
-    estimatedValue?: number;
-    owedAmount?: number;
-  }>(),
-  
-  // Digital engagement
-  digitalProfile: json("digital_profile").$type<{
-    websiteVisits?: number;
-    lastWebsiteVisit?: string;
-    emailEngagement?: number;
-    smsEngagement?: number;
-    socialMediaProfiles?: string[];
-    preferredContactTime?: string;
-    communicationStyle?: 'formal' | 'casual' | 'professional';
-  }>(),
-  
-  // Enhanced customer status tracking
-  customerJourney: json("customer_journey").$type<{
-    stage: 'prospect' | 'lead' | 'qualified' | 'negotiating' | 'sold' | 'service';
-    touchpoints: Array<{
-      type: string;
-      date: string;
-      notes: string;
-      outcome: string;
-    }>;
-    nextAction?: string;
-    actionDueDate?: string;
+
+    // Enhanced CRM capabilities
+    leadScore: integer("lead_score").default(0),
+    buyingTimeframe: text("buying_timeframe"), // immediate, 30-days, 90-days, future
+    budgetRange: json("budget_range").$type<{min?: number; max?: number}>(),
+    tradeInVehicle: json("trade_in_vehicle").$type<{
+      make?: string;
+      model?: string;
+      year?: number;
+      mileage?: number;
+      estimatedValue?: number;
+      owedAmount?: number;
+    }>(),
+
+    // Digital engagement
+    digitalProfile: json("digital_profile").$type<{
+      websiteVisits?: number;
+      lastWebsiteVisit?: string;
+      emailEngagement?: number;
+      smsEngagement?: number;
+      socialMediaProfiles?: string[];
+      preferredContactTime?: string;
+      communicationStyle?: 'formal' | 'casual' | 'professional';
+    }>(),
+
+    // Enhanced customer status tracking
+    customerJourney: json("customer_journey").$type<{
+      stage: 'prospect' | 'lead' | 'qualified' | 'negotiating' | 'sold' | 'service';
+      touchpoints: Array<{
+        type: string;
+        date: string;
+        notes: string;
+        outcome: string;
+      }>;
+      nextAction?: string;
+      actionDueDate?: string;
     probability?: number;
   }>(),
   
@@ -2013,82 +2013,82 @@ export const deals = pgTable(
     salesManagerId: varchar("sales_manager_id", { length: 100 }).references(() => users.id),
     dealNumber: text("deal_number").unique().notNull(),
     status: text("status").notNull().default("open"), // open, finalized, funded, cancelled
-  
-  // Vehicle Information
-  vehicleId: text("vehicle_id").references(() => vehicles.id),
-  vin: text("vin"),
-  msrp: integer("msrp"),
-  salePrice: integer("sale_price"),
-  
-  // Customer Information
-  customerId: text("customer_id").references(() => customers.id),
-  buyerName: text("buyer_name").notNull(),
-  coBuyerName: text("co_buyer_name"),
-  
-  // Trade Information
-  tradeVin: text("trade_vin"),
-  tradeYear: integer("trade_year"),
-  tradeMake: text("trade_make"),
-  tradeModel: text("trade_model"),
-  tradeTrim: text("trade_trim"),
-  tradeMileage: integer("trade_mileage"),
-  tradeCondition: text("trade_condition"), // excellent, good, fair, poor
-  tradeAllowance: integer("trade_allowance").default(0),
-  tradePayoff: integer("trade_payoff").default(0),
-  tradeActualCashValue: integer("trade_actual_cash_value").default(0),
-  
-  // Payoff Information
-  payoffLenderName: text("payoff_lender_name"),
-  payoffLenderAddress: text("payoff_lender_address"),
-  payoffLenderCity: text("payoff_lender_city"),
-  payoffLenderState: text("payoff_lender_state"),
-  payoffLenderZip: text("payoff_lender_zip"),
-  payoffLenderPhone: text("payoff_lender_phone"),
-  payoffAccountNumber: text("payoff_account_number"),
-  payoffAmount: integer("payoff_amount").default(0),
-  payoffPerDiem: decimal("payoff_per_diem", { precision: 10, scale: 2 }).default("0"),
-  payoffGoodThrough: date("payoff_good_through"),
-  
-  // Insurance Information
-  insuranceCompany: text("insurance_company"),
-  insuranceAgent: text("insurance_agent"),
-  insurancePhone: text("insurance_phone"),
-  insurancePolicyNumber: text("insurance_policy_number"),
-  insuranceEffectiveDate: date("insurance_effective_date"),
-  insuranceExpirationDate: date("insurance_expiration_date"),
-  insuranceDeductible: integer("insurance_deductible"),
+
+    // Vehicle Information
+    vehicleId: text("vehicle_id").references(() => vehicles.id),
+    vin: text("vin"),
+    msrp: integer("msrp"),
+    salePrice: integer("sale_price"),
+
+    // Customer Information
+    customerId: text("customer_id").references(() => customers.id),
+    buyerName: text("buyer_name").notNull(),
+    coBuyerName: text("co_buyer_name"),
+
+    // Trade Information
+    tradeVin: text("trade_vin"),
+    tradeYear: integer("trade_year"),
+    tradeMake: text("trade_make"),
+    tradeModel: text("trade_model"),
+    tradeTrim: text("trade_trim"),
+    tradeMileage: integer("trade_mileage"),
+    tradeCondition: text("trade_condition"), // excellent, good, fair, poor
+    tradeAllowance: integer("trade_allowance").default(0),
+    tradePayoff: integer("trade_payoff").default(0),
+    tradeActualCashValue: integer("trade_actual_cash_value").default(0),
+
+    // Payoff Information
+    payoffLenderName: text("payoff_lender_name"),
+    payoffLenderAddress: text("payoff_lender_address"),
+    payoffLenderCity: text("payoff_lender_city"),
+    payoffLenderState: text("payoff_lender_state"),
+    payoffLenderZip: text("payoff_lender_zip"),
+    payoffLenderPhone: text("payoff_lender_phone"),
+    payoffAccountNumber: text("payoff_account_number"),
+    payoffAmount: integer("payoff_amount").default(0),
+    payoffPerDiem: decimal("payoff_per_diem", { precision: 10, scale: 2 }).default("0"),
+    payoffGoodThrough: date("payoff_good_through"),
+
+    // Insurance Information
+    insuranceCompany: text("insurance_company"),
+    insuranceAgent: text("insurance_agent"),
+    insurancePhone: text("insurance_phone"),
+    insurancePolicyNumber: text("insurance_policy_number"),
+    insuranceEffectiveDate: date("insurance_effective_date"),
+    insuranceExpirationDate: date("insurance_expiration_date"),
+    insuranceDeductible: integer("insurance_deductible"),
     insuranceCoverage: json("insurance_coverage").$type<{
-    liability: boolean;
-    collision: boolean;
-    comprehensive: boolean;
-    uninsured: boolean;
-    pip: boolean;
-  }>(),
-  
-  // Financial Structure
-  dealType: text("deal_type").notNull(), // retail, lease, cash
-  cashDown: integer("cash_down").default(0),
-  rebates: integer("rebates").default(0),
-  salesTax: integer("sales_tax").default(0),
-  docFee: integer("doc_fee").default(0),
-  titleFee: integer("title_fee").default(0),
-  registrationFee: integer("registration_fee").default(0),
-  financeBalance: integer("finance_balance").default(0),
-  
-  // Credit Information
-  creditStatus: text("credit_status"), // approved, pending, denied
-  creditTier: text("credit_tier"), // A+, A, B, C, D
-  term: integer("term"),
-  rate: text("rate"),
-  
-  // Timestamps
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-  finalizedAt: timestamp("finalized_at"),
-  
-  // User tracking
-  salesPersonId: text("sales_person_id"),
-  financeManagerId: text("finance_manager_id"),
+      liability: boolean;
+      collision: boolean;
+      comprehensive: boolean;
+      uninsured: boolean;
+      pip: boolean;
+    }>(),
+
+    // Financial Structure
+    dealType: text("deal_type").notNull(), // retail, lease, cash
+    cashDown: integer("cash_down").default(0),
+    rebates: integer("rebates").default(0),
+    salesTax: integer("sales_tax").default(0),
+    docFee: integer("doc_fee").default(0),
+    titleFee: integer("title_fee").default(0),
+    registrationFee: integer("registration_fee").default(0),
+    financeBalance: integer("finance_balance").default(0),
+
+    // Credit Information
+    creditStatus: text("credit_status"), // approved, pending, denied
+    creditTier: text("credit_tier"), // A+, A, B, C, D
+    term: integer("term"),
+    rate: text("rate"),
+
+    // Timestamps
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+    finalizedAt: timestamp("finalized_at"),
+
+    // User tracking
+    salesPersonId: text("sales_person_id"),
+    financeManagerId: text("finance_manager_id"),
 });
 
 export const dealProducts = pgTable("deal_products", {
