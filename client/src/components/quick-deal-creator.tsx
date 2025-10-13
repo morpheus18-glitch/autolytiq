@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { Car, User, DollarSign, ArrowRight } from "lucide-react";
+import type { Customer, Vehicle } from "@shared/schema";
 
 interface QuickDealCreatorProps {
   selectedCustomerId?: string;
@@ -32,11 +33,11 @@ export default function QuickDealCreator({
   const [cashDown, setCashDown] = useState('');
 
   // Fetch customers and vehicles
-  const { data: customers = [] } = useQuery({
+  const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
   });
 
-  const { data: vehicles = [] } = useQuery({
+  const { data: vehicles = [] } = useQuery<Vehicle[]>({
     queryKey: ['/api/vehicles'],
   });
 
@@ -69,8 +70,8 @@ export default function QuickDealCreator({
     },
   });
 
-  const selectedCustomer = customers.find((c: any) => c.id.toString() === customerId);
-  const selectedVehicle = vehicles.find((v: any) => v.id.toString() === vehicleId);
+  const selectedCustomer = customers.find((c) => c.id.toString() === customerId);
+  const selectedVehicle = vehicles.find((v) => v.id.toString() === vehicleId);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,7 +128,7 @@ export default function QuickDealCreator({
                 <SelectValue placeholder="Select a customer" />
               </SelectTrigger>
               <SelectContent>
-                {customers.map((customer: any) => (
+                {customers.map((customer) => (
                   <SelectItem key={customer.id} value={customer.id.toString()}>
                     {customer.firstName} {customer.lastName} ({customer.email})
                   </SelectItem>
@@ -147,7 +148,7 @@ export default function QuickDealCreator({
                 <SelectValue placeholder="Select a vehicle" />
               </SelectTrigger>
               <SelectContent>
-                {vehicles.map((vehicle: any) => (
+                {vehicles.map((vehicle) => (
                   <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
                     {vehicle.year} {vehicle.make} {vehicle.model} - ${vehicle.price?.toLocaleString()}
                   </SelectItem>

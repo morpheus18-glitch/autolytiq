@@ -16,6 +16,7 @@ import {
   Car,
   Users
 } from 'lucide-react';
+import type { Vehicle } from '@shared/schema';
 
 interface PricingAnalysis {
   estimatedPrice: number;
@@ -47,25 +48,25 @@ interface EnhancedWorkDealProps {
 export default function EnhancedWorkDeal({ vehicleId, customerId, onClose }: EnhancedWorkDealProps) {
   const { toast } = useToast();
   const { trackInteraction } = usePixelTracker();
-  
-  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [pricingAnalysis, setPricingAnalysis] = useState<PricingAnalysis | null>(null);
   const [competitiveIntel, setCompetitiveIntel] = useState<CompetitiveIntel | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Fetch vehicles for selection
-  const { data: vehicles = [] } = useQuery({
+  const { data: vehicles = [] } = useQuery<Vehicle[]>({
     queryKey: ['/api/vehicles'],
   });
 
   // Fetch selected vehicle details
-  const { data: vehicle } = useQuery({
+  const { data: vehicle } = useQuery<Vehicle>({
     queryKey: ['/api/vehicles', vehicleId],
     enabled: !!vehicleId,
   });
 
   // Get ML pricing analysis
-  const getPricingAnalysis = async (vehicle: any) => {
+  const getPricingAnalysis = async (vehicle: Vehicle) => {
     if (!vehicle || !vehicle.id) return;
     
     setIsAnalyzing(true);
@@ -120,7 +121,7 @@ export default function EnhancedWorkDeal({ vehicleId, customerId, onClose }: Enh
     }
   };
 
-  const handleVehicleSelect = (vehicle: any) => {
+  const handleVehicleSelect = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
     getPricingAnalysis(vehicle);
   };
@@ -149,7 +150,7 @@ export default function EnhancedWorkDeal({ vehicleId, customerId, onClose }: Enh
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {vehicles.slice(0, 6).map((vehicle: any) => (
+            {vehicles.slice(0, 6).map((vehicle) => (
               <div 
                 key={vehicle.id}
                 className={`p-4 border rounded-lg cursor-pointer transition-all ${
