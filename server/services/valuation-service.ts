@@ -307,6 +307,16 @@ export async function getBatchValuations(vins: string[]): Promise<{
   return results;
 }
 
+// Default export for convenience
+export const valuationService = {
+  decodeVIN,
+  getVinCheckValuation,
+  getMarketValuation,
+  getComprehensiveValuation,
+  getQuickValuation,
+  getBatchValuations
+};
+
 export {
   type VehicleSpec,
   type ValuationData,

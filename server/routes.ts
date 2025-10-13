@@ -1,5 +1,14 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { Session } from "express-session";
+
+// Extend session types
+declare module "express-session" {
+  interface SessionData {
+    user?: any;
+    loginTime?: string;
+  }
+}
 import { registerUserRoutes } from "./userRoutes";
 import { storage } from "./storage";
 import { insertVehicleSchema, insertCustomerSchema, insertLeadSchema, insertSaleSchema, insertVisitorSessionSchema, insertPageViewSchema, insertCustomerInteractionSchema, insertCompetitorAnalyticsSchema, insertCompetitivePricingSchema, insertPricingInsightsSchema, insertMerchandisingStrategiesSchema, insertMarketTrendsSchema, insertMarketLeadSchema } from "@shared/schema";
@@ -35,6 +44,7 @@ import { registerMLAdminRoutes } from "./ml-admin-routes";
 import { registerMLEnterpriseRoutes } from "./ml-enterprise-routes";
 import { registerMLHeatmapRoutes } from "./ml-heatmap-routes";
 import { db } from "./db";
+import { eq } from "drizzle-orm";
 import { EnterpriseWebSocketManager } from "./enterprise-websocket";
 import { lifecycleTracker } from "./tracking-service";
 import { LeadStorageService, sampleLeadData } from "./lead-engine";
