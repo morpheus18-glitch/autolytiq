@@ -1,4 +1,3 @@
-import { useState, lazy } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -24,6 +23,7 @@ import ShowroomManager from "@/pages/showroom-manager";
 // Deal Pages
 import ProfessionalDealDesk from "@/pages/professional-deal-desk";
 import InventoryDetail from "@/pages/inventory-detail";
+import InventoryPricing from "@/pages/inventory-pricing";
 // Admin Pages
 import SystemSettings from "@/pages/admin/system-settings";
 import ComprehensiveSettings from "@/pages/admin/comprehensive-settings";
@@ -32,6 +32,10 @@ import LeadDistribution from "@/pages/admin/lead-distribution";
 import ServiceOrdersPage from "@/pages/service/service-orders";
 import PartsInventoryPage from "@/pages/service/parts";
 import ServiceReportsPage from "@/pages/service/reports";
+import ServiceOverviewPage from "@/pages/service/service-overview";
+import ServiceAppointmentsPage from "@/pages/service/appointments";
+import ServiceHistoryPage from "@/pages/service/history";
+import ServiceSchedulePage from "@/pages/service/schedule";
 // Accounting Pages
 import FinancialReportsPage from "@/pages/accounting/reports";
 import PayrollPage from "@/pages/accounting/payroll";
@@ -70,6 +74,7 @@ import MarketLeads from "@/pages/market-leads";
 import MLModelComparison from "@/pages/ml-model-comparison";
 import AutomotiveDataCenter from "@/pages/automotive-data-center";
 import LotManagement from "@/pages/lot-management";
+import TradeAppraisals from "@/pages/trade-appraisals";
 // Professional deal desk removed - using unified deal desk
 import ComplianceManager from "@/pages/finance/compliance-manager";
 import FinanceReports from "@/pages/finance/finance-reports";
@@ -79,6 +84,10 @@ import TrainingCenter from "@/pages/admin/training-center";
 import IntegrationSetup from "@/pages/admin/integration-setup";
 import SecurityCenter from "@/pages/admin/security-center";
 import DealerConfiguration from "@/pages/admin/dealer-configuration";
+import SalesReports from "@/pages/reports/sales";
+import InventoryReports from "@/pages/reports/inventory";
+import ServicePerformanceReports from "@/pages/reports/service";
+import FinancialPerformanceReports from "@/pages/reports/financial";
 
 function Router() {
   // Initialize pixel tracking for the entire app
@@ -117,6 +126,7 @@ function Router() {
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/inventory" component={Inventory} />
+            <Route path="/inventory/pricing" component={InventoryPricing} />
             <Route path="/inventory/lot-management" component={LotManagement} />
             <Route path="/inventory/:id" component={InventoryDetail} />
             <Route path="/leads" component={Sales} />
@@ -124,8 +134,13 @@ function Router() {
             <Route path="/customers" component={Customers} />
             <Route path="/customers/:id" component={CustomerDetail} />
             <Route path="/deals" component={ProfessionalDealDesk} />
+            <Route path="/trade-appraisals" component={TradeAppraisals} />
             <Route path="/showroom" component={ShowroomManager} />
             <Route path="/reports" component={Reports} />
+            <Route path="/reports/sales" component={SalesReports} />
+            <Route path="/reports/inventory" component={InventoryReports} />
+            <Route path="/reports/service" component={ServicePerformanceReports} />
+            <Route path="/reports/financial" component={FinancialPerformanceReports} />
             <Route path="/sales-mobile" component={Sales} />
             <Route path="/analytics" component={Analytics} />
             <Route path="/analytics/customer-lifecycle" component={CustomerLifecycle} />
@@ -161,6 +176,7 @@ function Router() {
             <Route path="/admin/dealer-configuration" component={DealerConfiguration} />
             <Route path="/admin/integrations" component={IntegrationSetup} />
             <Route path="/admin/security" component={SecurityCenter} />
+            <Route path="/admin/security-center" component={SecurityCenter} />
             <Route path="/admin/health" component={SystemHealth} />
             <Route path="/admin/comprehensive-settings" component={ComprehensiveSettings} />
             <Route path="/admin/lead-distribution" component={LeadDistribution} />
@@ -199,6 +215,10 @@ function Router() {
             <Route path="/multi-store-management" component={MultiStoreManagement} />
             
             {/* Service Routes */}
+            <Route path="/service" component={ServiceOverviewPage} />
+            <Route path="/service/appointments" component={ServiceAppointmentsPage} />
+            <Route path="/service/history" component={ServiceHistoryPage} />
+            <Route path="/service/schedule" component={ServiceSchedulePage} />
             <Route path="/service/orders" component={ServiceOrdersPage} />
             <Route path="/service/parts" component={PartsInventoryPage} />
             <Route path="/service/reports" component={ServiceReportsPage} />
