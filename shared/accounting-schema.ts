@@ -8,27 +8,38 @@ import {
   boolean,
   jsonb,
   serial,
-  date
+  date,
+  foreignKey,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Chart of Accounts - Standard Auto Dealership Accounts
-export const chartOfAccounts = pgTable("chart_of_accounts", {
-  id: serial("id").primaryKey(),
-  accountNumber: varchar("account_number", { length: 20 }).notNull().unique(),
-  accountName: varchar("account_name", { length: 100 }).notNull(),
-  accountType: varchar("account_type", { length: 50 }).notNull(), // Asset, Liability, Equity, Revenue, Expense
-  category: varchar("category", { length: 100 }).notNull(), // New Vehicle Sales, Used Vehicle Sales, Service, Parts, F&I, etc.
-  subCategory: varchar("sub_category", { length: 100 }),
-  parentAccountId: integer("parent_account_id").references(() => chartOfAccounts.id),
-  isActive: boolean("is_active").default(true),
-  normalBalance: varchar("normal_balance", { length: 10 }).notNull(), // Debit or Credit
-  description: text("description"),
-  taxCode: varchar("tax_code", { length: 20 }),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
-});
+export const chartOfAccounts = pgTable(
+  "chart_of_accounts",
+  {
+    id: serial("id").primaryKey(),
+    accountNumber: varchar("account_number", { length: 20 }).notNull().unique(),
+    accountName: varchar("account_name", { length: 100 }).notNull(),
+    accountType: varchar("account_type", { length: 50 }).notNull(), // Asset, Liability, Equity, Revenue, Expense
+    category: varchar("category", { length: 100 }).notNull(), // New Vehicle Sales, Used Vehicle Sales, Service, Parts, F&I, etc.
+    subCategory: varchar("sub_category", { length: 100 }),
+    parentAccountId: integer("parent_account_id"),
+    isActive: boolean("is_active").default(true),
+    normalBalance: varchar("normal_balance", { length: 10 }).notNull(), // Debit or Credit
+    description: text("description"),
+    taxCode: varchar("tax_code", { length: 20 }),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    parentAccountFk: foreignKey({
+      name: "chart_of_accounts_parent_account_id_fkey",
+      columns: [table.parentAccountId],
+      foreignColumns: [table.id],
+    }),
+  }),
+);
 
 // General Ledger Entries
 export const journalEntries = pgTable("journal_entries", {
