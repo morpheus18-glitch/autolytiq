@@ -1,3 +1,18 @@
+import { register } from 'tsconfig-paths';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const require = createRequire(import.meta.url);
+const tsConfig = require('../tsconfig.json');
+
+register({
+  baseUrl: resolve(__dirname, '..'),
+  paths: tsConfig.compilerOptions.paths,
+});
+
 import express, { type Request, Response, NextFunction } from "express";
 import session from 'express-session';
 import { registerRoutes } from "./routes";
