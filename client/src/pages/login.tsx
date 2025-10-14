@@ -1,15 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Link } from "wouter";
-import { 
-  Car, 
-  Lock, 
-  UserPlus, 
+import {
   ArrowLeft,
-  Github,
+  Apple,
   Chrome,
-  Apple
+  Github,
+  Lock,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 
 export default function Login() {
@@ -30,107 +32,118 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <Card className="shadow-xl border-0">
-          <CardHeader className="space-y-4 pb-6">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-3 mb-3">
-                <img 
-                  src="/aiq-logo.png" 
-                  alt="AiQ Logo" 
-                  className="h-10 w-10 object-contain"
-                />
-                <h1 className="text-2xl font-bold text-gray-900">AutolytiQ</h1>
+    <div className="landing-surface min-h-screen px-4 py-10 text-foreground">
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-10 lg:flex-row lg:items-start lg:justify-between">
+        <div className="absolute inset-x-10 top-10 h-[420px] rounded-full blur-3xl hero-spotlight" aria-hidden="true" />
+        <div className="absolute inset-0 grid-overlay opacity-60 dark:opacity-40" aria-hidden="true" />
+
+        <div className="relative z-10 max-w-xl space-y-6 text-center lg:text-left">
+          <div className="inline-flex items-center gap-3 rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-primary">
+            <Sparkles className="h-4 w-4" />
+            <span className="text-xs font-semibold uppercase tracking-[0.3em]">AutolytiQ Secure Access</span>
+          </div>
+          <h1 className="text-3xl font-semibold leading-snug sm:text-4xl lg:text-5xl">
+            Step back into your <span className="text-brand-gradient">AutolytiQ command center</span>
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Enterprise-grade authentication protects every workflow—from desking to analytics—so your teams can operate with
+            confidence.
+          </p>
+          <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground/80 lg:justify-start">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            SOC 2 Type II, GDPR, and CCPA aligned security controls.
+          </div>
+        </div>
+
+        <div className="relative z-10 w-full max-w-md">
+          <div className="mb-4 flex items-center justify-end gap-2">
+            <ThemeToggle />
+          </div>
+          <Card className="glass-card rounded-3xl border-none shadow-card-xl">
+            <CardHeader className="space-y-4 pb-6 text-center">
+              <div className="flex flex-col items-center gap-3">
+                <img src="/aiq-logo.png" alt="AutolytiQ" className="h-10 w-10" />
+                <CardTitle className="text-2xl font-semibold">Welcome back to AutolytiQ</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Choose a secure OAuth partner to continue
+                </p>
               </div>
-              <p className="text-gray-600">Dealership Management System</p>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-center text-gray-800 mb-4">
-                Choose Your Sign-In Method
-              </h2>
-              
-              {/* Replit OAuth */}
-              <Button
-                onClick={() => handleProviderLogin('replit')}
-                className="w-full btn-aiq-primary py-3 text-base font-medium"
-                size="lg"
-              >
-                <div className="w-5 h-5 mr-3 bg-white rounded-sm flex items-center justify-center">
-                  <span className="text-[#F26207] font-bold text-xs">R</span>
-                </div>
-                Continue with Replit
-              </Button>
-
-              <Separator className="my-4" />
-
-              {/* Google OAuth */}
-              <Button
-                onClick={() => handleProviderLogin('google')}
-                variant="outline"
-                className="w-full py-3 text-base font-medium border-gray-300 hover:bg-gray-50"
-                size="lg"
-              >
-                <Chrome className="w-5 h-5 mr-3 text-red-500" />
-                Continue with Google
-              </Button>
-
-              {/* GitHub OAuth */}
-              <Button
-                onClick={() => handleProviderLogin('github')}
-                variant="outline"
-                className="w-full py-3 text-base font-medium border-gray-300 hover:bg-gray-50"
-                size="lg"
-              >
-                <Github className="w-5 h-5 mr-3 text-gray-800" />
-                Continue with GitHub
-              </Button>
-
-              {/* Apple OAuth */}
-              <Button
-                onClick={() => handleProviderLogin('apple')}
-                variant="outline"
-                className="w-full py-3 text-base font-medium border-gray-300 hover:bg-gray-50"
-                size="lg"
-              >
-                <Apple className="w-5 h-5 mr-3 text-gray-800" />
-                Continue with Apple
-              </Button>
-            </div>
-
-            <Separator className="my-6" />
-
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700 text-center mb-3">
-                Legacy Authentication
-              </h3>
-              
-              <Button
-                onClick={() => window.location.href = '/api/login'}
-                variant="ghost"
-                className="w-full py-2 text-sm font-medium text-gray-600 hover:text-gray-800"
-              >
-                <Lock className="w-4 h-4 mr-2" />
-                Staff Login (Master Credentials)
-              </Button>
-            </div>
-
-            <div className="text-center pt-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
-                  <ArrowLeft className="w-4 h-4 mr-1" />
-                  Back to Home
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-3">
+                <Button
+                  onClick={() => handleProviderLogin('replit')}
+                  className="btn-aiq-primary w-full rounded-xl py-3 text-base font-semibold"
+                  size="lg"
+                >
+                  <span className="mr-3 flex h-6 w-6 items-center justify-center rounded-md bg-white text-[#F26207]">
+                    R
+                  </span>
+                  Continue with Replit
                 </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
 
-        <div className="text-center mt-6 text-sm text-gray-500">
-          <p>Secure OAuth authentication powered by industry-leading providers</p>
-          <p className="mt-1">© 2025 AutolytiQ. All rights reserved.</p>
+                <Button
+                  onClick={() => handleProviderLogin('google')}
+                  variant="outline"
+                  className="w-full rounded-xl border-border/80 py-3 text-base font-semibold hover:border-primary/40 hover:text-primary"
+                  size="lg"
+                >
+                  <Chrome className="mr-3 h-5 w-5 text-red-500" />
+                  Continue with Google
+                </Button>
+
+                <Button
+                  onClick={() => handleProviderLogin('github')}
+                  variant="outline"
+                  className="w-full rounded-xl border-border/80 py-3 text-base font-semibold hover:border-primary/40 hover:text-primary"
+                  size="lg"
+                >
+                  <Github className="mr-3 h-5 w-5" />
+                  Continue with GitHub
+                </Button>
+
+                <Button
+                  onClick={() => handleProviderLogin('apple')}
+                  variant="outline"
+                  className="w-full rounded-xl border-border/80 py-3 text-base font-semibold hover:border-primary/40 hover:text-primary"
+                  size="lg"
+                >
+                  <Apple className="mr-3 h-5 w-5" />
+                  Continue with Apple
+                </Button>
+              </div>
+
+              <Separator className="my-6" />
+
+              <div className="space-y-4">
+                <Badge className="rounded-full border border-border/70 bg-white/60 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground/80 dark:bg-white/10">
+                  Legacy access
+                </Badge>
+                <Button
+                  onClick={() => (window.location.href = '/api/login')}
+                  variant="ghost"
+                  className="w-full justify-center gap-2 rounded-xl py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+                >
+                  <Lock className="h-4 w-4" />
+                  Staff login (master credentials)
+                </Button>
+              </div>
+
+              <div className="pt-4 text-center">
+                <Link href="/">
+                  <Button variant="ghost" size="sm" className="rounded-full text-muted-foreground hover:text-foreground">
+                    <ArrowLeft className="mr-1 h-4 w-4" />
+                    Back to experience
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="mt-6 space-y-2 text-center text-xs text-muted-foreground">
+            <p>Secure OAuth authentication with zero-trust posture enforcement.</p>
+            <p>© 2025 AutolytiQ. All rights reserved.</p>
+          </div>
         </div>
       </div>
     </div>
