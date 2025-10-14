@@ -40,32 +40,32 @@ export function MobileFooterMenu() {
   return (
     <>
       {/* Sticky Bottom Mobile Footer - Only visible on mobile */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50 safe-area-pb">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 mobile-glass-nav z-50 safe-area-pb">
         <div className="grid grid-cols-4 gap-0">
           {MOBILE_PRIMARY_NAV_ITEMS.map((item) => {
             const isActive = isPathActive(item);
             const Icon = item.icon;
-            
+
             if (item.isMenu) {
               return (
                 <button
                   key={item.name}
                   onClick={() => handleNavClick(item)}
-                  className="flex flex-col items-center justify-center p-3 min-h-[60px] transition-colors text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="flex flex-col items-center justify-center px-2 py-2.5 min-h-[54px] transition-all text-muted-foreground hover:text-primary hover:bg-white/75 dark:hover:bg-white/10"
                 >
                   <Icon className="w-5 h-5" />
                   <span className="text-xs mt-1 font-medium">{item.name}</span>
                 </button>
               );
             }
-            
+
             return (
               <Link key={item.name} href={item.href}>
-                <div 
+                <div
                   className={`flex flex-col items-center justify-center p-3 min-h-[60px] transition-colors ${
-                    isActive 
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' 
-                      : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                    isActive
+                      ? 'bg-primary/15 text-primary shadow-sm'
+                      : 'text-muted-foreground hover:text-primary hover:bg-white/75 dark:hover:bg-white/10'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -80,47 +80,49 @@ export function MobileFooterMenu() {
 
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
-        <div className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-          <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-xl max-h-[80vh] overflow-y-auto">
+        <div className="md:hidden fixed inset-0 z-50 bg-background/88 backdrop-blur-lg">
+          <div className="fixed bottom-0 left-0 right-0 rounded-t-2xl bg-background/95 shadow-card-xl max-h-[80vh] overflow-y-auto">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-t-xl">
-              <div className="flex items-center space-x-2">
-                <Building className="w-5 h-5 text-blue-600" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">AutolytiQ Navigation</h3>
+            <div className="flex items-center justify-between rounded-t-2xl border-b border-border/55 bg-white/85 px-5 py-4 dark:bg-white/10">
+              <div className="flex items-center space-x-2 text-foreground">
+                <Building className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-semibold">AutolytiQ Navigation</h3>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsMenuOpen(false)}
-                className="hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="rounded-xl text-muted-foreground hover:text-foreground"
               >
                 <X className="w-5 h-5" />
               </Button>
             </div>
-            
+
             {/* Navigation Grid */}
-            <div className="p-4">
-              <div className="grid grid-cols-2 gap-3">
+            <div className="p-5">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {MOBILE_ALL_NAV_ITEMS.map((item) => {
                   const isActive = isPathActive(item);
                   const Icon = item.icon;
                   return (
-                    <Link 
+                    <Link
                       key={item.name} 
                       href={item.href} 
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      <div className={`flex items-center p-4 rounded-xl border transition-all duration-200 hover:shadow-md ${
-                        isActive 
-                          ? 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 shadow-sm' 
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'
-                      }`}>
-                        <div className={`p-2 rounded-lg bg-opacity-10 mr-3 ${item.color.replace('text-', 'bg-').replace('-600', '-100')} dark:bg-opacity-20`}>
+                      <div
+                        className={`flex items-center rounded-2xl border px-4 py-4 transition-all duration-200 ${
+                          isActive
+                            ? 'border-primary/35 bg-primary/10 shadow-sm'
+                            : 'border-border/60 hover:border-primary/30 hover:bg-white/80 dark:hover:bg-white/10'
+                        }`}
+                      >
+                        <div className={`mr-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary`}>
                           <Icon className={`w-5 h-5 ${item.color}`} />
                         </div>
-                        <div>
-                          <p className="font-medium text-sm text-gray-900 dark:text-gray-100">{item.name}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <div className="text-left">
+                          <p className="text-sm font-semibold text-foreground">{item.name}</p>
+                          <p className="text-xs text-muted-foreground leading-snug">
                             {item.name === 'Dashboard' && 'Overview & KPIs'}
                             {item.name === 'Sales & Leads' && 'Lead management'}
                             {item.name === 'Customers' && 'CRM & contacts'}
@@ -140,8 +142,8 @@ export function MobileFooterMenu() {
               </div>
               
               {/* Quick Actions */}
-              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Quick Actions</h4>
+              <div className="mt-6 pt-4 border-t border-border/55">
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Quick Actions</h4>
                 <div className="grid grid-cols-2 gap-2">
                   {MOBILE_QUICK_ACTIONS.map((action) => {
                     const ActionIcon = action.icon;
@@ -151,8 +153,8 @@ export function MobileFooterMenu() {
                         href={action.href}
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        <Button variant="outline" size="sm" className="w-full text-xs justify-start">
-                          <ActionIcon className="w-3 h-3 mr-2" />
+                        <Button variant="outline" size="sm" className="w-full justify-start gap-2 rounded-lg border-border/60 text-xs hover:border-primary/35">
+                          <ActionIcon className="h-3 w-3" />
                           {action.label}
                         </Button>
                       </Link>

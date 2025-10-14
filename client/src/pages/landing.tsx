@@ -1,5 +1,20 @@
 import { Button } from "@/components/ui/button";
-import { Car, TrendingUp, Users, ShieldCheck } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { cn } from "@/lib/utils";
+import {
+  ArrowRight,
+  BarChart3,
+  Brain,
+  Cpu,
+  Globe,
+  Layers3,
+  LineChart,
+  Radar,
+  ShieldCheck,
+  Sparkles,
+  Users,
+} from "lucide-react";
 
 export default function Landing() {
   const handleLogin = () => {
@@ -7,90 +22,293 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-        {/* Header - Mobile Optimized */}
-        <header className="flex justify-between items-center mb-8 sm:mb-12 lg:mb-16">
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <img 
-              src="/aiq-logo.png" 
-              alt="AiQ Logo" 
-              className="h-8 w-8 sm:h-10 sm:w-10 object-contain"
-            />
-            <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">AutolytiQ</span>
+    <div className="landing-surface min-h-screen text-foreground">
+      <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-16 pt-6 sm:px-6 lg:px-10 lg:pb-24">
+        <div className="absolute inset-x-10 top-24 h-[420px] rounded-full blur-3xl hero-spotlight" aria-hidden="true" />
+        <div className="absolute inset-0 grid-overlay opacity-50 dark:opacity-25" aria-hidden="true" />
+
+        <header className="relative z-10 mb-10 flex flex-col gap-4 sm:mb-14 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <img src="/aiq-logo.png" alt="AutolytiQ" className="h-10 w-10" />
+            <div className="flex flex-col text-left">
+              <span className="text-lg font-semibold leading-tight">AutolytiQ</span>
+              <span className="text-xs uppercase tracking-[0.28em] text-muted-foreground/80">
+                Sales · Analytics · AI
+              </span>
+            </div>
           </div>
-          <Button 
-            onClick={handleLogin} 
-            className="btn-aiq-primary text-sm sm:text-base px-4 py-2 sm:px-6 sm:py-2"
-            data-testid="button-login-header"
-          >
-            Log In
-          </Button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle />
+            <Button
+              onClick={handleLogin}
+              className="brand-gradient rounded-xl px-4 py-2 text-sm font-semibold shadow-brand"
+              data-testid="button-login-header"
+            >
+              Log In
+            </Button>
+          </div>
         </header>
 
-        {/* Hero Section - Mobile First */}
-        <div className="text-center mb-12 sm:mb-16 lg:mb-20">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6 leading-tight px-2">
-            Complete Dealership
-            <span className="text-blue-600 dark:text-blue-400"> Management System</span>
-          </h1>
-          <p className="text-base sm:text-lg lg:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
-            Streamline your automotive dealership operations with our comprehensive platform featuring advanced CRM, ML analytics, competitive pricing intelligence, and professional deal desk capabilities.
-          </p>
-          <Button 
-            onClick={handleLogin}
-            size="lg"
-            className="btn-aiq-primary text-base sm:text-lg px-6 py-3 sm:px-8 sm:py-4 w-full sm:w-auto max-w-xs sm:max-w-none"
-            data-testid="button-get-started"
-          >
-            Get Started
-          </Button>
-        </div>
+        <main className="relative z-10 flex flex-1 flex-col gap-16">
+          <section className="flex flex-col gap-12 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-2xl space-y-8">
+              <Badge className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-4 py-1 text-primary">
+                <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em]">
+                  <Sparkles className="h-3 w-3" />
+                  AutolytiQ Intelligence Cloud
+                </span>
+              </Badge>
+              <div className="space-y-5">
+                <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+                  Modern revenue orchestration for <span className="text-brand-gradient">automotive operators</span>
+                </h1>
+                <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+                  Unite desking, deal desk, analytics, and AI-guided decisioning inside one responsive workspace designed to feel effortless on every device.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Button
+                  onClick={handleLogin}
+                  size="lg"
+                  className="brand-gradient rounded-xl px-7 py-4 text-base font-semibold shadow-brand"
+                  data-testid="button-get-started"
+                >
+                  Launch the platform
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={handleLogin}
+                  className="rounded-xl border-border/70 bg-white/70 px-7 py-4 text-base font-semibold text-foreground hover:border-primary/35 hover:text-primary dark:bg-white/10"
+                >
+                  Book a live demo
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {[{
+                  label: "Deal velocity",
+                  value: "48%",
+                  description: "Faster pencil-to-close time"
+                }, {
+                  label: "Analytics adoption",
+                  value: "92%",
+                  description: "Teams using live insights"
+                }, {
+                  label: "Margin lift",
+                  value: "+$487",
+                  description: "Gross per vehicle gains"
+                }].map((stat) => (
+                  <div key={stat.label} className="glass-card stat-card rounded-2xl px-4 py-5 shadow-card-xl">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
+                      {stat.label}
+                    </span>
+                    <div className="mt-2 text-2xl font-semibold text-foreground sm:text-3xl">{stat.value}</div>
+                    <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{stat.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-        {/* Features Grid - Mobile Responsive */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-12 sm:mb-16 lg:mb-20">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-            <TrendingUp className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600 dark:text-blue-400 mb-3 sm:mb-4" />
-            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white">ML-Powered Analytics</h3>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-              Leverage machine learning for pricing insights, market trends analysis, and competitive intelligence to maximize your profitability.
-            </p>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-            <Users className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600 dark:text-blue-400 mb-3 sm:mb-4" />
-            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white">Advanced CRM</h3>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-              Manage customer relationships with pixel-based shopping history tracking, comprehensive lead management, and automated follow-ups.
-            </p>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700 sm:col-span-2 lg:col-span-1">
-            <ShieldCheck className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600 dark:text-blue-400 mb-3 sm:mb-4" />
-            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white">Professional Deal Desk</h3>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-              Complete deal management with VIN decoding, trade-in processing, insurance tracking, and automatic sales tax calculations.
-            </p>
-          </div>
-        </div>
+            <div className="relative w-full max-w-xl">
+              <div className="blurred-border glass-card shadow-card-xl">
+                <div className="relative rounded-[28px] bg-white/90 p-5 dark:bg-white/5 sm:p-6">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground/70">
+                        Real-time insights
+                      </p>
+                      <h3 className="mt-1 text-xl font-semibold sm:text-2xl">Revenue intelligence pulse</h3>
+                    </div>
+                    <Badge className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                      Live sync
+                    </Badge>
+                  </div>
+                  <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {[{
+                      icon: LineChart,
+                      title: "Predictive sales",
+                      metric: "+18%",
+                      tone: "text-primary"
+                    }, {
+                      icon: Users,
+                      title: "Customer lift",
+                      metric: "7.4x",
+                      tone: "text-accent"
+                    }, {
+                      icon: BarChart3,
+                      title: "Inventory turn",
+                      metric: "21 days",
+                      tone: "text-secondary"
+                    }, {
+                      icon: ShieldCheck,
+                      title: "Compliance",
+                      metric: "Audit clean",
+                      tone: "text-foreground"
+                    }].map(({ icon: Icon, title, metric, tone }) => (
+                      <div key={title} className="rounded-2xl border border-border/70 bg-white/80 p-4 dark:bg-white/5">
+                        <div className="flex items-center gap-3">
+                          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <Icon className="h-5 w-5" />
+                          </span>
+                          <div>
+                            <p className="text-sm font-semibold text-muted-foreground/75">{title}</p>
+                            <p className={cn("text-lg font-semibold", tone)}>{metric}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-6 rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4 text-sm text-muted-foreground">
+                    AutolytiQ continuously harmonizes ML pricing, deal desk approvals, desking, and OEM incentives in a single workflow.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
 
-        {/* Call to Action - Mobile Optimized */}
-        <div className="text-center bg-white dark:bg-gray-800 rounded-lg p-8 sm:p-12 shadow-lg border border-gray-100 dark:border-gray-700">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
-            Ready to Transform Your Dealership?
-          </h2>
-          <p className="text-base sm:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 px-4">
-            Join leading automotive dealers who trust AutolytiQ for their operations
-          </p>
-          <Button 
-            onClick={handleLogin}
-            size="lg"
-            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-base sm:text-lg px-6 py-3 sm:px-8 sm:py-4 w-full sm:w-auto max-w-xs sm:max-w-none"
-            data-testid="button-login-cta"
-          >
-            Log In to Continue
-          </Button>
-        </div>
+          <section className="relative flex flex-col gap-8">
+            <div className="flex flex-col gap-3 text-center text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-muted-foreground/80 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:text-left">
+              <span className="text-muted-foreground">Trusted by digitally-native dealer groups</span>
+              <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-muted-foreground/60 sm:justify-start">
+                <span className="tracking-[0.18em]">OmniAuto</span>
+                <span className="tracking-[0.18em]">Vantage Mobility</span>
+                <span className="tracking-[0.18em]">Quantum Motors</span>
+                <span className="tracking-[0.18em]">PrimeEV</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {[{
+                icon: Brain,
+                title: "Predictive deal desk",
+                description: "AI-guided pencils surface the most profitable payment structures in seconds."
+              }, {
+                icon: Cpu,
+                title: "Analytics fabric",
+                description: "A unified semantic layer blending DMS, CRM, OEM, and market data for rapid insights."
+              }, {
+                icon: Layers3,
+                title: "Operations automation",
+                description: "Workflow engines orchestrate approvals, contracting, and compliance automatically."
+              }, {
+                icon: Radar,
+                title: "Inventory intelligence",
+                description: "Live market scans price every VIN against regional demand and supply pressures."
+              }].map(({ icon: Icon, title, description }) => (
+                <div key={title} className="glass-card flex min-h-[168px] flex-col justify-between rounded-2xl p-5 sm:p-6">
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <h3 className="text-base font-semibold text-foreground">{title}</h3>
+                  </div>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{description}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+            <div className="glass-card rounded-3xl p-6 sm:p-8">
+              <div className="flex items-start gap-3">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                  <Globe className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground/70">Global sales fabric</p>
+                  <h3 className="mt-2 text-xl font-semibold text-foreground sm:text-2xl">One connected revenue command center</h3>
+                </div>
+              </div>
+              <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {["Sales velocity forecasting", "Machine-generated desking playbooks", "Customer DNA stitched across channels", "Pricing intelligence with OEM incentive fusion"].map((item) => (
+                  <div key={item} className="rounded-2xl border border-border/60 bg-white/80 p-4 text-sm font-medium text-foreground dark:bg-white/5">
+                    {item}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 rounded-2xl border border-primary/15 bg-primary/5 p-5 text-sm leading-relaxed text-muted-foreground">
+                AutolytiQ harmonizes data and workflows for showroom, digital retail, F&I, and service to deliver premium customer experiences while protecting margins.
+              </div>
+            </div>
+
+            <div className="glass-card rounded-3xl p-6 sm:p-8">
+              <div className="flex items-start gap-3">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                  <LineChart className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground/70">AI outcomes</p>
+                  <h3 className="mt-2 text-xl font-semibold text-foreground">Measured impact, quarter over quarter</h3>
+                </div>
+              </div>
+              <div className="mt-6 space-y-4">
+                {[{
+                  title: "Lead conversion uplift",
+                  description: "AI prioritization sequences the right shopper moments across channels.",
+                  metric: "+33%"
+                }, {
+                  title: "Gross profit per rooftop",
+                  description: "Margin guardrails adapt with market signals and OEM incentive changes.",
+                  metric: "+$187K"
+                }, {
+                  title: "F&I attachment rate",
+                  description: "Contextual recommendations increase product adoption at the point of sale.",
+                  metric: "+22%"
+                }].map(({ title, description, metric }) => (
+                  <div key={title} className="rounded-2xl border border-border/60 bg-white/80 p-4 dark:bg-white/5 sm:p-5">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h4 className="text-base font-semibold text-foreground">{title}</h4>
+                        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{description}</p>
+                      </div>
+                      <span className="text-lg font-semibold text-primary">{metric}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="glass-card rounded-3xl px-6 py-8 text-center shadow-card-xl sm:px-8 sm:py-10">
+            <div className="mx-auto max-w-2xl space-y-6">
+              <h2 className="text-balance text-3xl font-semibold text-foreground sm:text-4xl">
+                Deliver the premium automotive journey your buyers expect
+              </h2>
+              <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
+                AutolytiQ is the branded digital showroom and deal desk trusted by the industry’s most progressive dealer groups.
+              </p>
+              <div className="flex flex-col justify-center gap-3 sm:flex-row">
+                <Button
+                  onClick={handleLogin}
+                  size="lg"
+                  className="brand-gradient rounded-xl px-6 py-4 text-base font-semibold shadow-brand sm:px-8"
+                  data-testid="button-login-cta"
+                >
+                  Enter the AutolytiQ experience
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={handleLogin}
+                  className="rounded-xl border-border/70 px-6 py-4 text-base font-semibold text-foreground hover:border-primary/35 hover:text-primary sm:px-8"
+                >
+                  Explore solutions deck
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </section>
+
+          <div className="fine-print mx-auto mt-8 max-w-3xl space-y-2 text-center sm:text-left">
+            <p>
+              AutolytiQ enforces SOC 2 Type II, GDPR, and CCPA controls with continuous monitoring across data pipelines, integrations, and user access policies.
+            </p>
+            <p>
+              Need assistance onboarding your teams? Email <a href="mailto:support@autolytiq.com">support@autolytiq.com</a> for tailored rollout guidance.
+            </p>
+          </div>
+        </main>
       </div>
     </div>
   );

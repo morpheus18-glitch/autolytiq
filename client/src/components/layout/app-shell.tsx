@@ -8,11 +8,12 @@ interface AppShellProps {
 
 export default function AppShell({ children }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="relative min-h-screen app-surface text-foreground">
+      <div className="absolute inset-0 grid-overlay opacity-70 dark:opacity-40 pointer-events-none" aria-hidden="true" />
       <TopNavigation />
-      <main className="flex-1 w-full">
+      <main className="relative flex-1 w-full">
         <div className="w-full min-h-screen">
-          <div className="px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8 max-w-7xl mx-auto pb-20 lg:pb-8">
+          <div className="relative z-10 px-4 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10 max-w-7xl mx-auto pb-24 lg:pb-14">
             {children}
           </div>
         </div>
