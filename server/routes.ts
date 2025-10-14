@@ -36,6 +36,7 @@ import { decodeVINHandler } from "./services/vin-decoder";
 import { mlPricingService } from "./ml-integration";
 import { valuationService } from './services/valuation-service';
 import { photoService } from './services/photo-service';
+import { aiDealOptimizer } from './ai-deal-optimizer';
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { registerUserManagementRoutes } from "./user-management";
 import { registerMLDashboardRoutes } from "./ml-dashboard-routes";
@@ -606,6 +607,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error finalizing deal:", error);
       res.status(500).json({ message: "Failed to finalize deal" });
+    }
+  });
+
+  // AI Deal Optimization Routes
+  app.post("/api/deals/optimize", async (req, res) => {
+    try {
+      const optimization = await aiDealOptimizer.optimizeDeal(req.body);
+      res.json(optimization);
+    } catch (error) {
+      console.error("Error optimizing deal:", error);
+      res.status(500).json({ message: "Failed to optimize deal" });
+    }
+  });
+
+  app.post("/api/deals/health", async (req, res) => {
+    try {
+      const health = await aiDealOptimizer.analyzeDealHealth(req.body);
+      res.json(health);
+    } catch (error) {
+      console.error("Error analyzing deal health:", error);
+      res.status(500).json({ message: "Failed to analyze deal health" });
     }
   });
 

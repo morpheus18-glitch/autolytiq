@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import {
   Car,
-  Users,
-  Calculator,
-  BarChart3,
   Settings,
   Bell,
   Search,
@@ -12,15 +9,9 @@ import {
   ChevronDown,
   User,
   LogOut,
-  Wrench,
-  FileText,
-  DollarSign,
-  TrendingUp,
   Shield,
-  Database,
   Menu,
   X,
-  Home,
   ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,104 +26,30 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
-
-interface WorkflowTab {
-  id: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  path: string;
-  subItems?: {
-    label: string;
-    path: string;
-    icon: React.ComponentType<{ className?: string }>;
-    badge?: string;
-  }[];
-}
-
-const workflowTabs: WorkflowTab[] = [
-  {
-    id: 'inventory',
-    label: 'Inventory',
-    icon: Car,
-    path: '/inventory',
-    subItems: [
-      { label: 'Vehicle Inventory', path: '/inventory', icon: Car },
-      { label: 'Lot Management', path: '/inventory/lot-management', icon: Database },
-      { label: 'Pricing Insights', path: '/inventory/pricing', icon: TrendingUp }
-    ]
-  },
-  {
-    id: 'sales',
-    label: 'Sales Process',
-    icon: DollarSign,
-    path: '/sales',
-    subItems: [
-      { label: 'Active Deals', path: '/professional-deal-desk', icon: Calculator, badge: '3' },
-      { label: 'Leads Pipeline', path: '/leads', icon: Users },
-      { label: 'Customer Management', path: '/customers', icon: Users },
-      { label: 'Trade Appraisals', path: '/trade-appraisals', icon: Car }
-    ]
-  },
-  {
-    id: 'service',
-    label: 'Service',
-    icon: Wrench,
-    path: '/service',
-    subItems: [
-      { label: 'Today\'s Appointments', path: '/service/appointments', icon: Wrench, badge: '7' },
-      { label: 'Service History', path: '/service/history', icon: FileText },
-      { label: 'Parts Inventory', path: '/service/parts', icon: Database },
-      { label: 'Technician Schedule', path: '/service/schedule', icon: Users }
-    ]
-  },
-  {
-    id: 'intelligence',
-    label: 'Intelligence',
-    icon: BarChart3,
-    path: '/analytics',
-    subItems: [
-      { label: 'Performance Dashboard', path: '/analytics', icon: BarChart3 },
-      { label: 'Market Intelligence', path: '/competitive-pricing', icon: BarChart3 },
-      { label: 'Predictive Analytics', path: '/ml-model-comparison', icon: Database }
-    ]
-  },
-  {
-    id: 'reports',
-    label: 'Reports',
-    icon: FileText,
-    path: '/reports',
-    subItems: [
-      { label: 'Sales Reports', path: '/reports/sales', icon: DollarSign },
-      { label: 'Inventory Reports', path: '/reports/inventory', icon: Car },
-      { label: 'Service Reports', path: '/reports/service', icon: Wrench },
-      { label: 'Financial Reports', path: '/reports/financial', icon: BarChart3 }
-    ]
-  }
-];
+import { QUICK_ACTIONS, WORKFLOW_SECTIONS } from '@/config/navigation';
 
 export default function TopNavigation() {
   const [location] = useLocation();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState(() => {
-    return workflowTabs.find(tab => location.startsWith(tab.path))?.id || 'inventory';
-  });
+  const resolveActiveTab = (pathname: string) => {
+    const matched = WORKFLOW_SECTIONS.find(tab =>
+      pathname.startsWith(tab.path) ||
+      tab.subItems?.some(item =>
+        pathname.startsWith(item.path) ||
+        item.matchPaths?.some(match => pathname.startsWith(match))
+      )
+    );
+    return matched?.id ?? 'inventory';
+  };
+
+  const [activeTab, setActiveTab] = useState(() => resolveActiveTab(location));
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const currentTab = workflowTabs.find(tab => tab.id === activeTab);
+  const currentTab = WORKFLOW_SECTIONS.find(tab => tab.id === activeTab);
 
-  const handleQuickAction = (action: string) => {
-    switch (action) {
-      case 'new-deal':
-        window.location.href = '/professional-deal-desk';
-        break;
-      case 'add-vehicle':
-        window.location.href = '/inventory?view=add-vehicle';
-        break;
-      case 'schedule-service':
-        window.location.href = '/service/appointments';
-        break;
-    }
+  const handleQuickAction = (target: string) => {
+    window.location.href = target;
   };
 
   // Close mobile menu when route changes
@@ -142,12 +59,9 @@ export default function TopNavigation() {
 
   // Auto-detect current section
   useEffect(() => {
-    const currentSection = workflowTabs.find(tab => 
-      location.startsWith(tab.path) || 
-      tab.subItems?.some(item => location.startsWith(item.path))
-    );
-    if (currentSection && currentSection.id !== activeTab) {
-      setActiveTab(currentSection.id);
+    const resolved = resolveActiveTab(location);
+    if (resolved !== activeTab) {
+      setActiveTab(resolved);
     }
   }, [location, activeTab]);
 
@@ -180,7 +94,7 @@ export default function TopNavigation() {
 
           {/* Center: Desktop Navigation (Hidden on Mobile) */}
           <nav className="hidden lg:flex items-center space-x-1 flex-1 justify-center max-w-4xl">
-            {workflowTabs.map((tab) => {
+            {WORKFLOW_SECTIONS.map((tab) => {
               const isActive = activeTab === tab.id;
               const Icon = tab.icon;
               
@@ -253,18 +167,19 @@ export default function TopNavigation() {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleQuickAction('new-deal')}>
-                  <Calculator className="w-4 h-4 mr-2" />
-                  Start New Deal
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleQuickAction('add-vehicle')}>
-                  <Car className="w-4 h-4 mr-2" />
-                  Add Vehicle
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleQuickAction('schedule-service')}>
-                  <Wrench className="w-4 h-4 mr-2" />
-                  Schedule Service
-                </DropdownMenuItem>
+                {QUICK_ACTIONS.map((action) => {
+                  const ActionIcon = action.icon;
+                  const accent = action.accentClass ?? 'text-blue-600';
+                  return (
+                    <DropdownMenuItem
+                      key={action.id}
+                      onClick={() => handleQuickAction(action.target)}
+                    >
+                      <ActionIcon className={`w-4 h-4 mr-2 ${accent}`} />
+                      {action.label}
+                    </DropdownMenuItem>
+                  );
+                })}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -372,7 +287,7 @@ export default function TopNavigation() {
 
               {/* Navigation Sections */}
               <div className="space-y-4">
-                {workflowTabs.map((tab) => {
+                {WORKFLOW_SECTIONS.map((tab) => {
                   const Icon = tab.icon;
                   
                   return (
@@ -388,7 +303,7 @@ export default function TopNavigation() {
                         <div className="ml-4 space-y-1">
                           {tab.subItems.map((item) => {
                             const ItemIcon = item.icon;
-                            const isActive = location === item.path;
+                            const isActive = location === item.path || item.matchPaths?.some(match => location.startsWith(match));
                             
                             return (
                               <Link
@@ -427,48 +342,26 @@ export default function TopNavigation() {
               <div className="border-t pt-6 space-y-4">
                 <h3 className="font-semibold text-gray-900">Quick Actions</h3>
                 <div className="grid grid-cols-1 gap-3">
-                  <Button
-                    variant="outline"
-                    className="justify-start gap-3 p-4 h-auto"
-                    onClick={() => {
-                      handleQuickAction('new-deal');
-                      setIsMobileMenuOpen(false);
-                    }}
-                  >
-                    <Calculator className="w-5 h-5 text-blue-600" />
-                    <div className="text-left">
-                      <div className="font-medium">Start New Deal</div>
-                      <div className="text-sm text-gray-500">Create a new customer deal</div>
-                    </div>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="justify-start gap-3 p-4 h-auto"
-                    onClick={() => {
-                      handleQuickAction('add-vehicle');
-                      setIsMobileMenuOpen(false);
-                    }}
-                  >
-                    <Car className="w-5 h-5 text-green-600" />
-                    <div className="text-left">
-                      <div className="font-medium">Add Vehicle</div>
-                      <div className="text-sm text-gray-500">Add to inventory</div>
-                    </div>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="justify-start gap-3 p-4 h-auto"
-                    onClick={() => {
-                      handleQuickAction('schedule-service');
-                      setIsMobileMenuOpen(false);
-                    }}
-                  >
-                    <Wrench className="w-5 h-5 text-orange-600" />
-                    <div className="text-left">
-                      <div className="font-medium">Schedule Service</div>
-                      <div className="text-sm text-gray-500">Book service appointment</div>
-                    </div>
-                  </Button>
+                  {QUICK_ACTIONS.map((action) => {
+                    const ActionIcon = action.icon;
+                    return (
+                      <Button
+                        key={action.id}
+                        variant="outline"
+                        className="justify-start gap-3 p-4 h-auto"
+                        onClick={() => {
+                          handleQuickAction(action.target);
+                          setIsMobileMenuOpen(false);
+                        }}
+                      >
+                        <ActionIcon className={`w-5 h-5 ${action.accentClass ?? 'text-blue-600'}`} />
+                        <div className="text-left">
+                          <div className="font-medium">{action.label}</div>
+                          <div className="text-sm text-gray-500">{action.description}</div>
+                        </div>
+                      </Button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -520,7 +413,7 @@ export default function TopNavigation() {
           <div className="max-w-7xl mx-auto">
             <nav className="flex items-center space-x-6 overflow-x-auto">
               {currentTab.subItems.map((item) => {
-                const isActive = location === item.path;
+                const isActive = location === item.path || item.matchPaths?.some(match => location.startsWith(match));
                 const ItemIcon = item.icon;
                 
                 return (
