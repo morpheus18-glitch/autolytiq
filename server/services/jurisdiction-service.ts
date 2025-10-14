@@ -43,6 +43,19 @@ export class JurisdictionService {
     return results[0] || null;
   }
 
+  static async getJurisdictionById(
+    id: number,
+    db: NeonHttpDatabase
+  ): Promise<Jurisdiction | null> {
+    const results = await db
+      .select()
+      .from(jurisdictions)
+      .where(eq(jurisdictions.id, id))
+      .limit(1);
+
+    return results[0] || null;
+  }
+
   /**
    * Get all tax rules for a jurisdiction
    * @param jurisdictionId - Jurisdiction ID
@@ -128,7 +141,8 @@ export class JurisdictionService {
   static async getJurisdictionDetails(
     zip: string,
     dealType: 'purchase' | 'lease',
-    db: NeonHttpDatabase
+    db: NeonHttpDatabase,
+    options: { jurisdictionId?: number } = {}
   ): Promise<{
     jurisdiction: Jurisdiction | null;
     taxRules: TaxRule[];
@@ -136,8 +150,23 @@ export class JurisdictionService {
     estimatedTaxRate: number;
     estimatedFees: number;
   }> {
-    const jurisdiction = await this.resolveByZip(zip, db);
-    
+    const normalizedZip = zip.replace(/[^0-9]/g, '').slice(0, 5);
+
+    let jurisdiction: Jurisdiction | null = null;
+
+    if (options.jurisdictionId != null) {
+      jurisdiction = await this.getJurisdictionById(options.jurisdictionId, db);
+
+      if (jurisdiction && jurisdiction.zip !== normalizedZip) {
+        // Jurisdiction mismatch with provided ZIP, fall back to ZIP lookup
+        jurisdiction = null;
+      }
+    }
+
+    if (!jurisdiction) {
+      jurisdiction = await this.resolveByZip(zip, db);
+    }
+
     if (!jurisdiction) {
       return {
         jurisdiction: null,

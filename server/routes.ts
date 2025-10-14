@@ -4968,7 +4968,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "ZIP code is required" });
       }
 
-      const details = await JurisdictionService.getJurisdictionDetails(zip, dealType, db);
+      const jurisdictionIdParam = req.query.jurisdictionId as string | undefined;
+      const parsedJurisdictionId = jurisdictionIdParam ? parseInt(jurisdictionIdParam, 10) : undefined;
+      const jurisdictionId = parsedJurisdictionId != null && !Number.isNaN(parsedJurisdictionId)
+        ? parsedJurisdictionId
+        : undefined;
+
+      const details = await JurisdictionService.getJurisdictionDetails(zip, dealType, db, {
+        jurisdictionId,
+      });
 
       if (!details.jurisdiction) {
         return res.status(404).json({ message: "Jurisdiction not found for ZIP code" });
@@ -5117,6 +5125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         gapPrice = 0,
         financeReserveAmount = 0,
         financeReserveType = 'percent',
+        jurisdictionId,
       } = req.body;
 
       // Validate inputs
@@ -5125,7 +5134,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get jurisdiction details
-      const details = await JurisdictionService.getJurisdictionDetails(zip, dealType, db);
+      const parsedJurisdictionId = jurisdictionId != null ? parseInt(jurisdictionId, 10) : undefined;
+      const resolvedJurisdictionId = parsedJurisdictionId != null && !Number.isNaN(parsedJurisdictionId)
+        ? parsedJurisdictionId
+        : undefined;
+
+      const details = await JurisdictionService.getJurisdictionDetails(zip, dealType, db, {
+        jurisdictionId: resolvedJurisdictionId,
+      });
 
       if (!details.jurisdiction) {
         return res.status(404).json({ message: "Jurisdiction not found for ZIP code" });
