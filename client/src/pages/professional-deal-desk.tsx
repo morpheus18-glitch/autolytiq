@@ -38,6 +38,7 @@ import { KPICards } from '@/components/deal-desk/kpi-cards';
 import { AIOptimizationWrapper } from '@/components/deal-desk/ai-optimization-wrapper';
 import { LenderMatcher } from '@/components/deal-desk/lender-matcher';
 import { PaymentScenarios } from '@/components/deal-desk/payment-scenarios';
+import { ProfitOptimizer } from '@/components/deal-desk/profit-optimizer';
 
 interface Vehicle {
   id: number;
@@ -1494,6 +1495,21 @@ export default function ProfessionalDealDesk() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Advanced Profit Optimization */}
+            <ProfitOptimizer
+              vehicleCost={vehicleCost}
+              salePrice={salePrice}
+              products={products}
+              reserveAmount={reserveAmountCents / 100}
+              onApplyOptimization={(optimizedProducts) => {
+                setProducts(optimizedProducts);
+                toast({
+                  title: "Optimization Applied",
+                  description: "Backend products updated with optimized pricing"
+                });
+              }}
+            />
           </TabsContent>
         </Tabs>
       </div>
