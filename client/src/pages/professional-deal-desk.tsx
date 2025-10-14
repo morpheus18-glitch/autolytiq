@@ -37,6 +37,7 @@ import { ProductsSection, type DealProduct } from '@/components/deal-desk/produc
 import { KPICards } from '@/components/deal-desk/kpi-cards';
 import { AIOptimizationWrapper } from '@/components/deal-desk/ai-optimization-wrapper';
 import { LenderMatcher } from '@/components/deal-desk/lender-matcher';
+import { PaymentScenarios } from '@/components/deal-desk/payment-scenarios';
 
 interface Vehicle {
   id: number;
@@ -896,6 +897,22 @@ export default function ProfessionalDealDesk() {
                     toast({
                       title: "Lender Selected",
                       description: `${lender.lenderName} at ${lender.rate.toFixed(2)}% APR`
+                    });
+                  }}
+                />
+
+                {/* Payment Scenarios */}
+                <PaymentScenarios
+                  vehiclePrice={salePrice}
+                  tradeValue={tradeValue}
+                  tradePayoff={tradePayoff}
+                  apr={apr}
+                  onSelectScenario={(scenario) => {
+                    setCashDown(scenario.downPayment);
+                    setTerm(scenario.term);
+                    toast({
+                      title: "Payment Scenario Selected",
+                      description: `${scenario.label}: $${scenario.monthlyPayment.toFixed(0)}/mo`
                     });
                   }}
                 />
