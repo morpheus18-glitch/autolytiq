@@ -1,3 +1,5 @@
+
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation, Link } from 'wouter';
@@ -60,8 +62,62 @@ interface Customer {
   lastName: string;
   email: string;
   phone: string;
-  zipCode?: string;
+  zipCode?: string | null;
+  city?: string | null;
+  state?: string | null;
+  creditScore?: number | null;
+  creditTier?: string | null;
 }
+
+interface JurisdictionOption {
+  id: number;
+  display: string;
+  city?: string | null;
+  county?: string | null;
+  state: string;
+  zip: string;
+}
+
+interface TradeVehicleRecord {
+  id: number;
+  customerId: number;
+  year: number;
+  make: string;
+  model: string;
+  trim?: string | null;
+  vin?: string | null;
+  mileage?: number | null;
+  estimatedValue?: number | string | null;
+  actualValue?: number | string | null;
+  status?: string | null;
+}
+
+const creditScoreToTier = (score: number) => {
+  if (score >= 780) return 'A+';
+  if (score >= 720) return 'A';
+  if (score >= 660) return 'B';
+  if (score >= 620) return 'C';
+  return 'D';
+};
+
+const moneyValueToCents = (value: unknown): number | null => {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.round(value * 100);
+  }
+
+  if (typeof value === 'string') {
+    const parsed = parseFloat(value);
+    if (!Number.isNaN(parsed)) {
+      return Math.round(parsed * 100);
+    }
+  }
+
+  return null;
+};
 
 interface Deal {
   id?: string;
@@ -95,10 +151,7 @@ interface BackendProduct {
 }
 
 interface DealCalculation {
-  jurisdiction: {
-    display: string;
-    state: string;
-  };
+  jurisdiction: JurisdictionOption;
   calculation: {
     fees: {
       nontaxFees: number;
@@ -137,8 +190,9 @@ export default function ProfessionalDealDesk() {
   const [vehicleId, setVehicleId] = useState<number | null>(null);
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [customerZip, setCustomerZip] = useState('');
-  const [jurisdictionData, setJurisdictionData] = useState<any[]>([]);
-  const [selectedJurisdiction, setSelectedJurisdiction] = useState<any | null>(null);
+  const [jurisdictionData, setJurisdictionData] = useState<JurisdictionOption[]>([]);
+  const [selectedJurisdiction, setSelectedJurisdiction] = useState<JurisdictionOption | null>(null);
+  const [jurisdictionManuallySet, setJurisdictionManuallySet] = useState(false);
   
   // Deal structure
   const [dealType, setDealType] = useState<'retail' | 'lease' | 'cash'>('retail');
@@ -184,10 +238,17 @@ export default function ProfessionalDealDesk() {
   const [reserveBasis, setReserveBasis] = useState<string>('None');
   const [reserveAmountCents, setReserveAmountCents] = useState<number | null>(null);
   const [paymentFrequency, setPaymentFrequency] = useState<string>('MONTHLY');
-  
+
   // Fees and enhanced products
   const [dealFees, setDealFees] = useState<DealFee[]>([]);
   const [enhancedProducts, setEnhancedProducts] = useState<DealProduct[]>([]);
+
+  const [selectedTradeId, setSelectedTradeId] = useState<number | null>(null);
+  const [tradeSelectionManuallyCleared, setTradeSelectionManuallyCleared] = useState(false);
+
+  const lastPrefilledCustomerId = useRef<number | null>(null);
+  const lastPrefilledTradeId = useRef<number | null>(null);
+
 
   const aftermarketTotal = useMemo(
     () => aftermarketItems.reduce((sum, item) => sum + (item.amount || 0), 0),
@@ -303,15 +364,66 @@ export default function ProfessionalDealDesk() {
   const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
   });
-  
+
+  const {
+    data: customerTrades = [],
+    isFetching: tradesLoading,
+  } = useQuery<TradeVehicleRecord[]>({
+    queryKey: ['/api/trade-vehicles', customerId],
+    queryFn: async () => {
+      if (!customerId) return [];
+      try {
+        const response = await fetch(`/api/trade-vehicles/${customerId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch trade vehicles');
+        }
+        return response.json();
+      } catch (error) {
+        console.error('Error fetching trade vehicles:', error);
+        return [];
+      }
+    },
+    enabled: !!customerId,
+    staleTime: 30000,
+  });
+
   // Selected vehicle and customer
   const selectedVehicle = vehicles.find(v => v.id === vehicleId);
   const selectedCustomer = customers.find(c => c.id === customerId);
+
+  const tradeVehicleOptions = useMemo(
+    () =>
+      customerTrades.map((trade) => {
+        const allowanceCents = moneyValueToCents(trade.actualValue ?? trade.estimatedValue);
+        const allowanceDisplay =
+          allowanceCents != null
+            ? `Allowance ${new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(allowanceCents / 100)}`
+            : undefined;
+
+        return {
+          id: trade.id,
+          label: `${trade.year} ${trade.make} ${trade.model}`,
+          vin: trade.vin,
+          details: allowanceDisplay,
+        };
+      }),
+    [customerTrades]
+  );
+
+  const selectedTradeVehicle = useMemo(() => {
+    if (selectedTradeId == null) return null;
+    return customerTrades.find((trade) => trade.id === selectedTradeId) ?? null;
+  }, [customerTrades, selectedTradeId]);
+
+  const hasDealContext = Boolean(selectedCustomer && selectedVehicle);
   
   // Calculate deal - include ALL backend products in vehicle price only (no double-counting)
   const totalBackendProducts = products.reduce((sum, p) => sum + p.retailPrice, 0);
+  const normalizedDealType = dealType === 'lease' ? 'lease' : 'purchase';
+
   const calcInput = {
     zip: customerZip,
+    dealType: normalizedDealType,
     dealType: 'purchase',
     vehiclePrice: salePrice + aftermarketTotal + totalBackendProducts, // Includes adds and backend products
     vehicleCost: vehicleCost,
@@ -322,9 +434,11 @@ export default function ProfessionalDealDesk() {
     warrantyPrice: 0, // Already included in vehiclePrice above
     gapPrice: 0, // Already included in vehiclePrice above
     financeReserveAmount: 0,
-    financeReserveType: 'percent' as const
+    financeReserveType: 'percent' as const,
+    jurisdictionId: selectedJurisdiction?.id,
+    vin: selectedVehicle?.vin,
   };
-  
+
   const { data: calc, isLoading: calcLoading } = useQuery<DealCalculation>({
     queryKey: ['/api/deals/calculate', calcInput],
     queryFn: async () => {
@@ -334,7 +448,7 @@ export default function ProfessionalDealDesk() {
       });
       return response.json();
     },
-    enabled: customerZip.length >= 5 && salePrice > 0,
+    enabled: customerZip.length >= 5 && salePrice > 0 && hasDealContext,
     staleTime: 0,
     retry: 1,
   });
@@ -362,6 +476,7 @@ export default function ProfessionalDealDesk() {
     if (selectedVehicle) {
       setSalePrice(selectedVehicle.price);
       setVehicleCost(selectedVehicle.costPrice || 0);
+      setMsrpCents(Math.round(selectedVehicle.price * 100));
     }
   }, [selectedVehicle]);
 
@@ -382,17 +497,107 @@ export default function ProfessionalDealDesk() {
   useEffect(() => {
     if (customerId && selectedCustomer) {
       setTrackedCustomer(customerId.toString());
-      trackInteraction('deal_desk_opened', { 
+      trackInteraction('deal_desk_opened', {
         customerId: customerId.toString(),
         customerName: `${selectedCustomer.firstName} ${selectedCustomer.lastName}`
       });
-      
-      // Auto-populate customer ZIP if available
-      if (selectedCustomer.zipCode && !customerZip) {
-        setCustomerZip(selectedCustomer.zipCode);
-      }
     }
-  }, [customerId, selectedCustomer, setTrackedCustomer, trackInteraction, customerZip]);
+  }, [customerId, selectedCustomer, setTrackedCustomer, trackInteraction]);
+
+  useEffect(() => {
+    if (!selectedCustomer) {
+      lastPrefilledCustomerId.current = null;
+      return;
+    }
+
+    if (lastPrefilledCustomerId.current !== selectedCustomer.id) {
+      setCustomerZip(selectedCustomer.zipCode ?? '');
+      setTitleState(selectedCustomer.state ?? null);
+      setJurisdictionManuallySet(false);
+      setSelectedJurisdiction(null);
+      setJurisdictionData([]);
+
+      const derivedTier = selectedCustomer.creditTier
+        ?? (selectedCustomer.creditScore != null ? creditScoreToTier(selectedCustomer.creditScore) : null);
+
+      if (derivedTier) {
+        setCreditTier(derivedTier);
+      }
+
+      lastPrefilledCustomerId.current = selectedCustomer.id;
+    }
+  }, [selectedCustomer]);
+
+  useEffect(() => {
+    setSelectedTradeId(null);
+    setTradeSelectionManuallyCleared(false);
+    lastPrefilledTradeId.current = null;
+    setTradeAcvCents(null);
+    setTradeReconCents(null);
+    setTradeAllowanceCents(null);
+    setTradePayoffCents(null);
+    setTradeValue(0);
+    setTradePayoff(0);
+    setPayoffGoodThru(null);
+    setLienholderName(null);
+    setJurisdictionManuallySet(false);
+  }, [customerId]);
+
+  useEffect(() => {
+    if (tradeSelectionManuallyCleared) {
+      return;
+    }
+
+    if (customerTrades.length === 0) {
+      if (selectedTradeId !== null) {
+        setSelectedTradeId(null);
+      }
+      lastPrefilledTradeId.current = null;
+      return;
+    }
+
+    const hasSelectedTrade = customerTrades.some((trade) => trade.id === selectedTradeId);
+    if (!hasSelectedTrade) {
+      setSelectedTradeId(customerTrades[0].id);
+    }
+  }, [customerTrades, selectedTradeId, tradeSelectionManuallyCleared]);
+
+  useEffect(() => {
+    if (!selectedTradeVehicle) {
+      if (tradeSelectionManuallyCleared || customerTrades.length === 0) {
+        lastPrefilledTradeId.current = null;
+      }
+      return;
+    }
+
+    if (lastPrefilledTradeId.current === selectedTradeVehicle.id) {
+      return;
+    }
+
+    const allowanceCents = moneyValueToCents(selectedTradeVehicle.actualValue ?? selectedTradeVehicle.estimatedValue);
+    if (allowanceCents != null) {
+      setTradeAcvCents(allowanceCents);
+      setTradeAllowanceCents(allowanceCents);
+      setTradeValue(allowanceCents / 100);
+    }
+
+    setTradeReconCents(null);
+    setTradePayoffCents(null);
+
+    lastPrefilledTradeId.current = selectedTradeVehicle.id;
+  }, [selectedTradeVehicle, customerTrades.length, tradeSelectionManuallyCleared]);
+
+  useEffect(() => {
+    if (tradeSelectionManuallyCleared && selectedTradeId === null) {
+      setTradeAcvCents(null);
+      setTradeReconCents(null);
+      setTradeAllowanceCents(null);
+      setTradePayoffCents(null);
+      setTradeValue(0);
+      setTradePayoff(0);
+      lastPrefilledTradeId.current = null;
+    }
+  }, [tradeSelectionManuallyCleared, selectedTradeId]);
 
   // Debounced autosave - triggers 2 seconds after user stops editing
   useEffect(() => {
@@ -417,22 +622,26 @@ export default function ProfessionalDealDesk() {
   useEffect(() => {
     if (customerZip.length === 5) {
       fetch(`/api/jurisdictions/lookup?zip=${customerZip}`)
-        .then(res => res.json())
-        .then(data => {
+        .then(async (res) => {
+          if (!res.ok) {
+            throw new Error('Failed to lookup jurisdictions');
+          }
+          return res.json();
+        })
+        .then((data) => {
           if (data.jurisdictions && data.jurisdictions.length > 0) {
             setJurisdictionData(data.jurisdictions);
-            
-            // Auto-select if only one jurisdiction
-            if (data.jurisdictions.length === 1) {
+
+            if (data.jurisdictions.length === 1 && !jurisdictionManuallySet) {
               setSelectedJurisdiction(data.jurisdictions[0]);
               toast({
                 title: "Location Found",
                 description: `${data.jurisdictions[0].city}, ${data.jurisdictions[0].state}`,
               });
-            } else {
+            } else if (data.jurisdictions.length > 1 && !jurisdictionManuallySet) {
               toast({
                 title: "Multiple Locations Found",
-                description: `Please select your city/county`,
+                description: `Please confirm your city/county`,
               });
             }
           }
@@ -446,7 +655,50 @@ export default function ProfessionalDealDesk() {
       setJurisdictionData([]);
       setSelectedJurisdiction(null);
     }
-  }, [customerZip, toast]);
+  }, [customerZip, toast, jurisdictionManuallySet]);
+
+  useEffect(() => {
+    if (jurisdictionManuallySet || jurisdictionData.length === 0) {
+      return;
+    }
+
+    const normalizedCity = selectedCustomer?.city?.trim().toLowerCase();
+    const normalizedState = selectedCustomer?.state?.trim().toUpperCase();
+
+    let match: JurisdictionOption | undefined;
+
+    if (normalizedCity) {
+      match = jurisdictionData.find((j) => j.city?.trim().toLowerCase() === normalizedCity);
+    }
+
+    if (!match && normalizedState) {
+      match = jurisdictionData.find((j) => j.state.trim().toUpperCase() === normalizedState);
+    }
+
+    if (!match) {
+      match = jurisdictionData[0];
+    }
+
+    if (match && (!selectedJurisdiction || selectedJurisdiction.id !== match.id)) {
+      setSelectedJurisdiction(match);
+    }
+  }, [jurisdictionData, jurisdictionManuallySet, selectedCustomer, selectedJurisdiction]);
+
+  useEffect(() => {
+    if (!calc?.jurisdiction) {
+      return;
+    }
+
+    const calcJurisdiction = calc.jurisdiction as JurisdictionOption;
+
+    if (!jurisdictionManuallySet && (!selectedJurisdiction || selectedJurisdiction.id !== calcJurisdiction.id)) {
+      setSelectedJurisdiction(calcJurisdiction);
+    }
+
+    if (calcJurisdiction.state && calcJurisdiction.state !== titleState) {
+      setTitleState(calcJurisdiction.state);
+    }
+  }, [calc?.jurisdiction, jurisdictionManuallySet, selectedJurisdiction, titleState]);
   
   // Autosave mutation (saves draft)
   const autosaveMutation = useMutation({
@@ -677,6 +929,31 @@ export default function ProfessionalDealDesk() {
   const estimatedAmountFinanced = calc?.calculation?.totals?.grandTotal != null
     ? calc.calculation.totals.grandTotal - netTrade - cashDown
     : Math.max(salePrice + aftermarketTotal + totalBackendProducts - netTrade - cashDown, 0);
+
+
+  const onboardingSteps = useMemo(
+    () => [
+      {
+        id: 'select-context',
+        label: 'Select Customer & Vehicle',
+        description: 'Loads stored credit tier, trades, VIN, and jurisdiction taxes.',
+        complete: hasDealContext,
+      },
+      {
+        id: 'structure-deal',
+        label: 'Structure Deal Terms',
+        description: 'Enter price, trade figures, aftermarket adds, and financing.',
+        complete: hasDealContext && salePrice > 0,
+      },
+      {
+        id: 'review-deliver',
+        label: 'Review & Deliver Paperwork',
+        description: 'Print PDFs, finalize the desk, and save the deal.',
+        complete: Boolean(dealId),
+      },
+    ],
+    [dealId, hasDealContext, salePrice]
+  );
   
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
@@ -716,10 +993,10 @@ export default function ProfessionalDealDesk() {
               <Printer className="h-4 w-4 mr-1" />
               Print
             </Button>
-            <Button 
+            <Button
               size="sm"
               onClick={() => saveDealMutation.mutate()}
-              disabled={!selectedCustomer || !calc || saveDealMutation.isPending || dealId !== null}
+              disabled={!selectedCustomer || !selectedVehicle || !calc || saveDealMutation.isPending || dealId !== null}
               data-testid="button-save-deal"
             >
               {saveDealMutation.isPending ? (
@@ -750,6 +1027,45 @@ export default function ProfessionalDealDesk() {
           />
         </div>
 
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {onboardingSteps.map((step, index) => (
+            <div
+              key={step.id}
+              className={`rounded-lg border p-4 transition-colors ${
+                step.complete
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900/60'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <Badge
+                    variant={step.complete ? 'default' : 'outline'}
+                    className={`h-8 w-8 shrink-0 rounded-full text-xs flex items-center justify-center ${
+                      step.complete
+                        ? 'bg-blue-600 text-white hover:bg-blue-600'
+                        : 'border-gray-400 text-gray-600 dark:text-gray-300'
+                    }`}
+                  >
+                    {index + 1}
+                  </Badge>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{step.label}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{step.description}</p>
+                  </div>
+                </div>
+                {step.complete ? (
+                  <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                ) : (
+                  <ClipboardList className="h-4 w-4 text-gray-400" />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+
         <Tabs defaultValue="desk" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-2">
             <TabsTrigger value="desk" data-testid="tab-desk" className="text-xs sm:text-sm">
@@ -757,21 +1073,29 @@ export default function ProfessionalDealDesk() {
               <span className="hidden sm:inline">Desk Deal</span>
               <span className="sm:hidden">Desk</span>
             </TabsTrigger>
+
+            <TabsTrigger value="fi-ledger" data-testid="tab-fi-ledger" className="text-xs sm:text-sm" disabled={!hasDealContext}>
+
             <TabsTrigger value="fi-ledger" data-testid="tab-fi-ledger" className="text-xs sm:text-sm">
+
               <DollarSign className="h-4 w-4 mr-1 sm:mr-2" />
               <span className="hidden sm:inline">F&I Ledger</span>
               <span className="sm:hidden">F&I</span>
             </TabsTrigger>
+
+            <TabsTrigger value="backend" data-testid="tab-backend" className="text-xs sm:text-sm" disabled={!hasDealContext}>
+
             <TabsTrigger value="backend" data-testid="tab-backend" className="text-xs sm:text-sm">
+
               <Package className="h-4 w-4 mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Backend</span>
               <span className="sm:hidden">Products</span>
             </TabsTrigger>
-            <TabsTrigger value="summary" data-testid="tab-summary" className="text-xs sm:text-sm">
+            <TabsTrigger value="summary" data-testid="tab-summary" className="text-xs sm:text-sm" disabled={!hasDealContext}>
               <FileText className="h-4 w-4 mr-1 sm:mr-2" />
               Summary
             </TabsTrigger>
-            <TabsTrigger value="profit" data-testid="tab-profit" className="text-xs sm:text-sm">
+            <TabsTrigger value="profit" data-testid="tab-profit" className="text-xs sm:text-sm" disabled={!hasDealContext}>
               <TrendingUp className="h-4 w-4 mr-1 sm:mr-2" />
               Profit
             </TabsTrigger>
@@ -779,6 +1103,86 @@ export default function ProfessionalDealDesk() {
 
           {/* F&I Ledger Tab - Data-first layout */}
           <TabsContent value="fi-ledger" className="space-y-6">
+
+            {!hasDealContext ? (
+              <Card>
+                <CardContent className="py-12 text-center text-sm text-gray-500 dark:text-gray-400">
+                  Select a customer and vehicle to review the F&I ledger.
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-mono">F&I Ledger Summary</CardTitle>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Structured, data-first snapshot of the deal structure for managers and accountants.
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs sm:text-sm font-mono">
+                      <div>
+                        <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Sale Price</p>
+                        <p className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                          ${salePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Vehicle Cost</p>
+                        <p className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                          ${vehicleCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Aftermarket Adds</p>
+                        <p className="text-base sm:text-lg font-semibold text-blue-600 dark:text-blue-400">
+                          ${aftermarketTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Backend Retail</p>
+                        <p className="text-base sm:text-lg font-semibold text-blue-600 dark:text-blue-400">
+                          ${totalBackendProducts.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Pack</p>
+                        <p className="text-base sm:text-lg font-semibold">
+                          ${((packCents ?? 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Holdback</p>
+                        <p className="text-base sm:text-lg font-semibold">
+                          ${((holdbackCents ?? 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Reserve</p>
+                        <p className="text-base sm:text-lg font-semibold">
+                          ${((reserveAmountCents ?? 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Estimated Taxes</p>
+                        <p className="text-base sm:text-lg font-semibold">
+                          ${estimatedTaxes.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div className="col-span-2 md:col-span-4">
+                        <Separator className="my-2" />
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <span className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Amount Financed</span>
+                          <span className="text-lg sm:text-xl font-semibold text-green-600 dark:text-green-400">
+                            ${estimatedAmountFinanced.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-mono">F&I Ledger Summary</CardTitle>
@@ -849,6 +1253,7 @@ export default function ProfessionalDealDesk() {
               </CardContent>
             </Card>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
               {/* Left Column - 8 cols on desktop */}
               <div className="lg:col-span-8 space-y-6">
                 {/* Vehicle & Customer Selection */}
@@ -912,68 +1317,79 @@ export default function ProfessionalDealDesk() {
                   </Card>
                 </div>
 
-                {/* Trade Section */}
-                <TradeSection
-                  data={{
-                    tradeAcvCents,
-                    tradeReconCents,
-                    tradeAllowanceCents,
-                    tradePayoffCents,
-                    payoffGoodThru,
-                    lienholderName,
-                    titleState
-                  }}
-                  onChange={(updates) => {
-                    if (updates.tradeAcvCents !== undefined) setTradeAcvCents(updates.tradeAcvCents);
-                    if (updates.tradeReconCents !== undefined) setTradeReconCents(updates.tradeReconCents);
-                    if (updates.tradeAllowanceCents !== undefined) setTradeAllowanceCents(updates.tradeAllowanceCents);
-                    if (updates.tradePayoffCents !== undefined) setTradePayoffCents(updates.tradePayoffCents);
-                    if (updates.payoffGoodThru !== undefined) setPayoffGoodThru(updates.payoffGoodThru);
-                    if (updates.lienholderName !== undefined) setLienholderName(updates.lienholderName);
-                    if (updates.titleState !== undefined) setTitleState(updates.titleState);
-                  }}
-                  readOnly={!managerMode}
-                />
+                {hasDealContext && (
+                  <>
+                    {/* Trade Section */}
+                    <TradeSection
+                      data={{
+                        tradeAcvCents,
+                        tradeReconCents,
+                        tradeAllowanceCents,
+                        tradePayoffCents,
+                        payoffGoodThru,
+                        lienholderName,
+                        titleState
+                      }}
+                      onChange={(updates) => {
+                        if (updates.tradeAcvCents !== undefined) setTradeAcvCents(updates.tradeAcvCents);
+                        if (updates.tradeReconCents !== undefined) setTradeReconCents(updates.tradeReconCents);
+                        if (updates.tradeAllowanceCents !== undefined) setTradeAllowanceCents(updates.tradeAllowanceCents);
+                        if (updates.tradePayoffCents !== undefined) setTradePayoffCents(updates.tradePayoffCents);
+                        if (updates.payoffGoodThru !== undefined) setPayoffGoodThru(updates.payoffGoodThru);
+                        if (updates.lienholderName !== undefined) setLienholderName(updates.lienholderName);
+                        if (updates.titleState !== undefined) setTitleState(updates.titleState);
+                      }}
+                      readOnly={!managerMode}
+                      tradeVehicles={tradeVehicleOptions}
+                      selectedTradeId={selectedTradeId}
+                      onSelectTrade={(id) => {
+                        setSelectedTradeId(id);
+                        setTradeSelectionManuallyCleared(id === null);
+                      }}
+                      tradesLoading={tradesLoading}
+                    />
 
-                {/* Fees Section */}
-                <FeesSection
-                  fees={dealFees}
-                  onChange={setDealFees}
-                  readOnly={!managerMode}
-                />
+                    {/* Fees Section */}
+                    <FeesSection
+                      fees={dealFees}
+                      onChange={setDealFees}
+                      readOnly={!managerMode}
+                    />
 
-                {/* Finance Section */}
-                <FinanceSection
-                  data={{
-                    cashDownCents,
-                    deferredDownCents,
-                    termMonths: term,
-                    aprBps,
-                    buyRateBps,
-                    reserveBasis,
-                    reserveAmountCents,
-                    paymentFrequency
-                  }}
-                  onChange={(updates) => {
-                    if (updates.cashDownCents !== undefined) setCashDownCents(updates.cashDownCents);
-                    if (updates.deferredDownCents !== undefined) setDeferredDownCents(updates.deferredDownCents);
-                    if (updates.termMonths !== undefined && updates.termMonths !== null) setTerm(updates.termMonths);
-                    if (updates.aprBps !== undefined) setAprBps(updates.aprBps);
-                    if (updates.buyRateBps !== undefined) setBuyRateBps(updates.buyRateBps);
-                    if (updates.reserveBasis !== undefined && updates.reserveBasis !== null) setReserveBasis(updates.reserveBasis);
-                    if (updates.reserveAmountCents !== undefined) setReserveAmountCents(updates.reserveAmountCents);
-                    if (updates.paymentFrequency !== undefined && updates.paymentFrequency !== null) setPaymentFrequency(updates.paymentFrequency);
-                  }}
-                  readOnly={!managerMode}
-                />
+                    {/* Finance Section */}
+                    <FinanceSection
+                      data={{
+                        cashDownCents,
+                        deferredDownCents,
+                        termMonths: term,
+                        aprBps,
+                        buyRateBps,
+                        reserveBasis,
+                        reserveAmountCents,
+                        paymentFrequency
+                      }}
+                      onChange={(updates) => {
+                        if (updates.cashDownCents !== undefined) setCashDownCents(updates.cashDownCents);
+                        if (updates.deferredDownCents !== undefined) setDeferredDownCents(updates.deferredDownCents);
+                        if (updates.termMonths !== undefined && updates.termMonths !== null) setTerm(updates.termMonths);
+                        if (updates.aprBps !== undefined) setAprBps(updates.aprBps);
+                        if (updates.buyRateBps !== undefined) setBuyRateBps(updates.buyRateBps);
+                        if (updates.reserveBasis !== undefined && updates.reserveBasis !== null) setReserveBasis(updates.reserveBasis);
+                        if (updates.reserveAmountCents !== undefined) setReserveAmountCents(updates.reserveAmountCents);
+                        if (updates.paymentFrequency !== undefined && updates.paymentFrequency !== null) setPaymentFrequency(updates.paymentFrequency);
+                      }}
+                      readOnly={!managerMode}
+                    />
 
-                {/* Products Section */}
-                <ProductsSection
-                  products={enhancedProducts}
-                  onChange={setEnhancedProducts}
-                  readOnly={!managerMode}
-                  hideProfit={!managerMode}
-                />
+                    {/* Products Section */}
+                    <ProductsSection
+                      products={enhancedProducts}
+                      onChange={setEnhancedProducts}
+                      readOnly={!managerMode}
+                      hideProfit={!managerMode}
+                    />
+                  </>
+                )}
               </div>
 
               {/* Right Column - 4 cols on desktop (Sticky KPI Cards & AI Assistant) */}
@@ -1052,7 +1468,9 @@ export default function ProfessionalDealDesk() {
                   }}
                 />
               </div>
-            </div>
+                </div>
+              </>
+            )}
           </TabsContent>
 
           {/* Desk Tab */}
@@ -1073,7 +1491,11 @@ export default function ProfessionalDealDesk() {
                       <Button
                         size="sm"
                         onClick={() => saveDealMutation.mutate()}
+
+                        disabled={!selectedCustomer || !selectedVehicle || !calc || saveDealMutation.isPending}
+
                         disabled={!selectedCustomer || !calc || saveDealMutation.isPending}
+
                         data-testid="button-quick-save"
                       >
                         {saveDealMutation.isPending ? (
@@ -1083,6 +1505,326 @@ export default function ProfessionalDealDesk() {
                         )}
                         Quick Save
                       </Button>
+
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Rapidly desk the deal with streamlined entry and drill-down support for trades and vehicle adds.
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {!hasDealContext ? (
+                    <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900/40 p-6 text-center text-sm text-gray-600 dark:text-gray-400">
+                      Select a customer and vehicle to unlock pricing, trade, and finance entry.
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {selectedVehicle && (
+                          <div className="space-y-1 md:col-span-2 xl:col-span-3">
+                            <Label htmlFor="desk-quick-vin">VIN</Label>
+                            <Input
+                              id="desk-quick-vin"
+                              value={selectedVehicle.vin}
+                              readOnly
+                              data-testid="input-desk-quick-vin"
+                              className="bg-gray-100 dark:bg-gray-900/40"
+                            />
+                          </div>
+                        )}
+                        <div className="space-y-1">
+                          <Label htmlFor="desk-sale-price">Sale Price</Label>
+                          <Input
+                            id="desk-sale-price"
+                            type="text"
+                            inputMode="decimal"
+                            value={salePrice || ''}
+                            onChange={(e) => setSalePrice(parseDecimalInput(e.target.value))}
+                            data-testid="input-desk-sale"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="desk-cost">Vehicle Cost</Label>
+                          <Input
+                            id="desk-cost"
+                            type="text"
+                            inputMode="decimal"
+                            value={vehicleCost || ''}
+                            onChange={(e) => setVehicleCost(parseDecimalInput(e.target.value))}
+                            data-testid="input-desk-cost"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="desk-down">Down Payment</Label>
+                          <Input
+                            id="desk-down"
+                            type="text"
+                            inputMode="decimal"
+                            value={cashDown || ''}
+                            onChange={(e) => setCashDown(parseDecimalInput(e.target.value))}
+                            data-testid="input-desk-down"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="desk-rebates">Rebates</Label>
+                          <Input
+                            id="desk-rebates"
+                            type="text"
+                            inputMode="decimal"
+                            value={rebates || ''}
+                            onChange={(e) => setRebates(parseDecimalInput(e.target.value))}
+                            data-testid="input-desk-rebates"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="desk-trade">Trade Allowance</Label>
+                          <Input
+                            id="desk-trade"
+                            type="text"
+                            inputMode="decimal"
+                            value={tradeValue || ''}
+                            onChange={(e) => setTradeValue(parseDecimalInput(e.target.value))}
+                            data-testid="input-desk-trade"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="desk-payoff">Trade Payoff</Label>
+                          <Input
+                            id="desk-payoff"
+                            type="text"
+                            inputMode="decimal"
+                            value={tradePayoff || ''}
+                            onChange={(e) => setTradePayoff(parseDecimalInput(e.target.value))}
+                            data-testid="input-desk-payoff"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-1">
+                          <Label htmlFor="desk-term">Term (months)</Label>
+                          <Select value={term.toString()} onValueChange={(v) => setTerm(parseInt(v))}>
+                            <SelectTrigger id="desk-term" data-testid="select-desk-term">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(financeSettings?.availableTerms || [36, 48, 60, 72, 84]).map((t: number) => (
+                                <SelectItem key={t} value={t.toString()}>{t} months</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="desk-apr">APR %</Label>
+                          <Input
+                            id="desk-apr"
+                            type="text"
+                            inputMode="decimal"
+                            value={apr || ''}
+                            onChange={(e) => setApr(parseDecimalInput(e.target.value))}
+                            data-testid="input-desk-apr"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="desk-credit-tier">Credit Tier</Label>
+                          <Select value={creditTier} onValueChange={setCreditTier}>
+                            <SelectTrigger id="desk-credit-tier" data-testid="select-credit-tier">
+                              <SelectValue />
+                            </SelectTrigger>
+                          <SelectContent>
+                            {['A+', 'A', 'B', 'C', 'D'].map((tier) => (
+                              <SelectItem key={tier} value={tier}>{tier}</SelectItem>
+                            ))}
+                          </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <Accordion type="multiple" className="border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <AccordionItem value="trade-justification">
+                          <AccordionTrigger className="px-4">
+                            Trade Justification & Allowance Worksheet
+                          </AccordionTrigger>
+                      <AccordionContent className="px-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="desk-acv">Actual Cash Value</Label>
+                            <Input
+                              id="desk-acv"
+                              type="text"
+                              inputMode="decimal"
+                              value={tradeAcvCents != null ? (tradeAcvCents / 100).toFixed(2) : ''}
+                              onChange={(e) => setTradeAcvCents(parseCentsInput(e.target.value))}
+                              placeholder="0.00"
+                              data-testid="input-desk-acv"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="desk-recon">Recon / Reconditioning</Label>
+                            <Input
+                              id="desk-recon"
+                              type="text"
+                              inputMode="decimal"
+                              value={tradeReconCents != null ? (tradeReconCents / 100).toFixed(2) : ''}
+                              onChange={(e) => setTradeReconCents(parseCentsInput(e.target.value))}
+                              placeholder="0.00"
+                              data-testid="input-desk-recon"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="desk-allowance">Allowance Override</Label>
+                            <Input
+                              id="desk-allowance"
+                              type="text"
+                              inputMode="decimal"
+                              value={tradeAllowanceCents != null ? (tradeAllowanceCents / 100).toFixed(2) : ''}
+                              onChange={(e) => setTradeAllowanceCents(parseCentsInput(e.target.value))}
+                              placeholder="Auto"
+                              data-testid="input-desk-allowance"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="desk-trade-payoff">Lien Payoff</Label>
+                            <Input
+                              id="desk-trade-payoff"
+                              type="text"
+                              inputMode="decimal"
+                              value={tradePayoffCents != null ? (tradePayoffCents / 100).toFixed(2) : ''}
+                              onChange={(e) => setTradePayoffCents(parseCentsInput(e.target.value))}
+                              placeholder="0.00"
+                              data-testid="input-desk-trade-payoff"
+                            />
+                          </div>
+                        </div>
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Equity Position: <span className={netTrade >= 0 ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-red-600 dark:text-red-400 font-semibold'}>
+                              ${netTrade.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                            </span>
+                          </p>
+                          <Button variant="outline" size="sm" onClick={handlePrint} data-testid="button-print-trade">
+                            <Printer className="h-4 w-4 mr-1" />
+                            Print Trade Justification
+                          </Button>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="aftermarket-adds">
+                      <AccordionTrigger className="px-4">
+                        Vehicle Adds & Aftermarket
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 space-y-4">
+                        {aftermarketItems.length === 0 ? (
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            No aftermarket adds yet. Use the button below to capture accessories like tow hitches or tint.
+                          </p>
+                        ) : (
+                          aftermarketItems.map((item) => (
+                            <div key={item.id} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+                              <Input
+                                value={item.description}
+                                onChange={(e) => updateAftermarketItem(item.id, { description: e.target.value })}
+                                placeholder="Accessory name"
+                                data-testid={`input-aftermarket-name-${item.id}`}
+                              />
+                              <Input
+                                type="text"
+                                inputMode="decimal"
+                                value={item.amount || ''}
+                                onChange={(e) => updateAftermarketItem(item.id, { amount: parseDecimalInput(e.target.value) })}
+                                placeholder="0.00"
+                                data-testid={`input-aftermarket-amount-${item.id}`}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="justify-self-start"
+                                onClick={() => removeAftermarketItem(item.id)}
+                                data-testid={`button-remove-aftermarket-${item.id}`}
+                              >
+                                <X className="h-4 w-4 mr-1" /> Remove
+                              </Button>
+                            </div>
+                          ))
+                        )}
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={addAftermarketItem}
+                            data-testid="button-add-aftermarket"
+                          >
+                            <Plus className="h-4 w-4 mr-1" /> Add Aftermarket Item
+                          </Button>
+                          <div className="text-sm text-gray-600 dark:text-gray-300">
+                            Total Adds: <span className="font-semibold">${aftermarketTotal.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Customer & Vehicle</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="desk-vehicle">Vehicle</Label>
+                      <Select value={vehicleId?.toString()} onValueChange={(v) => setVehicleId(parseInt(v))}>
+                        <SelectTrigger id="desk-vehicle" data-testid="select-desk-vehicle">
+                          <SelectValue placeholder="Choose vehicle..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {vehicles.map((v) => (
+                            <SelectItem key={v.id} value={v.id.toString()}>
+                              {v.year} {v.make} {v.model} - ${v.price.toLocaleString()}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedVehicle && (
+                        <>
+                          <Link href={`/inventory/${selectedVehicle.id}`}>
+                            <p className="text-xs text-blue-600 dark:text-blue-400 underline mt-1">View inventory details</p>
+                          </Link>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                            <div className="space-y-1">
+                              <Label htmlFor="desk-vehicle-vin" className="text-xs font-medium text-muted-foreground uppercase">VIN</Label>
+                              <Input
+                                id="desk-vehicle-vin"
+                                value={selectedVehicle.vin}
+                                readOnly
+                                data-testid="input-desk-vehicle-vin"
+                                className="bg-gray-100 dark:bg-gray-900/40"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor="desk-vehicle-stock" className="text-xs font-medium text-muted-foreground uppercase">Stock #</Label>
+                              <Input
+                                id="desk-vehicle-stock"
+                                value={selectedVehicle.stockNo}
+                                readOnly
+                                data-testid="input-desk-vehicle-stock"
+                                className="bg-gray-100 dark:bg-gray-900/40"
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="desk-customer">Customer</Label>
+                      <Select value={customerId?.toString()} onValueChange={(v) => setCustomerId(parseInt(v))}>
+                        <SelectTrigger id="desk-customer" data-testid="select-desk-customer">
+                          <SelectValue placeholder="Choose customer..." />
+
                     </div>
                   </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -1165,14 +1907,70 @@ export default function ProfessionalDealDesk() {
                       <Select value={term.toString()} onValueChange={(v) => setTerm(parseInt(v))}>
                         <SelectTrigger id="desk-term" data-testid="select-desk-term">
                           <SelectValue />
+
                         </SelectTrigger>
                         <SelectContent>
-                          {(financeSettings?.availableTerms || [36, 48, 60, 72, 84]).map((t: number) => (
-                            <SelectItem key={t} value={t.toString()}>{t} months</SelectItem>
+                          {customers.map((c) => (
+                            <SelectItem key={c.id} value={c.id.toString()}>
+                              {c.firstName} {c.lastName}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
+                      {selectedCustomer && (
+                        <>
+                          <Link href={`/customers/${selectedCustomer.id}`}>
+                            <p className="text-xs text-green-600 dark:text-green-400 underline mt-1">View customer profile</p>
+                          </Link>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                            <div className="space-y-1">
+                              <Label htmlFor="desk-customer-tier" className="text-xs font-medium text-muted-foreground uppercase">Credit Tier</Label>
+                              <Input
+                                id="desk-customer-tier"
+                                value={creditTier || 'Not set'}
+                                readOnly
+                                data-testid="input-desk-customer-tier"
+                                className="bg-gray-100 dark:bg-gray-900/40"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor="desk-customer-score" className="text-xs font-medium text-muted-foreground uppercase">Credit Score</Label>
+                              <Input
+                                id="desk-customer-score"
+                                value={selectedCustomer.creditScore != null ? selectedCustomer.creditScore.toString() : 'Not provided'}
+                                readOnly
+                                data-testid="input-desk-customer-score"
+                                className="bg-gray-100 dark:bg-gray-900/40"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor="desk-customer-city" className="text-xs font-medium text-muted-foreground uppercase">City</Label>
+                              <Input
+                                id="desk-customer-city"
+                                value={selectedCustomer.city ?? ''}
+                                placeholder="City"
+                                readOnly
+                                data-testid="input-desk-customer-city"
+                                className="bg-gray-100 dark:bg-gray-900/40"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor="desk-customer-state" className="text-xs font-medium text-muted-foreground uppercase">State</Label>
+                              <Input
+                                id="desk-customer-state"
+                                value={selectedCustomer.state ?? ''}
+                                placeholder="State"
+                                readOnly
+                                data-testid="input-desk-customer-state"
+                                className="bg-gray-100 dark:bg-gray-900/40"
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
+
+
                     <div className="space-y-1">
                       <Label htmlFor="desk-apr">APR %</Label>
                       <Input
@@ -1373,13 +2171,21 @@ export default function ProfessionalDealDesk() {
                       )}
                     </div>
 
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <Label htmlFor="desk-zip">Customer ZIP</Label>
                         <Input
                           id="desk-zip"
                           value={customerZip}
+
+                          onChange={(e) => {
+                            setCustomerZip(e.target.value);
+                            setJurisdictionManuallySet(false);
+                          }}
+
                           onChange={(e) => setCustomerZip(e.target.value)}
+
                           placeholder="ZIP"
                           maxLength={5}
                           data-testid="input-desk-zip"
@@ -1400,6 +2206,13 @@ export default function ProfessionalDealDesk() {
                           onValueChange={(v) => {
                             const selected = jurisdictionData.find(j => j.id.toString() === v);
                             setSelectedJurisdiction(selected || null);
+
+                            setJurisdictionManuallySet(true);
+                            if (selected?.state) {
+                              setTitleState(selected.state);
+                            }
+
+
                           }}
                         >
                           <SelectTrigger id="desk-jurisdiction" data-testid="select-desk-jurisdiction">
@@ -1417,6 +2230,62 @@ export default function ProfessionalDealDesk() {
                     )}
                   </CardContent>
                 </Card>
+
+
+                {hasDealContext ? (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">Deal Snapshot</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span>Vehicle Price</span>
+                        <span className="font-medium">${salePrice.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Aftermarket Adds</span>
+                        <span className="font-medium">${aftermarketTotal.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Trade Difference</span>
+                        <span className={netTrade >= 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+                          ${netTrade.toLocaleString()}
+                        </span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between">
+                        <span>Estimated Taxes</span>
+                        <span className="font-medium">
+                          ${estimatedTaxes.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Amount Financed</span>
+                        <span className="font-semibold text-blue-600 dark:text-blue-400">
+                          ${estimatedAmountFinanced.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </span>
+                      </div>
+                      {monthlyPayment > 0 && (
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
+                          <p className="text-xs text-gray-600 dark:text-gray-400">Estimated Payment</p>
+                          <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                            ${monthlyPayment.toLocaleString()}/mo
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{term} months @ {apr}% APR</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">Deal Snapshot</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm text-gray-500 dark:text-gray-400">
+                      Confirm customer and vehicle selections to preview taxes, financing, and payment details.
+                    </CardContent>
+                  </Card>
+                )}
 
                 <Card>
                   <CardHeader className="pb-3">
@@ -1461,89 +2330,103 @@ export default function ProfessionalDealDesk() {
                     )}
                   </CardContent>
                 </Card>
+
               </div>
             </div>
           </TabsContent>
           {/* Backend Products Tab */}
           <TabsContent value="backend" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Package className="h-5 w-5" />
-                    Backend Products
-                  </CardTitle>
-                  <div className="flex flex-wrap gap-2">
-                    <Button size="sm" variant="outline" onClick={() => addProduct('warranty')} data-testid="button-add-warranty" className="whitespace-nowrap">
-                      <Plus className="h-4 w-4 mr-1" /> Warranty
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => addProduct('gap')} data-testid="button-add-gap" className="whitespace-nowrap">
-                      <Plus className="h-4 w-4 mr-1" /> GAP
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => addProduct('maintenance')} data-testid="button-add-maintenance" className="whitespace-nowrap">
-                      <Plus className="h-4 w-4 mr-1" /> Maintenance
-                    </Button>
+            {!hasDealContext ? (
+              <Card>
+                <CardContent className="py-12 text-center text-sm text-gray-500 dark:text-gray-400">
+                  Select a customer and vehicle to configure backend products.
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Package className="h-5 w-5" />
+                      Backend Products
+                    </CardTitle>
+                    <div className="flex flex-wrap gap-2">
+                      <Button size="sm" variant="outline" onClick={() => addProduct('warranty')} data-testid="button-add-warranty" className="whitespace-nowrap">
+                        <Plus className="h-4 w-4 mr-1" /> Warranty
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => addProduct('gap')} data-testid="button-add-gap" className="whitespace-nowrap">
+                        <Plus className="h-4 w-4 mr-1" /> GAP
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => addProduct('maintenance')} data-testid="button-add-maintenance" className="whitespace-nowrap">
+                        <Plus className="h-4 w-4 mr-1" /> Maintenance
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {products.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p>No backend products added yet</p>
-                  </div>
-                ) : (
-                  products.map((product, index) => (
-                    <div key={index} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-medium">{product.productName}</h4>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          onClick={() => removeProduct(index)}
-                          data-testid={`button-remove-product-${index}`}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                          <Label>Retail Price</Label>
-                          <Input
-                            type="number"
-                            value={product.retailPrice || ''}
-                            onChange={(e) => updateProduct(index, 'retailPrice', parseFloat(e.target.value) || 0)}
-                            data-testid={`input-product-retail-${index}`}
-                          />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {products.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>No backend products added yet</p>
+                    </div>
+                  ) : (
+                    products.map((product, index) => (
+                      <div key={index} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-medium">{product.productName}</h4>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeProduct(index)}
+                            data-testid={`button-remove-product-${index}`}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <div>
-                          <Label>Cost</Label>
-                          <Input
-                            type="number"
-                            value={product.cost || ''}
-                            onChange={(e) => updateProduct(index, 'cost', parseFloat(e.target.value) || 0)}
-                            data-testid={`input-product-cost-${index}`}
-                          />
-                        </div>
-                        <div>
-                          <Label>Profit</Label>
-                          <div className="flex items-center h-10 px-3 bg-green-50 dark:bg-green-900/20 rounded-md">
-                            <span className="font-medium text-green-600 dark:text-green-400">
-                              ${(product.retailPrice - product.cost).toLocaleString()}
-                            </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div>
+                            <Label>Retail Price</Label>
+                            <Input
+                              type="number"
+                              value={product.retailPrice || ''}
+                              onChange={(e) => updateProduct(index, 'retailPrice', parseFloat(e.target.value) || 0)}
+                              data-testid={`input-product-retail-${index}`}
+                            />
+                          </div>
+                          <div>
+                            <Label>Cost</Label>
+                            <Input
+                              type="number"
+                              value={product.cost || ''}
+                              onChange={(e) => updateProduct(index, 'cost', parseFloat(e.target.value) || 0)}
+                              data-testid={`input-product-cost-${index}`}
+                            />
+                          </div>
+                          <div>
+                            <Label>Profit</Label>
+                            <div className="flex items-center h-10 px-3 bg-green-50 dark:bg-green-900/20 rounded-md">
+                              <span className="font-medium text-green-600 dark:text-green-400">
+                                ${(product.retailPrice - product.cost).toLocaleString()}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
-
           {/* Summary Tab */}
           <TabsContent value="summary" className="space-y-6">
-            {calcLoading && !calc ? (
+            {!hasDealContext ? (
+              <Card>
+                <CardContent className="py-12 text-center text-sm text-gray-500 dark:text-gray-400">
+                  Select a customer and vehicle to generate the deal summary.
+                </CardContent>
+              </Card>
+            ) : calcLoading && !calc ? (
               <Card>
                 <CardContent className="py-12 text-center">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-blue-600" />
@@ -1728,64 +2611,74 @@ export default function ProfessionalDealDesk() {
 
           {/* Profit Tab */}
           <TabsContent value="profit" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {!hasDealContext ? (
               <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm text-gray-600 dark:text-gray-400">Front-End Profit</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                    ${frontEndProfit.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Sale Price - Cost
-                  </p>
+                <CardContent className="py-12 text-center text-sm text-gray-500 dark:text-gray-400">
+                  Select a customer and vehicle to analyze profit.
                 </CardContent>
               </Card>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm text-gray-600 dark:text-gray-400">Front-End Profit</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                        ${frontEndProfit.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Sale Price - Cost
+                      </p>
+                    </CardContent>
+                  </Card>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm text-gray-600 dark:text-gray-400">Back-End Profit</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-green-600 dark:text-green-400">
-                    ${backEndProfit.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {products.length} product{products.length !== 1 ? 's' : ''}
-                  </p>
-                </CardContent>
-              </Card>
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm text-gray-600 dark:text-gray-400">Back-End Profit</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-3xl font-bold text-green-600 dark:text-green-400">
+                        ${backEndProfit.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {products.length} product{products.length !== 1 ? 's' : ''}
+                      </p>
+                    </CardContent>
+                  </Card>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm text-gray-600 dark:text-gray-400">Total Profit</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                    ${totalProfit.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Front + Back
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm text-gray-600 dark:text-gray-400">Total Profit</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                        ${totalProfit.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Front + Back
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
 
-            {/* Advanced Profit Optimization */}
-            <ProfitOptimizer
-              vehicleCost={vehicleCost}
-              salePrice={salePrice}
-              products={products}
-              reserveAmount={reserveAmountCents / 100}
-              onApplyOptimization={(optimizedProducts) => {
-                setProducts(optimizedProducts);
-                toast({
-                  title: "Optimization Applied",
-                  description: "Backend products updated with optimized pricing"
-                });
-              }}
-            />
+                {/* Advanced Profit Optimization */}
+                <ProfitOptimizer
+                  vehicleCost={vehicleCost}
+                  salePrice={salePrice}
+                  products={products}
+                  reserveAmount={reserveAmountCents / 100}
+                  onApplyOptimization={(optimizedProducts) => {
+                    setProducts(optimizedProducts);
+                    toast({
+                      title: "Optimization Applied",
+                      description: "Backend products updated with optimized pricing"
+                    });
+                  }}
+                />
+              </>
+            )}
           </TabsContent>
         </Tabs>
       </div>
