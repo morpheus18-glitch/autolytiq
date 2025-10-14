@@ -4989,6 +4989,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Lender matching API - Find best lenders by credit tier
+  app.get("/api/lenders/match", async (req, res) => {
+    try {
+      const storeId = req.query.storeId as string;
+      const creditScore = parseInt(req.query.creditScore as string) || 700;
+      const loanAmount = parseFloat(req.query.loanAmount as string) || 0;
+      const vehicleValue = parseFloat(req.query.vehicleValue as string) || 0;
+      const term = parseInt(req.query.term as string) || 72;
+
+      if (!storeId) {
+        return res.status(400).json({ message: "Store ID is required" });
+      }
+
+      // Determine credit tier from score
+      const getCreditTier = (score: number): string => {
+        if (score >= 780) return 'A+';
+        if (score >= 720) return 'A';
+        if (score >= 660) return 'B';
+        if (score >= 620) return 'C';
+        return 'D';
+      };
+
+      const creditTier = getCreditTier(creditScore);
+      const ltv = vehicleValue > 0 ? (loanAmount / vehicleValue) * 100 : 0;
+
+      // Fetch active lenders for this store
+      const lenders = await db
+        .select()
+        .from(storeLenders)
+        .where(and(
+          eq(storeLenders.storeId, storeId),
+          eq(storeLenders.isActive, true)
+        ));
+
+      // Match lenders based on credit tier and LTV
+      const matches = lenders
+        .map(lender => {
+          const creditTiers = lender.creditTiers as Array<{
+            tier: string;
+            minScore: number;
+            maxScore: number;
+            baseRate: number;
+            maxLTV: number;
+            maxTerm: number;
+          }> || [];
+
+          // Find matching tier
+          const matchingTier = creditTiers.find(
+            t => t.tier === creditTier && 
+            creditScore >= t.minScore && 
+            creditScore <= t.maxScore &&
+            ltv <= t.maxLTV &&
+            term <= t.maxTerm
+          );
+
+          if (!matchingTier) return null;
+
+          // Calculate approval odds based on credit score and LTV
+          let approvalOdds = 50;
+          if (creditTier === 'A+') approvalOdds = 95;
+          else if (creditTier === 'A') approvalOdds = 90;
+          else if (creditTier === 'B') approvalOdds = 80;
+          else if (creditTier === 'C') approvalOdds = 70;
+          else if (creditTier === 'D') approvalOdds = 55;
+
+          // Adjust for LTV
+          if (ltv > 120) approvalOdds -= 20;
+          else if (ltv > 100) approvalOdds -= 10;
+          else if (ltv < 80) approvalOdds += 5;
+
+          // Calculate estimated payment
+          const monthlyRate = matchingTier.baseRate / 100 / 12;
+          const estimatedPayment = loanAmount > 0
+            ? (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, term)) / 
+              (Math.pow(1 + monthlyRate, term) - 1)
+            : 0;
+
+          return {
+            lenderName: lender.lenderName,
+            lenderCode: lender.lenderCode || lender.lenderName.toLowerCase().replace(/\s+/g, '_'),
+            tier: matchingTier.tier,
+            rate: matchingTier.baseRate,
+            maxLTV: matchingTier.maxLTV,
+            maxTerm: matchingTier.maxTerm,
+            approvalOdds: Math.max(0, Math.min(100, approvalOdds)),
+            isPreferred: lender.isPreferred || false,
+            estimatedPayment: estimatedPayment,
+            contactInfo: lender.contactInfo as {
+              primaryContact: string;
+              phone: string;
+              email: string;
+            } | undefined
+          };
+        })
+        .filter((m): m is NonNullable<typeof m> => m !== null)
+        .sort((a, b) => {
+          // Sort by: preferred first, then approval odds, then rate
+          if (a.isPreferred !== b.isPreferred) return a.isPreferred ? -1 : 1;
+          if (a.approvalOdds !== b.approvalOdds) return b.approvalOdds - a.approvalOdds;
+          return a.rate - b.rate;
+        });
+
+      res.json(matches);
+    } catch (error) {
+      console.error("Error matching lenders:", error);
+      res.status(500).json({ message: "Failed to match lenders" });
+    }
+  });
+
   // Calculate deal with jurisdiction-based taxes and fees
   app.post("/api/deals/calculate", async (req, res) => {
     try {

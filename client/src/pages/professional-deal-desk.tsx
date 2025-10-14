@@ -36,6 +36,7 @@ import { FinanceSection } from '@/components/deal-desk/finance-section';
 import { ProductsSection, type DealProduct } from '@/components/deal-desk/products-section';
 import { KPICards } from '@/components/deal-desk/kpi-cards';
 import { AIOptimizationWrapper } from '@/components/deal-desk/ai-optimization-wrapper';
+import { LenderMatcher } from '@/components/deal-desk/lender-matcher';
 
 interface Vehicle {
   id: number;
@@ -879,6 +880,23 @@ export default function ProfessionalDealDesk() {
                         description: `Sale price updated to $${suggestion.value.toLocaleString()}`
                       });
                     }
+                  }}
+                />
+
+                {/* Lender Recommendations */}
+                <LenderMatcher
+                  creditScore={700}
+                  loanAmount={calc?.calculation.totals.grandTotal || salePrice}
+                  vehicleValue={salePrice}
+                  term={term}
+                  storeId={storeId}
+                  onSelectLender={(lender) => {
+                    setApr(lender.rate);
+                    setTerm(lender.maxTerm);
+                    toast({
+                      title: "Lender Selected",
+                      description: `${lender.lenderName} at ${lender.rate.toFixed(2)}% APR`
+                    });
                   }}
                 />
               </div>
