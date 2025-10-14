@@ -15,10 +15,21 @@ interface TradeData {
   titleState?: string | null;
 }
 
+interface TradeVehicleOption {
+  id: number;
+  label: string;
+  vin?: string | null;
+  details?: string | null;
+}
+
 interface TradeSectionProps {
   data: TradeData;
   onChange: (updates: Partial<TradeData>) => void;
   readOnly?: boolean;
+  tradeVehicles?: TradeVehicleOption[];
+  selectedTradeId?: number | null;
+  onSelectTrade?: (id: number | null) => void;
+  tradesLoading?: boolean;
 }
 
 const US_STATES = [
@@ -29,13 +40,23 @@ const US_STATES = [
   "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
 ];
 
-export function TradeSection({ data, onChange, readOnly = false }: TradeSectionProps) {
+export function TradeSection({
+  data,
+  onChange,
+  readOnly = false,
+  tradeVehicles,
+  selectedTradeId,
+  onSelectTrade,
+  tradesLoading = false,
+}: TradeSectionProps) {
   // Calculate trade allowance from ACV +/- recon if not manually set
   const calculatedAllowance = (data.tradeAcvCents || 0) - (data.tradeReconCents || 0);
   const displayAllowance = data.tradeAllowanceCents ?? calculatedAllowance;
-  
+
   // Calculate equity (allowance - payoff)
   const equity = displayAllowance - (data.tradePayoffCents || 0);
+
+  const selectedTrade = tradeVehicles?.find((vehicle) => vehicle.id === selectedTradeId);
 
   const tableRows = [
     [
@@ -103,10 +124,60 @@ export function TradeSection({ data, onChange, readOnly = false }: TradeSectionP
   return (
     <Card data-testid="card-trade-section">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ArrowRightLeft className="w-5 h-5" />
-          Trade-In Vehicle
-        </CardTitle>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <ArrowRightLeft className="w-5 h-5" />
+              Trade-In Vehicle
+            </CardTitle>
+            {selectedTrade ? (
+              <p className="text-xs text-muted-foreground mt-1">
+                {selectedTrade.details || selectedTrade.label}
+                {selectedTrade.vin ? ` • VIN: ${selectedTrade.vin}` : ""}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground mt-1">
+                Attach a customer's trade to prefill ACV and allowance.
+              </p>
+            )}
+          </div>
+          {tradeVehicles && onSelectTrade && (
+            <div className="w-full sm:w-72 space-y-1">
+              <Label className="text-xs uppercase text-muted-foreground">Trade on File</Label>
+              {tradesLoading ? (
+                <div className="text-xs text-muted-foreground italic py-2">Loading trade vehicles...</div>
+              ) : tradeVehicles.length > 0 ? (
+                <Select
+                  value={selectedTradeId != null ? selectedTradeId.toString() : "none"}
+                  onValueChange={(value) => {
+                    if (value === "none") {
+                      onSelectTrade(null);
+                    } else {
+                      onSelectTrade(parseInt(value, 10));
+                    }
+                  }}
+                  disabled={readOnly}
+                >
+                  <SelectTrigger data-testid="select-trade-vehicle">
+                    <SelectValue placeholder="Choose trade vehicle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No Trade Vehicle</SelectItem>
+                    {tradeVehicles.map((vehicle) => (
+                      <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                        {vehicle.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="text-xs text-muted-foreground italic py-2">
+                  No trade vehicles attached to this customer.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <AccountingTable
