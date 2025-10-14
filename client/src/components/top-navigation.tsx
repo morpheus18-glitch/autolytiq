@@ -12,7 +12,8 @@ import {
   Shield,
   Menu,
   X,
-  ArrowRight
+  ArrowRight,
+  Database
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
