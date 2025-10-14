@@ -24,7 +24,7 @@ import {
   Calculator,
   FilePieChart,
   LineChart,
-  ShieldDollar,
+  Shield,
   TrendingUp,
 } from "lucide-react";
 
@@ -129,7 +129,7 @@ export default function FinancialReports() {
             <CardTitle className="text-3xl font-bold">Green</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center gap-2 text-sm text-muted-foreground">
-            <ShieldDollar className="h-4 w-4 text-indigo-500" />
+            <Shield className="h-4 w-4 text-indigo-500" />
             Audit controls verified this week
           </CardContent>
         </Card>
