@@ -1,6 +1,5 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
@@ -424,7 +423,6 @@ export default function ProfessionalDealDesk() {
   const calcInput = {
     zip: customerZip,
     dealType: normalizedDealType,
-    dealType: 'purchase',
     vehiclePrice: salePrice + aftermarketTotal + totalBackendProducts, // Includes adds and backend products
     vehicleCost: vehicleCost,
     tradeValue: tradeValue,
@@ -1075,18 +1073,12 @@ export default function ProfessionalDealDesk() {
             </TabsTrigger>
 
             <TabsTrigger value="fi-ledger" data-testid="tab-fi-ledger" className="text-xs sm:text-sm" disabled={!hasDealContext}>
-
-            <TabsTrigger value="fi-ledger" data-testid="tab-fi-ledger" className="text-xs sm:text-sm">
-
               <DollarSign className="h-4 w-4 mr-1 sm:mr-2" />
               <span className="hidden sm:inline">F&I Ledger</span>
               <span className="sm:hidden">F&I</span>
             </TabsTrigger>
 
             <TabsTrigger value="backend" data-testid="tab-backend" className="text-xs sm:text-sm" disabled={!hasDealContext}>
-
-            <TabsTrigger value="backend" data-testid="tab-backend" className="text-xs sm:text-sm">
-
               <Package className="h-4 w-4 mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Backend</span>
               <span className="sm:hidden">Products</span>
@@ -1111,148 +1103,7 @@ export default function ProfessionalDealDesk() {
                 </CardContent>
               </Card>
             ) : (
-              <>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-mono">F&I Ledger Summary</CardTitle>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Structured, data-first snapshot of the deal structure for managers and accountants.
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs sm:text-sm font-mono">
-                      <div>
-                        <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Sale Price</p>
-                        <p className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                          ${salePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Vehicle Cost</p>
-                        <p className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                          ${vehicleCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Aftermarket Adds</p>
-                        <p className="text-base sm:text-lg font-semibold text-blue-600 dark:text-blue-400">
-                          ${aftermarketTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Backend Retail</p>
-                        <p className="text-base sm:text-lg font-semibold text-blue-600 dark:text-blue-400">
-                          ${totalBackendProducts.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Pack</p>
-                        <p className="text-base sm:text-lg font-semibold">
-                          ${((packCents ?? 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Holdback</p>
-                        <p className="text-base sm:text-lg font-semibold">
-                          ${((holdbackCents ?? 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Reserve</p>
-                        <p className="text-base sm:text-lg font-semibold">
-                          ${((reserveAmountCents ?? 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Estimated Taxes</p>
-                        <p className="text-base sm:text-lg font-semibold">
-                          ${estimatedTaxes.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                      <div className="col-span-2 md:col-span-4">
-                        <Separator className="my-2" />
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <span className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Amount Financed</span>
-                          <span className="text-lg sm:text-xl font-semibold text-green-600 dark:text-green-400">
-                            ${estimatedAmountFinanced.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-mono">F&I Ledger Summary</CardTitle>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Structured, data-first snapshot of the deal structure for managers and accountants.
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs sm:text-sm font-mono">
-                  <div>
-                    <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Sale Price</p>
-                    <p className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                      ${salePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Vehicle Cost</p>
-                    <p className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                      ${vehicleCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Aftermarket Adds</p>
-                    <p className="text-base sm:text-lg font-semibold text-blue-600 dark:text-blue-400">
-                      ${aftermarketTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Backend Retail</p>
-                    <p className="text-base sm:text-lg font-semibold text-blue-600 dark:text-blue-400">
-                      ${totalBackendProducts.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Pack</p>
-                    <p className="text-base sm:text-lg font-semibold">
-                      ${((packCents ?? 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Holdback</p>
-                    <p className="text-base sm:text-lg font-semibold">
-                      ${((holdbackCents ?? 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Reserve</p>
-                    <p className="text-base sm:text-lg font-semibold">
-                      ${((reserveAmountCents ?? 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Estimated Taxes</p>
-                    <p className="text-base sm:text-lg font-semibold">
-                      ${estimatedTaxes.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                  <div className="col-span-2 md:col-span-4">
-                    <Separator className="my-2" />
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <span className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Amount Financed</span>
-                      <span className="text-lg sm:text-xl font-semibold text-green-600 dark:text-green-400">
-                        ${estimatedAmountFinanced.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
               {/* Left Column - 8 cols on desktop */}
               <div className="lg:col-span-8 space-y-6">
@@ -1468,8 +1319,7 @@ export default function ProfessionalDealDesk() {
                   }}
                 />
               </div>
-                </div>
-              </>
+            </div>
             )}
           </TabsContent>
 
@@ -1491,11 +1341,7 @@ export default function ProfessionalDealDesk() {
                       <Button
                         size="sm"
                         onClick={() => saveDealMutation.mutate()}
-
                         disabled={!selectedCustomer || !selectedVehicle || !calc || saveDealMutation.isPending}
-
-                        disabled={!selectedCustomer || !calc || saveDealMutation.isPending}
-
                         data-testid="button-quick-save"
                       >
                         {saveDealMutation.isPending ? (
@@ -1824,90 +1670,6 @@ export default function ProfessionalDealDesk() {
                       <Select value={customerId?.toString()} onValueChange={(v) => setCustomerId(parseInt(v))}>
                         <SelectTrigger id="desk-customer" data-testid="select-desk-customer">
                           <SelectValue placeholder="Choose customer..." />
-
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Rapidly desk the deal with streamlined entry and drill-down support for trades and vehicle adds.
-                  </p>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <Label htmlFor="desk-sale-price">Sale Price</Label>
-                      <Input
-                        id="desk-sale-price"
-                        type="text"
-                        inputMode="decimal"
-                        value={salePrice || ''}
-                        onChange={(e) => setSalePrice(parseDecimalInput(e.target.value))}
-                        data-testid="input-desk-sale"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="desk-cost">Vehicle Cost</Label>
-                      <Input
-                        id="desk-cost"
-                        type="text"
-                        inputMode="decimal"
-                        value={vehicleCost || ''}
-                        onChange={(e) => setVehicleCost(parseDecimalInput(e.target.value))}
-                        data-testid="input-desk-cost"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="desk-down">Down Payment</Label>
-                      <Input
-                        id="desk-down"
-                        type="text"
-                        inputMode="decimal"
-                        value={cashDown || ''}
-                        onChange={(e) => setCashDown(parseDecimalInput(e.target.value))}
-                        data-testid="input-desk-down"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="desk-rebates">Rebates</Label>
-                      <Input
-                        id="desk-rebates"
-                        type="text"
-                        inputMode="decimal"
-                        value={rebates || ''}
-                        onChange={(e) => setRebates(parseDecimalInput(e.target.value))}
-                        data-testid="input-desk-rebates"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="desk-trade">Trade Allowance</Label>
-                      <Input
-                        id="desk-trade"
-                        type="text"
-                        inputMode="decimal"
-                        value={tradeValue || ''}
-                        onChange={(e) => setTradeValue(parseDecimalInput(e.target.value))}
-                        data-testid="input-desk-trade"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="desk-payoff">Trade Payoff</Label>
-                      <Input
-                        id="desk-payoff"
-                        type="text"
-                        inputMode="decimal"
-                        value={tradePayoff || ''}
-                        onChange={(e) => setTradePayoff(parseDecimalInput(e.target.value))}
-                        data-testid="input-desk-payoff"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <Label htmlFor="desk-term">Term (months)</Label>
-                      <Select value={term.toString()} onValueChange={(v) => setTerm(parseInt(v))}>
-                        <SelectTrigger id="desk-term" data-testid="select-desk-term">
-                          <SelectValue />
-
                         </SelectTrigger>
                         <SelectContent>
                           {customers.map((c) => (
@@ -1918,210 +1680,13 @@ export default function ProfessionalDealDesk() {
                         </SelectContent>
                       </Select>
                       {selectedCustomer && (
-                        <>
-                          <Link href={`/customers/${selectedCustomer.id}`}>
-                            <p className="text-xs text-green-600 dark:text-green-400 underline mt-1">View customer profile</p>
-                          </Link>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                            <div className="space-y-1">
-                              <Label htmlFor="desk-customer-tier" className="text-xs font-medium text-muted-foreground uppercase">Credit Tier</Label>
-                              <Input
-                                id="desk-customer-tier"
-                                value={creditTier || 'Not set'}
-                                readOnly
-                                data-testid="input-desk-customer-tier"
-                                className="bg-gray-100 dark:bg-gray-900/40"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <Label htmlFor="desk-customer-score" className="text-xs font-medium text-muted-foreground uppercase">Credit Score</Label>
-                              <Input
-                                id="desk-customer-score"
-                                value={selectedCustomer.creditScore != null ? selectedCustomer.creditScore.toString() : 'Not provided'}
-                                readOnly
-                                data-testid="input-desk-customer-score"
-                                className="bg-gray-100 dark:bg-gray-900/40"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <Label htmlFor="desk-customer-city" className="text-xs font-medium text-muted-foreground uppercase">City</Label>
-                              <Input
-                                id="desk-customer-city"
-                                value={selectedCustomer.city ?? ''}
-                                placeholder="City"
-                                readOnly
-                                data-testid="input-desk-customer-city"
-                                className="bg-gray-100 dark:bg-gray-900/40"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <Label htmlFor="desk-customer-state" className="text-xs font-medium text-muted-foreground uppercase">State</Label>
-                              <Input
-                                id="desk-customer-state"
-                                value={selectedCustomer.state ?? ''}
-                                placeholder="State"
-                                readOnly
-                                data-testid="input-desk-customer-state"
-                                className="bg-gray-100 dark:bg-gray-900/40"
-                              />
-                            </div>
-                          </div>
-                        </>
+                        <Link href={`/customers/${selectedCustomer.id}`}>
+                          <p className="text-xs text-green-600 dark:text-green-400 underline mt-1">View customer profile</p>
+                        </Link>
                       )}
                     </div>
-
-
-                    <div className="space-y-1">
-                      <Label htmlFor="desk-apr">APR %</Label>
-                      <Input
-                        id="desk-apr"
-                        type="text"
-                        inputMode="decimal"
-                        value={apr || ''}
-                        onChange={(e) => setApr(parseDecimalInput(e.target.value))}
-                        data-testid="input-desk-apr"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="desk-credit-tier">Credit Tier</Label>
-                      <Select value={creditTier} onValueChange={setCreditTier}>
-                        <SelectTrigger id="desk-credit-tier" data-testid="select-credit-tier">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {['A', 'B', 'C', 'D'].map((tier) => (
-                            <SelectItem key={tier} value={tier}>{tier}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <Accordion type="multiple" className="border border-gray-200 dark:border-gray-700 rounded-lg">
-                    <AccordionItem value="trade-justification">
-                      <AccordionTrigger className="px-4">
-                        Trade Justification & Allowance Worksheet
-                      </AccordionTrigger>
-                      <AccordionContent className="px-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="desk-acv">Actual Cash Value</Label>
-                            <Input
-                              id="desk-acv"
-                              type="text"
-                              inputMode="decimal"
-                              value={tradeAcvCents != null ? (tradeAcvCents / 100).toFixed(2) : ''}
-                              onChange={(e) => setTradeAcvCents(parseCentsInput(e.target.value))}
-                              placeholder="0.00"
-                              data-testid="input-desk-acv"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="desk-recon">Recon / Reconditioning</Label>
-                            <Input
-                              id="desk-recon"
-                              type="text"
-                              inputMode="decimal"
-                              value={tradeReconCents != null ? (tradeReconCents / 100).toFixed(2) : ''}
-                              onChange={(e) => setTradeReconCents(parseCentsInput(e.target.value))}
-                              placeholder="0.00"
-                              data-testid="input-desk-recon"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="desk-allowance">Allowance Override</Label>
-                            <Input
-                              id="desk-allowance"
-                              type="text"
-                              inputMode="decimal"
-                              value={tradeAllowanceCents != null ? (tradeAllowanceCents / 100).toFixed(2) : ''}
-                              onChange={(e) => setTradeAllowanceCents(parseCentsInput(e.target.value))}
-                              placeholder="Auto"
-                              data-testid="input-desk-allowance"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="desk-trade-payoff">Lien Payoff</Label>
-                            <Input
-                              id="desk-trade-payoff"
-                              type="text"
-                              inputMode="decimal"
-                              value={tradePayoffCents != null ? (tradePayoffCents / 100).toFixed(2) : ''}
-                              onChange={(e) => setTradePayoffCents(parseCentsInput(e.target.value))}
-                              placeholder="0.00"
-                              data-testid="input-desk-trade-payoff"
-                            />
-                          </div>
-                        </div>
-                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Equity Position: <span className={netTrade >= 0 ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-red-600 dark:text-red-400 font-semibold'}>
-                              ${netTrade.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                            </span>
-                          </p>
-                          <Button variant="outline" size="sm" onClick={handlePrint} data-testid="button-print-trade">
-                            <Printer className="h-4 w-4 mr-1" />
-                            Print Trade Justification
-                          </Button>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem value="aftermarket-adds">
-                      <AccordionTrigger className="px-4">
-                        Vehicle Adds & Aftermarket
-                      </AccordionTrigger>
-                      <AccordionContent className="px-4 space-y-4">
-                        {aftermarketItems.length === 0 ? (
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            No aftermarket adds yet. Use the button below to capture accessories like tow hitches or tint.
-                          </p>
-                        ) : (
-                          aftermarketItems.map((item) => (
-                            <div key={item.id} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
-                              <Input
-                                value={item.description}
-                                onChange={(e) => updateAftermarketItem(item.id, { description: e.target.value })}
-                                placeholder="Accessory name"
-                                data-testid={`input-aftermarket-name-${item.id}`}
-                              />
-                              <Input
-                                type="text"
-                                inputMode="decimal"
-                                value={item.amount || ''}
-                                onChange={(e) => updateAftermarketItem(item.id, { amount: parseDecimalInput(e.target.value) })}
-                                placeholder="0.00"
-                                data-testid={`input-aftermarket-amount-${item.id}`}
-                              />
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="justify-self-start"
-                                onClick={() => removeAftermarketItem(item.id)}
-                                data-testid={`button-remove-aftermarket-${item.id}`}
-                              >
-                                <X className="h-4 w-4 mr-1" /> Remove
-                              </Button>
-                            </div>
-                          ))
-                        )}
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={addAftermarketItem}
-                            data-testid="button-add-aftermarket"
-                          >
-                            <Plus className="h-4 w-4 mr-1" /> Add Aftermarket Item
-                          </Button>
-                          <div className="text-sm text-gray-600 dark:text-gray-300">
-                            Total Adds: <span className="font-semibold">${aftermarketTotal.toLocaleString()}</span>
-                          </div>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
               <div className="space-y-6">
                 <Card>
@@ -2178,14 +1743,10 @@ export default function ProfessionalDealDesk() {
                         <Input
                           id="desk-zip"
                           value={customerZip}
-
                           onChange={(e) => {
                             setCustomerZip(e.target.value);
                             setJurisdictionManuallySet(false);
                           }}
-
-                          onChange={(e) => setCustomerZip(e.target.value)}
-
                           placeholder="ZIP"
                           maxLength={5}
                           data-testid="input-desk-zip"
@@ -2287,52 +1848,9 @@ export default function ProfessionalDealDesk() {
                   </Card>
                 )}
 
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Deal Snapshot</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
-                    <div className="flex justify-between">
-                      <span>Vehicle Price</span>
-                      <span className="font-medium">${salePrice.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Aftermarket Adds</span>
-                      <span className="font-medium">${aftermarketTotal.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Trade Difference</span>
-                      <span className={netTrade >= 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
-                        ${netTrade.toLocaleString()}
-                      </span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between">
-                      <span>Estimated Taxes</span>
-                      <span className="font-medium">
-                        ${estimatedTaxes.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Amount Financed</span>
-                      <span className="font-semibold text-blue-600 dark:text-blue-400">
-                        ${estimatedAmountFinanced.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                      </span>
-                    </div>
-                    {monthlyPayment > 0 && (
-                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
-                        <p className="text-xs text-gray-600 dark:text-gray-400">Estimated Payment</p>
-                        <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                          ${monthlyPayment.toLocaleString()}/mo
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{term} months @ {apr}% APR</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
               </div>
             </div>
+          </div>
           </TabsContent>
           {/* Backend Products Tab */}
           <TabsContent value="backend" className="space-y-6">
