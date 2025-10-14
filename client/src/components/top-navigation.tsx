@@ -68,254 +68,232 @@ export default function TopNavigation() {
 
   return (
     <>
-      <div className="sticky top-0 z-50 px-3 pt-4 pb-3 sm:px-6 lg:px-10">
-        <div className="relative">
-          <div className="absolute inset-x-0 -top-2 h-px gradient-divider opacity-70" aria-hidden="true" />
-          <div className="glass-panel relative flex flex-col gap-3 rounded-2xl px-3 py-3 shadow-card-xl sm:px-5 lg:px-6 lg:py-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <Link href="/" className="flex items-center gap-3">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl brand-gradient shadow-brand">
-                    <Car className="h-5 w-5" />
-                  </span>
-                  <div className="hidden sm:flex flex-col">
-                    <span className="text-base font-semibold leading-tight text-foreground">AutolytiQ</span>
-                    <span className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground/80">
-                      AI Revenue Engine
-                    </span>
-                  </div>
-                  <span className="sm:hidden text-sm font-semibold text-foreground">AutolytiQ</span>
-                </Link>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="lg:hidden h-9 w-9 p-0 text-muted-foreground"
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  aria-label="Toggle navigation menu"
-                >
-                  {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </Button>
+      {/* Mobile-First Navigation */}
+      <div className="sticky top-0 z-50 border-b border-border/60 backdrop-blur-xl bg-white/80 dark:bg-slate-950/70 supports-[backdrop-filter]:bg-white/65 dark:supports-[backdrop-filter]:bg-slate-950/60 shadow-[0_12px_40px_-28px_rgba(15,23,42,0.55)]">
+        {/* Main Mobile Header */}
+        <div className="flex items-center justify-between h-14 px-4 sm:px-5 lg:h-16 lg:px-8 w-full max-w-7xl mx-auto">
+          {/* Left: Logo + Mobile Menu */}
+          <div className="flex items-center gap-3 flex-1">
+            <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/85 to-secondary/80 text-primary-foreground flex items-center justify-center shadow-[0_10px_18px_-12px_rgba(59,130,246,0.65)]">
+                <Car className="w-5 h-5" />
               </div>
+              <div className="hidden sm:flex flex-col leading-tight">
+                <span className="text-[1.05rem] font-semibold text-foreground tracking-tight">AutolytiQ</span>
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-[0.2em]">Sales intelligence</span>
+              </div>
+            </Link>
 
-              <nav className="hidden flex-1 items-center justify-center gap-1 lg:flex">
-                {WORKFLOW_SECTIONS.map((tab) => {
-                  const isActive = activeTab === tab.id;
-                  const Icon = tab.icon;
+            <div className="hidden sm:flex items-center gap-2 ml-3">
+              <span className="metric-chip">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/40" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                </span>
+                Live pipeline
+              </span>
+            </div>
 
-                  return (
-                    <DropdownMenu key={tab.id}>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className={cn(
-                            "group relative flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all",
-                            "text-muted-foreground/80 hover:text-foreground",
-                            "hover:bg-white/60 dark:hover:bg-white/10",
-                            isActive &&
-                              "bg-white/70 text-foreground shadow-md dark:bg-white/10 dark:text-white",
-                            isActive &&
-                              "after:absolute after:inset-x-1 after:-bottom-1 after:h-0.5 after:rounded-full after:bg-gradient-to-r after:from-primary after:via-accent after:to-secondary"
-                          )}
-                        >
-                          <Icon className="h-4 w-4" />
-                          {tab.label}
-                          <ChevronDown className="h-3 w-3 opacity-70 transition-transform group-data-[state=open]:rotate-180" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="start"
-                        className="w-72 max-h-96 overflow-y-auto border-0 bg-transparent p-0"
-                      >
-                        <div className="glass-card rounded-xl p-3">
-                          <DropdownMenuLabel className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                            <Icon className="h-4 w-4" />
-                            {tab.label}
-                          </DropdownMenuLabel>
-                          <DropdownMenuSeparator className="my-2" />
-                          <div className="space-y-1">
-                            {tab.subItems?.map((item) => {
-                              const ItemIcon = item.icon;
-                              return (
-                                <DropdownMenuItem key={item.path} asChild className="focus:bg-transparent">
-                                  <Link
-                                    href={item.path}
-                                    className="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-white/70 hover:text-foreground dark:hover:bg-white/10"
-                                  >
-                                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                      <ItemIcon className="h-4 w-4" />
-                                    </span>
-                                    <span className="flex-1 text-sm font-medium">{item.label}</span>
-                                    {item.badge && (
-                                      <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
-                                        {item.badge}
-                                      </Badge>
-                                    )}
-                                  </Link>
-                                </DropdownMenuItem>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  );
-                })}
-              </nav>
+            {/* Mobile Menu Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden ml-auto rounded-xl h-10 w-10 text-foreground hover:bg-primary/10"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle navigation menu"
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
+          </div>
 
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="relative hidden xl:flex">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60" size={16} />
-                  <Input
-                    type="text"
-                    placeholder="Search the AutolytiQ fabric"
-                    value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                    className="w-56 rounded-xl border-border/80 bg-transparent pl-10 text-sm focus-visible:ring-2 focus-visible:ring-primary/40"
-                  />
-                </div>
+          {/* Center: Desktop Navigation (Hidden on Mobile) */}
+          <nav className="hidden lg:flex items-center space-x-1 flex-1 justify-center max-w-4xl">
+            {WORKFLOW_SECTIONS.map((tab) => {
+              const isActive = activeTab === tab.id;
+              const Icon = tab.icon;
 
-                <DropdownMenu>
+              return (
+                <DropdownMenu key={tab.id}>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      size="sm"
-                      className="hidden items-center gap-2 rounded-xl bg-white/80 text-foreground shadow-sm hover:bg-white/90 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 lg:flex"
+                      variant="ghost"
+                      className={`flex items-center gap-2 px-3 py-2 text-sm font-medium transition-all rounded-xl ${
+                        isActive
+                          ? 'bg-primary/90 text-primary-foreground shadow-[0_12px_30px_-20px_rgba(59,130,246,0.8)]'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-primary/10'
+                      }`}
                     >
                       <Plus className="h-4 w-4" />
                       <span className="hidden xl:inline">New</span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-60 border-0 bg-transparent p-0">
-                    <div className="glass-card rounded-xl p-3">
-                      <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        Quick Actions
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator className="my-2" />
-                      <div className="space-y-1">
-                        {QUICK_ACTIONS.map((action) => {
-                          const ActionIcon = action.icon;
-                          const accent = action.accentClass ?? "text-primary";
-                          return (
-                            <DropdownMenuItem
-                              key={action.id}
-                              onClick={() => handleQuickAction(action.target)}
-                              className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-white/70 focus:bg-white/70 dark:hover:bg-white/10"
-                            >
-                              <span className={cn("flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10", accent)}>
-                                <ActionIcon className="h-4 w-4" />
-                              </span>
-                              <span className="font-medium">{action.label}</span>
-                            </DropdownMenuItem>
-                          );
-                        })}
-                      </div>
-                    </div>
+                  <DropdownMenuContent
+                    align="start"
+                    className="w-64 max-h-96 overflow-y-auto rounded-xl border border-border/80 shadow-xl backdrop-blur-xl bg-white/90 dark:bg-slate-900/90"
+                  >
+                    <DropdownMenuLabel className="flex items-center gap-2 text-foreground">
+                      <Icon className="w-4 h-4" />
+                      {tab.label}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {tab.subItems?.map((item) => {
+                      const ItemIcon = item.icon;
+                      return (
+                        <DropdownMenuItem key={item.path} asChild>
+                          <Link
+                            href={item.path}
+                            className="flex items-center gap-3 w-full p-3 rounded-lg transition-colors hover:bg-primary/5"
+                          >
+                            <ItemIcon className="w-4 h-4 text-muted-foreground" />
+                            <div className="flex-1">
+                              <span className="text-sm font-medium text-foreground">{item.label}</span>
+                            </div>
+                            {item.badge && (
+                              <Badge variant="outline" className="text-xs text-primary border-primary/40">
+                                {item.badge}
+                              </Badge>
+                            )}
+                          </Link>
+                        </DropdownMenuItem>
+                      );
+                    })}
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="relative hidden h-9 w-9 items-center justify-center rounded-xl text-muted-foreground hover:text-foreground lg:flex"
-                >
-                  <Bell className="h-4 w-4" />
-                  <Badge className="badge-glow absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
-                    3
-                  </Badge>
+          {/* Right: Actions + User Menu */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Desktop Search */}
+            <div className="hidden xl:flex relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 w-52 rounded-xl border-border/60 bg-white/75 dark:bg-slate-900/70"
+              />
+            </div>
+
+            {/* Desktop Quick Actions */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" className="hidden lg:flex items-center gap-2 rounded-xl bg-secondary/10 text-secondary-foreground hover:bg-secondary/20">
+                  <Plus className="w-4 h-4 text-secondary" />
+                  <span className="hidden xl:inline font-medium">New</span>
                 </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-56 rounded-xl border border-border/70 shadow-xl backdrop-blur-lg bg-white/95 dark:bg-slate-900/90"
+              >
+                <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {QUICK_ACTIONS.map((action) => {
+                  const ActionIcon = action.icon;
+                  const accent = action.accentClass ?? 'text-primary';
+                  return (
+                    <DropdownMenuItem
+                      key={action.id}
+                      onClick={() => handleQuickAction(action.target)}
+                    >
+                      <ActionIcon className={`w-4 h-4 mr-2 ${accent}`} />
+                      {action.label}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-                <ThemeToggle />
+            {/* Notifications */}
+            <Button variant="ghost" size="sm" className="relative hidden lg:flex rounded-xl hover:bg-primary/10">
+              <Bell className="w-5 h-5 text-muted-foreground" />
+              <Badge variant="outline" className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center p-0 text-[0.6rem] bg-primary text-primary-foreground border-none">
+                3
+              </Badge>
+            </Button>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="flex items-center gap-2 rounded-xl px-2 py-1.5">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
-                        <User className="h-4 w-4" />
-                      </span>
-                      <span className="hidden max-w-[7rem] truncate text-sm font-medium text-foreground xl:inline">
-                        {(user as any)?.firstName || "User"}
-                      </span>
-                      <ChevronDown className="hidden h-3 w-3 opacity-60 xl:inline" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-64 border-0 bg-transparent p-0">
-                    <div className="glass-card rounded-xl p-3">
-                      <DropdownMenuLabel className="flex flex-col space-y-1 text-foreground">
-                        <p className="text-sm font-semibold">
-                          {(user as any)?.firstName} {(user as any)?.lastName}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{(user as any)?.email}</p>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator className="my-2" />
-                      <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2 text-sm hover:bg-white/60 dark:hover:bg-white/10">
-                        <Link href="/admin/user-profile" className="flex items-center">
-                          <User className="mr-2 h-4 w-4" />
-                          Profile Settings
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2 text-sm hover:bg-white/60 dark:hover:bg-white/10">
-                        <Link href="/admin/security-center" className="flex items-center">
-                          <Shield className="mr-2 h-4 w-4" />
-                          Security
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2 text-sm hover:bg-white/60 dark:hover:bg-white/10">
-                        <Link href="/admin/system-settings" className="flex items-center">
-                          <Settings className="mr-2 h-4 w-4" />
-                          Preferences
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2 text-sm hover:bg-white/60 dark:hover:bg-white/10">
-                        <Link href="/admin/dealer-configuration" className="flex items-center">
-                          <Database className="mr-2 h-4 w-4" />
-                          Dealer Config
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator className="my-2" />
-                      <DropdownMenuItem className="cursor-pointer rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10">
-                        <a href="/api/logout" className="flex w-full items-center">
-                          <LogOut className="mr-2 h-4 w-4" />
-                          Sign Out
-                        </a>
-                      </DropdownMenuItem>
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground/80">
-                <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] dark:bg-white/5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_0_4px_rgba(59,130,246,0.18)]" />
-                  {currentTab?.label ?? "Inventory Pipeline"}
-                </span>
-                <span className="hidden sm:inline text-muted-foreground/70">
-                  Connected to AutolytiQ data fabric in real time
-                </span>
-              </div>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground/80">
-                <span className="hidden items-center gap-1 sm:flex">
-                  <Shield className="h-3.5 w-3.5 text-primary" />
-                  <span>Enterprise-grade encryption</span>
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 font-medium text-primary">
-                  <ArrowRight className="h-3 w-3" />
-                  Sales, analytics &amp; AI in sync
-                </span>
-              </div>
-            </div>
+            {/* User Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="flex items-center gap-2 px-2 py-1 rounded-xl hover:bg-primary/10">
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <span className="hidden lg:inline text-sm font-medium truncate max-w-24 text-foreground">
+                    {(user as any)?.firstName || 'User'}
+                  </span>
+                  <ChevronDown className="w-3 h-3 hidden lg:inline flex-shrink-0" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-60 rounded-xl border border-border/70 shadow-xl backdrop-blur-lg bg-white/95 dark:bg-slate-900/90"
+              >
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium text-foreground">
+                      {(user as any)?.firstName} {(user as any)?.lastName}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{(user as any)?.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/user-profile" className="flex items-center cursor-pointer">
+                    <User className="w-4 h-4 mr-2" />
+                    Profile Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/security-center" className="flex items-center cursor-pointer">
+                    <Shield className="w-4 h-4 mr-2" />
+                    Security
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/system-settings" className="flex items-center cursor-pointer">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Preferences
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/dealer-configuration" className="flex items-center cursor-pointer">
+                    <Database className="w-4 h-4 mr-2" />
+                    Dealer Config
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <a href="/api/logout" className="flex items-center w-full">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </a>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
 
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-xl">
-          <div className="flex h-14 items-center justify-between border-b border-border/60 px-4">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl brand-gradient shadow-brand">
-                <Car className="h-5 w-5" />
-              </span>
-              <span className="text-base font-semibold text-foreground">AutolytiQ</span>
+        <div className="lg:hidden fixed inset-0 z-50 overflow-y-auto bg-gradient-to-b from-white via-white/95 to-primary/5 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900">
+          <div className="min-h-screen">
+            {/* Mobile Header */}
+            <div className="flex items-center justify-between h-14 px-4 border-b border-border/60 bg-white/85 dark:bg-slate-950/80 backdrop-blur-xl sticky top-0">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/85 to-secondary/80 text-primary-foreground flex items-center justify-center">
+                  <Car className="w-5 h-5" />
+                </div>
+                <span className="text-lg font-semibold text-foreground">AutolytiQ</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 rounded-xl hover:bg-primary/10"
+              >
+                <X className="w-5 h-5" />
+              </Button>
             </div>
             <Button
               variant="ghost"
@@ -328,28 +306,68 @@ export default function TopNavigation() {
             </Button>
           </div>
 
-          <div className="space-y-6 overflow-y-auto px-4 py-6 pb-24">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60" size={18} />
-              <Input
-                type="text"
-                placeholder="Search vehicles, customers, deals..."
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                className="h-12 rounded-xl border-border/70 bg-white/70 pl-11 text-base shadow-sm focus-visible:ring-2 focus-visible:ring-primary/40 dark:bg-white/10"
-              />
-            </div>
+            {/* Mobile Content */}
+            <div className="p-4 space-y-6">
+              {/* Mobile Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                <Input
+                  type="text"
+                  placeholder="Search vehicles, customers, deals..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 py-3 text-base rounded-xl border border-border/60 bg-white/80 dark:bg-slate-950/70"
+                />
+              </div>
 
-            <div className="space-y-4">
-              {WORKFLOW_SECTIONS.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <div key={tab.id} className="space-y-2">
-                    <div className="flex items-center gap-3 rounded-xl bg-white/70 px-4 py-3 text-sm font-semibold text-foreground shadow-sm dark:bg-white/10">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                        <Icon className="h-5 w-5" />
-                      </span>
-                      {tab.label}
+              {/* Navigation Sections */}
+              <div className="space-y-4">
+                {WORKFLOW_SECTIONS.map((tab) => {
+                  const Icon = tab.icon;
+                  
+                  return (
+                    <div key={tab.id} className="space-y-2">
+                      {/* Section Header */}
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 dark:bg-slate-900/60">
+                        <Icon className="w-5 h-5 text-primary" />
+                        <span className="font-semibold text-foreground">{tab.label}</span>
+                      </div>
+
+                      {/* Section Items */}
+                      {tab.subItems && (
+                        <div className="ml-4 space-y-1">
+                          {tab.subItems.map((item) => {
+                            const ItemIcon = item.icon;
+                            const isActive = location === item.path || item.matchPaths?.some(match => location.startsWith(match));
+
+                            return (
+                              <Link
+                                key={item.path}
+                                href={item.path}
+                                className={`flex items-center justify-between p-3 rounded-xl transition-colors ${
+                                  isActive
+                                    ? 'bg-primary/15 text-primary border border-primary/30 shadow-sm'
+                                    : 'text-foreground/80 hover:bg-primary/10 active:bg-primary/15'
+                                }`}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <ItemIcon className="w-5 h-5 text-muted-foreground" />
+                                  <span className="font-medium text-foreground">{item.label}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {item.badge && (
+                                    <Badge variant="outline" className="text-xs text-primary border-primary/40">
+                                      {item.badge}
+                                    </Badge>
+                                  )}
+                                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                     {tab.subItems && (
                       <div className="ml-4 space-y-1">
@@ -422,24 +440,97 @@ export default function TopNavigation() {
               </div>
             </div>
 
-            <div className="border-t border-border/60 pt-6">
-              <div className="flex items-center gap-3 rounded-xl bg-white/70 px-4 py-3 shadow-sm dark:bg-white/10">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <User className="h-5 w-5" />
-                </span>
-                <div>
-                  <div className="text-sm font-semibold text-foreground">
-                    {(user as any)?.firstName} {(user as any)?.lastName}
-                  </div>
-                  <div className="text-xs text-muted-foreground">{(user as any)?.email}</div>
+              {/* Quick Actions Section */}
+              <div className="border-t border-border/70 pt-6 space-y-4">
+                <h3 className="font-semibold text-foreground">Quick Actions</h3>
+                <div className="grid grid-cols-1 gap-3">
+                  {QUICK_ACTIONS.map((action) => {
+                    const ActionIcon = action.icon;
+                    return (
+                      <Button
+                        key={action.id}
+                        variant="ghost"
+                        className="justify-start gap-3 p-4 h-auto rounded-xl border border-border/60 bg-white/80 dark:bg-slate-950/70 hover:bg-primary/10"
+                        onClick={() => {
+                          handleQuickAction(action.target);
+                          setIsMobileMenuOpen(false);
+                        }}
+                      >
+                        <ActionIcon className={`w-5 h-5 ${action.accentClass ?? 'text-primary'}`} />
+                        <div className="text-left text-foreground">
+                          <div className="font-medium">{action.label}</div>
+                          <div className="text-sm text-muted-foreground">{action.description}</div>
+                        </div>
+                      </Button>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className="mt-3 space-y-1">
-                <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-lg px-4 py-3 text-sm hover:bg-white/70 dark:hover:bg-white/10">
-                  <Link href="/admin/system-settings">
-                    <Settings className="h-5 w-5" />
-                    Settings &amp; Preferences
+              {/* User Account Section */}
+              <div className="border-t border-border/70 pt-6 space-y-3">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 dark:bg-slate-900/60">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center bg-primary/15 text-primary">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-foreground">
+                      {(user as any)?.firstName} {(user as any)?.lastName}
+                    </div>
+                    <div className="text-sm text-muted-foreground">{(user as any)?.email}</div>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Button asChild variant="ghost" className="w-full justify-start gap-3 p-3 h-auto rounded-xl hover:bg-primary/10">
+                    <Link href="/admin/system-settings">
+                      <Settings className="w-5 h-5" />
+                      Settings & Preferences
+                    </Link>
+                  </Button>
+                  <Button asChild variant="ghost" className="w-full justify-start gap-3 p-3 h-auto rounded-xl hover:bg-primary/10">
+                    <Link href="/admin/security-center">
+                      <Shield className="w-5 h-5" />
+                      Security & Privacy
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-3 p-3 h-auto rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => window.location.href = '/api/logout'}
+                  >
+                    <LogOut className="w-5 h-5" />
+                    Sign Out
+                  </Button>
+                </div>
+              </div>
+
+      {/* Desktop Sub-Navigation */}
+      {currentTab?.subItems && !isMobileMenuOpen && (
+        <div className="hidden lg:block border-t border-border/70 bg-gradient-to-r from-white via-primary/5 to-white dark:from-slate-950 dark:via-slate-950/80 dark:to-slate-950 px-6 py-3">
+          <div className="max-w-7xl mx-auto">
+            <nav className="flex items-center space-x-6 overflow-x-auto">
+              {currentTab.subItems.map((item) => {
+                const isActive = location === item.path || item.matchPaths?.some(match => location.startsWith(match));
+                const ItemIcon = item.icon;
+
+                return (
+                  <Link
+                    key={item.path}
+                    href={item.path}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl whitespace-nowrap transition-all ${
+                      isActive
+                        ? 'bg-white text-primary shadow-[0_12px_32px_-24px_rgba(59,130,246,0.6)] border border-primary/20'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-primary/10'
+                    }`}
+                  >
+                    <ItemIcon className="w-4 h-4" />
+                    {item.label}
+                    {item.badge && (
+                      <Badge variant="outline" className="text-xs ml-1 text-primary border-primary/40">
+                        {item.badge}
+                      </Badge>
+                    )}
                   </Link>
                 </Button>
                 <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-lg px-4 py-3 text-sm hover:bg-white/70 dark:hover:bg-white/10">
