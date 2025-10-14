@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,7 @@ import { FeesSection, type DealFee } from '@/components/deal-desk/fees-section';
 import { FinanceSection } from '@/components/deal-desk/finance-section';
 import { ProductsSection, type DealProduct } from '@/components/deal-desk/products-section';
 import { KPICards } from '@/components/deal-desk/kpi-cards';
+import { AIOptimizationWrapper } from '@/components/deal-desk/ai-optimization-wrapper';
 
 interface Vehicle {
   id: number;
@@ -839,8 +840,8 @@ export default function ProfessionalDealDesk() {
                 />
               </div>
 
-              {/* Right Column - 4 cols on desktop (Sticky KPI Cards) */}
-              <div className="lg:col-span-4">
+              {/* Right Column - 4 cols on desktop (Sticky KPI Cards & AI Assistant) */}
+              <div className="lg:col-span-4 space-y-6">
                 <KPICards
                   data={{
                     salePriceCents: salePrice * 100,
@@ -856,6 +857,28 @@ export default function ProfessionalDealDesk() {
                     productsCostCents: enhancedProducts.reduce((sum, p) => sum + (p.costCents || 0), 0),
                     feesCents: dealFees.reduce((sum, f) => sum + (f.amountCents || 0), 0),
                     taxCents: calc?.calculation.taxes.totalTax ? Math.round(calc.calculation.taxes.totalTax * 100) : null
+                  }}
+                />
+                
+                {/* AI Deal Assistant */}
+                <AIOptimizationWrapper
+                  selectedVehicle={selectedVehicle}
+                  selectedCustomer={selectedCustomer}
+                  salePrice={salePrice}
+                  tradeValue={tradeValue}
+                  tradePayoff={tradePayoff}
+                  term={term}
+                  apr={apr}
+                  cashDown={cashDown}
+                  products={products}
+                  onApplySuggestion={(suggestion) => {
+                    if (suggestion.type === 'pricing') {
+                      setSalePrice(suggestion.value);
+                      toast({
+                        title: "AI Suggestion Applied",
+                        description: `Sale price updated to $${suggestion.value.toLocaleString()}`
+                      });
+                    }
                   }}
                 />
               </div>
