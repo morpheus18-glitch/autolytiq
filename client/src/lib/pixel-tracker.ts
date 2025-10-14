@@ -133,34 +133,6 @@ const trackPageView = async () => {
   } catch (error) {
     console.error('Page view tracking error:', error);
   }
-  
-  // Track time on page when user leaves
-  const trackTimeOnPage = () => {
-    const timeOnPage = Date.now() - startTime;
-    updatePageView(timeOnPage);
-  };
-  
-  // Listen for page unload
-  window.addEventListener('beforeunload', trackTimeOnPage);
-  window.addEventListener('pagehide', trackTimeOnPage);
-};
-
-// Update page view with time spent
-const updatePageView = async (timeOnPage: number) => {
-  if (!sessionId) return;
-  
-  try {
-    await fetch(`/api/tracking/pageview/${sessionId}/update`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        timeOnPage,
-        exitTime: new Date()
-      })
-    });
-  } catch (error) {
-    console.error('Page view update error:', error);
-  }
 };
 
 // Track specific interactions
