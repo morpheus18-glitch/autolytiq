@@ -40,7 +40,7 @@ export function MobileFooterMenu() {
   return (
     <>
       {/* Sticky Bottom Mobile Footer - Only visible on mobile */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50 safe-area-pb">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 safe-area-pb border-t border-border/70 bg-white/95 dark:bg-slate-950/90 backdrop-blur-xl supports-[backdrop-filter]:bg-white/75 dark:supports-[backdrop-filter]:bg-slate-950/70">
         <div className="grid grid-cols-4 gap-0">
           {MOBILE_PRIMARY_NAV_ITEMS.map((item) => {
             const isActive = isPathActive(item);
@@ -51,7 +51,7 @@ export function MobileFooterMenu() {
                 <button
                   key={item.name}
                   onClick={() => handleNavClick(item)}
-                  className="flex flex-col items-center justify-center p-3 min-h-[60px] transition-colors text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="flex flex-col items-center justify-center p-3 min-h-[60px] transition-colors text-muted-foreground hover:text-primary hover:bg-primary/10"
                 >
                   <Icon className="w-5 h-5" />
                   <span className="text-xs mt-1 font-medium">{item.name}</span>
@@ -61,11 +61,11 @@ export function MobileFooterMenu() {
             
             return (
               <Link key={item.name} href={item.href}>
-                <div 
+                <div
                   className={`flex flex-col items-center justify-center p-3 min-h-[60px] transition-colors ${
-                    isActive 
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' 
-                      : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                    isActive
+                      ? 'bg-primary/15 text-primary shadow-[0_10px_24px_-20px_rgba(59,130,246,0.5)]'
+                      : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -80,24 +80,24 @@ export function MobileFooterMenu() {
 
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
-        <div className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-          <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-xl max-h-[80vh] overflow-y-auto">
+        <div className="md:hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm">
+          <div className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-950/90 rounded-t-2xl max-h-[80vh] overflow-y-auto border border-border/60">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-t-xl">
+            <div className="flex items-center justify-between p-4 border-b border-border/70 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/15 dark:from-slate-900/80 dark:via-slate-900/60 dark:to-slate-900/80 rounded-t-2xl">
               <div className="flex items-center space-x-2">
-                <Building className="w-5 h-5 text-blue-600" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">AutolytiQ Navigation</h3>
+                <Building className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-semibold text-foreground">AutolytiQ Navigation</h3>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsMenuOpen(false)}
-                className="hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="rounded-xl hover:bg-primary/10"
               >
                 <X className="w-5 h-5" />
               </Button>
             </div>
-            
+
             {/* Navigation Grid */}
             <div className="p-4">
               <div className="grid grid-cols-2 gap-3">
@@ -105,22 +105,22 @@ export function MobileFooterMenu() {
                   const isActive = isPathActive(item);
                   const Icon = item.icon;
                   return (
-                    <Link 
-                      key={item.name} 
-                      href={item.href} 
+                    <Link
+                      key={item.name}
+                      href={item.href}
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      <div className={`flex items-center p-4 rounded-xl border transition-all duration-200 hover:shadow-md ${
-                        isActive 
-                          ? 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 shadow-sm' 
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'
+                      <div className={`flex items-center p-4 rounded-2xl border transition-all duration-200 hover:shadow-lg ${
+                        isActive
+                          ? 'border-primary/40 bg-primary/15 shadow-[0_18px_40px_-28px_rgba(59,130,246,0.55)]'
+                          : 'border-border/70 hover:border-primary/40 hover:bg-primary/10'
                       }`}>
-                        <div className={`p-2 rounded-lg bg-opacity-10 mr-3 ${item.color.replace('text-', 'bg-').replace('-600', '-100')} dark:bg-opacity-20`}>
-                          <Icon className={`w-5 h-5 ${item.color}`} />
+                        <div className="p-2 rounded-xl bg-primary/10 text-primary mr-3">
+                          <Icon className="w-5 h-5" />
                         </div>
                         <div>
-                          <p className="font-medium text-sm text-gray-900 dark:text-gray-100">{item.name}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <p className="font-medium text-sm text-foreground">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">
                             {item.name === 'Dashboard' && 'Overview & KPIs'}
                             {item.name === 'Sales & Leads' && 'Lead management'}
                             {item.name === 'Customers' && 'CRM & contacts'}
@@ -140,8 +140,8 @@ export function MobileFooterMenu() {
               </div>
               
               {/* Quick Actions */}
-              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Quick Actions</h4>
+              <div className="mt-6 pt-4 border-t border-border/70">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.3em] mb-3">Quick Actions</h4>
                 <div className="grid grid-cols-2 gap-2">
                   {MOBILE_QUICK_ACTIONS.map((action) => {
                     const ActionIcon = action.icon;
@@ -151,8 +151,8 @@ export function MobileFooterMenu() {
                         href={action.href}
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        <Button variant="outline" size="sm" className="w-full text-xs justify-start">
-                          <ActionIcon className="w-3 h-3 mr-2" />
+                        <Button variant="ghost" size="sm" className="w-full text-xs justify-start gap-2 rounded-xl border border-border/60 bg-white/80 dark:bg-slate-950/70 hover:bg-primary/10">
+                          <ActionIcon className="w-3 h-3" />
                           {action.label}
                         </Button>
                       </Link>
