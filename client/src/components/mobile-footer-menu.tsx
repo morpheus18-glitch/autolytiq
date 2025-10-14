@@ -45,7 +45,7 @@ export function MobileFooterMenu() {
           {MOBILE_PRIMARY_NAV_ITEMS.map((item) => {
             const isActive = isPathActive(item);
             const Icon = item.icon;
-            
+
             if (item.isMenu) {
               return (
                 <button
@@ -58,7 +58,7 @@ export function MobileFooterMenu() {
                 </button>
               );
             }
-            
+
             return (
               <Link key={item.name} href={item.href}>
                 <div
@@ -99,7 +99,7 @@ export function MobileFooterMenu() {
             </div>
 
             {/* Navigation Grid */}
-            <div className="p-4">
+            <div className="p-5">
               <div className="grid grid-cols-2 gap-3">
                 {MOBILE_ALL_NAV_ITEMS.map((item) => {
                   const isActive = isPathActive(item);

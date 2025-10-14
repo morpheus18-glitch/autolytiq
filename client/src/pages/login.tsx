@@ -1,11 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Link } from "wouter";
 import {
   Lock,
   ArrowLeft,
-  Github,
+  Apple,
   Chrome,
   Apple,
   Sparkles
@@ -60,7 +62,23 @@ export default function Login() {
                 Continue with Replit
               </Button>
 
-              <Separator className="my-4" />
+        <div className="relative z-10 max-w-xl space-y-6 text-center lg:text-left">
+          <div className="inline-flex items-center gap-3 rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-primary">
+            <Sparkles className="h-4 w-4" />
+            <span className="text-xs font-semibold uppercase tracking-[0.3em]">AutolytiQ Secure Access</span>
+          </div>
+          <h1 className="text-3xl font-semibold leading-snug sm:text-4xl lg:text-5xl">
+            Step back into your <span className="text-brand-gradient">AutolytiQ command center</span>
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Enterprise-grade authentication protects every workflow—from desking to analytics—so your teams can operate with
+            confidence.
+          </p>
+          <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground/80 lg:justify-start">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            SOC 2 Type II, GDPR, and CCPA aligned security controls.
+          </div>
+        </div>
 
               <Button
                 onClick={() => handleProviderLogin('google')}
@@ -93,7 +111,16 @@ export default function Login() {
               </Button>
             </div>
 
-            <Separator className="my-6" />
+                <Button
+                  onClick={() => handleProviderLogin('apple')}
+                  variant="outline"
+                  className="w-full rounded-xl border-border/80 py-3 text-base font-semibold hover:border-primary/40 hover:text-primary"
+                  size="lg"
+                >
+                  <Apple className="mr-3 h-5 w-5" />
+                  Continue with Apple
+                </Button>
+              </div>
 
             <div className="space-y-3 text-center">
               <h3 className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
@@ -116,10 +143,18 @@ export default function Login() {
                   <ArrowLeft className="w-4 h-4 mr-1" />
                   Back to home
                 </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+
+              <div className="pt-4 text-center">
+                <Link href="/">
+                  <Button variant="ghost" size="sm" className="rounded-full text-muted-foreground hover:text-foreground">
+                    <ArrowLeft className="mr-1 h-4 w-4" />
+                    Back to experience
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
 
         <div className="text-center mt-6 space-y-1 text-sm text-muted-foreground">
           <p>SSO protected with device posture checks and real-time anomaly detection.</p>

@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'wouter';
+import React, { useEffect, useState } from "react";
+import { Link, useLocation } from "wouter";
 import {
-  Car,
-  Settings,
-  Bell,
-  Search,
-  Plus,
-  ChevronDown,
-  User,
-  LogOut,
-  Shield,
-  Menu,
-  X,
   ArrowRight,
-  Database
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+  Bell,
+  Car,
+  ChevronDown,
+  Database,
+  Menu,
+  Plus,
+  Search,
+  Settings,
+  Shield,
+  User,
+  X,
+  LogOut,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,42 +23,42 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { useAuth } from '@/hooks/useAuth';
-import { QUICK_ACTIONS, WORKFLOW_SECTIONS } from '@/config/navigation';
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { useAuth } from "@/hooks/useAuth";
+import { QUICK_ACTIONS, WORKFLOW_SECTIONS } from "@/config/navigation";
+import { cn } from "@/lib/utils";
 
 export default function TopNavigation() {
   const [location] = useLocation();
   const { user } = useAuth();
+
   const resolveActiveTab = (pathname: string) => {
-    const matched = WORKFLOW_SECTIONS.find(tab =>
+    const matched = WORKFLOW_SECTIONS.find((tab) =>
       pathname.startsWith(tab.path) ||
-      tab.subItems?.some(item =>
-        pathname.startsWith(item.path) ||
-        item.matchPaths?.some(match => pathname.startsWith(match))
+      tab.subItems?.some((item) =>
+        pathname.startsWith(item.path) || item.matchPaths?.some((match) => pathname.startsWith(match))
       )
     );
-    return matched?.id ?? 'inventory';
+    return matched?.id ?? "inventory";
   };
 
   const [activeTab, setActiveTab] = useState(() => resolveActiveTab(location));
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const currentTab = WORKFLOW_SECTIONS.find(tab => tab.id === activeTab);
+  const currentTab = WORKFLOW_SECTIONS.find((tab) => tab.id === activeTab);
 
   const handleQuickAction = (target: string) => {
     window.location.href = target;
   };
 
-  // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
 
-  // Auto-detect current section
   useEffect(() => {
     const resolved = resolveActiveTab(location);
     if (resolved !== activeTab) {
@@ -123,9 +123,8 @@ export default function TopNavigation() {
                           : 'text-muted-foreground hover:text-foreground hover:bg-primary/10'
                       }`}
                     >
-                      <Icon className="w-4 h-4" />
-                      {tab.label}
-                      <ChevronDown className="w-3 h-3" />
+                      <Plus className="h-4 w-4" />
+                      <span className="hidden xl:inline">New</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
@@ -160,9 +159,6 @@ export default function TopNavigation() {
                     })}
                   </DropdownMenuContent>
                 </DropdownMenu>
-              );
-            })}
-          </nav>
 
           {/* Right: Actions + User Menu */}
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -279,7 +275,6 @@ export default function TopNavigation() {
         </div>
       </div>
 
-      {/* Full-Screen Mobile Navigation Overlay */}
       {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-50 overflow-y-auto bg-gradient-to-b from-white via-white/95 to-primary/5 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900">
           <div className="min-h-screen">
@@ -300,6 +295,16 @@ export default function TopNavigation() {
                 <X className="w-5 h-5" />
               </Button>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="h-9 w-9 rounded-xl p-0 text-muted-foreground hover:text-foreground"
+              aria-label="Close navigation"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
 
             {/* Mobile Content */}
             <div className="p-4 space-y-6">
@@ -364,9 +369,76 @@ export default function TopNavigation() {
                         </div>
                       )}
                     </div>
+                    {tab.subItems && (
+                      <div className="ml-4 space-y-1">
+                        {tab.subItems.map((item) => {
+                          const ItemIcon = item.icon;
+                          const isActive =
+                            location === item.path || item.matchPaths?.some((match) => location.startsWith(match));
+
+                          return (
+                            <Link
+                              key={item.path}
+                              href={item.path}
+                              className={cn(
+                                "flex items-center justify-between rounded-lg px-4 py-3 text-sm transition-all",
+                                isActive
+                                  ? "bg-primary/15 text-primary shadow-sm"
+                                  : "text-foreground/80 hover:bg-white/70 hover:text-foreground dark:hover:bg-white/10"
+                              )}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                              <span className="flex items-center gap-3">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                  <ItemIcon className="h-5 w-5" />
+                                </span>
+                                <span className="font-medium">{item.label}</span>
+                              </span>
+                              <span className="flex items-center gap-2">
+                                {item.badge && (
+                                  <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
+                                    {item.badge}
+                                  </Badge>
+                                )}
+                                <ArrowRight className="h-4 w-4 text-muted-foreground/70" />
+                              </span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="border-t border-border/60 pt-6">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">Quick Actions</h3>
+              <div className="mt-3 grid grid-cols-1 gap-3">
+                {QUICK_ACTIONS.map((action) => {
+                  const ActionIcon = action.icon;
+                  return (
+                    <Button
+                      key={action.id}
+                      variant="outline"
+                      className="flex items-center justify-start gap-3 rounded-xl border-border/70 px-4 py-3 text-left text-sm hover:border-primary/40 hover:text-primary"
+                      onClick={() => {
+                        handleQuickAction(action.target);
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <ActionIcon className="h-4 w-4" />
+                      </span>
+                      <span>
+                        <div className="font-semibold">{action.label}</div>
+                        <div className="text-xs text-muted-foreground/80">{action.description}</div>
+                      </span>
+                    </Button>
                   );
                 })}
               </div>
+            </div>
 
               {/* Quick Actions Section */}
               <div className="border-t border-border/70 pt-6 space-y-4">
@@ -432,10 +504,6 @@ export default function TopNavigation() {
                   </Button>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Desktop Sub-Navigation */}
       {currentTab?.subItems && !isMobileMenuOpen && (
@@ -464,9 +532,23 @@ export default function TopNavigation() {
                       </Badge>
                     )}
                   </Link>
-                );
-              })}
-            </nav>
+                </Button>
+                <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-lg px-4 py-3 text-sm hover:bg-white/70 dark:hover:bg-white/10">
+                  <Link href="/admin/security-center">
+                    <Shield className="h-5 w-5" />
+                    Security &amp; Privacy
+                  </Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-3 rounded-lg px-4 py-3 text-sm text-destructive hover:bg-destructive/10"
+                  onClick={() => (window.location.href = "/api/logout")}
+                >
+                  <LogOut className="h-5 w-5" />
+                  Sign Out
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}
