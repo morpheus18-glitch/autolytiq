@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 interface KPIData {
   // Vehicle fields
   salePriceCents?: number | null;
+  aftermarketCents?: number | null;
   vehicleCostCents?: number | null;
   packCents?: number | null;
   holdbackCents?: number | null;
@@ -140,7 +141,7 @@ export function KPICards({ data, className = "" }: KPICardsProps) {
 
 // Calculation Functions
 function calculateFrontEnd(data: KPIData): number {
-  const salePrice = data.salePriceCents || 0;
+  const salePrice = (data.salePriceCents || 0) + (data.aftermarketCents || 0);
   const cost = data.vehicleCostCents || 0;
   const pack = data.packCents || 0;
   const holdback = data.holdbackCents || 0;
@@ -161,22 +162,24 @@ function calculateBackEnd(data: KPIData): number {
 
 function calculateOTD(data: KPIData): number {
   const salePrice = data.salePriceCents || 0;
+  const aftermarket = data.aftermarketCents || 0;
   const fees = data.feesCents || 0;
   const products = data.productsRetailCents || 0;
   const tax = data.taxCents || 0;
   const tradeAllowance = data.tradeAllowanceCents || 0;
   const cashDown = data.cashDownCents || 0;
-  
-  return salePrice + fees + products + tax - tradeAllowance - cashDown;
+
+  return salePrice + aftermarket + fees + products + tax - tradeAllowance - cashDown;
 }
 
 // Formula Builders
 function buildFrontEndFormula(data: KPIData): string {
   const fmt = (cents: number | null | undefined) => cents ? `$${(cents / 100).toFixed(2)}` : '$0.00';
-  
+  const aftermarketLine = data.aftermarketCents ? `+ Aftermarket:  ${fmt(data.aftermarketCents)}\n` : '';
+
   return `Front-End Gross:
 Sale Price:     ${fmt(data.salePriceCents)}
-- Vehicle Cost: ${fmt(data.vehicleCostCents)}
+${aftermarketLine}- Vehicle Cost: ${fmt(data.vehicleCostCents)}
 - Pack:         ${fmt(data.packCents)}
 + Holdback:     ${fmt(data.holdbackCents)}
 ${data.rebatesTaxable ? '(Rebates taxable - no adj)' : `- Rebates:      ${fmt(data.rebatesCents)}`}
@@ -195,10 +198,11 @@ Products Profit: ${fmt(productsProfit)}
 
 function buildOTDFormula(data: KPIData): string {
   const fmt = (cents: number | null | undefined) => cents ? `$${(cents / 100).toFixed(2)}` : '$0.00';
-  
+  const aftermarketLine = data.aftermarketCents ? `+ Aftermarket:   ${fmt(data.aftermarketCents)}\n` : '';
+
   return `Out-The-Door:
 Sale Price:      ${fmt(data.salePriceCents)}
-+ Fees:          ${fmt(data.feesCents)}
+${aftermarketLine}+ Fees:          ${fmt(data.feesCents)}
 + Products:      ${fmt(data.productsRetailCents)}
 + Tax:           ${fmt(data.taxCents)}
 - Trade Allow:   ${fmt(data.tradeAllowanceCents)}
