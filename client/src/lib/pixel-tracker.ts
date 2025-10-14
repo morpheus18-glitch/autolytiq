@@ -171,9 +171,8 @@ export const trackInteraction = async (type: string, data: any = {}) => {
     sessionId,
     interactionType: type,
     elementId: data.elementId || null,
-    vehicleId: data.vehicleId || null,
-    data: data,
-    timestamp: new Date(),
+    vehicleId: data.vehicleId ? parseInt(data.vehicleId) : null,
+    data: JSON.stringify(data), // Store as JSON string
   };
   
   try {
