@@ -11,7 +11,6 @@ import Login from '@/pages/login';
 import AuthTest from '@/pages/auth-test';
 import NotFound from '@/pages/not-found';
 import AppShell from '@/components/layout/app-shell';
-import { TrackingPixel } from '@/components/tracking-pixel';
 import { appRoutes } from '@/routes';
 
 function Router() {
@@ -59,7 +58,6 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
-          <TrackingPixel />
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
