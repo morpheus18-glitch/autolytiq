@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
@@ -28,7 +29,9 @@ import {
   Plus,
   X,
   Eye,
-  EyeOff
+  EyeOff,
+  ClipboardList,
+  FileDown
 } from 'lucide-react';
 import { TradeSection } from '@/components/deal-desk/trade-section';
 import { FeesSection, type DealFee } from '@/components/deal-desk/fees-section';
@@ -118,6 +121,12 @@ interface DealCalculation {
   };
 }
 
+interface AftermarketItem {
+  id: string;
+  description: string;
+  amount: number;
+}
+
 export default function ProfessionalDealDesk() {
   const { toast } = useToast();
   const [location] = useLocation();
@@ -149,6 +158,7 @@ export default function ProfessionalDealDesk() {
   
   // Backend products
   const [products, setProducts] = useState<BackendProduct[]>([]);
+  const [aftermarketItems, setAftermarketItems] = useState<AftermarketItem[]>([]);
   
   // New F&I fields (cents-based)
   const [msrpCents, setMsrpCents] = useState<number | null>(null);
@@ -178,6 +188,56 @@ export default function ProfessionalDealDesk() {
   // Fees and enhanced products
   const [dealFees, setDealFees] = useState<DealFee[]>([]);
   const [enhancedProducts, setEnhancedProducts] = useState<DealProduct[]>([]);
+
+  const aftermarketTotal = useMemo(
+    () => aftermarketItems.reduce((sum, item) => sum + (item.amount || 0), 0),
+    [aftermarketItems]
+  );
+
+  const addAftermarketItem = useCallback(() => {
+    setAftermarketItems((items) => [
+      ...items,
+      {
+        id: `aftermarket-${Date.now()}-${items.length}`,
+        description: 'Custom Add',
+        amount: 0,
+      },
+    ]);
+  }, []);
+
+  const updateAftermarketItem = useCallback((id: string, updates: Partial<AftermarketItem>) => {
+    setAftermarketItems((items) =>
+      items.map((item) => (item.id === id ? { ...item, ...updates } : item))
+    );
+  }, []);
+
+  const removeAftermarketItem = useCallback((id: string) => {
+    setAftermarketItems((items) => items.filter((item) => item.id !== id));
+  }, []);
+
+  const handlePrint = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.print();
+    }
+  }, []);
+
+  const parseDecimalInput = useCallback((value: string) => {
+    const sanitized = value.replace(/[^0-9.-]/g, '');
+    if (sanitized === '' || sanitized === '-' || sanitized === '.') {
+      return 0;
+    }
+    const parsed = parseFloat(sanitized);
+    return Number.isNaN(parsed) ? 0 : parsed;
+  }, []);
+
+  const parseCentsInput = useCallback((value: string) => {
+    const sanitized = value.replace(/[^0-9.-]/g, '');
+    if (sanitized === '' || sanitized === '-' || sanitized === '.') {
+      return null;
+    }
+    const parsed = parseFloat(sanitized);
+    return Number.isNaN(parsed) ? null : Math.round(parsed * 100);
+  }, []);
   
   // UI state
   const [managerMode, setManagerMode] = useState(true); // Manager vs Customer view
@@ -253,7 +313,7 @@ export default function ProfessionalDealDesk() {
   const calcInput = {
     zip: customerZip,
     dealType: 'purchase',
-    vehiclePrice: salePrice + totalBackendProducts, // All products included here
+    vehiclePrice: salePrice + aftermarketTotal + totalBackendProducts, // Includes adds and backend products
     vehicleCost: vehicleCost,
     tradeValue: tradeValue,
     tradePayoff: tradePayoff,
@@ -613,6 +673,10 @@ export default function ProfessionalDealDesk() {
   const frontEndProfit = salePrice - vehicleCost;
   const backEndProfit = products.reduce((sum, p) => sum + (p.retailPrice - p.cost), 0);
   const totalProfit = frontEndProfit + backEndProfit;
+  const estimatedTaxes = calc?.calculation?.taxes?.totalTax ?? 0;
+  const estimatedAmountFinanced = calc?.calculation?.totals?.grandTotal != null
+    ? calc.calculation.totals.grandTotal - netTrade - cashDown
+    : Math.max(salePrice + aftermarketTotal + totalBackendProducts - netTrade - cashDown, 0);
   
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
@@ -643,10 +707,10 @@ export default function ProfessionalDealDesk() {
             )}
           </div>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
-              onClick={() => window.print()}
+              onClick={handlePrint}
               data-testid="button-print-deal"
             >
               <Printer className="h-4 w-4 mr-1" />
@@ -686,17 +750,17 @@ export default function ProfessionalDealDesk() {
           />
         </div>
 
-        <Tabs defaultValue="fi-desk" className="space-y-6">
+        <Tabs defaultValue="desk" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-2">
-            <TabsTrigger value="fi-desk" data-testid="tab-fi-desk" className="text-xs sm:text-sm">
-              <DollarSign className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">F&I Desk</span>
-              <span className="sm:hidden">F&I</span>
-            </TabsTrigger>
-            <TabsTrigger value="structure" data-testid="tab-structure" className="text-xs sm:text-sm">
+            <TabsTrigger value="desk" data-testid="tab-desk" className="text-xs sm:text-sm">
               <Car className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Structure</span>
-              <span className="sm:hidden">Deal</span>
+              <span className="hidden sm:inline">Desk Deal</span>
+              <span className="sm:hidden">Desk</span>
+            </TabsTrigger>
+            <TabsTrigger value="fi-ledger" data-testid="tab-fi-ledger" className="text-xs sm:text-sm">
+              <DollarSign className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">F&I Ledger</span>
+              <span className="sm:hidden">F&I</span>
             </TabsTrigger>
             <TabsTrigger value="backend" data-testid="tab-backend" className="text-xs sm:text-sm">
               <Package className="h-4 w-4 mr-1 sm:mr-2" />
@@ -713,8 +777,77 @@ export default function ProfessionalDealDesk() {
             </TabsTrigger>
           </TabsList>
 
-          {/* F&I Desk Tab - New Enhanced Layout */}
-          <TabsContent value="fi-desk" className="space-y-6">
+          {/* F&I Ledger Tab - Data-first layout */}
+          <TabsContent value="fi-ledger" className="space-y-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-mono">F&I Ledger Summary</CardTitle>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Structured, data-first snapshot of the deal structure for managers and accountants.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs sm:text-sm font-mono">
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Sale Price</p>
+                    <p className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                      ${salePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Vehicle Cost</p>
+                    <p className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                      ${vehicleCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Aftermarket Adds</p>
+                    <p className="text-base sm:text-lg font-semibold text-blue-600 dark:text-blue-400">
+                      ${aftermarketTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Backend Retail</p>
+                    <p className="text-base sm:text-lg font-semibold text-blue-600 dark:text-blue-400">
+                      ${totalBackendProducts.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Pack</p>
+                    <p className="text-base sm:text-lg font-semibold">
+                      ${((packCents ?? 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Holdback</p>
+                    <p className="text-base sm:text-lg font-semibold">
+                      ${((holdbackCents ?? 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Reserve</p>
+                    <p className="text-base sm:text-lg font-semibold">
+                      ${((reserveAmountCents ?? 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Estimated Taxes</p>
+                    <p className="text-base sm:text-lg font-semibold">
+                      ${estimatedTaxes.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div className="col-span-2 md:col-span-4">
+                    <Separator className="my-2" />
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <span className="text-gray-500 dark:text-gray-400 uppercase tracking-wide">Amount Financed</span>
+                      <span className="text-lg sm:text-xl font-semibold text-green-600 dark:text-green-400">
+                        ${estimatedAmountFinanced.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Left Column - 8 cols on desktop */}
               <div className="lg:col-span-8 space-y-6">
@@ -848,6 +981,7 @@ export default function ProfessionalDealDesk() {
                 <KPICards
                   data={{
                     salePriceCents: salePrice * 100,
+                    aftermarketCents: Math.round(aftermarketTotal * 100),
                     vehicleCostCents: vehicleCost * 100,
                     packCents,
                     holdbackCents,
@@ -859,7 +993,7 @@ export default function ProfessionalDealDesk() {
                     productsRetailCents: enhancedProducts.reduce((sum, p) => sum + (p.retailCents || 0), 0),
                     productsCostCents: enhancedProducts.reduce((sum, p) => sum + (p.costCents || 0), 0),
                     feesCents: dealFees.reduce((sum, f) => sum + (f.amountCents || 0), 0),
-                    taxCents: calc?.calculation.taxes.totalTax ? Math.round(calc.calculation.taxes.totalTax * 100) : null
+                    taxCents: Math.round(estimatedTaxes * 100)
                   }}
                 />
                 
@@ -888,8 +1022,8 @@ export default function ProfessionalDealDesk() {
                 {/* Lender Recommendations */}
                 <LenderMatcher
                   creditScore={700}
-                  loanAmount={calc?.calculation.totals.grandTotal || salePrice}
-                  vehicleValue={salePrice}
+                  loanAmount={estimatedAmountFinanced}
+                  vehicleValue={salePrice + aftermarketTotal}
                   term={term}
                   storeId={storeId}
                   onSelectLender={(lender) => {
@@ -904,7 +1038,7 @@ export default function ProfessionalDealDesk() {
 
                 {/* Payment Scenarios */}
                 <PaymentScenarios
-                  vehiclePrice={salePrice}
+                  vehiclePrice={salePrice + aftermarketTotal}
                   tradeValue={tradeValue}
                   tradePayoff={tradePayoff}
                   apr={apr}
@@ -921,221 +1055,115 @@ export default function ProfessionalDealDesk() {
             </div>
           </TabsContent>
 
-          {/* Structure Tab */}
-          <TabsContent value="structure" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Vehicle Selection */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Car className="h-5 w-5" />
-                    Vehicle
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="vehicle">Select Vehicle</Label>
-                    <Select value={vehicleId?.toString()} onValueChange={(v) => setVehicleId(parseInt(v))}>
-                      <SelectTrigger id="vehicle" data-testid="select-vehicle">
-                        <SelectValue placeholder="Choose vehicle..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {vehicles.map((v) => (
-                          <SelectItem key={v.id} value={v.id.toString()}>
-                            {v.year} {v.make} {v.model} - ${v.price.toLocaleString()} (Stock: {v.stockNo})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  {selectedVehicle && (
-                    <Link href={`/inventory/${selectedVehicle.id}`}>
-                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
-                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                          {selectedVehicle.year} {selectedVehicle.make} {selectedVehicle.model}
-                        </p>
-                        <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                          VIN: {selectedVehicle.vin} | Stock: {selectedVehicle.stockNo}
-                        </p>
-                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium">
-                          Click to view vehicle details →
-                        </p>
-                      </div>
-                    </Link>
-                  )}
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="salePrice">Sale Price</Label>
-                      <Input
-                        id="salePrice"
-                        type="number"
-                        value={salePrice || ''}
-                        onChange={(e) => setSalePrice(parseFloat(e.target.value) || 0)}
-                        data-testid="input-sale-price"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="vehicleCost">Cost</Label>
-                      <Input
-                        id="vehicleCost"
-                        type="number"
-                        value={vehicleCost || ''}
-                        onChange={(e) => setVehicleCost(parseFloat(e.target.value) || 0)}
-                        data-testid="input-vehicle-cost"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Customer Selection */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    Customer
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="customer">Select Customer</Label>
-                    <Select value={customerId?.toString()} onValueChange={(v) => setCustomerId(parseInt(v))}>
-                      <SelectTrigger id="customer" data-testid="select-customer">
-                        <SelectValue placeholder="Choose customer..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {customers.map((c) => (
-                          <SelectItem key={c.id} value={c.id.toString()}>
-                            {c.firstName} {c.lastName} - {c.phone}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  {selectedCustomer && (
-                    <Link href={`/customers/${selectedCustomer.id}`}>
-                      <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
-                        <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                          {selectedCustomer.firstName} {selectedCustomer.lastName}
-                        </p>
-                        <p className="text-xs text-green-700 dark:text-green-300 mt-1">
-                          {selectedCustomer.email} | {selectedCustomer.phone}
-                        </p>
-                        <p className="text-xs text-green-600 dark:text-green-400 mt-1 font-medium">
-                          Click to view customer details →
-                        </p>
-                      </div>
-                    </Link>
-                  )}
-                  
-                  <div>
-                    <Label htmlFor="customerZip">ZIP Code</Label>
-                    <Input
-                      id="customerZip"
-                      value={customerZip}
-                      onChange={(e) => setCustomerZip(e.target.value)}
-                      placeholder="60601"
-                      maxLength={5}
-                      data-testid="input-customer-zip"
-                    />
-                  </div>
-
-                  {/* Show city/state when jurisdiction is found */}
-                  {selectedJurisdiction && (
-                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                        📍 {selectedJurisdiction.city}, {selectedJurisdiction.state}
-                      </p>
-                      {selectedJurisdiction.county && (
-                        <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                          {selectedJurisdiction.county} County
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Show jurisdiction selector if multiple matches */}
-                  {jurisdictionData.length > 1 && (
-                    <div>
-                      <Label htmlFor="jurisdiction">Select City/County</Label>
-                      <Select 
-                        value={selectedJurisdiction?.id?.toString()} 
-                        onValueChange={(v) => {
-                          const selected = jurisdictionData.find(j => j.id.toString() === v);
-                          setSelectedJurisdiction(selected || null);
-                        }}
+          {/* Desk Tab */}
+          <TabsContent value="desk" className="space-y-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              <Card className="xl:col-span-2">
+                <CardHeader className="pb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <ClipboardList className="h-5 w-5" />
+                      Deal Quick Entry
+                    </CardTitle>
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" size="sm" onClick={handlePrint} data-testid="button-print-pdf">
+                        <FileDown className="h-4 w-4 mr-1" />
+                        Print Customer PDF
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => saveDealMutation.mutate()}
+                        disabled={!selectedCustomer || !calc || saveDealMutation.isPending}
+                        data-testid="button-quick-save"
                       >
-                        <SelectTrigger id="jurisdiction" data-testid="select-jurisdiction">
-                          <SelectValue placeholder="Choose location..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {jurisdictionData.map((j) => (
-                            <SelectItem key={j.id} value={j.id.toString()}>
-                              {j.display}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        {saveDealMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        ) : (
+                          <Save className="h-4 w-4 mr-1" />
+                        )}
+                        Quick Save
+                      </Button>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Trade & Financing */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">Trade-In</CardTitle>
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Rapidly desk the deal with streamlined entry and drill-down support for trades and vehicle adds.
+                  </p>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="tradeValue">Trade Value</Label>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <Label htmlFor="desk-sale-price">Sale Price</Label>
                       <Input
-                        id="tradeValue"
-                        type="number"
-                        value={tradeValue || ''}
-                        onChange={(e) => setTradeValue(parseFloat(e.target.value) || 0)}
-                        data-testid="input-trade-value"
+                        id="desk-sale-price"
+                        type="text"
+                        inputMode="decimal"
+                        value={salePrice || ''}
+                        onChange={(e) => setSalePrice(parseDecimalInput(e.target.value))}
+                        data-testid="input-desk-sale"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="tradePayoff">Payoff</Label>
+                    <div className="space-y-1">
+                      <Label htmlFor="desk-cost">Vehicle Cost</Label>
                       <Input
-                        id="tradePayoff"
-                        type="number"
+                        id="desk-cost"
+                        type="text"
+                        inputMode="decimal"
+                        value={vehicleCost || ''}
+                        onChange={(e) => setVehicleCost(parseDecimalInput(e.target.value))}
+                        data-testid="input-desk-cost"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="desk-down">Down Payment</Label>
+                      <Input
+                        id="desk-down"
+                        type="text"
+                        inputMode="decimal"
+                        value={cashDown || ''}
+                        onChange={(e) => setCashDown(parseDecimalInput(e.target.value))}
+                        data-testid="input-desk-down"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="desk-rebates">Rebates</Label>
+                      <Input
+                        id="desk-rebates"
+                        type="text"
+                        inputMode="decimal"
+                        value={rebates || ''}
+                        onChange={(e) => setRebates(parseDecimalInput(e.target.value))}
+                        data-testid="input-desk-rebates"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="desk-trade">Trade Allowance</Label>
+                      <Input
+                        id="desk-trade"
+                        type="text"
+                        inputMode="decimal"
+                        value={tradeValue || ''}
+                        onChange={(e) => setTradeValue(parseDecimalInput(e.target.value))}
+                        data-testid="input-desk-trade"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="desk-payoff">Trade Payoff</Label>
+                      <Input
+                        id="desk-payoff"
+                        type="text"
+                        inputMode="decimal"
                         value={tradePayoff || ''}
-                        onChange={(e) => setTradePayoff(parseFloat(e.target.value) || 0)}
-                        data-testid="input-trade-payoff"
+                        onChange={(e) => setTradePayoff(parseDecimalInput(e.target.value))}
+                        data-testid="input-desk-payoff"
                       />
                     </div>
                   </div>
-                  {netTrade !== 0 && (
-                    <div className="p-2 bg-gray-50 dark:bg-gray-800 rounded">
-                      <p className="text-sm font-medium">
-                        Net Trade: <span className={netTrade > 0 ? 'text-green-600' : 'text-red-600'}>
-                          ${Math.abs(netTrade).toLocaleString()}
-                        </span>
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">Financing</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="term">Term (months)</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <Label htmlFor="desk-term">Term (months)</Label>
                       <Select value={term.toString()} onValueChange={(v) => setTerm(parseInt(v))}>
-                        <SelectTrigger id="term" data-testid="select-term">
+                        <SelectTrigger id="desk-term" data-testid="select-desk-term">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -1145,55 +1173,297 @@ export default function ProfessionalDealDesk() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div>
-                      <Label htmlFor="apr">APR %</Label>
+                    <div className="space-y-1">
+                      <Label htmlFor="desk-apr">APR %</Label>
                       <Input
-                        id="apr"
-                        type="number"
-                        step="0.01"
-                        value={apr}
-                        onChange={(e) => setApr(parseFloat(e.target.value) || 0)}
-                        data-testid="input-apr"
+                        id="desk-apr"
+                        type="text"
+                        inputMode="decimal"
+                        value={apr || ''}
+                        onChange={(e) => setApr(parseDecimalInput(e.target.value))}
+                        data-testid="input-desk-apr"
                       />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="desk-credit-tier">Credit Tier</Label>
+                      <Select value={creditTier} onValueChange={setCreditTier}>
+                        <SelectTrigger id="desk-credit-tier" data-testid="select-credit-tier">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['A', 'B', 'C', 'D'].map((tier) => (
+                            <SelectItem key={tier} value={tier}>{tier}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="cashDown">Down Payment</Label>
-                      <Input
-                        id="cashDown"
-                        type="number"
-                        value={cashDown || ''}
-                        onChange={(e) => setCashDown(parseFloat(e.target.value) || 0)}
-                        data-testid="input-cash-down"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="rebates">Rebates</Label>
-                      <Input
-                        id="rebates"
-                        type="number"
-                        value={rebates || ''}
-                        onChange={(e) => setRebates(parseFloat(e.target.value) || 0)}
-                        data-testid="input-rebates"
-                      />
-                    </div>
-                  </div>
-                  
-                  {monthlyPayment > 0 && (
-                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Monthly Payment</p>
-                      <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        ${monthlyPayment.toLocaleString()}/mo
-                      </p>
-                    </div>
-                  )}
+
+                  <Accordion type="multiple" className="border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <AccordionItem value="trade-justification">
+                      <AccordionTrigger className="px-4">
+                        Trade Justification & Allowance Worksheet
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="desk-acv">Actual Cash Value</Label>
+                            <Input
+                              id="desk-acv"
+                              type="text"
+                              inputMode="decimal"
+                              value={tradeAcvCents != null ? (tradeAcvCents / 100).toFixed(2) : ''}
+                              onChange={(e) => setTradeAcvCents(parseCentsInput(e.target.value))}
+                              placeholder="0.00"
+                              data-testid="input-desk-acv"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="desk-recon">Recon / Reconditioning</Label>
+                            <Input
+                              id="desk-recon"
+                              type="text"
+                              inputMode="decimal"
+                              value={tradeReconCents != null ? (tradeReconCents / 100).toFixed(2) : ''}
+                              onChange={(e) => setTradeReconCents(parseCentsInput(e.target.value))}
+                              placeholder="0.00"
+                              data-testid="input-desk-recon"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="desk-allowance">Allowance Override</Label>
+                            <Input
+                              id="desk-allowance"
+                              type="text"
+                              inputMode="decimal"
+                              value={tradeAllowanceCents != null ? (tradeAllowanceCents / 100).toFixed(2) : ''}
+                              onChange={(e) => setTradeAllowanceCents(parseCentsInput(e.target.value))}
+                              placeholder="Auto"
+                              data-testid="input-desk-allowance"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="desk-trade-payoff">Lien Payoff</Label>
+                            <Input
+                              id="desk-trade-payoff"
+                              type="text"
+                              inputMode="decimal"
+                              value={tradePayoffCents != null ? (tradePayoffCents / 100).toFixed(2) : ''}
+                              onChange={(e) => setTradePayoffCents(parseCentsInput(e.target.value))}
+                              placeholder="0.00"
+                              data-testid="input-desk-trade-payoff"
+                            />
+                          </div>
+                        </div>
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Equity Position: <span className={netTrade >= 0 ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-red-600 dark:text-red-400 font-semibold'}>
+                              ${netTrade.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                            </span>
+                          </p>
+                          <Button variant="outline" size="sm" onClick={handlePrint} data-testid="button-print-trade">
+                            <Printer className="h-4 w-4 mr-1" />
+                            Print Trade Justification
+                          </Button>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="aftermarket-adds">
+                      <AccordionTrigger className="px-4">
+                        Vehicle Adds & Aftermarket
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 space-y-4">
+                        {aftermarketItems.length === 0 ? (
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            No aftermarket adds yet. Use the button below to capture accessories like tow hitches or tint.
+                          </p>
+                        ) : (
+                          aftermarketItems.map((item) => (
+                            <div key={item.id} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+                              <Input
+                                value={item.description}
+                                onChange={(e) => updateAftermarketItem(item.id, { description: e.target.value })}
+                                placeholder="Accessory name"
+                                data-testid={`input-aftermarket-name-${item.id}`}
+                              />
+                              <Input
+                                type="text"
+                                inputMode="decimal"
+                                value={item.amount || ''}
+                                onChange={(e) => updateAftermarketItem(item.id, { amount: parseDecimalInput(e.target.value) })}
+                                placeholder="0.00"
+                                data-testid={`input-aftermarket-amount-${item.id}`}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="justify-self-start"
+                                onClick={() => removeAftermarketItem(item.id)}
+                                data-testid={`button-remove-aftermarket-${item.id}`}
+                              >
+                                <X className="h-4 w-4 mr-1" /> Remove
+                              </Button>
+                            </div>
+                          ))
+                        )}
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={addAftermarketItem}
+                            data-testid="button-add-aftermarket"
+                          >
+                            <Plus className="h-4 w-4 mr-1" /> Add Aftermarket Item
+                          </Button>
+                          <div className="text-sm text-gray-600 dark:text-gray-300">
+                            Total Adds: <span className="font-semibold">${aftermarketTotal.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </CardContent>
               </Card>
+
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Customer & Vehicle</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="desk-vehicle">Vehicle</Label>
+                      <Select value={vehicleId?.toString()} onValueChange={(v) => setVehicleId(parseInt(v))}>
+                        <SelectTrigger id="desk-vehicle" data-testid="select-desk-vehicle">
+                          <SelectValue placeholder="Choose vehicle..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {vehicles.map((v) => (
+                            <SelectItem key={v.id} value={v.id.toString()}>
+                              {v.year} {v.make} {v.model} - ${v.price.toLocaleString()}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedVehicle && (
+                        <Link href={`/inventory/${selectedVehicle.id}`}>
+                          <p className="text-xs text-blue-600 dark:text-blue-400 underline mt-1">View inventory details</p>
+                        </Link>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="desk-customer">Customer</Label>
+                      <Select value={customerId?.toString()} onValueChange={(v) => setCustomerId(parseInt(v))}>
+                        <SelectTrigger id="desk-customer" data-testid="select-desk-customer">
+                          <SelectValue placeholder="Choose customer..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {customers.map((c) => (
+                            <SelectItem key={c.id} value={c.id.toString()}>
+                              {c.firstName} {c.lastName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedCustomer && (
+                        <Link href={`/customers/${selectedCustomer.id}`}>
+                          <p className="text-xs text-green-600 dark:text-green-400 underline mt-1">View customer profile</p>
+                        </Link>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="desk-zip">Customer ZIP</Label>
+                        <Input
+                          id="desk-zip"
+                          value={customerZip}
+                          onChange={(e) => setCustomerZip(e.target.value)}
+                          placeholder="ZIP"
+                          maxLength={5}
+                          data-testid="input-desk-zip"
+                        />
+                      </div>
+                      {selectedJurisdiction && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 self-end">
+                          {selectedJurisdiction.city}, {selectedJurisdiction.state}
+                        </div>
+                      )}
+                    </div>
+
+                    {jurisdictionData.length > 1 && (
+                      <div>
+                        <Label htmlFor="desk-jurisdiction">Jurisdiction</Label>
+                        <Select
+                          value={selectedJurisdiction?.id?.toString()}
+                          onValueChange={(v) => {
+                            const selected = jurisdictionData.find(j => j.id.toString() === v);
+                            setSelectedJurisdiction(selected || null);
+                          }}
+                        >
+                          <SelectTrigger id="desk-jurisdiction" data-testid="select-desk-jurisdiction">
+                            <SelectValue placeholder="Choose location..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {jurisdictionData.map((j) => (
+                              <SelectItem key={j.id} value={j.id.toString()}>
+                                {j.display}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Deal Snapshot</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span>Vehicle Price</span>
+                      <span className="font-medium">${salePrice.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Aftermarket Adds</span>
+                      <span className="font-medium">${aftermarketTotal.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Trade Difference</span>
+                      <span className={netTrade >= 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+                        ${netTrade.toLocaleString()}
+                      </span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between">
+                      <span>Estimated Taxes</span>
+                      <span className="font-medium">
+                        ${estimatedTaxes.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Amount Financed</span>
+                      <span className="font-semibold text-blue-600 dark:text-blue-400">
+                        ${estimatedAmountFinanced.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </span>
+                    </div>
+                    {monthlyPayment > 0 && (
+                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
+                        <p className="text-xs text-gray-600 dark:text-gray-400">Estimated Payment</p>
+                        <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                          ${monthlyPayment.toLocaleString()}/mo
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{term} months @ {apr}% APR</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </TabsContent>
-
           {/* Backend Products Tab */}
           <TabsContent value="backend" className="space-y-6">
             <Card>
@@ -1354,6 +1624,12 @@ export default function ProfessionalDealDesk() {
                         <span>Vehicle Sale Price</span>
                         <span className="font-medium">${salePrice.toLocaleString()}</span>
                       </div>
+                      {aftermarketItems.length > 0 && (
+                        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                          <span>Aftermarket Adds</span>
+                          <span>${aftermarketTotal.toLocaleString()}</span>
+                        </div>
+                      )}
                       {products.length > 0 && (
                         <>
                           {products.map((product, idx) => (
@@ -1364,7 +1640,7 @@ export default function ProfessionalDealDesk() {
                           ))}
                           <div className="flex justify-between text-sm font-medium text-gray-700 dark:text-gray-300 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                             <span>Subtotal (with backend)</span>
-                            <span>${(salePrice + totalBackendProducts).toLocaleString()}</span>
+                            <span>${(salePrice + aftermarketTotal + totalBackendProducts).toLocaleString()}</span>
                           </div>
                         </>
                       )}
