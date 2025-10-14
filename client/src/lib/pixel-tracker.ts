@@ -53,13 +53,29 @@ const trackSession = async () => {
   if (!sessionId) return;
   
   try {
+    // Generate visitorId if not exists
+    let visitorId = localStorage.getItem('visitor_id');
+    if (!visitorId) {
+      visitorId = `visitor_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+      localStorage.setItem('visitor_id', visitorId);
+    }
+    
     const sessionData = {
       sessionId,
+      visitorId, // Required field
       userAgent: navigator.userAgent,
-      referrer: document.referrer,
-      screenResolution: `${screen.width}x${screen.height}`,
-      language: navigator.language,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      referrer: document.referrer || undefined,
+      landingPage: window.location.pathname,
+      deviceType: /Mobile|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : 
+                  /Tablet|iPad/i.test(navigator.userAgent) ? 'tablet' : 'desktop',
+      browserName: navigator.userAgent.includes('Chrome') ? 'Chrome' : 
+                   navigator.userAgent.includes('Firefox') ? 'Firefox' :
+                   navigator.userAgent.includes('Safari') ? 'Safari' : 'Other',
+      operatingSystem: /Windows/i.test(navigator.userAgent) ? 'Windows' :
+                       /Mac/i.test(navigator.userAgent) ? 'macOS' :
+                       /Linux/i.test(navigator.userAgent) ? 'Linux' :
+                       /Android/i.test(navigator.userAgent) ? 'Android' :
+                       /iOS|iPhone|iPad/i.test(navigator.userAgent) ? 'iOS' : 'Other',
     };
     
     // Check if session exists, if not create new one
@@ -92,8 +108,6 @@ const trackPageView = async () => {
     sessionId,
     pageUrl: window.location.pathname,
     pageTitle: document.title,
-    timestamp: new Date(),
-    loadTime: Date.now() - startTime,
   };
   
   try {
@@ -214,7 +228,7 @@ const setupInteractionTrackers = () => {
     }
     
     // Track form submissions (only if actually inside a form)
-    if ((target.type === 'submit' || target.closest('[type="submit"]')) && target.closest('form')) {
+    if ((('type' in target && target.type === 'submit') || target.closest('[type="submit"]')) && target.closest('form')) {
       const form = target.closest('form');
       trackInteraction('form_submit', {
         formId: form?.id || 'unknown_form',
