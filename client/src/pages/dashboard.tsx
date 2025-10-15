@@ -15,7 +15,7 @@ import AISystemHealth from "@/components/enterprise/ai-system-health";
 export default function Dashboard() {
   const headerActions = (
     <Link href="/workflow-assistant">
-      <Button className="flex items-center gap-2">
+      <Button className="btn-embossed flex items-center gap-2">
         <Workflow className="w-4 h-4" />
         Smart Workflows
       </Button>
@@ -23,7 +23,7 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="w-full min-h-screen pb-6">
+    <div className="w-full min-h-[100dvh] pb-4 md:pb-6">
       <div className="px-2 sm:px-4 md:px-6 pt-2 sm:pt-3 md:pt-4">
         <Tabs defaultValue="production" className="space-y-4 sm:space-y-6">
           <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
