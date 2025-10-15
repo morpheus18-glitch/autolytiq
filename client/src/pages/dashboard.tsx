@@ -24,42 +24,42 @@ export default function Dashboard() {
 
   return (
     <div className="w-full min-h-screen pb-6">
-      <div className="px-4 md:px-6 pt-4">
-        <Tabs defaultValue="production" className="space-y-4">
-          <div className="mobile-tabs overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
-            <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-7 h-12 md:h-10 gap-1">
-          <TabsTrigger value="production" className="mobile-tab-item text-sm min-h-[48px] md:min-h-0 px-4">
-            <BarChart3 className="w-4 h-4 mr-2 flex-shrink-0" />
+      <div className="px-2 sm:px-4 md:px-6 pt-2 sm:pt-3 md:pt-4">
+        <Tabs defaultValue="production" className="space-y-4 sm:space-y-6">
+          <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
+            <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-7 h-14 md:h-11 gap-1.5 md:gap-1 p-1">
+          <TabsTrigger value="production" className="mobile-tab-item text-sm min-h-[52px] md:min-h-0 px-4 md:px-3 data-[state=active]:shadow-sm" data-testid="tab-production">
+            <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 mr-2 flex-shrink-0" />
             <span className="hidden sm:inline whitespace-nowrap">Production</span>
             <span className="sm:hidden whitespace-nowrap">Prod</span>
           </TabsTrigger>
-          <TabsTrigger value="overview" className="mobile-tab-item text-sm min-h-[48px] md:min-h-0 px-4">
-            <Target className="w-4 h-4 mr-2 flex-shrink-0" />
+          <TabsTrigger value="overview" className="mobile-tab-item text-sm min-h-[52px] md:min-h-0 px-4 md:px-3 data-[state=active]:shadow-sm" data-testid="tab-overview">
+            <Target className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 mr-2 flex-shrink-0" />
             <span className="hidden sm:inline whitespace-nowrap">Overview</span>
             <span className="sm:hidden whitespace-nowrap">Over</span>
           </TabsTrigger>
-          <TabsTrigger value="intelligence" className="mobile-tab-item text-sm min-h-[48px] md:min-h-0 px-4">
-            <Brain className="w-4 h-4 mr-2 flex-shrink-0" />
+          <TabsTrigger value="intelligence" className="mobile-tab-item text-sm min-h-[52px] md:min-h-0 px-4 md:px-3 data-[state=active]:shadow-sm" data-testid="tab-intelligence">
+            <Brain className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 mr-2 flex-shrink-0" />
             <span className="hidden sm:inline whitespace-nowrap">Intelligence</span>
             <span className="sm:hidden whitespace-nowrap">AI</span>
           </TabsTrigger>
-          <TabsTrigger value="lifecycle" className="mobile-tab-item text-sm min-h-[48px] md:min-h-0 px-4">
-            <Users className="w-4 h-4 mr-2 flex-shrink-0" />
+          <TabsTrigger value="lifecycle" className="mobile-tab-item text-sm min-h-[52px] md:min-h-0 px-4 md:px-3 data-[state=active]:shadow-sm" data-testid="tab-lifecycle">
+            <Users className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 mr-2 flex-shrink-0" />
             <span className="hidden sm:inline whitespace-nowrap">Lifecycle</span>
             <span className="sm:hidden whitespace-nowrap">Life</span>
           </TabsTrigger>
-          <TabsTrigger value="workflows" className="mobile-tab-item text-sm min-h-[48px] md:min-h-0 px-4">
-            <Workflow className="w-4 h-4 mr-2 flex-shrink-0" />
+          <TabsTrigger value="workflows" className="mobile-tab-item text-sm min-h-[52px] md:min-h-0 px-4 md:px-3 data-[state=active]:shadow-sm" data-testid="tab-workflows">
+            <Workflow className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 mr-2 flex-shrink-0" />
             <span className="hidden sm:inline whitespace-nowrap">Automation</span>
             <span className="sm:hidden whitespace-nowrap">Auto</span>
           </TabsTrigger>
-          <TabsTrigger value="reports" className="mobile-tab-item text-sm min-h-[48px] md:min-h-0 px-4">
-            <BarChart3 className="w-4 h-4 mr-2 flex-shrink-0" />
+          <TabsTrigger value="reports" className="mobile-tab-item text-sm min-h-[52px] md:min-h-0 px-4 md:px-3 data-[state=active]:shadow-sm" data-testid="tab-reports">
+            <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 mr-2 flex-shrink-0" />
             <span className="hidden sm:inline whitespace-nowrap">Reports</span>
             <span className="sm:hidden whitespace-nowrap">Rep</span>
           </TabsTrigger>
-          <TabsTrigger value="health" className="mobile-tab-item text-sm min-h-[48px] md:min-h-0 px-4">
-            <Shield className="w-4 h-4 mr-2 flex-shrink-0" />
+          <TabsTrigger value="health" className="mobile-tab-item text-sm min-h-[52px] md:min-h-0 px-4 md:px-3 data-[state=active]:shadow-sm" data-testid="tab-health">
+            <Shield className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 mr-2 flex-shrink-0" />
             <span className="hidden sm:inline whitespace-nowrap">Health</span>
             <span className="sm:hidden whitespace-nowrap">HP</span>
           </TabsTrigger>
