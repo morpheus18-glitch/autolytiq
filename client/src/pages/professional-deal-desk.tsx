@@ -1099,7 +1099,7 @@ export default function ProfessionalDealDesk() {
   );
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
+    <div className="min-h-[100dvh] bg-gray-50 dark:bg-gray-900 pb-4 md:pb-6">
       {/* Header */}
       <div
         className="bg-white/95 dark:bg-gray-800/95 border-b border-gray-200 dark:border-gray-700 backdrop-blur supports-[backdrop-filter]:bg-white/80 sticky z-40"
