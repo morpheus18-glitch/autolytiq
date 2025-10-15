@@ -152,7 +152,7 @@ export default function CustomerLifecycleTracking() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+    <div className="p-6 space-y-6 bg-gray-50 min-h-[100dvh]">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -164,7 +164,7 @@ export default function CustomerLifecycleTracking() {
             <Download className="h-4 w-4" />
             <span>Export Journey Data</span>
           </Button>
-          <Button className="flex items-center space-x-2">
+          <Button className="btn-embossed flex items-center space-x-2">
             <Target className="h-4 w-4" />
             <span>Setup Tracking</span>
           </Button>

@@ -216,7 +216,7 @@ export function LeadManagementGrid() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-100 p-2">
+    <div className="min-h-[100dvh] bg-gray-100 p-2">
       {/* Header that matches the screenshot */}
       <div className="bg-white border border-gray-300 rounded-lg shadow-sm mb-4">
         <div className="bg-orange-500 text-white px-4 py-2 rounded-t-lg flex items-center justify-between">
