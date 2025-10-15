@@ -29,7 +29,12 @@ frontend_routes:
   - path: /inventory/:id
     component: InventoryDetail
     description: Vehicle detail page
-  
+
+  # CRM & Lead Management
+  - path: /crm
+    component: CRMLeadManagement
+    description: Unified CRM and lead management workspace
+
   # Sales & Leads
   - path: /leads
     component: Sales
