@@ -313,7 +313,7 @@ export default function Inventory() {
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">Error Loading Inventory</h3>
           <p className="text-gray-600 mb-4">Unable to load inventory data</p>
-          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/vehicles'] })}>
+          <Button className="btn-embossed" onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/vehicles'] })}>
             Try Again
           </Button>
         </div>
@@ -332,7 +332,7 @@ export default function Inventory() {
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
-              <Button className="w-full md:w-auto">
+              <Button className="btn-embossed w-full md:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Vehicle
               </Button>
@@ -447,7 +447,7 @@ export default function Inventory() {
                   <Button variant="outline" onClick={() => setShowAddDialog(false)}>
                     Cancel
                   </Button>
-                  <Button onClick={handleCreateVehicle} disabled={createVehicleMutation.isPending}>
+                  <Button className="btn-embossed" onClick={handleCreateVehicle} disabled={createVehicleMutation.isPending}>
                     {createVehicleMutation.isPending ? 'Adding...' : 'Add Vehicle'}
                   </Button>
                 </div>
