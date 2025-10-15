@@ -15,6 +15,7 @@ import {
   MessageSquare,
   Building,
   FileText,
+  Megaphone,
   Menu as MenuIcon
 } from 'lucide-react';
 
@@ -65,6 +66,18 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
       { label: 'Vehicle Inventory', path: '/inventory', icon: Car },
       { label: 'Lot Management', path: '/inventory/lot-management', icon: Database },
       { label: 'Pricing Insights', path: '/inventory/pricing', icon: TrendingUp }
+    ]
+  },
+  {
+    id: 'crm',
+    label: 'CRM & Leads',
+    icon: Users,
+    path: '/crm',
+    subItems: [
+      { label: 'CRM Command Center', path: '/crm', icon: Users },
+      { label: 'Lead Pipeline', path: '/leads', icon: Handshake, matchPaths: ['/sales', '/leads'] },
+      { label: 'Market Lead Engine', path: '/market-leads', icon: Megaphone },
+      { label: 'Customer Records', path: '/customers', icon: Users }
     ]
   },
   {
@@ -126,6 +139,7 @@ export const MOBILE_PRIMARY_NAV_ITEMS: MobileNavItem[] = [
 
 export const MOBILE_ALL_NAV_ITEMS: MobileNavItem[] = [
   { name: 'Dashboard', href: '/', icon: Home, color: 'text-blue-600' },
+  { name: 'CRM & Leads', href: '/crm', icon: Users, color: 'text-sky-600', matchPaths: ['/crm'] },
   { name: 'Sales & Leads', href: '/sales', icon: Handshake, color: 'text-indigo-600', matchPaths: ['/leads'] },
   { name: 'Customers', href: '/customers', icon: Users, color: 'text-green-600' },
   { name: 'Inventory', href: '/inventory', icon: Car, color: 'text-purple-600' },

@@ -50,6 +50,10 @@ import { EnterpriseWebSocketManager } from "./enterprise-websocket";
 import { lifecycleTracker } from "./tracking-service";
 import { LeadStorageService, sampleLeadData } from "./lead-engine";
 import AutomotiveDataService from "./automotive-data-service";
+import { InMemoryEventBus, ModuleRegistry } from "./core";
+import { crmModule } from "./modules/crm";
+import { deskingModule } from "./modules/desking";
+import { fiModule } from "./modules/fi";
 
 // XML Lead parsing utility
 function parseXmlLead(xmlString: string) {
@@ -94,6 +98,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
+  const eventBus = new InMemoryEventBus();
+  const moduleRegistry = new ModuleRegistry({
+    eventBus,
+    storage,
+    logger: console,
+  });
+  app.locals.eventBus = eventBus;
+  app.locals.moduleRegistry = moduleRegistry;
+
   // Register additional route modules
   registerUserManagementRoutes(app);
   registerMLDashboardRoutes(app);
@@ -101,6 +114,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerMLAdminRoutes(app);
   registerMLEnterpriseRoutes(app);
   registerMLHeatmapRoutes(app);
+
+  await moduleRegistry.registerModule(app, crmModule);
+  await moduleRegistry.registerModule(app, deskingModule);
+  await moduleRegistry.registerModule(app, fiModule);
   
   // System user management routes
   registerUserRoutes(app);
@@ -5187,6 +5204,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+
+  httpServer.on("close", () => {
+    void moduleRegistry.shutdown();
+  });
   
   // Initialize Enterprise WebSocket Manager 
   const wsManager = new EnterpriseWebSocketManager(httpServer);

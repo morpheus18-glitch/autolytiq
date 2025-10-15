@@ -9,6 +9,7 @@ import Customers from '@/pages/customers';
 import CustomerDetail from '@/pages/customer-detail';
 import TextingPortal from '@/pages/customers/texting-portal';
 import PhoneCalls from '@/pages/customers/phone-calls';
+import CRMLeadManagement from '@/pages/crm-lead-management';
 import DealsPage from '@/pages/deals';
 import ProfessionalDealDesk from '@/pages/professional-deal-desk';
 import TradeAppraisals from '@/pages/trade-appraisals';
@@ -85,6 +86,7 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/inventory/lot-management', component: LotManagement },
   { path: '/inventory/:id', component: InventoryDetail },
   { path: '/inventory', component: Inventory },
+  { path: '/crm', component: CRMLeadManagement },
   { path: '/leads', component: Sales },
   { path: '/sales', component: Sales },
   { path: '/sales-mobile', component: Sales },
