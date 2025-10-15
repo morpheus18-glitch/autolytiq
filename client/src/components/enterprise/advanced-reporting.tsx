@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
+import { DateRange } from "react-day-picker";
 
 interface ReportCardProps {
   title: string;
@@ -69,7 +70,7 @@ function ReportCard({ title, description, icon, category, frequency, lastGenerat
 }
 
 export default function AdvancedReporting() {
-  const [dateRange, setDateRange] = useState<{from?: Date; to?: Date}>({});
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [selectedFormat, setSelectedFormat] = useState<string>("pdf");
 
@@ -231,7 +232,7 @@ export default function AdvancedReporting() {
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start">
                     <CalendarIcon className="w-4 h-4 mr-2" />
-                    {dateRange.from ? (
+                    {dateRange?.from ? (
                       dateRange.to ? (
                         `${format(dateRange.from, "MMM dd")} - ${format(dateRange.to, "MMM dd")}`
                       ) : (
@@ -245,7 +246,7 @@ export default function AdvancedReporting() {
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="range"
-                    defaultMonth={dateRange.from}
+                    defaultMonth={dateRange?.from}
                     selected={dateRange}
                     onSelect={setDateRange}
                     numberOfMonths={2}

@@ -583,7 +583,7 @@ export default function CrmIntegration() {
                           <div className="text-xs text-green-600">
                             Profit: ${deal.profit.toLocaleString()}
                           </div>
-                          <Badge size="sm" className={deal.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                          <Badge className={deal.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
                             {deal.status}
                           </Badge>
                         </div>

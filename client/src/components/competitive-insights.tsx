@@ -108,7 +108,7 @@ export default function CompetitiveInsights() {
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {getPositionBadge(insight.position || 'average')}
+                    {getPositionBadge(insight.pricePosition || 'average')}
                     <div className="text-xs text-gray-500">
                       {insight.confidence}% confidence
                     </div>
