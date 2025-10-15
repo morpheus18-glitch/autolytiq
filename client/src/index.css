@@ -370,6 +370,74 @@ textarea {
     background: radial-gradient(120% 120% at 50% 0%, hsl(var(--primary) / 0.12), transparent 70%);
   }
 
+  /* Embossed Button Styles with Pixelated Shadows */
+  .btn-embossed {
+    position: relative;
+    border: 2px solid hsl(var(--border));
+    background: linear-gradient(145deg, hsl(var(--surface-strong)), hsl(var(--surface)));
+    color: hsl(var(--foreground));
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+      2px 2px 0 0 hsl(var(--primary) / 0.3),
+      4px 4px 0 0 hsl(var(--primary) / 0.2),
+      6px 6px 0 0 hsl(var(--primary) / 0.1),
+      inset 0 -2px 8px rgba(0, 0, 0, 0.05),
+      inset 0 2px 8px rgba(255, 255, 255, 0.3);
+  }
+
+  .btn-embossed:hover {
+    transform: translate(-2px, -2px);
+    border-color: hsl(var(--primary) / 0.7);
+    background: linear-gradient(145deg, hsl(var(--primary) / 0.08), hsl(var(--surface)));
+    box-shadow: 
+      3px 3px 0 0 hsl(var(--primary) / 0.4),
+      6px 6px 0 0 hsl(var(--primary) / 0.25),
+      9px 9px 0 0 hsl(var(--primary) / 0.15),
+      inset 0 -2px 8px rgba(0, 0, 0, 0.05),
+      inset 0 2px 8px rgba(255, 255, 255, 0.4);
+  }
+
+  .btn-embossed:active {
+    transform: translate(2px, 2px);
+    background: linear-gradient(145deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05));
+    border-color: hsl(var(--primary));
+    box-shadow: 
+      1px 1px 0 0 hsl(var(--primary) / 0.5),
+      inset 0 2px 8px rgba(0, 0, 0, 0.1),
+      inset 0 -2px 8px rgba(255, 255, 255, 0.2);
+  }
+
+  .dark .btn-embossed {
+    background: linear-gradient(145deg, hsl(var(--surface)), hsl(var(--surface-muted)));
+    border-color: hsl(var(--border) / 0.6);
+    box-shadow: 
+      2px 2px 0 0 hsl(var(--primary) / 0.5),
+      4px 4px 0 0 hsl(var(--primary) / 0.3),
+      6px 6px 0 0 hsl(var(--primary) / 0.2),
+      inset 0 -2px 8px rgba(0, 0, 0, 0.3),
+      inset 0 2px 8px rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .btn-embossed:hover {
+    background: linear-gradient(145deg, hsl(var(--primary) / 0.15), hsl(var(--surface)));
+    box-shadow: 
+      3px 3px 0 0 hsl(var(--primary) / 0.6),
+      6px 6px 0 0 hsl(var(--primary) / 0.4),
+      9px 9px 0 0 hsl(var(--primary) / 0.25),
+      inset 0 -2px 8px rgba(0, 0, 0, 0.3),
+      inset 0 2px 8px rgba(255, 255, 255, 0.15);
+  }
+
+  .dark .btn-embossed:active {
+    background: linear-gradient(145deg, hsl(var(--primary) / 0.25), hsl(var(--primary) / 0.1));
+    box-shadow: 
+      1px 1px 0 0 hsl(var(--primary) / 0.7),
+      inset 0 2px 8px rgba(0, 0, 0, 0.4),
+      inset 0 -2px 8px rgba(255, 255, 255, 0.1);
+  }
+
   .blurred-border {
     position: relative;
     border-radius: calc(var(--radius) * 2);

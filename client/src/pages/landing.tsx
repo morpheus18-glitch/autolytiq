@@ -22,7 +22,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="landing-surface min-h-screen text-foreground">
+    <div className="landing-surface min-h-[100dvh] text-foreground">
       <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-16 pt-6 sm:px-6 lg:px-10 lg:pb-24">
         <div className="absolute inset-x-10 top-24 h-[420px] rounded-full blur-3xl hero-spotlight" aria-hidden="true" />
         <div className="absolute inset-0 grid-overlay opacity-50 dark:opacity-25" aria-hidden="true" />
@@ -41,7 +41,7 @@ export default function Landing() {
             <ThemeToggle />
             <Button
               onClick={handleLogin}
-              className="brand-gradient rounded-xl px-4 py-2 text-sm font-semibold shadow-brand"
+              className="btn-embossed rounded-xl px-4 py-2 text-sm"
               data-testid="button-login-header"
             >
               Log In
@@ -70,17 +70,17 @@ export default function Landing() {
                 <Button
                   onClick={handleLogin}
                   size="lg"
-                  className="brand-gradient rounded-xl px-7 py-4 text-base font-semibold shadow-brand"
+                  className="btn-embossed rounded-xl px-7 py-4 text-base"
                   data-testid="button-get-started"
                 >
                   Launch the platform
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
                 <Button
-                  variant="outline"
-                  size="lg"
                   onClick={handleLogin}
-                  className="rounded-xl border-border/70 bg-white/70 px-7 py-4 text-base font-semibold text-foreground hover:border-primary/35 hover:text-primary dark:bg-white/10"
+                  size="lg"
+                  className="btn-embossed rounded-xl px-7 py-4 text-base"
+                  data-testid="button-book-demo"
                 >
                   Book a live demo
                 </Button>
