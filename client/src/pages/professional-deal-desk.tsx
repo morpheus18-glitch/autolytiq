@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useLocation, Link } from 'wouter';
+import { useLocation, Link, useRoute } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -185,6 +185,9 @@ export default function ProfessionalDealDesk() {
   const { toast } = useToast();
   const [location] = useLocation();
   const { trackInteraction, setTrackedCustomer } = usePixelTracker();
+  const [dealRouteMatch, dealRouteParams] = useRoute('/professional-deal-desk/:dealId');
+  const [legacyDealRouteMatch, legacyDealRouteParams] = useRoute('/deals/:dealId');
+  const routeDealId = dealRouteMatch ? dealRouteParams?.dealId : legacyDealRouteMatch ? legacyDealRouteParams?.dealId : null;
   
   // Core deal state
   const [dealId, setDealId] = useState<string | null>(null);
@@ -306,10 +309,15 @@ export default function ProfessionalDealDesk() {
   
   // UI state
   const [managerMode, setManagerMode] = useState(true); // Manager vs Customer view
-  
+
   // Autosave state
   const [autosaving, setAutosaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+  const { data: existingDeal } = useQuery<Deal>({
+    queryKey: ['/api/deals', routeDealId ?? ''],
+    enabled: Boolean(routeDealId),
+  });
   
   // TODO: Proper multi-tenant implementation - fetch user's storeId from session/auth
   // For now, fetch the first available store from the database
@@ -368,6 +376,14 @@ export default function ProfessionalDealDesk() {
   const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
   });
+
+  useEffect(() => {
+    if (routeDealId) {
+      setDealId(routeDealId);
+    } else if (!existingDeal) {
+      setDealId(null);
+    }
+  }, [routeDealId, existingDeal]);
 
   const {
     data: customerTrades = [],
@@ -476,12 +492,15 @@ export default function ProfessionalDealDesk() {
   
   // Auto-populate from vehicle
   useEffect(() => {
-    if (selectedVehicle) {
+    if (!selectedVehicle) return;
+
+    setVehicleCost(selectedVehicle.costPrice || 0);
+
+    if (!routeDealId && dealId === null) {
       setSalePrice(selectedVehicle.price);
-      setVehicleCost(selectedVehicle.costPrice || 0);
       setMsrpCents(Math.round(selectedVehicle.price * 100));
     }
-  }, [selectedVehicle]);
+  }, [selectedVehicle, routeDealId, dealId]);
 
   // Auto-select customer from URL parameter
   useEffect(() => {
@@ -503,6 +522,12 @@ export default function ProfessionalDealDesk() {
         description: "Vehicle pre-selected from inventory",
       });
     }
+
+    const tradeIdParam = params.get('tradeId');
+    if (tradeIdParam) {
+      setSelectedTradeId(parseInt(tradeIdParam));
+      setTradeSelectionManuallyCleared(false);
+    }
   }, [location, toast]);
 
   // Track customer when selected and auto-populate ZIP
@@ -515,6 +540,101 @@ export default function ProfessionalDealDesk() {
       });
     }
   }, [customerId, selectedCustomer, setTrackedCustomer, trackInteraction]);
+
+  useEffect(() => {
+    if (!existingDeal) return;
+
+    if (existingDeal.id) {
+      setDealId(existingDeal.id);
+    }
+
+    const numericCustomerId = existingDeal.customerId
+      ? Number(existingDeal.customerId)
+      : null;
+    if (numericCustomerId && !Number.isNaN(numericCustomerId)) {
+      setCustomerId(numericCustomerId);
+    }
+
+    const numericVehicleId = existingDeal.vehicleId
+      ? Number(existingDeal.vehicleId)
+      : null;
+    if (numericVehicleId && !Number.isNaN(numericVehicleId)) {
+      setVehicleId(numericVehicleId);
+    }
+
+    if (existingDeal.dealType) {
+      setDealType(existingDeal.dealType);
+    }
+
+    if (existingDeal.salePrice != null) {
+      setSalePrice(existingDeal.salePrice);
+      setMsrpCents(moneyValueToCents(existingDeal.msrp ?? existingDeal.salePrice));
+    }
+
+    setCashDown(existingDeal.cashDown ?? 0);
+    setCashDownCents(moneyValueToCents(existingDeal.cashDown));
+
+    setRebates(existingDeal.rebates ?? 0);
+    setRebatesCents(moneyValueToCents(existingDeal.rebates));
+
+    if (existingDeal.tradeAllowance != null) {
+      const allowanceCents = moneyValueToCents(existingDeal.tradeAllowance);
+      setTradeAllowanceCents(allowanceCents);
+      if (allowanceCents != null) {
+        setTradeValue(allowanceCents / 100);
+      }
+    } else {
+      setTradeAllowanceCents(null);
+      setTradeValue(0);
+    }
+
+    if (existingDeal.tradePayoff != null) {
+      const payoffCents = moneyValueToCents(existingDeal.tradePayoff);
+      setTradePayoffCents(payoffCents);
+      if (payoffCents != null) {
+        setTradePayoff(payoffCents / 100);
+      }
+    } else {
+      setTradePayoffCents(null);
+      setTradePayoff(0);
+    }
+
+    setLienholderName(existingDeal.payoffLenderName ?? null);
+    setPayoffGoodThru(existingDeal.payoffGoodThrough ?? null);
+    setTitleState(existingDeal.payoffLenderState ?? null);
+
+    if (existingDeal.creditTier) {
+      setCreditTier(existingDeal.creditTier);
+    }
+
+    if (existingDeal.term != null) {
+      setTerm(existingDeal.term);
+    }
+
+    if (existingDeal.rate) {
+      const parsedRate = parseFloat(String(existingDeal.rate).replace('%', ''));
+      if (!Number.isNaN(parsedRate)) {
+        setApr(parsedRate);
+      }
+    }
+
+    const fees: DealFee[] = [];
+    const docFeeCents = moneyValueToCents(existingDeal.docFee);
+    if (docFeeCents != null && docFeeCents > 0) {
+      fees.push({ id: 'doc-fee', code: 'DOC', description: 'Doc Fee', amountCents: docFeeCents, taxable: true });
+    }
+    const titleFeeCents = moneyValueToCents(existingDeal.titleFee);
+    if (titleFeeCents != null && titleFeeCents > 0) {
+      fees.push({ id: 'title-fee', code: 'TITLE', description: 'Title Fee', amountCents: titleFeeCents, taxable: false });
+    }
+    const regFeeCents = moneyValueToCents(existingDeal.registrationFee);
+    if (regFeeCents != null && regFeeCents > 0) {
+      fees.push({ id: 'reg-fee', code: 'REG', description: 'Registration', amountCents: regFeeCents, taxable: false });
+    }
+    setDealFees(fees);
+
+    setTradeSelectionManuallyCleared(false);
+  }, [existingDeal]);
 
   useEffect(() => {
     if (!selectedCustomer) {
@@ -610,6 +730,17 @@ export default function ProfessionalDealDesk() {
       lastPrefilledTradeId.current = null;
     }
   }, [tradeSelectionManuallyCleared, selectedTradeId]);
+
+  useEffect(() => {
+    if (!existingDeal || !existingDeal.tradeVin) return;
+    if (!customerTrades || customerTrades.length === 0) return;
+
+    const match = customerTrades.find((trade) => trade.vin && trade.vin === existingDeal.tradeVin);
+    if (match) {
+      setSelectedTradeId(match.id);
+      setTradeSelectionManuallyCleared(false);
+    }
+  }, [existingDeal, customerTrades]);
 
   // Debounced autosave - triggers 2 seconds after user stops editing
   useEffect(() => {

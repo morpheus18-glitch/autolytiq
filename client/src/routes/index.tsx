@@ -102,6 +102,7 @@ const routeDefinitions: RouteDefinition[] = [
     component: ProfessionalDealDesk,
     aliases: ['/deals-finance', '/deal-desk', '/deal-working', '/finance/structuring']
   },
+  { path: '/professional-deal-desk/:id', component: ProfessionalDealDesk },
   { path: '/deals/:id', component: ProfessionalDealDesk },
   { path: '/trade-appraisals', component: TradeAppraisals },
   { path: '/showroom', component: ShowroomManager, aliases: ['/showroom-manager'] },

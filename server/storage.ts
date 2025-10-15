@@ -363,92 +363,92 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private vehicles: Map<number, Vehicle>;
-  private customers: Map<number, Customer>;
-  private leads: Map<number, Lead>;
-  private sales: Map<number, Sale>;
-  private activities: Map<number, Activity>;
-  private visitorSessions: Map<string, VisitorSession>;
-  private pageViews: Map<number, PageView>;
-  private customerInteractions: Map<number, CustomerInteraction>;
-  private competitorAnalytics: Map<number, CompetitorAnalytics>;
-  private competitivePricing: Map<number, CompetitivePricing>;
-  private pricingInsights: Map<number, PricingInsights>;
-  private merchandisingStrategies: Map<number, MerchandisingStrategies>;
-  private marketTrends: Map<number, MarketTrends>;
-  private creditApplications: Map<number, CreditApplication>;
-  private coApplicants: Map<number, CoApplicant>;
-  private tradeVehicles: Map<number, TradeVehicle>;
-  private showroomVisits: Map<number, ShowroomVisit>;
-  private salespersonNotes: Map<number, SalespersonNote>;
-  private showroomSessions: Map<number, ShowroomSession>;
-  private deals: Map<string, any>;
-  private dealProducts: Map<string, any[]>;
-  private dealGross: Map<string, any>;
-  private accountingEntries: Map<string, any[]>;
-  
+  protected users: Map<number, User>;
+  protected vehicles: Map<number, Vehicle>;
+  protected customers: Map<number, Customer>;
+  protected leads: Map<number, Lead>;
+  protected sales: Map<number, Sale>;
+  protected activities: Map<number, Activity>;
+  protected visitorSessions: Map<string, VisitorSession>;
+  protected pageViews: Map<number, PageView>;
+  protected customerInteractions: Map<number, CustomerInteraction>;
+  protected competitorAnalytics: Map<number, CompetitorAnalytics>;
+  protected competitivePricing: Map<number, CompetitivePricing>;
+  protected pricingInsights: Map<number, PricingInsights>;
+  protected merchandisingStrategies: Map<number, MerchandisingStrategies>;
+  protected marketTrends: Map<number, MarketTrends>;
+  protected creditApplications: Map<number, CreditApplication>;
+  protected coApplicants: Map<number, CoApplicant>;
+  protected tradeVehicles: Map<number, TradeVehicle>;
+  protected showroomVisits: Map<number, ShowroomVisit>;
+  protected salespersonNotes: Map<number, SalespersonNote>;
+  protected showroomSessions: Map<number, ShowroomSession>;
+  protected deals: Map<string, any>;
+  protected dealProducts: Map<string, any[]>;
+  protected dealGross: Map<string, any>;
+  protected accountingEntries: Map<string, any[]>;
+
   // F&I Storage Maps
-  private creditPulls: Map<number, CreditPull>;
-  private lenderApplications: Map<number, LenderApplication>;
-  private fiProducts: Map<number, FiProduct>;
-  private financeMenus: Map<number, FinanceMenu>;
-  private fiAuditLogs: Map<number, FiAuditLog>;
-  
+  protected creditPulls: Map<number, CreditPull>;
+  protected lenderApplications: Map<number, LenderApplication>;
+  protected fiProducts: Map<number, FiProduct>;
+  protected financeMenus: Map<number, FinanceMenu>;
+  protected fiAuditLogs: Map<number, FiAuditLog>;
+
   // System User Management Storage
-  private systemUsers: Map<string, SystemUser>;
-  private userSessions: Map<string, UserSession>;
-  private systemRoles: Map<string, SystemRole>;
-  private activityLogs: Map<string, ActivityLogEntry>;
-  
+  protected systemUsers: Map<string, SystemUser>;
+  protected userSessions: Map<string, UserSession>;
+  protected systemRoles: Map<string, SystemRole>;
+  protected activityLogs: Map<string, ActivityLogEntry>;
+
   // Advanced Enterprise Feature Storage
-  private customerTimeline: Map<number, CustomerTimeline>;
-  private aiInsights: Map<number, AiInsights>;
-  private collaborationThreads: Map<number, CollaborationThreads>;
-  private collaborationMessages: Map<number, CollaborationMessages>;
-  private kpiMetrics: Map<number, KpiMetrics>;
-  private duplicateCustomers: Map<number, DuplicateCustomers>;
-  private workflowTemplates: Map<number, WorkflowTemplates>;
-  private workflowExecutions: Map<number, WorkflowExecutions>;
-  private predictiveScores: Map<number, PredictiveScores>;
-  private marketBenchmarks: Map<number, MarketBenchmarks>;
-  
-  private currentUserId: number;
-  private currentVehicleId: number;
-  private currentCustomerId: number;
-  private currentLeadId: number;
-  private currentSaleId: number;
-  private currentActivityId: number;
-  private currentPageViewId: number;
-  private currentInteractionId: number;
-  private currentCompetitorId: number;
-  private currentCompetitivePricingId: number;
-  private currentPricingInsightsId: number;
-  private currentMerchandisingStrategyId: number;
-  private currentMarketTrendId: number;
-  private currentCreditApplicationId: number;
-  private currentCoApplicantId: number;
-  private currentTradeVehicleId: number;
-  private currentShowroomVisitId: number;
-  private currentSalespersonNoteId: number;
-  private currentShowroomSessionId: number;
-  private currentCustomerTimelineId: number;
-  private currentAiInsightsId: number;
-  private currentCollaborationThreadId: number;
-  private currentCollaborationMessageId: number;
-  private currentKpiMetricId: number;
-  private currentDuplicateCustomerId: number;
-  private currentWorkflowTemplateId: number;
-  private currentWorkflowExecutionId: number;
-  private currentPredictiveScoreId: number;
-  private currentMarketBenchmarkId: number;
-  
+  protected customerTimeline: Map<number, CustomerTimeline>;
+  protected aiInsights: Map<number, AiInsights>;
+  protected collaborationThreads: Map<number, CollaborationThreads>;
+  protected collaborationMessages: Map<number, CollaborationMessages>;
+  protected kpiMetrics: Map<number, KpiMetrics>;
+  protected duplicateCustomers: Map<number, DuplicateCustomers>;
+  protected workflowTemplates: Map<number, WorkflowTemplates>;
+  protected workflowExecutions: Map<number, WorkflowExecutions>;
+  protected predictiveScores: Map<number, PredictiveScores>;
+  protected marketBenchmarks: Map<number, MarketBenchmarks>;
+
+  protected currentUserId: number;
+  protected currentVehicleId: number;
+  protected currentCustomerId: number;
+  protected currentLeadId: number;
+  protected currentSaleId: number;
+  protected currentActivityId: number;
+  protected currentPageViewId: number;
+  protected currentInteractionId: number;
+  protected currentCompetitorId: number;
+  protected currentCompetitivePricingId: number;
+  protected currentPricingInsightsId: number;
+  protected currentMerchandisingStrategyId: number;
+  protected currentMarketTrendId: number;
+  protected currentCreditApplicationId: number;
+  protected currentCoApplicantId: number;
+  protected currentTradeVehicleId: number;
+  protected currentShowroomVisitId: number;
+  protected currentSalespersonNoteId: number;
+  protected currentShowroomSessionId: number;
+  protected currentCustomerTimelineId: number;
+  protected currentAiInsightsId: number;
+  protected currentCollaborationThreadId: number;
+  protected currentCollaborationMessageId: number;
+  protected currentKpiMetricId: number;
+  protected currentDuplicateCustomerId: number;
+  protected currentWorkflowTemplateId: number;
+  protected currentWorkflowExecutionId: number;
+  protected currentPredictiveScoreId: number;
+  protected currentMarketBenchmarkId: number;
+
   // F&I ID Counters
-  private currentCreditPullId: number;
-  private currentLenderApplicationId: number;
-  private currentFiProductId: number;
-  private currentFinanceMenuId: number;
-  private currentFiAuditLogId: number;
+  protected currentCreditPullId: number;
+  protected currentLenderApplicationId: number;
+  protected currentFiProductId: number;
+  protected currentFinanceMenuId: number;
+  protected currentFiAuditLogId: number;
 
   constructor() {
     this.users = new Map();
@@ -518,6 +518,47 @@ export class MemStorage implements IStorage {
     
     this.initializeDefaultData();
     this.initializeSystemUserData();
+  }
+
+  protected toNullableNumber(value: unknown): number | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : null;
+    }
+    if (typeof value === "string") {
+      const parsed = Number(value);
+      return Number.isNaN(parsed) ? null : parsed;
+    }
+    return null;
+  }
+
+  protected normalizeCustomerRow(row: typeof customers.$inferSelect): Customer {
+    return {
+      ...row,
+      income: this.toNullableNumber(row.income),
+    };
+  }
+
+  protected normalizeVehicleRow(row: typeof vehicles.$inferSelect): Vehicle {
+    return {
+      ...row,
+      createdAt: row.createdAt ?? new Date(),
+      updatedAt: row.updatedAt ?? new Date(),
+    };
+  }
+
+  protected normalizeTradeVehicleRow(row: typeof tradeVehicles.$inferSelect): TradeVehicle {
+    return {
+      ...row,
+      estimatedValue: this.toNullableNumber(row.estimatedValue),
+      kbbValue: this.toNullableNumber(row.kbbValue),
+      mmrValue: this.toNullableNumber(row.mmrValue),
+      actualValue: this.toNullableNumber(row.actualValue),
+      createdAt: row.createdAt ?? new Date(),
+      updatedAt: row.updatedAt ?? new Date(),
+    };
   }
 
   private initializeDefaultData() {
@@ -1251,35 +1292,85 @@ export class MemStorage implements IStorage {
 
   // Vehicle operations
   async getVehicles(): Promise<Vehicle[]> {
-    return Array.from(this.vehicles.values()).sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    try {
+      const rows = await db.select().from(vehicles).orderBy(desc(vehicles.createdAt));
+      const normalized = rows.map((row) => this.normalizeVehicleRow(row));
+
+      this.vehicles.clear();
+      for (const vehicle of normalized) {
+        this.vehicles.set(vehicle.id, vehicle);
+      }
+      this.currentVehicleId = normalized.reduce((max, vehicle) => Math.max(max, vehicle.id + 1), this.currentVehicleId);
+
+      return normalized;
+    } catch (error) {
+      console.error('Error fetching vehicles from database:', error);
+      return Array.from(this.vehicles.values()).sort((a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    }
   }
 
   async getVehicle(id: number): Promise<Vehicle | undefined> {
+    try {
+      const [row] = await db.select().from(vehicles).where(eq(vehicles.id, id));
+      if (row) {
+        const vehicle = this.normalizeVehicleRow(row);
+        this.vehicles.set(vehicle.id, vehicle);
+        return vehicle;
+      }
+    } catch (error) {
+      console.error('Error fetching vehicle from database:', error);
+    }
     return this.vehicles.get(id);
   }
 
   async createVehicle(insertVehicle: InsertVehicle): Promise<Vehicle> {
-    const id = this.currentVehicleId++;
-    const vehicle: Vehicle = { 
-      ...insertVehicle, 
-      id,
-      uuid: crypto.randomUUID(),
+    try {
+      const now = new Date();
+      const [created] = await db
+        .insert(vehicles)
+        .values({
+          ...insertVehicle,
+          uuid: insertVehicle.uuid ?? crypto.randomUUID(),
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning();
+
+      const vehicle = this.normalizeVehicleRow(created);
+      this.vehicles.set(vehicle.id, vehicle);
+      this.currentVehicleId = Math.max(this.currentVehicleId, vehicle.id + 1);
+
+      await this.createActivity({
+        type: "vehicle_added",
+        description: `Added new vehicle: ${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+        userId: 1
+      });
+
+      return vehicle;
+    } catch (error) {
+      console.error('Error creating vehicle in database:', error);
+    }
+
+    const fallbackId = this.currentVehicleId++;
+    const fallbackVehicle: Vehicle = {
+      ...insertVehicle,
+      id: fallbackId,
+      uuid: insertVehicle.uuid ?? crypto.randomUUID(),
       createdAt: new Date(),
       description: insertVehicle.description || null,
       imageUrl: insertVehicle.imageUrl || null
     };
-    this.vehicles.set(id, vehicle);
-    
-    // Create activity
+    this.vehicles.set(fallbackId, fallbackVehicle);
+
     await this.createActivity({
       type: "vehicle_added",
-      description: `Added new vehicle: ${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+      description: `Added new vehicle: ${fallbackVehicle.year} ${fallbackVehicle.make} ${fallbackVehicle.model}`,
       userId: 1
     });
-    
-    return vehicle;
+
+    return fallbackVehicle;
   }
 
   // Market leads data access - REAL DATA ONLY
@@ -1354,44 +1445,98 @@ export class MemStorage implements IStorage {
   }
 
   async updateVehicle(id: number, updateVehicle: Partial<InsertVehicle>): Promise<Vehicle | undefined> {
+    try {
+      const [updated] = await db
+        .update(vehicles)
+        .set({ ...updateVehicle, updatedAt: new Date() })
+        .where(eq(vehicles.id, id))
+        .returning();
+
+      if (updated) {
+        const vehicle = this.normalizeVehicleRow(updated);
+        this.vehicles.set(id, vehicle);
+        return vehicle;
+      }
+    } catch (error) {
+      console.error('Error updating vehicle in database:', error);
+    }
+
     const vehicle = this.vehicles.get(id);
     if (!vehicle) return undefined;
-    
-    const updatedVehicle = { ...vehicle, ...updateVehicle };
-    this.vehicles.set(id, updatedVehicle);
-    return updatedVehicle;
+
+    const fallback = { ...vehicle, ...updateVehicle } as Vehicle;
+    this.vehicles.set(id, fallback);
+    return fallback;
   }
 
   async deleteVehicle(id: number): Promise<void> {
+    try {
+      await db.delete(vehicles).where(eq(vehicles.id, id));
+    } catch (error) {
+      console.error('Error deleting vehicle from database:', error);
+    }
     this.vehicles.delete(id);
   }
 
   // Customer operations
   async getCustomers(): Promise<Customer[]> {
     try {
-      return Array.from(this.customers.values()).sort((a, b) => 
+      const rows = await db.select().from(customers).orderBy(desc(customers.createdAt));
+      const normalized = rows.map((row) => this.normalizeCustomerRow(row));
+
+      this.customers.clear();
+      for (const customer of normalized) {
+        this.customers.set(customer.id, customer);
+      }
+      this.currentCustomerId = normalized.reduce((max, customer) => Math.max(max, customer.id + 1), this.currentCustomerId);
+
+      return normalized;
+    } catch (error) {
+      console.error('Error getting customers from database:', error);
+      return Array.from(this.customers.values()).sort((a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-    } catch (error) {
-      console.error('Error getting customers:', error);
-      throw error;
     }
   }
 
   async getCustomer(id: number): Promise<Customer | undefined> {
     try {
-      return this.customers.get(id);
+      const [row] = await db.select().from(customers).where(eq(customers.id, id));
+      if (row) {
+        const customer = this.normalizeCustomerRow(row);
+        this.customers.set(customer.id, customer);
+        return customer;
+      }
     } catch (error) {
-      console.error('Error getting customer:', error);
-      throw error;
+      console.error('Error getting customer from database:', error);
     }
+    return this.customers.get(id);
   }
 
   async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
+    try {
+      const now = new Date();
+      const [created] = await db
+        .insert(customers)
+        .values({
+          ...insertCustomer,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning();
+
+      const customer = this.normalizeCustomerRow(created);
+      this.customers.set(customer.id, customer);
+      this.currentCustomerId = Math.max(this.currentCustomerId, customer.id + 1);
+      return customer;
+    } catch (error) {
+      console.error('Error creating customer in database:', error);
+    }
+
     const id = this.currentCustomerId++;
-    const customer: Customer = { 
-      ...insertCustomer, 
-      id, 
+    const fallback: Customer = {
+      ...insertCustomer,
+      id,
       createdAt: new Date(),
       phone: insertCustomer.phone || null,
       cellPhone: insertCustomer.cellPhone || null,
@@ -1430,20 +1575,41 @@ export class MemStorage implements IStorage {
       lastContactDate: insertCustomer.lastContactDate || null,
       nextFollowUpDate: insertCustomer.nextFollowUpDate || null
     };
-    this.customers.set(id, customer);
-    return customer;
+    this.customers.set(id, fallback);
+    return fallback;
   }
 
   async updateCustomer(id: number, updateCustomer: Partial<InsertCustomer>): Promise<Customer | undefined> {
+    try {
+      const [updated] = await db
+        .update(customers)
+        .set({ ...updateCustomer, updatedAt: new Date() })
+        .where(eq(customers.id, id))
+        .returning();
+
+      if (updated) {
+        const customer = this.normalizeCustomerRow(updated);
+        this.customers.set(id, customer);
+        return customer;
+      }
+    } catch (error) {
+      console.error('Error updating customer in database:', error);
+    }
+
     const customer = this.customers.get(id);
     if (!customer) return undefined;
-    
-    const updatedCustomer = { ...customer, ...updateCustomer };
-    this.customers.set(id, updatedCustomer);
-    return updatedCustomer;
+
+    const fallback = { ...customer, ...updateCustomer } as Customer;
+    this.customers.set(id, fallback);
+    return fallback;
   }
 
   async deleteCustomer(id: number): Promise<void> {
+    try {
+      await db.delete(customers).where(eq(customers.id, id));
+    } catch (error) {
+      console.error('Error deleting customer from database:', error);
+    }
     this.customers.delete(id);
   }
 
@@ -2056,14 +2222,82 @@ export class MemStorage implements IStorage {
 
   // Trade Vehicle operations
   async getTradeVehicles(customerId: number): Promise<TradeVehicle[]> {
-    return Array.from(this.tradeVehicles.values()).filter(vehicle => vehicle.customerId === customerId);
+    try {
+      const rows = await db
+        .select()
+        .from(tradeVehicles)
+        .where(eq(tradeVehicles.customerId, customerId))
+        .orderBy(desc(tradeVehicles.createdAt));
+
+      const normalized = rows.map((row) => this.normalizeTradeVehicleRow(row));
+
+      for (const [id, trade] of Array.from(this.tradeVehicles.entries())) {
+        if (trade.customerId === customerId) {
+          this.tradeVehicles.delete(id);
+        }
+      }
+      for (const trade of normalized) {
+        this.tradeVehicles.set(trade.id, trade);
+      }
+      this.currentTradeVehicleId = normalized.reduce((max, trade) => Math.max(max, trade.id + 1), this.currentTradeVehicleId);
+
+      return normalized;
+    } catch (error) {
+      console.error('Error fetching trade vehicles from database:', error);
+      return Array.from(this.tradeVehicles.values()).filter(vehicle => vehicle.customerId === customerId);
+    }
   }
 
   async getTradeVehicle(id: number): Promise<TradeVehicle | undefined> {
+    try {
+      const [row] = await db.select().from(tradeVehicles).where(eq(tradeVehicles.id, id));
+      if (row) {
+        const trade = this.normalizeTradeVehicleRow(row);
+        this.tradeVehicles.set(trade.id, trade);
+        return trade;
+      }
+    } catch (error) {
+      console.error('Error fetching trade vehicle from database:', error);
+    }
     return this.tradeVehicles.get(id);
   }
 
   async createTradeVehicle(tradeVehicle: any): Promise<TradeVehicle> {
+    try {
+      const now = new Date();
+      const [created] = await db
+        .insert(tradeVehicles)
+        .values({
+          customerId: tradeVehicle.customerId,
+          year: tradeVehicle.year,
+          make: tradeVehicle.make,
+          model: tradeVehicle.model,
+          trim: tradeVehicle.trim || null,
+          vin: tradeVehicle.vin,
+          mileage: tradeVehicle.mileage || null,
+          condition: tradeVehicle.condition || null,
+          estimatedValue: tradeVehicle.estimatedValue ?? null,
+          kbbValue: tradeVehicle.kbbValue ?? null,
+          mmrValue: tradeVehicle.mmrValue ?? null,
+          actualValue: tradeVehicle.actualValue ?? null,
+          photos: tradeVehicle.photos || [],
+          notes: tradeVehicle.notes || null,
+          status: tradeVehicle.status || "pending",
+          appraisedAt: tradeVehicle.appraisedAt || null,
+          appraisedBy: tradeVehicle.appraisedBy || null,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning();
+
+      const normalized = this.normalizeTradeVehicleRow(created);
+      this.tradeVehicles.set(normalized.id, normalized);
+      this.currentTradeVehicleId = Math.max(this.currentTradeVehicleId, normalized.id + 1);
+      return normalized;
+    } catch (error) {
+      console.error('Error creating trade vehicle in database:', error);
+    }
+
     const newTradeVehicle: TradeVehicle = {
       id: this.currentTradeVehicleId++,
       customerId: tradeVehicle.customerId,
@@ -2091,15 +2325,36 @@ export class MemStorage implements IStorage {
   }
 
   async updateTradeVehicle(id: number, tradeVehicle: any): Promise<TradeVehicle | undefined> {
+    try {
+      const [updated] = await db
+        .update(tradeVehicles)
+        .set({ ...tradeVehicle, updatedAt: new Date() })
+        .where(eq(tradeVehicles.id, id))
+        .returning();
+
+      if (updated) {
+        const normalized = this.normalizeTradeVehicleRow(updated);
+        this.tradeVehicles.set(id, normalized);
+        return normalized;
+      }
+    } catch (error) {
+      console.error('Error updating trade vehicle in database:', error);
+    }
+
     const existing = this.tradeVehicles.get(id);
     if (!existing) return undefined;
-    
-    const updated = { ...existing, ...tradeVehicle, updatedAt: new Date().toISOString() };
-    this.tradeVehicles.set(id, updated);
-    return updated;
+
+    const fallback = { ...existing, ...tradeVehicle, updatedAt: new Date().toISOString() } as TradeVehicle;
+    this.tradeVehicles.set(id, fallback);
+    return fallback;
   }
 
   async deleteTradeVehicle(id: number): Promise<void> {
+    try {
+      await db.delete(tradeVehicles).where(eq(tradeVehicles.id, id));
+    } catch (error) {
+      console.error('Error deleting trade vehicle from database:', error);
+    }
     this.tradeVehicles.delete(id);
   }
 
@@ -2638,7 +2893,7 @@ export class MemStorage implements IStorage {
     return note;
   }
 
-  private generateDealNumber(): string {
+  protected generateDealNumber(): string {
     const date = new Date();
     const year = date.getFullYear().toString().slice(-2);
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
