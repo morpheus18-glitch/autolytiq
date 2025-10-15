@@ -681,7 +681,7 @@ export default function CRMLeadManagement() {
             </Button>
           </Link>
           <Link href="/leads" className="w-full sm:w-auto">
-            <Button className="w-full sm:w-auto">
+            <Button className="btn-embossed w-full sm:w-auto">
               <Zap className="mr-2 h-4 w-4" /> Add Lead
             </Button>
           </Link>

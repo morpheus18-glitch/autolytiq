@@ -171,7 +171,7 @@ export default function Sales() {
           <p className="text-xs sm:text-sm text-gray-600 mt-1">Manage leads and track sales performance</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <Button className="w-full sm:w-auto">
+          <Button className="btn-embossed w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Add Lead
           </Button>
