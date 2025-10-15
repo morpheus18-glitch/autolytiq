@@ -96,16 +96,16 @@ export default function TopNavigation() {
     <>
       <div
         ref={navRef}
-        className="sticky top-0 z-50 px-3 pt-4 pb-3 sm:px-6 lg:px-10"
+        className="sticky top-0 z-50 px-2 pt-2 pb-2 sm:px-4 sm:pt-3 sm:pb-3 lg:px-10 lg:pt-4 lg:pb-3"
       >
         <div className="relative">
           <div className="absolute inset-x-0 -top-2 h-px gradient-divider opacity-70" aria-hidden="true" />
-          <div className="glass-panel relative flex flex-col gap-3 rounded-2xl px-3 py-3 shadow-card-xl sm:px-5 lg:px-6 lg:py-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <Link href="/" className="flex items-center gap-3">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl brand-gradient shadow-brand">
-                    <Car className="h-5 w-5" />
+          <div className="glass-panel relative flex flex-col gap-2 sm:gap-3 rounded-xl sm:rounded-2xl px-2 py-2 shadow-card-xl sm:px-4 sm:py-3 lg:px-6 lg:py-4">
+            <div className="flex items-center justify-between gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <Link href="/" className="flex items-center gap-2 sm:gap-3">
+                  <span className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl brand-gradient shadow-brand">
+                    <Car className="h-4 w-4 sm:h-5 sm:w-5" />
                   </span>
                   <div className="hidden sm:flex flex-col">
                     <span className="text-base font-semibold leading-tight text-foreground">AutolytiQ</span>
@@ -118,9 +118,10 @@ export default function TopNavigation() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="lg:hidden h-9 w-9 p-0 text-muted-foreground"
+                  className="lg:hidden h-10 w-10 sm:h-9 sm:w-9 p-0 text-muted-foreground"
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                   aria-label="Toggle navigation menu"
+                  data-testid="button-mobile-menu"
                 >
                   {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                 </Button>
@@ -338,10 +339,10 @@ export default function TopNavigation() {
       </div>
 
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-background/90 backdrop-blur-xl">
-          <div className="flex h-14 items-center justify-between border-b border-border/50 px-4">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl brand-gradient shadow-brand">
+        <div className="lg:hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-xl">
+          <div className="flex h-16 items-center justify-between border-b border-border/50 px-4 bg-background/80">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl brand-gradient shadow-brand">
                 <Car className="h-5 w-5" />
               </span>
               <span className="text-base font-semibold text-foreground">AutolytiQ</span>
@@ -350,14 +351,15 @@ export default function TopNavigation() {
               variant="ghost"
               size="sm"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="h-9 w-9 rounded-xl p-0 text-muted-foreground hover:text-foreground"
+              className="h-11 w-11 rounded-xl p-0 text-muted-foreground hover:text-foreground"
               aria-label="Close navigation"
+              data-testid="button-close-menu"
             >
-              <X className="h-5 w-5" />
+              <X className="h-6 w-6" />
             </Button>
           </div>
 
-          <div className="space-y-6 overflow-y-auto px-4 pb-24 pt-6">
+          <div className="space-y-6 overflow-y-auto px-4 pb-28 pt-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60" size={18} />
               <Input
@@ -369,19 +371,19 @@ export default function TopNavigation() {
               />
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               {WORKFLOW_SECTIONS.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <div key={tab.id} className="space-y-2">
                     <div className="flex items-center gap-3 rounded-xl bg-white/85 px-4 py-3 text-sm font-semibold text-foreground shadow-sm dark:bg-white/10">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                         <Icon className="h-5 w-5" />
                       </span>
                       {tab.label}
                     </div>
                     {tab.subItems && (
-                      <div className="ml-4 space-y-1">
+                      <div className="ml-2 space-y-1.5">
                         {tab.subItems.map((item) => {
                           const ItemIcon = item.icon;
                           const isActive =
@@ -392,15 +394,16 @@ export default function TopNavigation() {
                               key={item.path}
                               href={item.path}
                               className={cn(
-                                "flex items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm transition-all",
+                                "flex items-center justify-between gap-3 rounded-xl px-4 py-3.5 min-h-[56px] text-sm transition-all",
                                 isActive
                                   ? "bg-primary/15 text-primary shadow-sm"
                                   : "text-foreground/80 hover:bg-white/70 hover:text-foreground dark:hover:bg-white/10"
                               )}
                               onClick={() => setIsMobileMenuOpen(false)}
+                              data-testid={`link-mobile-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                             >
                               <span className="flex items-center gap-3 text-left">
-                                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                                   <ItemIcon className="h-5 w-5" />
                                 </span>
                                 <span className="font-medium leading-snug">{item.label}</span>
