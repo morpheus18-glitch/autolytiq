@@ -43,6 +43,8 @@ import { AIOptimizationWrapper } from '@/components/deal-desk/ai-optimization-wr
 import { LenderMatcher } from '@/components/deal-desk/lender-matcher';
 import { PaymentScenarios } from '@/components/deal-desk/payment-scenarios';
 import { ProfitOptimizer } from '@/components/deal-desk/profit-optimizer';
+import CustomerModal from '@/components/customer-modal';
+import VehicleModal from '@/components/vehicle-modal';
 
 interface Vehicle {
   id: number;
@@ -52,7 +54,7 @@ interface Vehicle {
   vin: string;
   stockNo: string;
   price: number;
-  costPrice: number;
+  costPrice?: number | null;
 }
 
 interface Customer {
@@ -244,6 +246,9 @@ export default function ProfessionalDealDesk() {
 
   const [selectedTradeId, setSelectedTradeId] = useState<number | null>(null);
   const [tradeSelectionManuallyCleared, setTradeSelectionManuallyCleared] = useState(false);
+
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
 
   const lastPrefilledCustomerId = useRef<number | null>(null);
   const lastPrefilledTradeId = useRef<number | null>(null);
@@ -487,6 +492,15 @@ export default function ProfessionalDealDesk() {
       toast({
         title: "Customer Selected",
         description: "Customer pre-selected from profile",
+      });
+    }
+
+    const vehicleIdParam = params.get('vehicleId');
+    if (vehicleIdParam) {
+      setVehicleId(parseInt(vehicleIdParam));
+      toast({
+        title: "Vehicle Selected",
+        description: "Vehicle pre-selected from inventory",
       });
     }
   }, [location, toast]);
@@ -954,9 +968,12 @@ export default function ProfessionalDealDesk() {
   );
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+      <div
+        className="bg-white/95 dark:bg-gray-800/95 border-b border-gray-200 dark:border-gray-700 backdrop-blur supports-[backdrop-filter]:bg-white/80 sticky z-40"
+        style={{ top: 'calc(var(--top-nav-height, 5.5rem))' }}
+      >
         <div className="px-4 py-3 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -1065,33 +1082,35 @@ export default function ProfessionalDealDesk() {
 
 
         <Tabs defaultValue="desk" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-2">
-            <TabsTrigger value="desk" data-testid="tab-desk" className="text-xs sm:text-sm">
-              <Car className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Desk Deal</span>
-              <span className="sm:hidden">Desk</span>
-            </TabsTrigger>
+          <div className="overflow-x-auto pb-1">
+            <TabsList className="flex w-full min-w-max gap-2 md:grid md:grid-cols-5 md:min-w-0">
+              <TabsTrigger value="desk" data-testid="tab-desk" className="text-xs sm:text-sm">
+                <Car className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Desk Deal</span>
+                <span className="sm:hidden">Desk</span>
+              </TabsTrigger>
 
-            <TabsTrigger value="fi-ledger" data-testid="tab-fi-ledger" className="text-xs sm:text-sm" disabled={!hasDealContext}>
-              <DollarSign className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">F&I Ledger</span>
-              <span className="sm:hidden">F&I</span>
-            </TabsTrigger>
+              <TabsTrigger value="fi-ledger" data-testid="tab-fi-ledger" className="text-xs sm:text-sm" disabled={!hasDealContext}>
+                <DollarSign className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">F&I Ledger</span>
+                <span className="sm:hidden">F&I</span>
+              </TabsTrigger>
 
-            <TabsTrigger value="backend" data-testid="tab-backend" className="text-xs sm:text-sm" disabled={!hasDealContext}>
-              <Package className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Backend</span>
-              <span className="sm:hidden">Products</span>
-            </TabsTrigger>
-            <TabsTrigger value="summary" data-testid="tab-summary" className="text-xs sm:text-sm" disabled={!hasDealContext}>
-              <FileText className="h-4 w-4 mr-1 sm:mr-2" />
-              Summary
-            </TabsTrigger>
-            <TabsTrigger value="profit" data-testid="tab-profit" className="text-xs sm:text-sm" disabled={!hasDealContext}>
-              <TrendingUp className="h-4 w-4 mr-1 sm:mr-2" />
-              Profit
-            </TabsTrigger>
-          </TabsList>
+              <TabsTrigger value="backend" data-testid="tab-backend" className="text-xs sm:text-sm" disabled={!hasDealContext}>
+                <Package className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Backend</span>
+                <span className="sm:hidden">Products</span>
+              </TabsTrigger>
+              <TabsTrigger value="summary" data-testid="tab-summary" className="text-xs sm:text-sm" disabled={!hasDealContext}>
+                <FileText className="h-4 w-4 mr-1 sm:mr-2" />
+                Summary
+              </TabsTrigger>
+              <TabsTrigger value="profit" data-testid="tab-profit" className="text-xs sm:text-sm" disabled={!hasDealContext}>
+                <TrendingUp className="h-4 w-4 mr-1 sm:mr-2" />
+                Profit
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* F&I Ledger Tab - Data-first layout */}
           <TabsContent value="fi-ledger" className="space-y-6">
@@ -1118,10 +1137,10 @@ export default function ProfessionalDealDesk() {
                     </CardHeader>
                     <CardContent>
                       <Select value={vehicleId?.toString()} onValueChange={(v) => setVehicleId(parseInt(v))}>
-                        <SelectTrigger data-testid="select-vehicle-fi">
+                        <SelectTrigger data-testid="select-vehicle-fi" className="sm:min-w-[220px]">
                           <SelectValue placeholder="Choose vehicle..." />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-h-64 overflow-y-auto">
                           {vehicles.map((v) => (
                             <SelectItem key={v.id} value={v.id.toString()}>
                               {v.year} {v.make} {v.model} - ${v.price.toLocaleString()}
@@ -1147,10 +1166,10 @@ export default function ProfessionalDealDesk() {
                     </CardHeader>
                     <CardContent>
                       <Select value={customerId?.toString()} onValueChange={(v) => setCustomerId(parseInt(v))}>
-                        <SelectTrigger data-testid="select-customer-fi">
+                        <SelectTrigger data-testid="select-customer-fi" className="sm:min-w-[220px]">
                           <SelectValue placeholder="Choose customer..." />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-h-64 overflow-y-auto">
                           {customers.map((c) => (
                             <SelectItem key={c.id} value={c.id.toString()}>
                               {c.firstName} {c.lastName}
@@ -1622,18 +1641,30 @@ export default function ProfessionalDealDesk() {
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="desk-vehicle">Vehicle</Label>
-                      <Select value={vehicleId?.toString()} onValueChange={(v) => setVehicleId(parseInt(v))}>
-                        <SelectTrigger id="desk-vehicle" data-testid="select-desk-vehicle">
-                          <SelectValue placeholder="Choose vehicle..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {vehicles.map((v) => (
-                            <SelectItem key={v.id} value={v.id.toString()}>
-                              {v.year} {v.make} {v.model} - ${v.price.toLocaleString()}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <Select value={vehicleId?.toString()} onValueChange={(v) => setVehicleId(parseInt(v))}>
+                          <SelectTrigger id="desk-vehicle" data-testid="select-desk-vehicle" className="sm:min-w-[220px]">
+                            <SelectValue placeholder="Choose vehicle..." />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-64 overflow-y-auto">
+                            {vehicles.map((v) => (
+                              <SelectItem key={v.id} value={v.id.toString()}>
+                                {v.year} {v.make} {v.model} - ${v.price.toLocaleString()}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="sm:w-auto"
+                          onClick={() => setIsVehicleModalOpen(true)}
+                          data-testid="button-add-vehicle"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Vehicle
+                        </Button>
+                      </div>
                       {selectedVehicle && (
                         <>
                           <Link href={`/inventory/${selectedVehicle.id}`}>
@@ -1667,18 +1698,30 @@ export default function ProfessionalDealDesk() {
 
                     <div className="space-y-2">
                       <Label htmlFor="desk-customer">Customer</Label>
-                      <Select value={customerId?.toString()} onValueChange={(v) => setCustomerId(parseInt(v))}>
-                        <SelectTrigger id="desk-customer" data-testid="select-desk-customer">
-                          <SelectValue placeholder="Choose customer..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {customers.map((c) => (
-                            <SelectItem key={c.id} value={c.id.toString()}>
-                              {c.firstName} {c.lastName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <Select value={customerId?.toString()} onValueChange={(v) => setCustomerId(parseInt(v))}>
+                          <SelectTrigger id="desk-customer" data-testid="select-desk-customer" className="sm:min-w-[220px]">
+                            <SelectValue placeholder="Choose customer..." />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-64 overflow-y-auto">
+                            {customers.map((c) => (
+                              <SelectItem key={c.id} value={c.id.toString()}>
+                                {c.firstName} {c.lastName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="sm:w-auto"
+                          onClick={() => setIsCustomerModalOpen(true)}
+                          data-testid="button-add-customer"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Customer
+                        </Button>
+                      </div>
                       {selectedCustomer && (
                         <Link href={`/customers/${selectedCustomer.id}`}>
                           <p className="text-xs text-green-600 dark:text-green-400 underline mt-1">View customer profile</p>
@@ -1696,18 +1739,30 @@ export default function ProfessionalDealDesk() {
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="desk-vehicle">Vehicle</Label>
-                      <Select value={vehicleId?.toString()} onValueChange={(v) => setVehicleId(parseInt(v))}>
-                        <SelectTrigger id="desk-vehicle" data-testid="select-desk-vehicle">
-                          <SelectValue placeholder="Choose vehicle..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {vehicles.map((v) => (
-                            <SelectItem key={v.id} value={v.id.toString()}>
-                              {v.year} {v.make} {v.model} - ${v.price.toLocaleString()}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <Select value={vehicleId?.toString()} onValueChange={(v) => setVehicleId(parseInt(v))}>
+                          <SelectTrigger id="desk-vehicle" data-testid="select-desk-vehicle" className="sm:min-w-[220px]">
+                            <SelectValue placeholder="Choose vehicle..." />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-64 overflow-y-auto">
+                            {vehicles.map((v) => (
+                              <SelectItem key={v.id} value={v.id.toString()}>
+                                {v.year} {v.make} {v.model} - ${v.price.toLocaleString()}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="sm:w-auto"
+                          onClick={() => setIsVehicleModalOpen(true)}
+                          data-testid="button-add-vehicle"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Vehicle
+                        </Button>
+                      </div>
                       {selectedVehicle && (
                         <Link href={`/inventory/${selectedVehicle.id}`}>
                           <p className="text-xs text-blue-600 dark:text-blue-400 underline mt-1">View inventory details</p>
@@ -1717,18 +1772,30 @@ export default function ProfessionalDealDesk() {
 
                     <div className="space-y-2">
                       <Label htmlFor="desk-customer">Customer</Label>
-                      <Select value={customerId?.toString()} onValueChange={(v) => setCustomerId(parseInt(v))}>
-                        <SelectTrigger id="desk-customer" data-testid="select-desk-customer">
-                          <SelectValue placeholder="Choose customer..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {customers.map((c) => (
-                            <SelectItem key={c.id} value={c.id.toString()}>
-                              {c.firstName} {c.lastName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <Select value={customerId?.toString()} onValueChange={(v) => setCustomerId(parseInt(v))}>
+                          <SelectTrigger id="desk-customer" data-testid="select-desk-customer" className="sm:min-w-[220px]">
+                            <SelectValue placeholder="Choose customer..." />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-64 overflow-y-auto">
+                            {customers.map((c) => (
+                              <SelectItem key={c.id} value={c.id.toString()}>
+                                {c.firstName} {c.lastName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="sm:w-auto"
+                          onClick={() => setIsCustomerModalOpen(true)}
+                          data-testid="button-add-customer"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Customer
+                        </Button>
+                      </div>
                       {selectedCustomer && (
                         <Link href={`/customers/${selectedCustomer.id}`}>
                           <p className="text-xs text-green-600 dark:text-green-400 underline mt-1">View customer profile</p>
@@ -2199,6 +2266,29 @@ export default function ProfessionalDealDesk() {
             )}
           </TabsContent>
         </Tabs>
+
+        <CustomerModal
+          open={isCustomerModalOpen}
+          onOpenChange={setIsCustomerModalOpen}
+          onSuccess={(createdCustomer) => {
+            setCustomerId(createdCustomer.id);
+            setCustomerZip(createdCustomer.zipCode ?? '');
+            setTitleState(createdCustomer.state ?? null);
+          }}
+        />
+        <VehicleModal
+          open={isVehicleModalOpen}
+          onOpenChange={setIsVehicleModalOpen}
+          onSuccess={(createdVehicle) => {
+            setVehicleId(createdVehicle.id);
+            if (typeof createdVehicle.price === 'number') {
+              setSalePrice(createdVehicle.price);
+            }
+            if (typeof createdVehicle.costPrice === 'number') {
+              setVehicleCost(createdVehicle.costPrice);
+            }
+          }}
+        />
       </div>
     </div>
   );

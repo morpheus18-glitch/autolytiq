@@ -146,11 +146,11 @@ export default function CustomerDetail() {
         </>
       ) : (
         <>
-          <Button 
-            variant="default" 
+          <Button
+            variant="default"
             onClick={() => {
               trackInteraction('button_click', { action: 'new_deal', customerId: id });
-              setLocation(`/professional-deal-desk?customerId=${id}`);
+              setLocation(`/deals?customerId=${id}`);
             }}
             data-testid="button-new-deal"
           >
