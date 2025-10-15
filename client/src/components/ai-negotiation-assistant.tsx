@@ -97,10 +97,10 @@ export function AINext({
           marketValue,
           customerProfile
         }
-      });
+      }) as unknown as DealAnalysis;
       return response;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: DealAnalysis) => {
       setAnalysis(data);
     }
   });

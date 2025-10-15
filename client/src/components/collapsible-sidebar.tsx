@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from 'wouter';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { navigation } from "@/components/navigation-config";
+import { WORKFLOW_SECTIONS, NavigationSection, NavigationItem } from "@/config/navigation";
 
 interface CollapsibleSidebarProps {
   isOpen: boolean;
@@ -24,8 +24,8 @@ export default function CollapsibleSidebar({ isOpen, onClose, onToggle }: Collap
 
   // Memoize navigation items processing
   const { flatNavigationItems, sectionedNavigationItems } = useMemo(() => {
-    const flat = navigation.filter(item => !item.isSection).slice(0, MAX_COLLAPSED_ITEMS);
-    const sectioned = navigation;
+    const flat = WORKFLOW_SECTIONS.slice(0, MAX_COLLAPSED_ITEMS);
+    const sectioned = WORKFLOW_SECTIONS;
     return { flatNavigationItems: flat, sectionedNavigationItems: sectioned };
   }, []);
 
@@ -45,11 +45,13 @@ export default function CollapsibleSidebar({ isOpen, onClose, onToggle }: Collap
 
   // Render individual navigation item
   const renderNavItem = useCallback((
-    item: any, 
+    item: NavigationSection | NavigationItem, 
     isCollapsed = false, 
     isChild = false
   ) => {
-    const isActive = location === item.href;
+    const itemPath = item.path;
+    const itemLabel = item.label;
+    const isActive = location === itemPath;
     const Icon = item.icon;
     
     const baseClasses = `
@@ -65,40 +67,40 @@ export default function CollapsibleSidebar({ isOpen, onClose, onToggle }: Collap
 
     return (
       <Link
-        key={item.href}
-        href={item.href || '#'}
-        onClick={() => handleNavClick(item.href || '#', item.name)}
+        key={itemPath}
+        href={itemPath || '#'}
+        onClick={() => handleNavClick(itemPath || '#', itemLabel)}
         className="block"
-        aria-label={`Navigate to ${item.name}`}
+        aria-label={`Navigate to ${itemLabel}`}
       >
         <div 
           className={`${baseClasses} ${isCollapsed ? collapsedClasses : expandedClasses}`}
-          title={isCollapsed ? item.name : undefined}
+          title={isCollapsed ? itemLabel : undefined}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && handleNavClick(item.href || '#', item.name)}
+          onKeyDown={(e) => e.key === 'Enter' && handleNavClick(itemPath || '#', itemLabel)}
         >
           {Icon && (
             <Icon className={`h-4 w-4 ${isCollapsed ? '' : 'mr-3'} flex-shrink-0`} />
           )}
-          {!isCollapsed && <span className="truncate">{item.name}</span>}
+          {!isCollapsed && <span className="truncate">{itemLabel}</span>}
         </div>
       </Link>
     );
   }, [location, handleNavClick]);
 
   // Render section with children
-  const renderSection = useCallback((section: any) => (
-    <div key={section.name} className="mb-4">
+  const renderSection = useCallback((section: NavigationSection) => (
+    <div key={section.label} className="mb-4">
       <h3 
         className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
         role="heading"
         aria-level={3}
       >
-        {section.name}
+        {section.label}
       </h3>
-      <div className="space-y-1" role="group" aria-labelledby={`section-${section.name}`}>
-        {section.children?.map((child: any) => renderNavItem(child, false, true))}
+      <div className="space-y-1" role="group" aria-labelledby={`section-${section.id}`}>
+        {section.subItems?.map((child) => renderNavItem(child, false, true))}
       </div>
     </div>
   ), [renderNavItem]);
@@ -166,8 +168,8 @@ export default function CollapsibleSidebar({ isOpen, onClose, onToggle }: Collap
           ) : isOpen ? (
             // Full navigation menu
             <nav className="p-4 space-y-2" role="list">
-              {sectionedNavigationItems.map((item) => 
-                item.isSection ? renderSection(item) : renderNavItem(item)
+              {sectionedNavigationItems.map((section) => 
+                section.subItems ? renderSection(section) : renderNavItem(section)
               )}
             </nav>
           ) : null}

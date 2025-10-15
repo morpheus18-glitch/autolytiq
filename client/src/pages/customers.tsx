@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
-import { 
+import {
   Search,
   Plus,
   Edit,
@@ -27,6 +27,7 @@ import {
   Download,
   Upload
 } from 'lucide-react';
+import CustomerQuickActions from '@/components/customer-quick-actions';
 import type { Customer } from '@shared/schema';
 
 export default function Customers() {
@@ -258,13 +259,14 @@ export default function Customers() {
                   </div>
                 </div>
                 <div className="flex justify-end gap-1">
-                  <Link href={`/professional-deal-desk?customerId=${customer.id}`}>
-                    <Button variant="outline" size="sm" className="p-2" title="Create Deal" onClick={(e) => e.stopPropagation()}>
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </Link>
-                  <Button 
-                    variant="outline" 
+                  <CustomerQuickActions
+                    customer={customer}
+                    buttonVariant="outline"
+                    buttonSize="icon"
+                    className="p-2"
+                  />
+                  <Button
+                    variant="outline"
                     size="sm"
                     className="p-2"
                     title="Call"
@@ -366,14 +368,10 @@ export default function Customers() {
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-1">
-                        <Link href={`/professional-deal-desk?customerId=${customer.id}`}>
-                          <Button variant="ghost" size="sm" title="Create Deal" data-testid={`button-deal-${customer.id}`}>
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <CustomerQuickActions customer={customer} buttonVariant="ghost" buttonSize="icon" />
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           title="Call"
                           onClick={(e) => {
                             e.stopPropagation();

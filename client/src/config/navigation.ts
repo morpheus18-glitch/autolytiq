@@ -73,7 +73,8 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
     icon: DollarSign,
     path: '/sales',
     subItems: [
-      { label: 'Active Deals', path: '/deals', icon: Calculator, badge: '3', matchPaths: ['/professional-deal-desk', '/deal-desk', '/deal-working', '/deals-finance', '/deals-list', '/finance/structuring'] },
+      { label: 'Active Deals', path: '/deals', icon: Calculator, badge: '3', matchPaths: ['/deals', '/deal-log', '/deal-pipeline', '/deals-list'] },
+      { label: 'Deal Desk', path: '/professional-deal-desk', icon: Calculator, matchPaths: ['/professional-deal-desk', '/deal-desk', '/deal-working', '/deals-finance', '/finance/structuring'] },
       { label: 'Leads Pipeline', path: '/leads', icon: Users },
       { label: 'Customer Management', path: '/customers', icon: Users },
       { label: 'Trade Appraisals', path: '/trade-appraisals', icon: Car }
@@ -128,7 +129,8 @@ export const MOBILE_ALL_NAV_ITEMS: MobileNavItem[] = [
   { name: 'Sales & Leads', href: '/sales', icon: Handshake, color: 'text-indigo-600', matchPaths: ['/leads'] },
   { name: 'Customers', href: '/customers', icon: Users, color: 'text-green-600' },
   { name: 'Inventory', href: '/inventory', icon: Car, color: 'text-purple-600' },
-  { name: 'Deal Desk', href: '/deals', icon: Calculator, color: 'text-orange-600', matchPaths: ['/professional-deal-desk', '/deal-desk', '/deal-working', '/deals-finance', '/deals-list', '/finance/structuring'] },
+  { name: 'Deals', href: '/deals', icon: Calculator, color: 'text-orange-600', matchPaths: ['/deals', '/deal-log', '/deal-pipeline', '/deals-list'] },
+  { name: 'Deal Desk', href: '/professional-deal-desk', icon: Calculator, color: 'text-rose-600', matchPaths: ['/professional-deal-desk', '/deal-desk', '/deal-working', '/deals-finance', '/finance/structuring'] },
   { name: 'Showroom', href: '/showroom', icon: Timer, color: 'text-cyan-600', matchPaths: ['/showroom-manager'] },
   { name: 'Analytics', href: '/analytics', icon: TrendingUp, color: 'text-pink-600', matchPaths: ['/analytics/customer-lifecycle', '/competitive-pricing', '/ml-model-comparison'] },
   { name: 'Reports', href: '/reports', icon: BarChart3, color: 'text-yellow-600', matchPaths: ['/reports/sales', '/reports/inventory', '/reports/service', '/reports/financial'] },
@@ -167,5 +169,6 @@ export const MOBILE_QUICK_ACTIONS = [
   { label: 'Add Customer', href: '/customers', icon: Users },
   { label: 'Add Vehicle', href: '/inventory', icon: Car },
   { label: 'New Deal', href: '/deals', icon: Calculator },
+  { label: 'Open Deal Desk', href: '/professional-deal-desk', icon: Calculator },
   { label: 'Track Visit', href: '/showroom', icon: Timer }
 ] as const;
