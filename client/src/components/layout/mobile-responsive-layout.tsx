@@ -1,8 +1,9 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { useScrollLock } from '@/hooks/use-scroll-lock';
 import { 
   Menu, 
   Search, 
@@ -49,22 +50,26 @@ export default function MobileResponsiveLayout({
   stickyHeader = true
 }: MobileResponsiveLayoutProps) {
   const [location] = useLocation();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  // Lock scroll when mobile menu is open
+  useScrollLock(isMenuOpen);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-[100dvh] bg-gray-50 dark:bg-gray-900">
       {/* Fixed Mobile-First Header - Enhanced Responsiveness */}
       <header className={`${stickyHeader ? 'fixed' : 'relative'} top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm`}>
         <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 min-h-[56px]">
           {/* Left - Mobile Menu and Logo */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Mobile Navigation */}
-            <Sheet>
+            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="sm" className="lg:hidden p-1 sm:p-2">
                   <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-80 sm:w-72 p-0 overflow-y-auto">
+              <SheetContent side="left" className="w-80 sm:w-72 p-0 overflow-y-auto h-[100dvh]">
                 <div className="flex flex-col h-full">
                   <div className="p-4 sm:p-6 border-b">
                     <div className="flex items-center gap-2">
@@ -133,7 +138,7 @@ export default function MobileResponsiveLayout({
       </header>
 
       {/* Main Content - Mobile Optimized */}
-      <main className={`${stickyHeader ? 'pt-14 sm:pt-16' : ''} min-h-screen`}>
+      <main className={`${stickyHeader ? 'pt-14 sm:pt-16' : ''} min-h-[100dvh]`}>
         {/* Page Header - Mobile Optimized */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">

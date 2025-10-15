@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from 'wouter';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useScrollLock } from '@/hooks/use-scroll-lock';
 import { WORKFLOW_SECTIONS, NavigationSection, NavigationItem } from "@/config/navigation";
 
 interface CollapsibleSidebarProps {
@@ -21,6 +22,9 @@ const MAX_COLLAPSED_ITEMS = 8;
 export default function CollapsibleSidebar({ isOpen, onClose, onToggle }: CollapsibleSidebarProps) {
   const [location] = useLocation();
   const isMobile = useIsMobile();
+  
+  // Lock body scroll when sidebar is open on mobile
+  useScrollLock(isOpen && isMobile);
 
   // Memoize navigation items processing
   const { flatNavigationItems, sectionedNavigationItems } = useMemo(() => {
@@ -126,7 +130,7 @@ export default function CollapsibleSidebar({ isOpen, onClose, onToggle }: Collap
       <aside 
         id="sidebar-content"
         className={`
-          fixed top-0 left-0 h-screen 
+          fixed top-0 left-0 h-[100dvh]
           bg-white dark:bg-gray-900 shadow-xl border-r border-gray-200 dark:border-gray-700 
           flex flex-col z-50 transform transition-all duration-300 ease-in-out
           overflow-hidden
