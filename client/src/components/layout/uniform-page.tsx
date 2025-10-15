@@ -57,7 +57,7 @@ export default function UniformPage({
             <Button 
               variant="ghost" 
               size="sm" 
-              className="lg:hidden h-10 w-10 sm:h-9 sm:w-9 p-0"
+              className="lg:hidden h-12 w-12 md:h-10 md:w-10 p-0"
               onClick={() => setLocation('/showroom-manager')}
               data-testid="button-uniform-menu"
             >
@@ -115,32 +115,36 @@ export default function UniformPage({
           </nav>
 
           {/* Right - Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <Button 
               variant="ghost" 
               size="sm" 
-              className="relative"
+              className="relative h-12 w-12 md:h-10 md:w-10 p-0"
               onClick={() => setLocation('/notifications')}
+              data-testid="button-uniform-notifications"
             >
-              <Bell className="w-4 h-4" />
+              <Bell className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4" />
               <Badge className="absolute -top-1 -right-1 w-2 h-2 p-0 bg-red-500"></Badge>
             </Button>
             <Button 
               variant="ghost" 
               size="sm"
+              className="h-12 w-12 md:h-10 md:w-10 p-0"
               onClick={() => setLocation('/admin/settings')}
+              data-testid="button-uniform-settings"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4" />
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="gap-2"
+              className="gap-2 h-12 w-12 sm:w-auto md:h-10"
               onClick={() => setLocation('/admin/user-profile')}
+              data-testid="button-uniform-profile"
             >
-              <User className="w-4 h-4" />
+              <User className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4" />
               <span className="hidden sm:block text-sm">Austin W.</span>
-              <ChevronDown className="w-3 h-3" />
+              <ChevronDown className="w-3 h-3 hidden sm:block" />
             </Button>
           </div>
         </div>
