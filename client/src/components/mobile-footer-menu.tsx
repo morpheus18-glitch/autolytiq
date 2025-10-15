@@ -51,7 +51,7 @@ export function MobileFooterMenu() {
                 <button
                   key={item.name}
                   onClick={() => handleNavClick(item)}
-                  className="flex flex-col items-center justify-center p-3 min-h-[60px] transition-all text-muted-foreground hover:text-primary hover:bg-white/70 dark:hover:bg-white/10"
+                  className="flex flex-col items-center justify-center px-2 py-2.5 min-h-[54px] transition-all text-muted-foreground hover:text-primary hover:bg-white/75 dark:hover:bg-white/10"
                 >
                   <Icon className="w-5 h-5" />
                   <span className="text-xs mt-1 font-medium">{item.name}</span>
@@ -65,7 +65,7 @@ export function MobileFooterMenu() {
                   className={`flex flex-col items-center justify-center p-3 min-h-[60px] transition-colors ${
                     isActive
                       ? 'bg-primary/15 text-primary shadow-sm'
-                      : 'text-muted-foreground hover:text-primary hover:bg-white/70 dark:hover:bg-white/10'
+                      : 'text-muted-foreground hover:text-primary hover:bg-white/75 dark:hover:bg-white/10'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -80,10 +80,10 @@ export function MobileFooterMenu() {
 
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-background/90 backdrop-blur-lg">
+        <div className="md:hidden fixed inset-0 z-50 bg-background/88 backdrop-blur-lg">
           <div className="fixed bottom-0 left-0 right-0 rounded-t-2xl bg-background/95 shadow-card-xl max-h-[80vh] overflow-y-auto">
             {/* Header */}
-            <div className="flex items-center justify-between rounded-t-2xl border-b border-border/60 bg-white/70 px-5 py-4 dark:bg-white/10">
+            <div className="flex items-center justify-between rounded-t-2xl border-b border-border/55 bg-white/85 px-5 py-4 dark:bg-white/10">
               <div className="flex items-center space-x-2 text-foreground">
                 <Building className="w-5 h-5 text-primary" />
                 <h3 className="text-lg font-semibold">AutolytiQ Navigation</h3>
@@ -100,12 +100,12 @@ export function MobileFooterMenu() {
 
             {/* Navigation Grid */}
             <div className="p-5">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {MOBILE_ALL_NAV_ITEMS.map((item) => {
                   const isActive = isPathActive(item);
                   const Icon = item.icon;
                   return (
-                    <Link 
+                    <Link
                       key={item.name} 
                       href={item.href} 
                       onClick={() => setIsMenuOpen(false)}
@@ -113,16 +113,16 @@ export function MobileFooterMenu() {
                       <div
                         className={`flex items-center rounded-2xl border px-4 py-4 transition-all duration-200 ${
                           isActive
-                            ? 'border-primary/40 bg-primary/10 shadow-sm'
-                            : 'border-border/70 hover:border-primary/35 hover:bg-white/70 dark:hover:bg-white/10'
+                            ? 'border-primary/35 bg-primary/10 shadow-sm'
+                            : 'border-border/60 hover:border-primary/30 hover:bg-white/80 dark:hover:bg-white/10'
                         }`}
                       >
                         <div className={`mr-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary`}>
                           <Icon className={`w-5 h-5 ${item.color}`} />
                         </div>
-                        <div>
+                        <div className="text-left">
                           <p className="text-sm font-semibold text-foreground">{item.name}</p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-muted-foreground leading-snug">
                             {item.name === 'Dashboard' && 'Overview & KPIs'}
                             {item.name === 'Sales & Leads' && 'Lead management'}
                             {item.name === 'Customers' && 'CRM & contacts'}
@@ -142,7 +142,7 @@ export function MobileFooterMenu() {
               </div>
               
               {/* Quick Actions */}
-              <div className="mt-6 pt-4 border-t border-border/60">
+              <div className="mt-6 pt-4 border-t border-border/55">
                 <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Quick Actions</h4>
                 <div className="grid grid-cols-2 gap-2">
                   {MOBILE_QUICK_ACTIONS.map((action) => {
@@ -153,7 +153,7 @@ export function MobileFooterMenu() {
                         href={action.href}
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        <Button variant="outline" size="sm" className="w-full justify-start gap-2 rounded-lg text-xs">
+                        <Button variant="outline" size="sm" className="w-full justify-start gap-2 rounded-lg border-border/60 text-xs hover:border-primary/35">
                           <ActionIcon className="h-3 w-3" />
                           {action.label}
                         </Button>

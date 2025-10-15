@@ -38,14 +38,14 @@ export default function Login() {
         <div className="absolute inset-0 grid-overlay opacity-60 dark:opacity-40" aria-hidden="true" />
 
         <div className="relative z-10 max-w-xl space-y-6 text-center lg:text-left">
-          <div className="inline-flex items-center gap-3 rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-primary">
+          <div className="inline-flex items-center gap-3 rounded-full border border-primary/25 bg-primary/8 px-4 py-2 text-primary">
             <Sparkles className="h-4 w-4" />
             <span className="text-xs font-semibold uppercase tracking-[0.3em]">AutolytiQ Secure Access</span>
           </div>
           <h1 className="text-3xl font-semibold leading-snug sm:text-4xl lg:text-5xl">
             Step back into your <span className="text-brand-gradient">AutolytiQ command center</span>
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
             Enterprise-grade authentication protects every workflow—from desking to analytics—so your teams can operate with
             confidence.
           </p>
@@ -85,7 +85,7 @@ export default function Login() {
                 <Button
                   onClick={() => handleProviderLogin('google')}
                   variant="outline"
-                  className="w-full rounded-xl border-border/80 py-3 text-base font-semibold hover:border-primary/40 hover:text-primary"
+                  className="w-full rounded-xl border-border/70 py-3 text-base font-semibold hover:border-primary/35 hover:text-primary"
                   size="lg"
                 >
                   <Chrome className="mr-3 h-5 w-5 text-red-500" />
@@ -95,7 +95,7 @@ export default function Login() {
                 <Button
                   onClick={() => handleProviderLogin('github')}
                   variant="outline"
-                  className="w-full rounded-xl border-border/80 py-3 text-base font-semibold hover:border-primary/40 hover:text-primary"
+                  className="w-full rounded-xl border-border/70 py-3 text-base font-semibold hover:border-primary/35 hover:text-primary"
                   size="lg"
                 >
                   <Github className="mr-3 h-5 w-5" />
@@ -105,7 +105,7 @@ export default function Login() {
                 <Button
                   onClick={() => handleProviderLogin('apple')}
                   variant="outline"
-                  className="w-full rounded-xl border-border/80 py-3 text-base font-semibold hover:border-primary/40 hover:text-primary"
+                  className="w-full rounded-xl border-border/70 py-3 text-base font-semibold hover:border-primary/35 hover:text-primary"
                   size="lg"
                 >
                   <Apple className="mr-3 h-5 w-5" />
@@ -116,7 +116,7 @@ export default function Login() {
               <Separator className="my-6" />
 
               <div className="space-y-4">
-                <Badge className="rounded-full border border-border/70 bg-white/60 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground/80 dark:bg-white/10">
+                <Badge className="rounded-full border border-border/60 bg-white/75 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground/80 dark:bg-white/10">
                   Legacy access
                 </Badge>
                 <Button
@@ -140,10 +140,10 @@ export default function Login() {
             </CardContent>
           </Card>
 
-          <div className="mt-6 space-y-2 text-center text-xs text-muted-foreground">
-            <p>Secure OAuth authentication with zero-trust posture enforcement.</p>
-            <p>© 2025 AutolytiQ. All rights reserved.</p>
-          </div>
+              <div className="fine-print mt-6 space-y-1.5 text-center">
+                <p>Secure OAuth authentication with zero-trust posture enforcement.</p>
+                <p>© 2025 AutolytiQ. All rights reserved.</p>
+              </div>
         </div>
       </div>
     </div>
