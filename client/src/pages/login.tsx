@@ -32,7 +32,7 @@ export default function Login() {
   };
 
   return (
-    <div className="landing-surface min-h-screen px-4 py-10 text-foreground">
+    <div className="landing-surface min-h-[100dvh] px-4 py-10 text-foreground">
       <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-10 lg:flex-row lg:items-start lg:justify-between">
         <div className="absolute inset-x-10 top-10 h-[420px] rounded-full blur-3xl hero-spotlight" aria-hidden="true" />
         <div className="absolute inset-0 grid-overlay opacity-60 dark:opacity-40" aria-hidden="true" />
