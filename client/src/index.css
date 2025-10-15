@@ -476,7 +476,7 @@ textarea {
 
   @media (max-width: 768px) {
     .mobile-container {
-      padding: 1rem;
+      padding: 0.75rem;
     }
 
     .mobile-btn {
@@ -484,12 +484,13 @@ textarea {
       padding: 0.875rem 1.25rem;
       font-size: 1rem;
       border-radius: 0.75rem;
+      font-weight: 500;
     }
 
     .mobile-card {
       border-radius: 1rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
+      padding: 0.875rem;
+      margin-bottom: 0.875rem;
     }
 
     .mobile-input {
@@ -504,6 +505,7 @@ textarea {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
+      scroll-snap-type: x proximity;
     }
 
     .mobile-tabs::-webkit-scrollbar {
@@ -512,8 +514,32 @@ textarea {
 
     .mobile-tab-item {
       min-width: fit-content;
-      padding: 0.75rem 1.25rem;
+      padding: 0.875rem 1.25rem;
       white-space: nowrap;
+      scroll-snap-align: start;
+    }
+
+    .mobile-touch-target {
+      min-height: 48px;
+      min-width: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mobile-grid-2 {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+
+    .mobile-spacing-x {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+
+    .mobile-spacing-y {
+      padding-top: 0.75rem;
+      padding-bottom: 0.75rem;
     }
   }
 
