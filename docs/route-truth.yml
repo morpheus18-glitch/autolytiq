@@ -554,10 +554,13 @@ missing_endpoints:
   - /api/permissions
   - /api/roles
   - /api/service-orders
-  - /api/tracking/event
-  - /api/tracking/form
-  - /api/tracking/time
-  - /api/tracking/vehicle
+  - /api/tracking/session
+  - /api/tracking/session/:sessionId
+  - /api/tracking/sessions
+  - /api/tracking/pageview
+  - /api/tracking/pageviews
+  - /api/tracking/interaction
+  - /api/tracking/interactions
   - /api/transactions
   - /api/users
 
