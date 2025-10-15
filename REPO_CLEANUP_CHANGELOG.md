@@ -52,10 +52,19 @@ All deal desk routes now use single canonical page:
 
 ### Results
 - **Before**: 43 pages, 123 components
-- **After**: 36 pages, 113 components  
+- **After**: 36 pages, 113 components
 - **LSP Errors**: 0
 - **Build Status**: ✅ Passing
 - **App Status**: ✅ Running
+
+### Follow-up: Tracking Endpoint Alignment (October 12, 2025)
+- Normalized the tracking pixel to use canonical `/api/tracking/session`, `/api/tracking/pageview`, and `/api/tracking/interaction` endpoints with schema-compliant payloads.
+- Persisted visitor/session identifiers in web storage and ensured session updates record duration and engagement metadata.
+- Updated `docs/route-truth.yml` to reflect the authoritative tracking API surface area for frontend consumers.
+
+#### Files Modified in Follow-up
+1. **client/src/components/tracking-pixel.tsx** - Rebuilt tracking implementation around supported APIs and reliability improvements.
+2. **docs/route-truth.yml** - Documented the supported tracking endpoints in place of deprecated paths.
 
 ---
 
