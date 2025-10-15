@@ -118,7 +118,7 @@ export default function TopNavigation() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="lg:hidden h-10 w-10 sm:h-9 sm:w-9 p-0 text-muted-foreground"
+                  className="lg:hidden h-12 w-12 md:h-10 md:w-10 p-0 text-muted-foreground"
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                   aria-label="Toggle navigation menu"
                   data-testid="button-mobile-menu"
@@ -351,7 +351,7 @@ export default function TopNavigation() {
               variant="ghost"
               size="sm"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="h-11 w-11 rounded-xl p-0 text-muted-foreground hover:text-foreground"
+              className="h-12 w-12 rounded-xl p-0 text-muted-foreground hover:text-foreground"
               aria-label="Close navigation"
               data-testid="button-close-menu"
             >
