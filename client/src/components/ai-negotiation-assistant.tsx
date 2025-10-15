@@ -204,20 +204,22 @@ export function AINext({
             </Alert>
 
             <Tabs defaultValue="recommendations" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="recommendations" data-testid="tab-recommendations">
-                  <Target className="h-4 w-4 mr-2" />
-                  Strategies
-                </TabsTrigger>
-                <TabsTrigger value="counteroffers" data-testid="tab-counteroffers">
-                  <DollarSign className="h-4 w-4 mr-2" />
-                  Counter-Offers
-                </TabsTrigger>
-                <TabsTrigger value="objections" data-testid="tab-objections">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Objections
-                </TabsTrigger>
-              </TabsList>
+              <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
+                <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-3 h-12 md:h-11 gap-1 p-1">
+                  <TabsTrigger value="recommendations" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-recommendations">
+                    <Target className="h-4 w-4 mr-2" />
+                    Strategies
+                  </TabsTrigger>
+                  <TabsTrigger value="counteroffers" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-counteroffers">
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Counter-Offers
+                  </TabsTrigger>
+                  <TabsTrigger value="objections" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-objections">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Objections
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
               <TabsContent value="recommendations" className="space-y-3 mt-4">
                 <ScrollArea className="h-[400px] pr-4">

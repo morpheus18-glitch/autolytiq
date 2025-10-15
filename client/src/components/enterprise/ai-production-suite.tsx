@@ -212,12 +212,14 @@ export default function AIProductionSuite() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="performance">Performance Metrics</TabsTrigger>
-          <TabsTrigger value="team">Team Analytics</TabsTrigger>
-          <TabsTrigger value="insights">AI Insights</TabsTrigger>
-          <TabsTrigger value="optimization">Optimization</TabsTrigger>
-        </TabsList>
+        <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
+          <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
+            <TabsTrigger value="performance" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-performance">Performance Metrics</TabsTrigger>
+            <TabsTrigger value="team" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-team">Team Analytics</TabsTrigger>
+            <TabsTrigger value="insights" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-insights">AI Insights</TabsTrigger>
+            <TabsTrigger value="optimization" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-optimization">Optimization</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Performance Metrics Tab */}
         <TabsContent value="performance" className="space-y-4">

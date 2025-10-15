@@ -251,12 +251,14 @@ export default function AIAdvancedReporting() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="templates">Report Templates</TabsTrigger>
-          <TabsTrigger value="insights">AI Insights</TabsTrigger>
-          <TabsTrigger value="custom">Custom Reports</TabsTrigger>
-          <TabsTrigger value="analytics">Live Analytics</TabsTrigger>
-        </TabsList>
+        <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
+          <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
+            <TabsTrigger value="templates" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-templates">Report Templates</TabsTrigger>
+            <TabsTrigger value="insights" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-insights">AI Insights</TabsTrigger>
+            <TabsTrigger value="custom" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-custom">Custom Reports</TabsTrigger>
+            <TabsTrigger value="analytics" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-analytics">Live Analytics</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Report Templates Tab */}
         <TabsContent value="templates" className="space-y-4">

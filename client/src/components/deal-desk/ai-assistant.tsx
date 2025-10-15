@@ -179,24 +179,26 @@ export function AIAssistant({
       </CardHeader>
       <CardContent className="pt-4">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview" className="text-xs">
-              <Target className="h-3 w-3 mr-1" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="recommendations" className="text-xs">
-              <Lightbulb className="h-3 w-3 mr-1" />
-              Tips
-            </TabsTrigger>
-            <TabsTrigger value="negotiation" className="text-xs">
-              <Brain className="h-3 w-3 mr-1" />
-              Strategy
-            </TabsTrigger>
-            <TabsTrigger value="profit" className="text-xs">
-              <DollarSign className="h-3 w-3 mr-1" />
-              Profit
-            </TabsTrigger>
-          </TabsList>
+          <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
+            <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
+              <TabsTrigger value="overview" className="text-xs min-h-[48px] md:min-h-0 px-3" data-testid="tab-overview">
+                <Target className="h-3 w-3 mr-1" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="recommendations" className="text-xs min-h-[48px] md:min-h-0 px-3" data-testid="tab-recommendations">
+                <Lightbulb className="h-3 w-3 mr-1" />
+                Tips
+              </TabsTrigger>
+              <TabsTrigger value="negotiation" className="text-xs min-h-[48px] md:min-h-0 px-3" data-testid="tab-negotiation">
+                <Brain className="h-3 w-3 mr-1" />
+                Strategy
+              </TabsTrigger>
+              <TabsTrigger value="profit" className="text-xs min-h-[48px] md:min-h-0 px-3" data-testid="tab-profit">
+                <DollarSign className="h-3 w-3 mr-1" />
+                Profit
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4 mt-4">

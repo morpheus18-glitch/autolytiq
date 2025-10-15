@@ -332,12 +332,14 @@ export default function CustomerIntelligence() {
 
       {/* Customer Intelligence Tabs */}
       <Tabs defaultValue="prospects" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
-          <TabsTrigger value="prospects">Hot Prospects</TabsTrigger>
-          <TabsTrigger value="behavior">Behavior Analysis</TabsTrigger>
-          <TabsTrigger value="lifecycle">Lifecycle Stage</TabsTrigger>
-          <TabsTrigger value="predictions">AI Predictions</TabsTrigger>
-        </TabsList>
+        <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
+          <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
+            <TabsTrigger value="prospects" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-prospects">Hot Prospects</TabsTrigger>
+            <TabsTrigger value="behavior" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-behavior">Behavior Analysis</TabsTrigger>
+            <TabsTrigger value="lifecycle" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-lifecycle">Lifecycle Stage</TabsTrigger>
+            <TabsTrigger value="predictions" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-predictions">AI Predictions</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="prospects">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
