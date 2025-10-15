@@ -205,12 +205,14 @@ export default function SmartCRMAssistant({ customer, onActionComplete }: SmartC
 
       {/* Main Assistant Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="insights">AI Insights</TabsTrigger>
-          <TabsTrigger value="recommendations">Actions</TabsTrigger>
-          <TabsTrigger value="journey">Journey</TabsTrigger>
-          <TabsTrigger value="engagement">Engagement</TabsTrigger>
-        </TabsList>
+        <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
+          <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
+            <TabsTrigger value="insights" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-insights">AI Insights</TabsTrigger>
+            <TabsTrigger value="recommendations" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-actions">Actions</TabsTrigger>
+            <TabsTrigger value="journey" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-journey">Journey</TabsTrigger>
+            <TabsTrigger value="engagement" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-engagement">Engagement</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="insights" className="space-y-4">
           {insights ? (
