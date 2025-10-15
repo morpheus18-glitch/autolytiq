@@ -1122,19 +1122,19 @@ export type InsertFiAuditLog = z.infer<typeof insertFiAuditLogSchema>;
 
 // Deal Management Schema
 export const deals = pgTable("deals", {
-  id: text("id").primaryKey().notNull(),
-  dealNumber: text("deal_number").unique().notNull(),
+  id: serial("id").primaryKey(),
+  dealNumber: varchar("deal_number", { length: 50 }).unique(),
   status: text("status").notNull().default("open"), // open, finalized, funded, cancelled
   
   // Vehicle Information
-  vehicleId: text("vehicle_id").references(() => vehicles.id),
+  vehicleId: integer("vehicle_id").references(() => vehicles.id),
   vin: text("vin"),
   msrp: integer("msrp"),
   salePrice: integer("sale_price"),
   
   // Customer Information
-  customerId: text("customer_id").references(() => customers.id),
-  buyerName: text("buyer_name").notNull(),
+  customerId: integer("customer_id").references(() => customers.id),
+  buyerName: text("buyer_name"),
   coBuyerName: text("co_buyer_name"),
   
   // Trade Information
@@ -1204,8 +1204,8 @@ export const deals = pgTable("deals", {
 });
 
 export const dealProducts = pgTable("deal_products", {
-  id: text("id").primaryKey().notNull(),
-  dealId: text("deal_id").references(() => deals.id).notNull(),
+  id: serial("id").primaryKey(),
+  dealId: integer("deal_id").references(() => deals.id).notNull(),
   productName: text("product_name").notNull(),
   retailPrice: integer("retail_price").notNull(),
   cost: integer("cost").notNull(),
@@ -1214,8 +1214,8 @@ export const dealProducts = pgTable("deal_products", {
 });
 
 export const dealGross = pgTable("deal_gross", {
-  id: text("id").primaryKey().notNull(),
-  dealId: text("deal_id").references(() => deals.id).notNull(),
+  id: serial("id").primaryKey(),
+  dealId: integer("deal_id").references(() => deals.id).notNull(),
   frontEndGross: integer("front_end_gross").default(0),
   financeReserve: integer("finance_reserve").default(0),
   productGross: integer("product_gross").default(0),
@@ -1225,8 +1225,8 @@ export const dealGross = pgTable("deal_gross", {
 });
 
 export const accountingEntries = pgTable("accounting_entries", {
-  id: text("id").primaryKey().notNull(),
-  dealId: text("deal_id").references(() => deals.id).notNull(),
+  id: serial("id").primaryKey(),
+  dealId: integer("deal_id").references(() => deals.id).notNull(),
   accountCode: text("account_code").notNull(),
   accountName: text("account_name").notNull(),
   debit: integer("debit").default(0),
@@ -1236,7 +1236,7 @@ export const accountingEntries = pgTable("accounting_entries", {
 });
 
 export const chartOfAccounts = pgTable("chart_of_accounts", {
-  id: text("id").primaryKey().notNull(),
+  id: serial("id").primaryKey(),
   code: text("code").unique().notNull(),
   name: text("name").notNull(),
   category: text("category").notNull(), // asset, liability, equity, revenue, expense
