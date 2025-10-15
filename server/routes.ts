@@ -52,6 +52,8 @@ import { LeadStorageService, sampleLeadData } from "./lead-engine";
 import AutomotiveDataService from "./automotive-data-service";
 import { InMemoryEventBus, ModuleRegistry } from "./core";
 import { crmModule } from "./modules/crm";
+import { deskingModule } from "./modules/desking";
+import { fiModule } from "./modules/fi";
 
 // XML Lead parsing utility
 function parseXmlLead(xmlString: string) {
@@ -114,6 +116,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerMLHeatmapRoutes(app);
 
   await moduleRegistry.registerModule(app, crmModule);
+  await moduleRegistry.registerModule(app, deskingModule);
+  await moduleRegistry.registerModule(app, fiModule);
   
   // System user management routes
   registerUserRoutes(app);
