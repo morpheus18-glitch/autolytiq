@@ -107,7 +107,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
           variant="outline"
           size="sm"
           onClick={onToggle}
-          className="bg-white dark:bg-gray-800 shadow-xl border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 p-2.5 rounded-lg"
+          className="bg-sidebar text-sidebar-foreground/80 shadow-xl border border-sidebar-border/60 hover:bg-sidebar/90 hover:text-sidebar-foreground p-2.5 rounded-lg transition-colors"
         >
           {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </Button>
@@ -120,30 +120,29 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
         top-0 left-0
         h-screen md:h-full
         w-72 sm:w-80 md:w-64
-        bg-white dark:bg-gray-900
-        shadow-xl 
-        border-r 
-        border-gray-200 dark:border-gray-700 
-        flex 
+        bg-sidebar text-sidebar-foreground
+        shadow-[0_20px_45px_-20px_rgba(15,23,42,0.7)]
+        border-r border-sidebar-border/60
+        flex
         flex-col
         z-30
-        transform 
-        transition-transform 
+        transform
+        transition-transform
         duration-300 
         ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         overflow-hidden
       `}>
         {/* Logo and Brand */}
-        <div className="p-3 sm:p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-3 sm:p-4 md:p-6 border-b border-sidebar-border/60">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 md:space-x-3">
-              <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-600 to-green-600 rounded flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-xs sm:text-sm md:text-base">AQ</span>
+              <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gradient-to-br from-sidebar-primary to-sidebar-accent rounded flex items-center justify-center flex-shrink-0 shadow-lg">
+                <span className="text-sidebar-primary-foreground font-bold text-xs sm:text-sm md:text-base">AQ</span>
               </div>
               <div>
-                <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100">AutolytiQ</h1>
-                <p className="text-xs sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">Dealership Management</p>
+                <h1 className="text-base sm:text-lg md:text-xl font-bold text-sidebar-foreground">AutolytiQ</h1>
+                <p className="text-xs sm:text-xs md:text-sm text-sidebar-foreground/70">Dealership Management</p>
               </div>
             </div>
             {/* Close button for mobile */}
@@ -151,7 +150,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="md:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="md:hidden p-1 text-sidebar-foreground/70 hover:bg-sidebar-border/30 hover:text-sidebar-foreground"
             >
               <X className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
@@ -164,7 +163,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
             if (item.isSection) {
               return (
                 <div key={item.name} className="mb-3 md:mb-4">
-                  <h3 className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <h3 className="px-3 py-2 text-xs font-semibold text-sidebar-foreground/60 uppercase tracking-wider">
                     {item.name}
                   </h3>
                   <div className="space-y-1">
@@ -178,10 +177,10 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
                           onClick={() => handleNavClick(child.href, child.name)}
                         >
                           <div className={`
-                            flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer w-full hover:bg-gray-100 dark:hover:bg-gray-800
-                            ${isActive 
-                              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                              : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
+                            flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer w-full hover:bg-sidebar-border/30
+                            ${isActive
+                              ? 'bg-gradient-to-r from-sidebar-primary to-sidebar-accent text-sidebar-primary-foreground shadow-lg ring-1 ring-sidebar-ring/60'
+                              : 'text-sidebar-foreground/75 hover:text-sidebar-foreground'
                             }
                           `}>
                             {Icon && <Icon className="mr-3 h-4 w-4 flex-shrink-0" />}
@@ -203,10 +202,10 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
                   onClick={() => handleNavClick(item.href || '#', item.name)}
                 >
                   <div className={`
-                    flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 mb-2 cursor-pointer w-full hover:bg-gray-100 dark:hover:bg-gray-800
-                    ${isActive 
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                      : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
+                    flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 mb-2 cursor-pointer w-full hover:bg-sidebar-border/30
+                    ${isActive
+                      ? 'bg-gradient-to-r from-sidebar-primary to-sidebar-accent text-sidebar-primary-foreground shadow-lg ring-1 ring-sidebar-ring/60'
+                      : 'text-sidebar-foreground/75 hover:text-sidebar-foreground'
                     }
                   `}>
                     {Icon && <Icon className="mr-3 h-4 w-4 flex-shrink-0" />}
@@ -219,10 +218,10 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+        <div className="p-4 border-t border-sidebar-border/60">
+          <div className="text-xs text-sidebar-foreground/60 text-center">
             <p>© 2025 AutolytiQ System</p>
-            <p className="text-gray-400 dark:text-gray-500">v2.0.0 Enterprise</p>
+            <p className="text-sidebar-foreground/50">v2.0.0 Enterprise</p>
           </div>
         </div>
       </div>

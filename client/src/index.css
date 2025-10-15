@@ -97,8 +97,8 @@ textarea {
     --foreground: 220 32% 13%;
     --card: 0 0% 100%;
     --card-foreground: 220 32% 13%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 32% 13%;
+    --popover: 214 48% 94%;
+    --popover-foreground: 220 32% 18%;
     --primary: 222 73% 52%;
     --primary-foreground: 210 40% 98%;
     --secondary: 203 64% 46%;
@@ -141,8 +141,8 @@ textarea {
     --foreground: 214 28% 88%;
     --card: 224 42% 12%;
     --card-foreground: 214 28% 88%;
-    --popover: 224 42% 12%;
-    --popover-foreground: 214 28% 88%;
+    --popover: 224 46% 18%;
+    --popover-foreground: 214 32% 90%;
     --primary: 222 82% 68%;
     --primary-foreground: 222 50% 7%;
     --secondary: 200 60% 55%;
