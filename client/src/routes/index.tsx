@@ -9,6 +9,7 @@ import Customers from '@/pages/customers';
 import CustomerDetail from '@/pages/customer-detail';
 import TextingPortal from '@/pages/customers/texting-portal';
 import PhoneCalls from '@/pages/customers/phone-calls';
+import DealsPage from '@/pages/deals';
 import ProfessionalDealDesk from '@/pages/professional-deal-desk';
 import TradeAppraisals from '@/pages/trade-appraisals';
 import ShowroomManager from '@/pages/showroom-manager';
@@ -93,8 +94,13 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/customers', component: Customers },
   {
     path: '/deals',
+    component: DealsPage,
+    aliases: ['/deals-list', '/deal-log', '/deal-pipeline']
+  },
+  {
+    path: '/professional-deal-desk',
     component: ProfessionalDealDesk,
-    aliases: ['/deals-list', '/deals-finance', '/deal-desk', '/deal-working', '/professional-deal-desk', '/finance/structuring']
+    aliases: ['/deals-finance', '/deal-desk', '/deal-working', '/finance/structuring']
   },
   { path: '/deals/:id', component: ProfessionalDealDesk },
   { path: '/trade-appraisals', component: TradeAppraisals },
