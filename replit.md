@@ -47,7 +47,7 @@ When referring to layout, format, or styling, use the term **"Standard"** which 
 - **Analytics**: Performance metrics, data visualization, and comprehensive reporting.
 - **Competitive Pricing**: ML-powered analysis, market trends, and automated merchandising.
 - **Pixel Tracking**: Customer behavior and visitor insights for online journey mapping.
-- **Professional Deal Desk**: Full-featured desking tool with vehicle/customer selection, payment calculator, backend product management, tax/payment calculations, and deal persistence. Supports trade-in tax credit and negative equity handling.
+- **Professional Deal Desk**: Full-featured VinSolutions-grade desking tool with vehicle/customer selection, payment calculator, backend product management, tax/payment calculations, and deal persistence. Supports trade-in tax credit and negative equity handling. Features include: payment scenarios, lender matching, AI optimization, autosave, and print capability.
 - **VIN Services**: Auto-generates stock numbers from VIN with manual override and audit logging.
 - **Tax & Fee Engine**: Production database architecture for jurisdiction resolution, state-specific tax rules, DMV fee catalogs, and calculation versioning.
 - **AI Negotiation Assistant**: OpenAI-powered deal analysis providing deal scoring, close probability, strategic recommendations, and objection handlers.
@@ -56,6 +56,7 @@ When referring to layout, format, or styling, use the term **"Standard"** which 
 - **Data Flow**: Client (React Query) -> API (Express) -> Business Logic -> Data Layer (Drizzle ORM) -> PostgreSQL.
 - **Multi-Tenant Dealer Configuration**: Comprehensive dealer management system at `/admin/dealer-config` with tabs for General Settings, Lead Management, Finance & Products, Tax Configuration, User Management, Inventory Settings, Service Settings, and Parts Settings. Integrates with the deal desk for dealer-specific defaults. (Note: Multi-tenant implementation for user authentication is pending and currently poses a security risk).
 - **Showroom Manager**: Live floor manager at `/showroom-manager` for tracking active customers, real-time session management, and quick actions, integrated with the professional deal desk and CRM.
+- **Mobile Optimization**: Comprehensive mobile/tablet support with scroll lock system (prevents background scrolling when overlays open), dynamic viewport units (h-[100dvh] for proper mobile viewport handling), responsive breakpoints, and touch-optimized interfaces. All menus, sidebars, and modals implement independent scrolling with locked backgrounds.
 
 ## External Dependencies
 
