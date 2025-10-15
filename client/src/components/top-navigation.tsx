@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import {
   ArrowRight,
@@ -48,6 +48,32 @@ export default function TopNavigation() {
   const [activeTab, setActiveTab] = useState(() => resolveActiveTab(location));
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !navRef.current) {
+      return;
+    }
+
+    const updateNavHeight = () => {
+      if (!navRef.current) return;
+      document.documentElement.style.setProperty(
+        "--top-nav-height",
+        `${navRef.current.offsetHeight}px`
+      );
+    };
+
+    updateNavHeight();
+
+    const resizeObserver = new ResizeObserver(updateNavHeight);
+    resizeObserver.observe(navRef.current);
+    window.addEventListener("resize", updateNavHeight);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateNavHeight);
+    };
+  }, []);
 
   const currentTab = WORKFLOW_SECTIONS.find((tab) => tab.id === activeTab);
 
@@ -68,7 +94,10 @@ export default function TopNavigation() {
 
   return (
     <>
-      <div className="sticky top-0 z-50 px-3 pt-4 pb-3 sm:px-6 lg:px-10">
+      <div
+        ref={navRef}
+        className="sticky top-0 z-50 px-3 pt-4 pb-3 sm:px-6 lg:px-10"
+      >
         <div className="relative">
           <div className="absolute inset-x-0 -top-2 h-px gradient-divider opacity-70" aria-hidden="true" />
           <div className="glass-panel relative flex flex-col gap-3 rounded-2xl px-3 py-3 shadow-card-xl sm:px-5 lg:px-6 lg:py-4">

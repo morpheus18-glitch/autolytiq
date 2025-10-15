@@ -16,9 +16,10 @@ interface VehicleModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   vehicle?: Vehicle | null;
+  onSuccess?: (vehicle: Vehicle) => void;
 }
 
-export default function VehicleModal({ open, onOpenChange, vehicle }: VehicleModalProps) {
+export default function VehicleModal({ open, onOpenChange, vehicle, onSuccess }: VehicleModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -39,12 +40,13 @@ export default function VehicleModal({ open, onOpenChange, vehicle }: VehicleMod
   const createMutation = useMutation({
     mutationFn: async (data: InsertVehicle) => {
       const response = await apiRequest("POST", "/api/vehicles", data);
-      return response.json();
+      return (await response.json()) as Vehicle;
     },
-    onSuccess: () => {
+    onSuccess: (created) => {
       queryClient.invalidateQueries({ queryKey: ["/api/vehicles"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
       toast({ title: "Vehicle created successfully" });
+      onSuccess?.(created);
       onOpenChange(false);
       form.reset();
     },
@@ -56,12 +58,13 @@ export default function VehicleModal({ open, onOpenChange, vehicle }: VehicleMod
   const updateMutation = useMutation({
     mutationFn: async (data: InsertVehicle) => {
       const response = await apiRequest("PUT", `/api/vehicles/${vehicle?.id}`, data);
-      return response.json();
+      return (await response.json()) as Vehicle;
     },
-    onSuccess: () => {
+    onSuccess: (updated) => {
       queryClient.invalidateQueries({ queryKey: ["/api/vehicles"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
       toast({ title: "Vehicle updated successfully" });
+      onSuccess?.(updated);
       onOpenChange(false);
       form.reset();
     },

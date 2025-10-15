@@ -15,9 +15,10 @@ interface CustomerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customer?: Customer | null;
+  onSuccess?: (customer: Customer) => void;
 }
 
-export default function CustomerModal({ open, onOpenChange, customer }: CustomerModalProps) {
+export default function CustomerModal({ open, onOpenChange, customer, onSuccess }: CustomerModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -52,11 +53,13 @@ export default function CustomerModal({ open, onOpenChange, customer }: Customer
         income: data.income ? parseFloat(data.income) : null,
         isActive: true
       };
-      return await apiRequest('POST', '/api/customers', customerData);
+      const response = await apiRequest('POST', '/api/customers', customerData);
+      return (await response.json()) as Customer;
     },
-    onSuccess: () => {
+    onSuccess: (created) => {
       queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
       toast({ title: 'Customer created successfully' });
+      onSuccess?.(created);
       onOpenChange(false);
       resetForm();
     },
@@ -73,11 +76,13 @@ export default function CustomerModal({ open, onOpenChange, customer }: Customer
         creditScore: data.creditScore ? parseInt(data.creditScore) : null,
         income: data.income ? parseFloat(data.income) : null,
       };
-      return await apiRequest('PUT', `/api/customers/${customer?.id}`, customerData);
+      const response = await apiRequest('PUT', `/api/customers/${customer?.id}`, customerData);
+      return (await response.json()) as Customer;
     },
-    onSuccess: () => {
+    onSuccess: (updated) => {
       queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
       toast({ title: 'Customer updated successfully' });
+      onSuccess?.(updated);
       onOpenChange(false);
       resetForm();
     },
