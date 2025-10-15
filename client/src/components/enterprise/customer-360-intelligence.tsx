@@ -319,12 +319,14 @@ export function Customer360Intelligence({ customerId }: { customerId?: number })
       </div>
 
       <Tabs defaultValue="insights" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="insights">AI Insights</TabsTrigger>
-          <TabsTrigger value="vehicles">Vehicle Interest</TabsTrigger>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
-          <TabsTrigger value="profile">Full Profile</TabsTrigger>
-        </TabsList>
+        <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
+          <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
+            <TabsTrigger value="insights" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-insights">AI Insights</TabsTrigger>
+            <TabsTrigger value="vehicles" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-vehicles">Vehicle Interest</TabsTrigger>
+            <TabsTrigger value="timeline" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-timeline">Timeline</TabsTrigger>
+            <TabsTrigger value="profile" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-profile">Full Profile</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* AI Insights */}
         <TabsContent value="insights" className="space-y-4">

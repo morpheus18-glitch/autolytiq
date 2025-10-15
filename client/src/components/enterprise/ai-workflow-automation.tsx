@@ -346,12 +346,14 @@ export default function AIWorkflowAutomation() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="workflows">Active Workflows</TabsTrigger>
-          <TabsTrigger value="metrics">Performance Metrics</TabsTrigger>
-          <TabsTrigger value="optimizations">AI Optimizations</TabsTrigger>
-          <TabsTrigger value="builder">Workflow Builder</TabsTrigger>
-        </TabsList>
+        <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
+          <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
+            <TabsTrigger value="workflows" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-workflows">Active Workflows</TabsTrigger>
+            <TabsTrigger value="metrics" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-metrics">Performance Metrics</TabsTrigger>
+            <TabsTrigger value="optimizations" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-optimizations">AI Optimizations</TabsTrigger>
+            <TabsTrigger value="builder" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-builder">Workflow Builder</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Active Workflows Tab */}
         <TabsContent value="workflows" className="space-y-4">

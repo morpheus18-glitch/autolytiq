@@ -297,12 +297,14 @@ export default function AdvancedReporting() {
 
       {/* Report Categories */}
       <Tabs defaultValue="sales" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="sales">Sales Performance</TabsTrigger>
-          <TabsTrigger value="inventory">Inventory</TabsTrigger>
-          <TabsTrigger value="customer">Customer Analytics</TabsTrigger>
-          <TabsTrigger value="executive">Executive Reports</TabsTrigger>
-        </TabsList>
+        <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
+          <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
+            <TabsTrigger value="sales" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-sales">Sales Performance</TabsTrigger>
+            <TabsTrigger value="inventory" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-inventory">Inventory</TabsTrigger>
+            <TabsTrigger value="customer" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-customer">Customer Analytics</TabsTrigger>
+            <TabsTrigger value="executive" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-executive">Executive Reports</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="sales">
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">

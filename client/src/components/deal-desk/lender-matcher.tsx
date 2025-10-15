@@ -204,15 +204,17 @@ export function LenderMatcher({
       <CardContent>
         {preferredLenders.length > 0 ? (
           <Tabs defaultValue="preferred" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="preferred" data-testid="tab-preferred-lenders">
-                <Star className="h-4 w-4 mr-2" />
-                Preferred ({preferredLenders.length})
-              </TabsTrigger>
-              <TabsTrigger value="all" data-testid="tab-all-lenders">
-                All Lenders ({matches.length})
-              </TabsTrigger>
-            </TabsList>
+            <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
+              <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-2 h-12 md:h-11 gap-1 p-1">
+                <TabsTrigger value="preferred" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-preferred-lenders">
+                  <Star className="h-4 w-4 mr-2" />
+                  Preferred ({preferredLenders.length})
+                </TabsTrigger>
+                <TabsTrigger value="all" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-all-lenders">
+                  All Lenders ({matches.length})
+                </TabsTrigger>
+              </TabsList>
+            </div>
             <TabsContent value="preferred" className="space-y-3 mt-4">
               {preferredLenders.map((lender) => (
                 <LenderCard key={lender.lenderCode} lender={lender} />
