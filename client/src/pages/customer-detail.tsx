@@ -150,9 +150,10 @@ export default function CustomerDetail() {
             variant="default"
             onClick={() => {
               trackInteraction('button_click', { action: 'new_deal', customerId: id });
-              setLocation(`/deals?customerId=${id}`);
+              setLocation(`/professional-deal-desk?customerId=${id}`);
             }}
             data-testid="button-new-deal"
+            className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]"
           >
             <Calculator className="w-4 h-4 mr-2" />
             New Deal

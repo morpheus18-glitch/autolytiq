@@ -251,7 +251,12 @@ export function ShowroomManagerPage({ mode = 'showroom' }: ShowroomManagerProps)
     onSuccess: (data: any) => {
       toast({ title: "Deal created", description: `Deal #${data.dealNumber || data.id} created successfully` });
       trackInteraction('deal_created', { dealId: data.id });
-      setLocation(`/professional-deal-desk/${data.id}`);
+      const params = new URLSearchParams();
+      params.set('customerId', data.customerId?.toString() || '');
+      if (data.vehicleId) {
+        params.set('vehicleId', data.vehicleId.toString());
+      }
+      setLocation(`/professional-deal-desk?${params.toString()}`);
     },
     onError: (error: any) => {
       const errorMessage = error?.message || "Failed to create deal";
