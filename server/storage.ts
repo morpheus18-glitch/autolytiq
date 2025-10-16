@@ -6,6 +6,8 @@ import {
   customerTimeline, aiInsights, collaborationThreads, collaborationMessages, kpiMetrics, duplicateCustomers, workflowTemplates, workflowExecutions, predictiveScores, marketBenchmarks,
   // F&I Tables
   creditPulls, lenderApplications, fiProducts, financeMenus, fiAuditLog,
+  // Dealer Settings
+  dealerSettings,
   type User, type Vehicle, type Customer, type Lead, type Sale, type Activity, type VisitorSession, type PageView, type CustomerInteraction, type CompetitorAnalytics, type CompetitivePricing, type PricingInsights, type MerchandisingStrategies, type MarketTrends, type Deal, type DealDocument, type DealApproval, type CreditApplication, type CoApplicant, type TradeVehicle, type ShowroomVisit, type SalespersonNote, type ShowroomSession,
   // User Management Types
   type SystemUser, type UserSession, type SystemRole, type ActivityLogEntry,
@@ -13,6 +15,8 @@ import {
   type CustomerTimeline, type AiInsights, type CollaborationThreads, type CollaborationMessages, type KpiMetrics, type DuplicateCustomers, type WorkflowTemplates, type WorkflowExecutions, type PredictiveScores, type MarketBenchmarks,
   // F&I Types
   type CreditPull, type LenderApplication, type FiProduct, type FinanceMenu, type FiAuditLog,
+  // Dealer Settings Types
+  type DealerSettings, type InsertDealerSettings,
   type InsertUser, type InsertVehicle, type InsertCustomer, type InsertLead, type InsertSale, type InsertActivity, type InsertVisitorSession, type InsertPageView, type InsertCustomerInteraction, type InsertCompetitorAnalytics, type InsertCompetitivePricing, type InsertPricingInsights, type InsertMerchandisingStrategies, type InsertMarketTrends, type InsertDeal, type InsertDealDocument, type InsertDealApproval, type UpsertUser,
   // User Management Insert Types
   type InsertSystemUser, type InsertUserSession, type InsertSystemRole, type InsertActivityLogEntry,
@@ -70,6 +74,11 @@ export interface IStorage {
   createVehicle(vehicle: InsertVehicle): Promise<Vehicle>;
   updateVehicle(id: number, vehicle: Partial<InsertVehicle>): Promise<Vehicle | undefined>;
   deleteVehicle(id: number): Promise<void>;
+  
+  // Dealer Settings operations
+  getDealerSettings(): Promise<DealerSettings | undefined>;
+  createDealerSettings(settings: InsertDealerSettings): Promise<DealerSettings>;
+  updateDealerSettings(id: number, settings: Partial<InsertDealerSettings>): Promise<DealerSettings | undefined>;
   
   // Customer operations
   getCustomers(): Promise<Customer[]>;
@@ -1476,6 +1485,44 @@ export class MemStorage implements IStorage {
       console.error('Error deleting vehicle from database:', error);
     }
     this.vehicles.delete(id);
+  }
+
+  // Dealer Settings operations
+  async getDealerSettings(): Promise<DealerSettings | undefined> {
+    try {
+      const [row] = await db.select().from(dealerSettings).limit(1);
+      return row;
+    } catch (error) {
+      console.error('Error fetching dealer settings from database:', error);
+      return undefined;
+    }
+  }
+
+  async createDealerSettings(settings: InsertDealerSettings): Promise<DealerSettings> {
+    try {
+      const [created] = await db
+        .insert(dealerSettings)
+        .values(settings)
+        .returning();
+      return created;
+    } catch (error) {
+      console.error('Error creating dealer settings in database:', error);
+      throw error;
+    }
+  }
+
+  async updateDealerSettings(id: number, settings: Partial<InsertDealerSettings>): Promise<DealerSettings | undefined> {
+    try {
+      const [updated] = await db
+        .update(dealerSettings)
+        .set(settings)
+        .where(eq(dealerSettings.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Error updating dealer settings in database:', error);
+      return undefined;
+    }
   }
 
   // Customer operations

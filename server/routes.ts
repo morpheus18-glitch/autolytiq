@@ -243,6 +243,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Dealer Settings Endpoint
+  app.get("/api/dealer-settings", async (req, res) => {
+    try {
+      let settings = await storage.getDealerSettings();
+      
+      // If no settings exist, create default settings
+      if (!settings) {
+        settings = await storage.createDealerSettings({
+          dealerName: "AutolytiQ Dealership",
+          dealerCode: "AUTO001",
+          docFeeCents: 69900,
+          titleFeeCents: 7500,
+          registrationFeeCents: 15000,
+          convenienceFeeCents: 0,
+          defaultSalesTaxPercent: "7.250",
+          useTaxJurisdictionLookup: true,
+          availableTerms: [36, 48, 60, 72, 84],
+          defaultTermMonths: 72,
+        });
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching dealer settings:", error);
+      res.status(500).json({ message: "Failed to fetch dealer settings" });
+    }
+  });
+
+  app.put("/api/dealer-settings/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updated = await storage.updateDealerSettings(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ message: "Dealer settings not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating dealer settings:", error);
+      res.status(500).json({ message: "Failed to update dealer settings" });
+    }
+  });
+
   // Vehicle Pricing Insights Endpoint
   app.post("/api/pricing-insights/:id", async (req, res) => {
     try {
