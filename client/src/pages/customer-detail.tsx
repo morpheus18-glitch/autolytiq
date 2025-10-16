@@ -4,30 +4,24 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
-import { ModuleHeader } from '@/components/ui/module-header';
-import { CollapsibleSection } from '@/components/ui/collapsible-section';
-import { BottomSheet } from '@/components/ui/bottom-sheet';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
   User, 
   Phone, 
   Mail, 
-  MapPin, 
-  Car, 
-  DollarSign, 
-  Calendar,
-  FileText,
+  ChevronRight,
+  DollarSign,
   Star,
-  Edit,
-  Save,
-  X,
-  Calculator,
-  MoreVertical,
-  CreditCard
+  Clock,
+  Activity,
+  FileText,
+  MessageSquare,
+  Calendar
 } from 'lucide-react';
 import type { Customer, Lead, Sale } from '@shared/schema';
 
@@ -38,33 +32,15 @@ export default function CustomerDetail() {
   const queryClient = useQueryClient();
   const { trackInteraction, setTrackedCustomer } = usePixelTracker();
   
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState<Partial<Customer>>({});
-  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
-
-  // Initialize editData whenever entering edit mode
-  useEffect(() => {
-    if (isEditing && customer) {
-      setEditData({
-        firstName: customer.firstName,
-        lastName: customer.lastName,
-        email: customer.email,
-        phone: customer.phone,
-        city: customer.city,
-        state: customer.state,
-        status: customer.status,
-        leadSource: customer.leadSource,
-        creditScore: customer.creditScore,
-        income: customer.income,
-        notes: customer.notes
-      });
-    }
-  }, [isEditing, customer]);
-  
-  // Collapsible section states
-  const [isContactExpanded, setIsContactExpanded] = useState(true);
-  const [isDetailsExpanded, setIsDetailsExpanded] = useState(true);
-  const [isNotesExpanded, setIsNotesExpanded] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    status: 'lead'
+  });
 
   // Fetch customer data
   const { data: customer, isLoading } = useQuery<Customer>({
@@ -76,7 +52,7 @@ export default function CustomerDetail() {
     }
   });
 
-  // Associate pixel tracker with this customer for lifecycle tracking
+  // Associate pixel tracker with this customer
   useEffect(() => {
     if (customer) {
       setTrackedCustomer(customer.id.toString());
@@ -102,482 +78,458 @@ export default function CustomerDetail() {
   });
 
   // Update customer mutation
-  const updateMutation = useMutation({
-    mutationFn: async (data: Partial<Customer>) => {
-      const response = await fetch(`/api/customers/${id}`, {
+  const updateCustomerMutation = useMutation({
+    mutationFn: async (data: typeof editForm) => {
+      return await apiRequest(`/api/customers/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customers', id] });
-      setIsEditing(false);
-      toast({ title: 'Success', description: 'Customer updated successfully' });
+      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
+      setEditDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Customer updated successfully",
+      });
     },
     onError: () => {
-      toast({ title: 'Error', description: 'Failed to update customer', variant: 'destructive' });
-    }
+      toast({
+        title: "Error",
+        description: "Failed to update customer",
+        variant: "destructive",
+      });
+    },
   });
+
+  // Populate edit form when customer data loads
+  useEffect(() => {
+    if (customer) {
+      setEditForm({
+        firstName: customer.firstName || '',
+        lastName: customer.lastName || '',
+        email: customer.email || '',
+        phone: customer.phone || '',
+        status: customer.status || 'lead'
+      });
+    }
+  }, [customer]);
 
   if (isLoading || !customer) {
     return (
       <div className="flex items-center justify-center min-h-[100dvh]">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full" />
       </div>
     );
   }
 
-  const handleSave = () => {
-    updateMutation.mutate(editData);
-    trackInteraction('button_click', { action: 'save_customer', customerId: id });
-  };
-
   // Get customer initials
   const getInitials = () => {
-    if (customer.name) {
-      return customer.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-    }
     const first = customer.firstName?.[0] || '';
     const last = customer.lastName?.[0] || '';
     return (first + last).toUpperCase() || 'CU';
   };
 
-  const stats = [
-    { 
-      label: 'Total Leads', 
-      value: leads.length
-    },
-    { 
-      label: 'Total Sales', 
-      value: sales.length
-    },
-    { 
-      label: 'Total Revenue', 
-      value: `$${sales.reduce((sum, sale) => sum + (sale.salePrice || 0), 0).toLocaleString()}`
-    },
-    { 
-      label: 'Credit Score', 
-      value: customer.creditScore || 'N/A'
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'hot': return 'Hot Lead';
+      case 'warm': return 'Warm Lead';
+      case 'cold': return 'Cold Lead';
+      case 'customer': return 'Customer';
+      case 'prospect': return 'Prospect';
+      default: return 'Lead';
     }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'hot': return 'bg-red-100 text-red-700';
+      case 'warm': return 'bg-orange-100 text-orange-700';
+      case 'cold': return 'bg-blue-100 text-blue-700';
+      case 'customer': return 'bg-green-100 text-green-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  // Mock data for demo
+  const lifetimeValue = (customer.id * 3000) + 20000;
+  const leadScore = 45 + (customer.id * 7) % 50;
+  const vehiclesOwned = sales.length;
+  
+  const currentInterests = [
+    '2024 Toyota Camry XSE',
+    '2024 Honda Accord Sport'
   ];
 
-  const handleNewDeal = () => {
-    trackInteraction('button_click', { action: 'new_deal', customerId: id });
-    setLocation(`/professional-deal-desk?customerId=${id}`);
-    setIsBottomSheetOpen(false);
-  };
+  const interactions = [
+    { type: 'email', date: '2 hours ago', subject: 'Follow-up on test drive' },
+    { type: 'call', date: 'Yesterday', subject: 'Discussed financing options' },
+    { type: 'visit', date: '3 days ago', subject: 'Test drove Camry XSE' }
+  ];
 
-  const handleCall = () => {
-    trackInteraction('button_click', { action: 'call_customer', customerId: id });
-    window.open(`tel:${customer.phone}`);
-    setIsBottomSheetOpen(false);
-  };
-
-  const handleEmail = () => {
-    trackInteraction('button_click', { action: 'email_customer', customerId: id });
-    window.open(`mailto:${customer.email}`);
-    setIsBottomSheetOpen(false);
-  };
-
-  const handleEdit = () => {
-    setIsEditing(true);
-    setIsBottomSheetOpen(false);
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditData({});
-  };
+  const InteractionTimeline = () => (
+    <div className="space-y-4">
+      {interactions.map((interaction, index) => (
+        <div key={index} className="flex gap-4">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+            interaction.type === 'email' ? 'bg-blue-100' :
+            interaction.type === 'call' ? 'bg-green-100' :
+            'bg-purple-100'
+          }`}>
+            {interaction.type === 'email' && <Mail className="w-5 h-5 text-blue-600" />}
+            {interaction.type === 'call' && <Phone className="w-5 h-5 text-green-600" />}
+            {interaction.type === 'visit' && <User className="w-5 h-5 text-purple-600" />}
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-semibold capitalize">{interaction.type}</span>
+              <span className="text-sm text-gray-500">{interaction.date}</span>
+            </div>
+            <p className="text-sm text-gray-600">{interaction.subject}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Module Header */}
-      <ModuleHeader
-        module="crm"
-        title={customer.name || `${customer.firstName} ${customer.lastName}`}
-        subtitle="Customer Profile"
-        icon={User}
-        stats={stats}
-        action={
-          isEditing ? (
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleCancelEdit}
-                className="bg-white text-gray-900"
-                data-testid="button-cancel-edit"
-              >
-                <X className="w-4 h-4 mr-2" />
-                Cancel
-              </Button>
-              <Button 
-                size="sm" 
-                onClick={handleSave} 
-                disabled={updateMutation.isPending}
-                className="bg-white text-indigo-600 hover:bg-white/90 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]"
-                data-testid="button-save-customer"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Save
-              </Button>
-            </div>
-          ) : (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setIsBottomSheetOpen(true)}
-              className="bg-white text-gray-900"
-              data-testid="button-actions"
-            >
-              <MoreVertical className="w-4 h-4 mr-2" />
-              Actions
-            </Button>
-          )
-        }
-      />
+      {/* Content */}
+      <div className="px-4 py-4">
+        {/* Back Button */}
+        <button 
+          onClick={() => setLocation('/customers')}
+          className="flex items-center gap-2 text-indigo-600 font-medium mb-4"
+          data-testid="button-back-to-customers"
+        >
+          <ChevronRight className="w-5 h-5 rotate-180" />
+          Back to Customers
+        </button>
 
-      <div className="px-4 py-6 space-y-6">
-        {/* Customer Avatar */}
-        <div className="flex justify-center -mt-16 mb-6">
-          <Avatar className="w-32 h-32 border-4 border-white shadow-xl">
-            <AvatarFallback className="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white text-4xl font-bold">
-              {getInitials()}
-            </AvatarFallback>
-          </Avatar>
+        {/* Customer Header Card */}
+        <div className="bg-white rounded-xl shadow-sm p-5 mb-4">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-xl">
+                {getInitials()}
+              </div>
+              <div>
+                <h2 className="text-xl font-bold mb-1" data-testid="text-customer-name">
+                  {customer.firstName} {customer.lastName}
+                </h2>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <span>{customer.email}</span>
+                  <span>•</span>
+                  <span>{customer.phone}</span>
+                </div>
+              </div>
+            </div>
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(customer.status || 'prospect')}`}>
+              {getStatusLabel(customer.status || 'prospect')}
+            </span>
+          </div>
+
+          {/* Key Metrics */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center p-3 bg-green-50 rounded-lg" data-testid="metric-lifetime-value">
+              <div className="text-2xl font-bold text-green-600">
+                ${(lifetimeValue / 1000).toFixed(0)}K
+              </div>
+              <div className="text-xs text-gray-600">Lifetime Value</div>
+            </div>
+            <div className="text-center p-3 bg-yellow-50 rounded-lg" data-testid="metric-lead-score">
+              <div className="text-2xl font-bold text-yellow-600">{leadScore}</div>
+              <div className="text-xs text-gray-600">Lead Score</div>
+            </div>
+            <div className="text-center p-3 bg-blue-50 rounded-lg" data-testid="metric-vehicles-owned">
+              <div className="text-2xl font-bold text-blue-600">
+                {vehiclesOwned}
+              </div>
+              <div className="text-xs text-gray-600">Vehicles Owned</div>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="profile" data-testid="tab-profile">Profile</TabsTrigger>
-            <TabsTrigger value="leads" data-testid="tab-leads">Leads ({leads.length})</TabsTrigger>
-            <TabsTrigger value="sales" data-testid="tab-sales">Sales ({sales.length})</TabsTrigger>
-            <TabsTrigger value="activity" data-testid="tab-activity">Activity</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="profile" className="space-y-4 mt-6">
-            {/* Contact Information */}
-            <CollapsibleSection
-              title="Contact Information"
-              icon={Phone}
-              isExpanded={isContactExpanded}
-              onToggle={() => setIsContactExpanded(!isContactExpanded)}
-              iconColor="text-indigo-600"
+        <div className="bg-white rounded-xl shadow-sm mb-4 overflow-hidden">
+          <div className="flex border-b border-gray-200">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`flex-1 px-4 py-3 font-medium transition-colors ${
+                activeTab === 'overview'
+                  ? 'text-indigo-600 border-b-2 border-indigo-600'
+                  : 'text-gray-600'
+              }`}
+              data-testid="tab-overview"
             >
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('activity')}
+              className={`flex-1 px-4 py-3 font-medium transition-colors ${
+                activeTab === 'activity'
+                  ? 'text-indigo-600 border-b-2 border-indigo-600'
+                  : 'text-gray-600'
+              }`}
+              data-testid="tab-activity"
+            >
+              Activity
+            </button>
+            <button
+              onClick={() => setActiveTab('deals')}
+              className={`flex-1 px-4 py-3 font-medium transition-colors ${
+                activeTab === 'deals'
+                  ? 'text-indigo-600 border-b-2 border-indigo-600'
+                  : 'text-gray-600'
+              }`}
+              data-testid="tab-deals"
+            >
+              Deals
+            </button>
+          </div>
+
+          <div className="p-5">
+            {activeTab === 'overview' && (
               <div className="space-y-4">
+                {/* Current Interests */}
                 <div>
-                  <p className="text-sm text-gray-600 mb-2">First Name</p>
-                  {isEditing ? (
-                    <Input
-                      value={editData.firstName || ''}
-                      onChange={(e) => setEditData({ ...editData, firstName: e.target.value })}
-                      data-testid="input-first-name"
-                    />
-                  ) : (
-                    <p className="font-medium" data-testid="text-customer-first-name">{customer.firstName || 'Not provided'}</p>
-                  )}
-                </div>
-                
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">Last Name</p>
-                  {isEditing ? (
-                    <Input
-                      value={editData.lastName || ''}
-                      onChange={(e) => setEditData({ ...editData, lastName: e.target.value })}
-                      data-testid="input-last-name"
-                    />
-                  ) : (
-                    <p className="font-medium" data-testid="text-customer-last-name">{customer.lastName || 'Not provided'}</p>
-                  )}
-                </div>
-                
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">Phone Number</p>
-                  {isEditing ? (
-                    <Input
-                      value={editData.phone || ''}
-                      onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                      data-testid="input-phone"
-                    />
-                  ) : (
-                    <p className="font-medium" data-testid="text-customer-phone">{customer.phone || 'Not provided'}</p>
-                  )}
-                </div>
-                
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">Email Address</p>
-                  {isEditing ? (
-                    <Input
-                      type="email"
-                      value={editData.email || ''}
-                      onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                      data-testid="input-email"
-                    />
-                  ) : (
-                    <p className="font-medium" data-testid="text-customer-email">{customer.email || 'Not provided'}</p>
-                  )}
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">City</p>
-                    {isEditing ? (
-                      <Input
-                        value={editData.city || ''}
-                        onChange={(e) => setEditData({ ...editData, city: e.target.value })}
-                        data-testid="input-city"
-                      />
-                    ) : (
-                      <p className="font-medium" data-testid="text-customer-city">{customer.city || 'Not provided'}</p>
-                    )}
+                  <h3 className="font-bold mb-3 flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-indigo-600" />
+                    Current Interests
+                  </h3>
+                  <div className="space-y-2">
+                    {currentInterests.map((interest, index) => (
+                      <div key={index} className="p-3 bg-indigo-50 rounded-lg">
+                        <div className="font-medium">{interest}</div>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">State</p>
-                    {isEditing ? (
-                      <Input
-                        value={editData.state || ''}
-                        onChange={(e) => setEditData({ ...editData, state: e.target.value })}
-                        data-testid="input-state"
-                      />
+                </div>
+
+                {/* Vehicles Owned */}
+                <div>
+                  <h3 className="font-bold mb-3 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-indigo-600" />
+                    Vehicle History
+                  </h3>
+                  <div className="space-y-2">
+                    {sales.length > 0 ? (
+                      sales.map((sale, index) => (
+                        <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                          <div>
+                            <div className="font-medium">
+                              Vehicle Purchase
+                            </div>
+                            <div className="text-sm text-gray-500">Sale #{sale.id} - ${sale.salePrice?.toLocaleString()}</div>
+                          </div>
+                        </div>
+                      ))
                     ) : (
-                      <p className="font-medium" data-testid="text-customer-state">{customer.state || 'Not provided'}</p>
+                      <p className="text-gray-500 text-sm">No vehicle history</p>
                     )}
                   </div>
                 </div>
-              </div>
-            </CollapsibleSection>
 
-            {/* Customer Details */}
-            <CollapsibleSection
-              title="Customer Details"
-              icon={CreditCard}
-              isExpanded={isDetailsExpanded}
-              onToggle={() => setIsDetailsExpanded(!isDetailsExpanded)}
-              iconColor="text-indigo-600"
-            >
-              <div className="space-y-4">
+                {/* Notes */}
                 <div>
-                  <p className="text-sm text-gray-600 mb-2">Status</p>
-                  {isEditing ? (
-                    <Input
-                      value={editData.status || ''}
-                      onChange={(e) => setEditData({ ...editData, status: e.target.value })}
-                      data-testid="input-status"
-                    />
-                  ) : (
-                    <Badge 
-                      variant={customer.status === 'active' ? 'default' : 'secondary'}
-                      data-testid="badge-customer-status"
-                    >
-                      {customer.status || 'Unknown'}
-                    </Badge>
-                  )}
+                  <h3 className="font-bold mb-3 flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-indigo-600" />
+                    Notes
+                  </h3>
+                  <div className="p-4 bg-yellow-50 rounded-lg">
+                    <p className="text-gray-700">{customer.notes || 'No notes available'}</p>
+                  </div>
                 </div>
-                
+
+                {/* Source Info */}
                 <div>
-                  <p className="text-sm text-gray-600 mb-2">Lead Source</p>
-                  {isEditing ? (
-                    <Input
-                      value={editData.leadSource || ''}
-                      onChange={(e) => setEditData({ ...editData, leadSource: e.target.value })}
-                      data-testid="input-lead-source"
-                    />
-                  ) : (
-                    <p className="font-medium" data-testid="text-lead-source">{customer.leadSource || 'Not specified'}</p>
-                  )}
-                </div>
-                
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">Credit Score</p>
-                  {isEditing ? (
-                    <Input
-                      type="number"
-                      value={editData.creditScore ?? ''}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setEditData({ ...editData, creditScore: val === '' ? undefined : parseInt(val, 10) });
-                      }}
-                      data-testid="input-credit-score"
-                    />
-                  ) : (
-                    <p className="font-medium" data-testid="text-credit-score">{customer.creditScore || 'Not available'}</p>
-                  )}
-                </div>
-                
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">Annual Income</p>
-                  {isEditing ? (
-                    <Input
-                      type="number"
-                      value={editData.income ?? ''}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setEditData({ ...editData, income: val === '' ? undefined : parseInt(val, 10) });
-                      }}
-                      data-testid="input-income"
-                    />
-                  ) : (
-                    <p className="font-medium" data-testid="text-annual-income">
-                      {customer.income ? `$${customer.income.toLocaleString()}` : 'Not provided'}
-                    </p>
-                  )}
-                </div>
-                
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">Date Added</p>
-                  <p className="font-medium" data-testid="text-date-added">
-                    {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString() : 'Unknown'}
-                  </p>
+                  <h3 className="font-bold mb-3">Lead Information</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between py-2 border-b border-gray-100">
+                      <span className="text-gray-600">Source</span>
+                      <span className="font-medium capitalize">{customer.leadSource || 'Website'}</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-gray-100">
+                      <span className="text-gray-600">Last Contact</span>
+                      <span className="font-medium">
+                        {customer.lastContactDate ? new Date(customer.lastContactDate).toLocaleDateString() : '2 hours ago'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2">
+                      <span className="text-gray-600">Next Follow-up</span>
+                      <span className="font-medium text-indigo-600">
+                        {customer.nextFollowUpDate ? new Date(customer.nextFollowUpDate).toLocaleDateString() : 'Today, 3:00 PM'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </CollapsibleSection>
-
-            {/* Notes */}
-            {(customer.notes || isEditing) && (
-              <CollapsibleSection
-                title="Notes"
-                icon={FileText}
-                isExpanded={isNotesExpanded}
-                onToggle={() => setIsNotesExpanded(!isNotesExpanded)}
-                iconColor="text-indigo-600"
-              >
-                {isEditing ? (
-                  <Textarea
-                    value={editData.notes || ''}
-                    onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
-                    rows={4}
-                    placeholder="Add notes about this customer..."
-                    data-testid="input-notes"
-                  />
-                ) : (
-                  <p className="text-gray-700" data-testid="text-customer-notes">{customer.notes}</p>
-                )}
-              </CollapsibleSection>
             )}
-          </TabsContent>
 
-          <TabsContent value="leads">
-            <div className="bg-white rounded-lg shadow-sm p-4 mt-6">
-              <h3 className="font-semibold text-lg mb-4">Customer Leads</h3>
-              {leads.length === 0 ? (
-                <p className="text-gray-600 text-center py-8">No leads found for this customer.</p>
-              ) : (
-                <div className="space-y-4">
-                  {leads.map((lead) => (
-                    <div 
-                      key={lead.id} 
-                      className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                      onClick={() => {
-                        trackInteraction('button_click', { action: 'view_lead', leadId: lead.id });
-                        setLocation(`/leads/${lead.id}`);
-                      }}
-                      data-testid={`card-lead-${lead.id}`}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium">{lead.leadNumber}</h4>
-                        <Badge variant="outline">{lead.status}</Badge>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">{lead.notes}</p>
-                      <div className="flex justify-between text-xs text-gray-500">
-                        <span>Lead #{lead.id}</span>
-                        <span>{lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : ''}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </TabsContent>
+            {activeTab === 'activity' && (
+              <div>
+                <h3 className="font-bold mb-4 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-indigo-600" />
+                  Interaction Timeline
+                </h3>
+                <InteractionTimeline />
+              </div>
+            )}
 
-          <TabsContent value="sales">
-            <div className="bg-white rounded-lg shadow-sm p-4 mt-6">
-              <h3 className="font-semibold text-lg mb-4">Customer Sales</h3>
-              {sales.length === 0 ? (
-                <p className="text-gray-600 text-center py-8">No sales found for this customer.</p>
-              ) : (
-                <div className="space-y-4">
-                  {sales.map((sale) => (
-                    <div 
-                      key={sale.id} 
-                      className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                      onClick={() => {
-                        trackInteraction('button_click', { action: 'view_sale', saleId: sale.id });
-                        setLocation(`/sales/${sale.id}`);
-                      }}
-                      data-testid={`card-sale-${sale.id}`}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium">Sale #{sale.id}</h4>
-                        <Badge variant="default">${sale.salePrice?.toLocaleString()}</Badge>
+            {activeTab === 'deals' && (
+              <div>
+                <h3 className="font-bold mb-4 flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-indigo-600" />
+                  Active Deals
+                </h3>
+                {sales.length > 0 ? (
+                  <div className="space-y-3">
+                    {sales.map((sale, index) => (
+                      <div key={index} className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <div className="font-bold text-lg">Vehicle Sale</div>
+                            <div className="text-sm text-gray-600">Deal ID: #{sale.id}</div>
+                          </div>
+                          <span className="px-3 py-1 bg-green-600 text-white rounded-full text-xs font-semibold">
+                            Completed
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t border-green-200">
+                          <span className="text-gray-600">Deal Value</span>
+                          <span className="text-xl font-bold text-green-600">
+                            ${sale.salePrice?.toLocaleString() || '0'}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-xs text-gray-500">
-                        <span>Vehicle ID: {sale.vehicleId}</span>
-                        <span>{sale.saleDate ? new Date(sale.saleDate).toLocaleDateString() : ''}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </TabsContent>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p>No active deals</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
 
-          <TabsContent value="activity">
-            <div className="bg-white rounded-lg shadow-sm p-4 mt-6">
-              <h3 className="font-semibold text-lg mb-4">Recent Activity</h3>
-              <p className="text-gray-600 text-center py-8">Activity tracking coming soon.</p>
-            </div>
-          </TabsContent>
-        </Tabs>
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-3">
+          <button 
+            onClick={() => {
+              trackInteraction('button_click', { action: 'call_customer', customerId: id });
+              window.open(`tel:${customer.phone}`);
+            }}
+            className="py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+            data-testid="button-call-customer"
+          >
+            <Phone className="w-4 h-4" />
+            Call
+          </button>
+          <button 
+            onClick={() => {
+              trackInteraction('button_click', { action: 'email_customer', customerId: id });
+              window.open(`mailto:${customer.email}`);
+            }}
+            className="py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+            data-testid="button-email-customer"
+          >
+            <Mail className="w-4 h-4" />
+            Email
+          </button>
+          <button 
+            onClick={() => {
+              trackInteraction('button_click', { action: 'edit_customer', customerId: id });
+              setEditDialogOpen(true);
+            }}
+            className="py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+            data-testid="button-edit-customer"
+          >
+            Edit Customer
+          </button>
+          <button 
+            onClick={() => {
+              trackInteraction('button_click', { action: 'create_deal', customerId: id });
+              setLocation(`/professional-deal-desk?customerId=${id}`);
+            }}
+            className="py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors"
+            data-testid="button-create-deal"
+          >
+            Create Deal
+          </button>
+        </div>
       </div>
 
-      {/* Bottom Sheet for Quick Actions */}
-      <BottomSheet
-        isOpen={isBottomSheetOpen}
-        onClose={() => setIsBottomSheetOpen(false)}
-        title="Quick Actions"
-      >
-        <div className="space-y-3">
-          <Button
-            variant="default"
-            className="w-full justify-start shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]"
-            onClick={handleNewDeal}
-            data-testid="button-new-deal"
-          >
-            <Calculator className="w-5 h-5 mr-3" />
-            New Deal
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={handleCall}
-            data-testid="button-call"
-          >
-            <Phone className="w-5 h-5 mr-3" />
-            Call
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={handleEmail}
-            data-testid="button-email"
-          >
-            <Mail className="w-5 h-5 mr-3" />
-            Email
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={handleEdit}
-            data-testid="button-edit"
-          >
-            <Edit className="w-5 h-5 mr-3" />
-            Edit
-          </Button>
-        </div>
-      </BottomSheet>
+      {/* Edit Customer Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Customer</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>First Name</Label>
+              <Input
+                value={editForm.firstName}
+                onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
+                data-testid="input-edit-firstname"
+              />
+            </div>
+            <div>
+              <Label>Last Name</Label>
+              <Input
+                value={editForm.lastName}
+                onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
+                data-testid="input-edit-lastname"
+              />
+            </div>
+            <div>
+              <Label>Email</Label>
+              <Input
+                type="email"
+                value={editForm.email}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                data-testid="input-edit-email"
+              />
+            </div>
+            <div>
+              <Label>Phone</Label>
+              <Input
+                value={editForm.phone}
+                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                data-testid="input-edit-phone"
+              />
+            </div>
+            <div>
+              <Label>Status</Label>
+              <Select value={editForm.status} onValueChange={(value) => setEditForm({ ...editForm, status: value })}>
+                <SelectTrigger data-testid="select-edit-status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="lead">Lead</SelectItem>
+                  <SelectItem value="prospect">Prospect</SelectItem>
+                  <SelectItem value="customer">Customer</SelectItem>
+                  <SelectItem value="hot">Hot Lead</SelectItem>
+                  <SelectItem value="warm">Warm Lead</SelectItem>
+                  <SelectItem value="cold">Cold Lead</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button 
+              onClick={() => updateCustomerMutation.mutate(editForm)}
+              disabled={updateCustomerMutation.isPending}
+              className="w-full"
+              data-testid="button-save-customer"
+            >
+              {updateCustomerMutation.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
