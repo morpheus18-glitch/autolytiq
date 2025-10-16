@@ -311,7 +311,7 @@ export default function MLModelComparison() {
   const selectedModelData = models.filter(m => selectedModels.includes(m.id));
 
   return (
-    <div className="min-h-[100dvh] bg-gray-50 mobile-scroll">
+    <div className="min-h-0 bg-gray-50 mobile-scroll">
       {/* Mobile-Optimized Header */}
       <div className="bg-white border-b border-gray-200 sticky top-14 lg:top-16 z-40">
         <div className="p-4 lg:p-6">

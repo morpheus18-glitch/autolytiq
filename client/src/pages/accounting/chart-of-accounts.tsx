@@ -61,7 +61,7 @@ export default function ChartOfAccounts() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-[100dvh]">
+    <div className="p-6 space-y-6 bg-gray-50">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>

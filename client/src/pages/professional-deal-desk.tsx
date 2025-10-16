@@ -263,7 +263,7 @@ export default function ProfessionalDealDesk() {
   };
   
   return (
-    <div className="min-h-[100dvh] w-full max-w-full overflow-x-hidden bg-gray-50 dark:bg-gray-900 pb-6">
+    <div className="min-h-0 w-full max-w-full overflow-x-hidden bg-gray-50 dark:bg-gray-900 pb-6">
       {/* Module Header */}
       <ModuleHeader
         module="desking"
