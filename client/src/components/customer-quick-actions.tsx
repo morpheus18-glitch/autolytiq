@@ -120,8 +120,10 @@ export default function CustomerQuickActions({
   const [tradeDialogOpen, setTradeDialogOpen] = useState(false);
   const [creditDialogOpen, setCreditDialogOpen] = useState(false);
   const [coBuyerDialogOpen, setCoBuyerDialogOpen] = useState(false);
+  const [vehicleSearchDialogOpen, setVehicleSearchDialogOpen] = useState(false);
 
   const [noteContent, setNoteContent] = useState("");
+  const [vehicleSearchTerm, setVehicleSearchTerm] = useState("");
   const [tradeForm, setTradeForm] = useState<TradeFormState>(initialTradeForm);
   const [creditForm, setCreditForm] = useState<CreditFormState>(() => initialCreditForm(customer));
   const [coBuyerForm, setCoBuyerForm] = useState<CoBuyerFormState>(initialCoBuyerForm);
@@ -129,6 +131,11 @@ export default function CustomerQuickActions({
   const { data: creditApplications = [], isLoading: creditAppsLoading } = useQuery<CreditApplication[]>({
     queryKey: ["/api/credit-applications", customer.id],
     enabled: coBuyerDialogOpen,
+  });
+
+  const { data: vehicles = [], isLoading: vehiclesLoading } = useQuery<any[]>({
+    queryKey: ["/api/vehicles"],
+    enabled: vehicleSearchDialogOpen,
   });
 
   const addNoteMutation = useMutation({
@@ -261,6 +268,18 @@ export default function CustomerQuickActions({
     },
   });
 
+  const filteredVehicles = useMemo(() => {
+    if (!vehicleSearchTerm.trim()) return vehicles;
+    const search = vehicleSearchTerm.toLowerCase();
+    return vehicles.filter((vehicle: any) =>
+      vehicle.make?.toLowerCase().includes(search) ||
+      vehicle.model?.toLowerCase().includes(search) ||
+      vehicle.year?.toString().includes(search) ||
+      vehicle.stockNo?.toLowerCase().includes(search) ||
+      vehicle.stockNumber?.toLowerCase().includes(search)
+    );
+  }, [vehicles, vehicleSearchTerm]);
+
   const actions = useMemo(
     () => [
       {
@@ -276,10 +295,10 @@ export default function CustomerQuickActions({
       {
         id: "vehicle",
         title: "Add Vehicle of Interest",
-        description: "Open inventory to match vehicles for the customer.",
+        description: "Search and select a vehicle from inventory.",
         icon: Car,
         onSelect: () => {
-          setLocation(`/inventory?customerId=${customer.id}`);
+          setVehicleSearchDialogOpen(true);
           setOpen(false);
         },
       },
@@ -362,16 +381,16 @@ export default function CustomerQuickActions({
                 <Button
                   key={action.id}
                   variant="outline"
-                  className="w-full justify-start gap-3 py-3"
+                  className="w-full justify-start gap-3 py-3 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-gray-300 dark:border-gray-600"
                   onClick={(event) => {
                     event.stopPropagation();
                     action.onSelect();
                   }}
                 >
-                  <action.icon className="h-5 w-5 text-blue-600" />
+                  <action.icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   <div className="flex flex-col items-start">
-                    <span className="font-medium text-sm">{action.title}</span>
-                    <span className="text-xs text-muted-foreground text-left">{action.description}</span>
+                    <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{action.title}</span>
+                    <span className="text-xs text-gray-600 dark:text-gray-400 text-left">{action.description}</span>
                   </div>
                 </Button>
               ))}
@@ -699,6 +718,101 @@ export default function CustomerQuickActions({
               }
             >
               {addCoBuyerMutation.isPending ? "Saving..." : "Add Co-Buyer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Vehicle Search Dialog */}
+      <Dialog open={vehicleSearchDialogOpen} onOpenChange={(open) => {
+        setVehicleSearchDialogOpen(open);
+        if (!open) {
+          setVehicleSearchTerm("");
+        }
+      }}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Search Vehicle Inventory</DialogTitle>
+            <DialogDescription>Find and select a vehicle by make, model, year, or stock number</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="Search by make, model, year, or stock #..."
+                value={vehicleSearchTerm}
+                onChange={(e) => setVehicleSearchTerm(e.target.value)}
+                className="w-full pl-3 pr-3"
+                autoFocus
+              />
+            </div>
+            <ScrollArea className="flex-1 pr-4">
+              {vehiclesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : filteredVehicles.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  {vehicleSearchTerm ? "No vehicles match your search" : "No vehicles available"}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filteredVehicles.map((vehicle: any) => (
+                    <button
+                      key={vehicle.id}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-600 transition-all text-left"
+                      onClick={() => {
+                        setLocation(`/professional-deal-desk?customerId=${customer.id}&vehicleId=${vehicle.id}`);
+                        setVehicleSearchDialogOpen(false);
+                        setVehicleSearchTerm("");
+                      }}
+                    >
+                      <div className="flex-shrink-0 w-20 h-16 bg-gray-100 dark:bg-gray-800 rounded flex items-center justify-center overflow-hidden">
+                        {vehicle.images?.[0] ? (
+                          <img src={vehicle.images[0]} alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`} className="w-full h-full object-cover" />
+                        ) : (
+                          <Car className="w-8 h-8 text-gray-400" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+                            {vehicle.year} {vehicle.make} {vehicle.model}
+                          </h4>
+                          {(vehicle.stockNo || vehicle.stockNumber) && (
+                            <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">
+                              #{vehicle.stockNo || vehicle.stockNumber}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
+                          {vehicle.vin && (
+                            <span className="truncate">VIN: {vehicle.vin.substring(0, 10)}...</span>
+                          )}
+                          {vehicle.price && (
+                            <span className="font-semibold text-green-600 dark:text-green-400">
+                              ${vehicle.price.toLocaleString()}
+                            </span>
+                          )}
+                          {vehicle.msrp && (
+                            <span className="font-semibold text-green-600 dark:text-green-400">
+                              ${vehicle.msrp.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setVehicleSearchDialogOpen(false);
+              setVehicleSearchTerm("");
+            }}>
+              Cancel
             </Button>
           </DialogFooter>
         </DialogContent>
