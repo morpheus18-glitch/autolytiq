@@ -241,50 +241,50 @@ export default function ProfessionalDealDesk() {
   };
   
   return (
-    <div className="min-h-[100dvh] bg-gray-50 dark:bg-gray-900 pb-6">
+    <div className="min-h-[100dvh] w-full max-w-full overflow-x-hidden bg-gray-50 dark:bg-gray-900 pb-6">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40 no-print">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Calculator className="h-6 w-6 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Professional Deal Desk</h1>
+        <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Calculator className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 flex-shrink-0" />
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Professional Deal Desk</h1>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
               onClick={handlePrint}
-              className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]"
+              className="flex-1 sm:flex-initial shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]"
               data-testid="button-print-deal"
             >
               <Printer className="h-4 w-4 mr-2" />
-              Print
+              <span>Print</span>
             </Button>
             <Button
               onClick={() => saveDealMutation.mutate()}
               disabled={!customerId || !vehicleId || saveDealMutation.isPending}
-              className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]"
+              className="flex-1 sm:flex-initial shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]"
               data-testid="button-save-deal"
             >
               <Save className="h-4 w-4 mr-2" />
-              Save Deal
+              <span>Save Deal</span>
             </Button>
           </div>
         </div>
       </div>
       
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-4 no-print">
+      <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-3 sm:space-y-4 no-print">
         {/* Data Table Structure - Clean Rows */}
         
         {/* Customer Row - FIRST */}
-        <Card className="p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 min-w-[120px]">
+        <Card className="p-3 sm:p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <User className="h-5 w-5 text-blue-600" />
-              <Label className="font-semibold text-base">Customer</Label>
+              <Label className="font-semibold text-sm sm:text-base">Customer</Label>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 w-full sm:w-auto">
               <Select value={customerId?.toString()} onValueChange={(v) => setCustomerId(parseInt(v))}>
-                <SelectTrigger data-testid="select-customer" className="border-2">
+                <SelectTrigger data-testid="select-customer" className="border-2 w-full">
                   <SelectValue placeholder="Select customer first..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -297,7 +297,7 @@ export default function ProfessionalDealDesk() {
               </Select>
             </div>
             {selectedCustomer && (
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                 ZIP: {customerZip || 'N/A'} | Credit: {selectedCustomer.creditScore || 'N/A'}
               </div>
             )}
@@ -305,27 +305,27 @@ export default function ProfessionalDealDesk() {
         </Card>
         
         {/* Vehicle Row */}
-        <Card className="p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 min-w-[120px]">
+        <Card className="p-3 sm:p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <Car className="h-5 w-5 text-green-600" />
-              <Label className="font-semibold text-base">Vehicle</Label>
+              <Label className="font-semibold text-sm sm:text-base">Vehicle</Label>
             </div>
-            <div className="flex gap-2 flex-1">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 flex-1 w-full sm:w-auto">
               <div className="flex gap-2 items-center">
-                <Label className="text-sm">Stock#</Label>
+                <Label className="text-xs sm:text-sm whitespace-nowrap">Stock#</Label>
                 <Input
                   value={stockNumber}
                   onChange={(e) => setStockNumber(e.target.value)}
                   onBlur={handleStockLookup}
-                  className="w-32 border-2"
+                  className="w-full sm:w-32 border-2"
                   placeholder="Enter stock#"
                   data-testid="input-stock-number"
                 />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 w-full sm:w-auto">
                 <Select value={vehicleId?.toString()} onValueChange={(v) => setVehicleId(parseInt(v))}>
-                  <SelectTrigger data-testid="select-vehicle" className="border-2">
+                  <SelectTrigger data-testid="select-vehicle" className="border-2 w-full">
                     <SelectValue placeholder="Or select vehicle..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -339,7 +339,7 @@ export default function ProfessionalDealDesk() {
               </div>
             </div>
             {selectedVehicle && (
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                 {selectedVehicle.mileage?.toLocaleString()} mi | {selectedVehicle.exteriorColor || ''} | {selectedVehicle.driveType || ''}
               </div>
             )}
@@ -347,75 +347,75 @@ export default function ProfessionalDealDesk() {
         </Card>
         
         {/* Pricing Row */}
-        <Card className="p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 min-w-[120px]">
+        <Card className="p-3 sm:p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <DollarSign className="h-5 w-5 text-amber-600" />
-              <Label className="font-semibold text-base">Pricing</Label>
+              <Label className="font-semibold text-sm sm:text-base whitespace-nowrap">Pricing</Label>
             </div>
-            <div className="flex gap-4 flex-1">
-              <div className="flex flex-col gap-1">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
+              <div className="flex flex-col gap-1 flex-1">
                 <Label className="text-xs text-gray-500">MSRP</Label>
                 <Input
                   type="number"
                   value={msrp || ''}
                   onChange={(e) => setMsrp(parseFloat(e.target.value) || 0)}
-                  className="w-32 border-2"
+                  className="w-full sm:w-32 border-2"
                   data-testid="input-msrp"
                 />
               </div>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 flex-1">
                 <Label className="text-xs text-gray-500">Sale Price</Label>
                 <Input
                   type="number"
                   value={salePrice || ''}
                   onChange={(e) => setSalePrice(parseFloat(e.target.value) || 0)}
-                  className="w-32 border-2"
+                  className="w-full sm:w-32 border-2"
                   data-testid="input-sale-price"
                 />
               </div>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 flex-1">
                 <Label className="text-xs text-gray-500">Rebates</Label>
                 <Input
                   type="number"
                   value={rebates || ''}
                   onChange={(e) => setRebates(parseFloat(e.target.value) || 0)}
-                  className="w-32 border-2"
+                  className="w-full sm:w-32 border-2"
                   data-testid="input-rebates"
                 />
               </div>
             </div>
-            <div className="text-sm font-semibold text-blue-600">
+            <div className="text-xs sm:text-sm font-semibold text-blue-600 truncate">
               Net: ${(salePrice - rebates).toLocaleString()}
             </div>
           </div>
         </Card>
         
         {/* Trade Row with Drill-Down */}
-        <Card className="p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 min-w-[120px]">
+        <Card className="p-3 sm:p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <Car className="h-5 w-5 text-purple-600" />
-              <Label className="font-semibold text-base">Trade</Label>
+              <Label className="font-semibold text-sm sm:text-base whitespace-nowrap">Trade</Label>
             </div>
-            <div className="flex gap-4 flex-1">
-              <div className="flex flex-col gap-1">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
+              <div className="flex flex-col gap-1 flex-1">
                 <Label className="text-xs text-gray-500">Allowance</Label>
                 <Input
                   type="number"
                   value={tradeAllowance || ''}
                   onChange={(e) => setTradeAllowance(parseFloat(e.target.value) || 0)}
-                  className="w-32 border-2"
+                  className="w-full sm:w-32 border-2"
                   data-testid="input-trade-allowance"
                 />
               </div>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 flex-1">
                 <Label className="text-xs text-gray-500">Payoff</Label>
                 <Input
                   type="number"
                   value={tradePayoff || ''}
                   onChange={(e) => setTradePayoff(parseFloat(e.target.value) || 0)}
-                  className="w-32 border-2"
+                  className="w-full sm:w-32 border-2"
                   data-testid="input-trade-payoff"
                 />
               </div>
@@ -425,18 +425,18 @@ export default function ProfessionalDealDesk() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]"
+                  className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] w-full sm:w-auto"
                   data-testid="button-trade-details"
                 >
-                  <Settings className="h-4 w-4 mr-1" />
-                  Details
+                  <Settings className="h-4 w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">Details</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>Trade Details</DialogTitle>
                 </DialogHeader>
-                <div className="grid grid-cols-2 gap-4 py-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
                   <div className="space-y-2">
                     <Label>Actual Cash Value (ACV)</Label>
                     <Input
@@ -472,7 +472,7 @@ export default function ProfessionalDealDesk() {
                     />
                   </div>
                 </div>
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-lg">
                   <div className="text-sm font-semibold">Net Trade: ${netTrade.toLocaleString()}</div>
                   <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                     Allowance ${tradeAllowance.toLocaleString()} - Payoff ${tradePayoff.toLocaleString()}
@@ -480,47 +480,47 @@ export default function ProfessionalDealDesk() {
                 </div>
               </DialogContent>
             </Dialog>
-            <div className="text-sm font-semibold text-purple-600">
+            <div className="text-xs sm:text-sm font-semibold text-purple-600 truncate">
               Net: ${netTrade.toLocaleString()}
             </div>
           </div>
         </Card>
         
         {/* Fees Row with Drill-Down */}
-        <Card className="p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 min-w-[120px]">
+        <Card className="p-3 sm:p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <Receipt className="h-5 w-5 text-red-600" />
-              <Label className="font-semibold text-base">Fees</Label>
+              <Label className="font-semibold text-sm sm:text-base whitespace-nowrap">Fees</Label>
             </div>
-            <div className="flex gap-4 flex-1">
-              <div className="flex flex-col gap-1">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
+              <div className="flex flex-col gap-1 flex-1">
                 <Label className="text-xs text-gray-500">Doc Fee</Label>
                 <Input
                   type="number"
                   value={docFee || ''}
                   onChange={(e) => setDocFee(parseFloat(e.target.value) || 0)}
-                  className="w-28 border-2"
+                  className="w-full sm:w-28 border-2"
                   data-testid="input-doc-fee"
                 />
               </div>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 flex-1">
                 <Label className="text-xs text-gray-500">Title</Label>
                 <Input
                   type="number"
                   value={titleFee || ''}
                   onChange={(e) => setTitleFee(parseFloat(e.target.value) || 0)}
-                  className="w-28 border-2"
+                  className="w-full sm:w-28 border-2"
                   data-testid="input-title-fee"
                 />
               </div>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 flex-1">
                 <Label className="text-xs text-gray-500">Registration</Label>
                 <Input
                   type="number"
                   value={registrationFee || ''}
                   onChange={(e) => setRegistrationFee(parseFloat(e.target.value) || 0)}
-                  className="w-28 border-2"
+                  className="w-full sm:w-28 border-2"
                   data-testid="input-reg-fee"
                 />
               </div>
@@ -530,11 +530,11 @@ export default function ProfessionalDealDesk() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]"
+                  className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] w-full sm:w-auto"
                   data-testid="button-add-fees"
                 >
-                  <Settings className="h-4 w-4 mr-1" />
-                  Add Fees
+                  <Settings className="h-4 w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">Add Fees</span>
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -543,7 +543,7 @@ export default function ProfessionalDealDesk() {
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   {customFees.map((fee, idx) => (
-                    <div key={idx} className="flex gap-2">
+                    <div key={idx} className="flex flex-col sm:flex-row gap-2">
                       <Input
                         value={fee.name}
                         onChange={(e) => {
@@ -552,6 +552,7 @@ export default function ProfessionalDealDesk() {
                           setCustomFees(updated);
                         }}
                         placeholder="Fee name"
+                        className="flex-1"
                       />
                       <Input
                         type="number"
@@ -562,7 +563,7 @@ export default function ProfessionalDealDesk() {
                           setCustomFees(updated);
                         }}
                         placeholder="Amount"
-                        className="w-32"
+                        className="w-full sm:w-32"
                       />
                     </div>
                   ))}
@@ -575,25 +576,25 @@ export default function ProfessionalDealDesk() {
                 </div>
               </DialogContent>
             </Dialog>
-            <div className="text-sm font-semibold text-red-600">
+            <div className="text-xs sm:text-sm font-semibold text-red-600 truncate">
               Total: ${totalFees.toLocaleString()}
             </div>
           </div>
         </Card>
         
         {/* Products & Aftermarket Row */}
-        <Card className="p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 min-w-[120px]">
+        <Card className="p-3 sm:p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <Package className="h-5 w-5 text-indigo-600" />
-              <Label className="font-semibold text-base">Products</Label>
+              <Label className="font-semibold text-sm sm:text-base whitespace-nowrap">Products</Label>
             </div>
-            <div className="flex gap-2 flex-1">
+            <div className="flex flex-col sm:flex-row gap-2 flex-1 w-full sm:w-auto">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setProductsDialogOpen(true)}
-                className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]"
+                className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] w-full sm:w-auto"
                 data-testid="button-fi-products"
               >
                 F&I Products ({fiProducts.length})
@@ -602,30 +603,30 @@ export default function ProfessionalDealDesk() {
                 variant="outline"
                 size="sm"
                 onClick={() => setAftermarketDialogOpen(true)}
-                className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]"
+                className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] w-full sm:w-auto"
                 data-testid="button-aftermarket"
               >
                 Aftermarket ({aftermarket.length})
               </Button>
             </div>
-            <div className="text-sm font-semibold text-indigo-600">
+            <div className="text-xs sm:text-sm font-semibold text-indigo-600 truncate">
               F&I: ${fiProductsRetail.toLocaleString()} | AM: ${aftermarketTotal.toLocaleString()}
             </div>
           </div>
         </Card>
         
         {/* Finance & Payment Row */}
-        <Card className="p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 min-w-[120px]">
+        <Card className="p-3 sm:p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <DollarSign className="h-5 w-5 text-green-600" />
-              <Label className="font-semibold text-base">Finance</Label>
+              <Label className="font-semibold text-sm sm:text-base whitespace-nowrap">Finance</Label>
             </div>
-            <div className="flex gap-4 flex-1">
-              <div className="flex flex-col gap-1">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
+              <div className="flex flex-col gap-1 flex-1">
                 <Label className="text-xs text-gray-500">Term</Label>
                 <Select value={term.toString()} onValueChange={(v) => setTerm(parseInt(v))}>
-                  <SelectTrigger className="w-28">
+                  <SelectTrigger className="w-full sm:w-28">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -635,24 +636,24 @@ export default function ProfessionalDealDesk() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 flex-1">
                 <Label className="text-xs text-gray-500">APR %</Label>
                 <Input
                   type="number"
                   step="0.1"
                   value={apr || ''}
                   onChange={(e) => setApr(parseFloat(e.target.value) || 0)}
-                  className="w-24 border-2"
+                  className="w-full sm:w-24 border-2"
                   data-testid="input-apr"
                 />
               </div>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 flex-1">
                 <Label className="text-xs text-gray-500">Down Payment</Label>
                 <Input
                   type="number"
                   value={downPayment || ''}
                   onChange={(e) => setDownPayment(parseFloat(e.target.value) || 0)}
-                  className="w-32 border-2"
+                  className="w-full sm:w-32 border-2"
                   data-testid="input-down-payment"
                 />
               </div>
@@ -661,49 +662,50 @@ export default function ProfessionalDealDesk() {
               variant="outline"
               size="sm"
               onClick={() => setPaymentMatrixOpen(true)}
-              className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]"
+              className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] w-full sm:w-auto"
               data-testid="button-payment-matrix"
             >
-              Payment Matrix
+              <span className="hidden sm:inline">Payment Matrix</span>
+              <span className="sm:hidden">Matrix</span>
             </Button>
-            <div className="text-lg font-bold text-green-600">
+            <div className="text-sm sm:text-lg font-bold text-green-600 truncate">
               ${monthlyPayment.toFixed(2)}/mo
             </div>
           </div>
         </Card>
         
         {/* Totals Summary Row */}
-        <Card className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)]">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="p-4 sm:p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Subtotal</div>
-              <div className="text-xl font-bold">${subtotal.toLocaleString()}</div>
+              <div className="text-lg sm:text-xl font-bold truncate">${subtotal.toLocaleString()}</div>
             </div>
             <div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Sales Tax ({salesTaxRate}%)</div>
-              <div className="text-xl font-bold">${salesTax.toFixed(2)}</div>
+              <div className="text-lg sm:text-xl font-bold truncate">${salesTax.toFixed(2)}</div>
             </div>
             <div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Total Price</div>
-              <div className="text-xl font-bold text-blue-600">${totalPrice.toFixed(2)}</div>
+              <div className="text-lg sm:text-xl font-bold text-blue-600 truncate">${totalPrice.toFixed(2)}</div>
             </div>
             <div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Amount Financed</div>
-              <div className="text-xl font-bold text-green-600">${amountFinanced.toFixed(2)}</div>
+              <div className="text-lg sm:text-xl font-bold text-green-600 truncate">${amountFinanced.toFixed(2)}</div>
             </div>
           </div>
-          <div className="mt-4 pt-4 border-t border-gray-300 dark:border-gray-700 grid grid-cols-3 gap-4">
+          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-300 dark:border-gray-700 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Front Gross</div>
-              <div className="text-lg font-semibold">${frontGross.toLocaleString()}</div>
+              <div className="text-base sm:text-lg font-semibold truncate">${frontGross.toLocaleString()}</div>
             </div>
             <div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Back Gross</div>
-              <div className="text-lg font-semibold">${backGross.toFixed(2)}</div>
+              <div className="text-base sm:text-lg font-semibold truncate">${backGross.toFixed(2)}</div>
             </div>
             <div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Total Gross</div>
-              <div className="text-lg font-bold text-emerald-600">${totalGross.toFixed(2)}</div>
+              <div className="text-base sm:text-lg font-bold text-emerald-600 truncate">${totalGross.toFixed(2)}</div>
             </div>
           </div>
         </Card>
@@ -1113,7 +1115,7 @@ export default function ProfessionalDealDesk() {
           </DialogHeader>
           <div className="py-4 space-y-4">
             <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                 <div>
                   <span className="text-gray-600 dark:text-gray-400">Total Price:</span>
                   <span className="ml-2 font-semibold">${totalPrice.toFixed(2)}</span>
