@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
-import UniformPage from '@/components/layout/uniform-page';
+import { ModuleHeader, FilterPill } from '@/components/ui/module-header';
 import AdvancedSearch from '@/components/search/advanced-search';
 import SearchResults from '@/components/search/search-results';
 import { useSearch } from '@/hooks/use-search';
@@ -49,7 +49,10 @@ import {
   Key,
   Wrench,
   Shield,
-  Info
+  Info,
+  LayoutGrid,
+  LayoutList,
+  Package
 } from 'lucide-react';
 import type { Vehicle } from '@shared/schema';
 
@@ -83,6 +86,7 @@ export default function Inventory() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [newVehicle, setNewVehicle] = useState({
     make: '',
     model: '',
@@ -284,7 +288,7 @@ export default function Inventory() {
     return matchesSearch && matchesStatus && matchesMake;
   });
 
-  const uniqueMakes = [...new Set(vehicles.map((v: Vehicle) => v.make))];
+  const uniqueMakes = Array.from(new Set(vehicles.map((v: Vehicle) => v.make)));
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -322,21 +326,79 @@ export default function Inventory() {
   }
 
   return (
-    <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-3 md:gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Inventory Management</h1>
-          <p className="text-xs sm:text-sm text-gray-600 mt-1">Manage your vehicle inventory with VIN decoding and pricing insights</p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-            <DialogTrigger asChild>
-              <Button className="btn-embossed w-full md:w-auto">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Vehicle
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <ModuleHeader
+        module="inventory"
+        title="Inventory Management"
+        subtitle="Manage your vehicle inventory with VIN decoding and pricing insights"
+        icon={Package}
+        stats={[
+          { label: 'Total Vehicles', value: vehicles.length },
+          { label: 'Available', value: vehicles.filter((v: Vehicle) => v.status === 'available').length },
+          { label: 'Sold', value: vehicles.filter((v: Vehicle) => v.status === 'sold').length },
+          { label: 'Pending', value: vehicles.filter((v: Vehicle) => v.status === 'pending').length }
+        ]}
+        filters={
+          <>
+            <FilterPill 
+              active={filterStatus === 'all'} 
+              onClick={() => setFilterStatus('all')}
+              testId="filter-all"
+            >
+              All
+            </FilterPill>
+            <FilterPill 
+              active={filterStatus === 'available'} 
+              onClick={() => setFilterStatus('available')}
+              testId="filter-available"
+            >
+              Available
+            </FilterPill>
+            <FilterPill 
+              active={filterStatus === 'sold'} 
+              onClick={() => setFilterStatus('sold')}
+              testId="filter-sold"
+            >
+              Sold
+            </FilterPill>
+            <FilterPill 
+              active={filterStatus === 'pending'} 
+              onClick={() => setFilterStatus('pending')}
+              testId="filter-pending"
+            >
+              Pending
+            </FilterPill>
+          </>
+        }
+        action={
+          <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-1 bg-white/10 rounded-lg p-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className={`${viewMode === 'grid' ? 'bg-white/20 text-white' : 'text-white/70'}`}
+                data-testid="button-view-grid"
+              >
+                <LayoutGrid className="h-4 w-4" />
               </Button>
-            </DialogTrigger>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className={`${viewMode === 'list' ? 'bg-white/20 text-white' : 'text-white/70'}`}
+                data-testid="button-view-list"
+              >
+                <LayoutList className="h-4 w-4" />
+              </Button>
+            </div>
+            <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+              <DialogTrigger asChild>
+                <Button className="btn-embossed bg-white text-slate-700 hover:bg-white/90" data-testid="button-add-vehicle">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Vehicle
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Vehicle</DialogTitle>
@@ -454,189 +516,157 @@ export default function Inventory() {
               </div>
             </DialogContent>
           </Dialog>
-          <Button variant="outline" className="w-full md:w-auto">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div>
-      </div>
+          </div>
+        }
+      />
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <Card>
-          <CardContent className="p-3 md:p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs md:text-sm text-gray-600">Total Inventory</p>
-                <p className="text-lg md:text-2xl font-bold">{vehicles.length}</p>
-              </div>
-              <Car className="h-6 w-6 md:h-8 md:w-8 text-blue-600" />
+      {/* Search and Filters */}
+      <div className="p-4 space-y-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search by make, model, or VIN..."
+                value={searchTerm}
+                onChange={(e) => updateSearchTerm(e.target.value)}
+                className="pl-10"
+                data-testid="input-search"
+              />
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 md:p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs md:text-sm text-gray-600">Available</p>
-                <p className="text-lg md:text-2xl font-bold text-green-600">
-                  {vehicles.filter((v: Vehicle) => v.status === 'available').length}
-                </p>
-              </div>
-              <CheckCircle className="h-6 w-6 md:h-8 md:w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 md:p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs md:text-sm text-gray-600">Pending</p>
-                <p className="text-lg md:text-2xl font-bold text-yellow-600">
-                  {vehicles.filter((v: Vehicle) => v.status === 'pending').length}
-                </p>
-              </div>
-              <Clock className="h-6 w-6 md:h-8 md:w-8 text-yellow-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 md:p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs md:text-sm text-gray-600">Total Value</p>
-                <p className="text-sm md:text-2xl font-bold">
-                  ${vehicles.reduce((sum: number, v: Vehicle) => sum + v.price, 0).toLocaleString()}
-                </p>
-              </div>
-              <DollarSign className="h-6 w-6 md:h-8 md:w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search by make, model, or VIN..."
-              value={searchTerm}
-              onChange={(e) => updateSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          </div>
+          <div className="flex gap-2">
+            <Select value={filterMake} onValueChange={setFilterMake}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Make" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Makes</SelectItem>
+                {uniqueMakes.map(make => (
+                  <SelectItem key={make} value={make}>{make}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="outline" data-testid="button-export">
+              <Download className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Export</span>
+            </Button>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="available">Available</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="sold">Sold</SelectItem>
-              <SelectItem value="maintenance">Maintenance</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={filterMake} onValueChange={setFilterMake}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Make" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Makes</SelectItem>
-              {uniqueMakes.map(make => (
-                <SelectItem key={make} value={make}>{make}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
       </div>
 
-      {/* Loading State */}
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      ) : filteredVehicles.length === 0 ? (
-        <div className="text-center py-12">
-          <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No vehicles found</h3>
-          <p className="text-gray-600 mb-4">Add your first vehicle to get started</p>
-          <Button onClick={() => setShowAddDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Vehicle
-          </Button>
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {/* Mobile Cards */}
-          <div className="md:hidden space-y-3">
-            {filteredVehicles.map((vehicle: Vehicle) => (
-              <Card 
-                key={vehicle.id} 
-                className="p-3 cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => {
-                  trackInteraction('vehicle_view', `vehicle-${vehicle.id}`, vehicle.id);
-                  setSelectedVehicle(vehicle);
-                  setIsModalOpen(true);
-                }}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm truncate">{vehicle.year} {vehicle.make} {vehicle.model}</h3>
-                    <p className="text-xs text-gray-600 font-mono truncate">{vehicle.vin}</p>
-                  </div>
-                  <Badge className={`${getStatusColor(vehicle.status)} text-xs px-2 py-1 ml-2`}>
-                    {getStatusIcon(vehicle.status)}
-                    <span className="ml-1 hidden sm:inline">{vehicle.status}</span>
-                  </Badge>
-                </div>
-                <div className="space-y-1 mb-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">Price:</span>
-                    <span className="font-semibold text-sm">${vehicle.price.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">Added:</span>
-                    <span className="text-xs">{new Date(vehicle.createdAt).toLocaleDateString()}</span>
-                  </div>
-                  {vehicle.description && (
-                    <div className="mt-1">
-                      <p className="text-xs text-gray-700 truncate">{vehicle.description}</p>
-                    </div>
-                  )}
-                </div>
-                <div className="flex justify-end gap-1">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      getPricingInsightsMutation.mutate(vehicle.id);
+      {/* Content */}
+      <div className="p-4">
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600"></div>
+          </div>
+        ) : filteredVehicles.length === 0 ? (
+          <div className="text-center py-12">
+            <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No vehicles found</h3>
+            <p className="text-gray-600 mb-4">Add your first vehicle to get started</p>
+            <Button className="btn-embossed" onClick={() => setShowAddDialog(true)} data-testid="button-add-first">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Vehicle
+            </Button>
+          </div>
+        ) : (
+          <>
+            {/* Grid View (Mobile-first) */}
+            {viewMode === 'grid' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {filteredVehicles.map((vehicle: Vehicle) => (
+                  <Card 
+                    key={vehicle.id} 
+                    className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group"
+                    onClick={() => {
+                      trackInteraction('vehicle_view', { elementId: `vehicle-${vehicle.id}`, vehicleId: vehicle.id });
+                      setLocation(`/inventory/${vehicle.id}`);
                     }}
-                    disabled={getPricingInsightsMutation.isPending}
-                    className="p-2"
-                    title={getPricingInsightsMutation.isPending ? 'Analyzing...' : 'Real ML Analysis'}
+                    data-testid={`card-vehicle-${vehicle.id}`}
                   >
-                    <TrendingUp className="h-3 w-3" />
-                  </Button>
-                  <Button variant="outline" size="sm" className="p-2">
-                    <Edit className="h-3 w-3" />
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => deleteVehicleMutation.mutate(vehicle.id)} className="p-2">
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </Card>
-            ))}
-          </div>
+                    {/* Vehicle Image or Placeholder */}
+                    <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center">
+                      <Car className="h-16 w-16 text-slate-400 dark:text-slate-500" />
+                      <Badge className={`${getStatusColor(vehicle.status)} absolute top-3 right-3`}>
+                        {getStatusIcon(vehicle.status)}
+                        <span className="ml-1">{vehicle.status}</span>
+                      </Badge>
+                    </div>
 
-          {/* Desktop Table */}
-          <div className="hidden md:block">
-            <Card>
+                    {/* Vehicle Details */}
+                    <div className="p-4">
+                      <div className="mb-3">
+                        <h3 className="font-bold text-lg truncate" data-testid={`text-vehicle-name-${vehicle.id}`}>
+                          {vehicle.year} {vehicle.make} {vehicle.model}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 font-mono truncate">{vehicle.vin}</p>
+                        {vehicle.description && (
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">{vehicle.description}</p>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-2xl font-bold text-slate-900 dark:text-white" data-testid={`text-price-${vehicle.id}`}>
+                          ${vehicle.price.toLocaleString()}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {new Date(vehicle.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+
+                      {/* Quick Actions */}
+                      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="flex-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            getPricingInsightsMutation.mutate(vehicle.id);
+                          }}
+                          disabled={getPricingInsightsMutation.isPending}
+                          title="ML Pricing Analysis"
+                          data-testid={`button-pricing-${vehicle.id}`}
+                        >
+                          <TrendingUp className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="flex-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditVehicle(vehicle);
+                          }}
+                          title="Edit"
+                          data-testid={`button-edit-${vehicle.id}`}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteVehicleMutation.mutate(vehicle.id);
+                          }}
+                          title="Delete"
+                          data-testid={`button-delete-${vehicle.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* List View (Desktop Table) */}
+            {viewMode === 'list' && (
+              <Card>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -654,7 +684,7 @@ export default function Inventory() {
                       key={vehicle.id} 
                       className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                       onClick={() => {
-                        trackInteraction('vehicle_view', `vehicle-${vehicle.id}`, vehicle.id);
+                        trackInteraction('vehicle_view', { elementId: `vehicle-${vehicle.id}`, vehicleId: vehicle.id });
                         setLocation(`/inventory/${vehicle.id}`);
                       }}
                       data-testid={`row-vehicle-${vehicle.id}`}
@@ -695,6 +725,7 @@ export default function Inventory() {
                             }}
                             disabled={getPricingInsightsMutation.isPending}
                             title={getPricingInsightsMutation.isPending ? 'Analyzing...' : 'Real ML Analysis'}
+                            data-testid={`button-pricing-table-${vehicle.id}`}
                           >
                             <TrendingUp className="h-4 w-4" />
                           </Button>
@@ -706,6 +737,7 @@ export default function Inventory() {
                               handleEditVehicle(vehicle);
                             }}
                             title="Edit"
+                            data-testid={`button-edit-table-${vehicle.id}`}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -717,6 +749,7 @@ export default function Inventory() {
                               deleteVehicleMutation.mutate(vehicle.id);
                             }}
                             title="Delete"
+                            data-testid={`button-delete-table-${vehicle.id}`}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -727,9 +760,10 @@ export default function Inventory() {
                 </TableBody>
               </Table>
             </Card>
-          </div>
-        </div>
-      )}
+            )}
+          </>
+        )}
+      </div>
 
       {/* Valuation Modal */}
       <Dialog open={!!valuationModal} onOpenChange={() => setValuationModal(null)}>
@@ -917,18 +951,116 @@ export default function Inventory() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid md:grid-cols-3 gap-4 text-sm">
-                      {Object.entries(valuationModal.data.vinData).map(([key, value]) => (
-                        value && (
+                      {Object.entries(valuationModal.data.vinData).map(([key, value]) => {
+                        if (!value) return null;
+                        return (
                           <div key={key}>
                             <Label className="text-gray-600 capitalize">{key.replace(/([A-Z])/g, ' $1')}</Label>
                             <p className="font-medium">{String(value)}</p>
                           </div>
-                        )
-                      ))}
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>
               )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Vehicle Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Vehicle</DialogTitle>
+          </DialogHeader>
+          {editingVehicle && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-make">Make *</Label>
+                  <Input
+                    id="edit-make"
+                    value={editingVehicle.make}
+                    onChange={(e) => setEditingVehicle({...editingVehicle, make: e.target.value})}
+                    data-testid="input-edit-make"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-model">Model *</Label>
+                  <Input
+                    id="edit-model"
+                    value={editingVehicle.model}
+                    onChange={(e) => setEditingVehicle({...editingVehicle, model: e.target.value})}
+                    data-testid="input-edit-model"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-year">Year *</Label>
+                  <Input
+                    id="edit-year"
+                    type="number"
+                    value={editingVehicle.year}
+                    onChange={(e) => setEditingVehicle({...editingVehicle, year: parseInt(e.target.value)})}
+                    data-testid="input-edit-year"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-vin">VIN *</Label>
+                  <Input
+                    id="edit-vin"
+                    value={editingVehicle.vin}
+                    onChange={(e) => setEditingVehicle({...editingVehicle, vin: e.target.value})}
+                    maxLength={17}
+                    data-testid="input-edit-vin"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-price">Price *</Label>
+                  <Input
+                    id="edit-price"
+                    type="number"
+                    value={editingVehicle.price}
+                    onChange={(e) => setEditingVehicle({...editingVehicle, price: parseFloat(e.target.value)})}
+                    data-testid="input-edit-price"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-status">Status</Label>
+                  <Select 
+                    value={editingVehicle.status} 
+                    onValueChange={(value) => setEditingVehicle({...editingVehicle, status: value})}
+                  >
+                    <SelectTrigger data-testid="select-edit-status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="available">Available</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="sold">Sold</SelectItem>
+                      <SelectItem value="maintenance">Maintenance</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="md:col-span-2">
+                  <Label htmlFor="edit-description">Description</Label>
+                  <Input
+                    id="edit-description"
+                    value={editingVehicle.description || ''}
+                    onChange={(e) => setEditingVehicle({...editingVehicle, description: e.target.value})}
+                    data-testid="input-edit-description"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-6">
+                <Button variant="outline" onClick={() => setShowEditDialog(false)} data-testid="button-cancel-edit">
+                  Cancel
+                </Button>
+                <Button className="btn-embossed" onClick={handleUpdateVehicle} data-testid="button-save-edit">
+                  Save Changes
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>

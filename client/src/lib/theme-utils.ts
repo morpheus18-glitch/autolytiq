@@ -53,13 +53,13 @@ export const moduleThemes: Record<ModuleType, ModuleTheme> = {
     hoverBgClass: 'hover:bg-indigo-700'
   },
   inventory: {
-    gradient: 'from-slate-900 to-slate-800',
-    primaryClass: 'text-slate-900',
+    gradient: 'from-slate-600 to-slate-700',
+    primaryClass: 'text-slate-600',
     lightBgClass: 'bg-slate-50',
-    iconClass: 'text-slate-900',
-    badgeClass: 'bg-slate-100 text-slate-900',
+    iconClass: 'text-slate-600',
+    badgeClass: 'bg-slate-100 text-slate-700',
     cardClass: 'bg-slate-100',
-    hoverBgClass: 'hover:bg-slate-800'
+    hoverBgClass: 'hover:bg-slate-700'
   },
   analytics: {
     gradient: 'from-purple-600 to-purple-700',
