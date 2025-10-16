@@ -13,6 +13,12 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from pipeline.run_pipeline import VehiclePricingPipeline
 from utils.data_storage import DataStorage
+from services import (
+    PricingInsightsService,
+    DealOptimizer,
+    LeadScorer,
+    InventoryOptimizer,
+)
 
 app = Flask(__name__)
 CORS(app)
@@ -20,6 +26,10 @@ CORS(app)
 # Initialize pipeline
 pipeline = VehiclePricingPipeline()
 data_storage = DataStorage()
+pricing_service = PricingInsightsService(pipeline, data_storage)
+deal_optimizer = DealOptimizer(pricing_service)
+lead_scorer = LeadScorer()
+inventory_optimizer = InventoryOptimizer()
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -65,23 +75,90 @@ def predict_price():
 def predict_batch():
     """Get price predictions for multiple vehicles"""
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         vehicles = data.get('vehicles', [])
-        
+
         if not vehicles:
             return jsonify({'error': 'No vehicles provided'}), 400
-        
-        # Generate predictions
+
         predictions = pipeline.price_model.predict_batch(vehicles)
-        
+
         return jsonify({
             'predictions': predictions,
             'count': len(predictions)
         })
-    
+
     except Exception as e:
         logger.error(f"Error in predict_batch: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/ml/predict-price', methods=['POST'])
+def ml_predict_price():
+    """Predict price with enriched analytics using FastAPI-style payload"""
+    try:
+        payload = request.get_json() or {}
+        required = ['make', 'model', 'year']
+        missing = [field for field in required if field not in payload]
+        if missing:
+            return jsonify({'error': f"Missing required fields: {', '.join(missing)}"}), 400
+
+        result = pricing_service.predict_price(payload)
+        return jsonify(result)
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 422
+    except Exception as exc:
+        logger.error(f"Error in ml_predict_price: {exc}")
+        return jsonify({'error': 'Failed to generate pricing insights'}), 500
+
+
+@app.route('/api/ml/optimize-deal', methods=['POST'])
+def ml_optimize_deal():
+    """Optimize deal structure and recommend F&I products"""
+    try:
+        payload = request.get_json() or {}
+        required = ['vehicle_price', 'customer_credit_score', 'customer_income', 'down_payment']
+        missing = [field for field in required if field not in payload]
+        if missing:
+            return jsonify({'error': f"Missing required fields: {', '.join(missing)}"}), 400
+
+        result = deal_optimizer.optimize(payload)
+        return jsonify(result)
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 422
+    except Exception as exc:
+        logger.error(f"Error in ml_optimize_deal: {exc}")
+        return jsonify({'error': 'Failed to optimize deal'}), 500
+
+
+@app.route('/api/ml/score-lead', methods=['POST'])
+def ml_score_lead():
+    """Score leads based on engagement signals"""
+    try:
+        payload = request.get_json() or {}
+        if 'customer_id' not in payload:
+            return jsonify({'error': 'customer_id is required'}), 400
+        result = lead_scorer.score(payload)
+        return jsonify(result)
+    except Exception as exc:
+        logger.error(f"Error in ml_score_lead: {exc}")
+        return jsonify({'error': 'Failed to score lead'}), 500
+
+
+@app.route('/api/ml/optimize-inventory', methods=['POST'])
+def ml_optimize_inventory():
+    """Optimize pricing recommendations for current inventory"""
+    try:
+        payload = request.get_json() or {}
+        inventory = payload.get('current_inventory')
+        if not isinstance(inventory, list) or not inventory:
+            return jsonify({'error': 'current_inventory must be a non-empty list'}), 400
+        result = inventory_optimizer.optimize(payload)
+        return jsonify(result)
+    except Exception as exc:
+        logger.error(f"Error in ml_optimize_inventory: {exc}")
+        return jsonify({'error': 'Failed to optimize inventory'}), 500
+
 
 @app.route('/api/market-analysis', methods=['GET'])
 def get_market_analysis():
