@@ -85,6 +85,10 @@ export const vehicles = pgTable("vehicles", {
   price: integer("price").notNull(),
   originalPrice: integer("original_price"),
   costPrice: integer("cost_price"),
+  msrp: integer("msrp"), // Manufacturer's Suggested Retail Price
+  exteriorColor: text("exterior_color"),
+  interiorColor: text("interior_color"),
+  driveType: text("drive_type"), // FWD, RWD, AWD, 4WD
   status: text("status").notNull(), // available, pending, sold, maintenance, reserved, in-transit
   condition: text("condition").default("good"), // excellent, good, fair, poor
   description: text("description"),
@@ -1119,6 +1123,47 @@ export type InsertLenderApplication = z.infer<typeof insertLenderApplicationSche
 export type InsertFiProduct = z.infer<typeof insertFiProductSchema>;
 export type InsertFinanceMenu = z.infer<typeof insertFinanceMenuSchema>;
 export type InsertFiAuditLog = z.infer<typeof insertFiAuditLogSchema>;
+
+// Dealer Settings Schema - Centralized dealer configuration
+export const dealerSettings = pgTable("dealer_settings", {
+  id: serial("id").primaryKey(),
+  dealerName: text("dealer_name"),
+  dealerCode: text("dealer_code"),
+  dealerLicense: text("dealer_license"),
+  
+  // Fee Defaults
+  docFeeCents: integer("doc_fee_cents").default(69900), // $699.00 in cents
+  titleFeeCents: integer("title_fee_cents").default(7500), // $75.00 in cents
+  registrationFeeCents: integer("registration_fee_cents").default(15000), // $150.00 in cents
+  convenienceFeeCents: integer("convenience_fee_cents").default(0),
+  
+  // Tax Defaults  
+  defaultSalesTaxPercent: decimal("default_sales_tax_percent", { precision: 5, scale: 3 }).default("0.000"), // e.g., 7.250 for 7.25%
+  useTaxJurisdictionLookup: boolean("use_tax_jurisdiction_lookup").default(true), // Use ZIP-based tax lookup
+  
+  // Finance Defaults
+  defaultTermMonths: integer("default_term_months").default(72),
+  availableTerms: json("available_terms").$type<number[]>().default([36, 48, 60, 72, 84]),
+  defaultDownPaymentPercent: decimal("default_down_payment_percent", { precision: 5, scale: 2 }).default("10.00"),
+  maxReservePercent: decimal("max_reserve_percent", { precision: 5, scale: 2 }).default("2.50"),
+  
+  // Deal Desk Defaults
+  defaultPackCents: integer("default_pack_cents").default(50000), // $500.00 pack
+  autoPopulateFromStock: boolean("auto_populate_from_stock").default(true),
+  autoPopulateCustomerInfo: boolean("auto_populate_customer_info").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertDealerSettingsSchema = createInsertSchema(dealerSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type DealerSettings = typeof dealerSettings.$inferSelect;
+export type InsertDealerSettings = z.infer<typeof insertDealerSettingsSchema>;
 
 // Deal Management Schema
 export const deals = pgTable("deals", {
