@@ -241,7 +241,7 @@ export default function ProfessionalDealDesk() {
   return (
     <div className="min-h-[100dvh] bg-gray-50 dark:bg-gray-900 pb-6">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40 no-print">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Calculator className="h-6 w-6 text-blue-600" />
@@ -270,7 +270,7 @@ export default function ProfessionalDealDesk() {
         </div>
       </div>
       
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-4 no-print">
         {/* Data Table Structure - Clean Rows */}
         
         {/* Customer Row - FIRST */}
@@ -923,6 +923,186 @@ export default function ProfessionalDealDesk() {
         </DialogContent>
       </Dialog>
       
+      {/* Print-only Deal Summary */}
+      <div className="hidden print:block print-summary">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">Customer Pricing Worksheet</h1>
+          <p className="text-gray-600">AutolytiQ Dealership</p>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-8 mb-8">
+          <div>
+            <h2 className="text-xl font-bold mb-4 border-b-2 border-gray-300 pb-2">Customer Information</h2>
+            <p><strong>Name:</strong> {selectedCustomer?.firstName} {selectedCustomer?.lastName}</p>
+            <p><strong>Email:</strong> {selectedCustomer?.email}</p>
+            <p><strong>Phone:</strong> {selectedCustomer?.phone}</p>
+          </div>
+          <div>
+            <h2 className="text-xl font-bold mb-4 border-b-2 border-gray-300 pb-2">Vehicle Information</h2>
+            <p><strong>Stock #:</strong> {selectedVehicle?.stockNumber}</p>
+            <p><strong>Vehicle:</strong> {selectedVehicle?.year} {selectedVehicle?.make} {selectedVehicle?.model}</p>
+            <p><strong>VIN:</strong> {selectedVehicle?.vin}</p>
+            <p><strong>MSRP:</strong> ${selectedVehicle?.msrp?.toLocaleString() || 'N/A'}</p>
+          </div>
+        </div>
+        
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-4 border-b-2 border-gray-300 pb-2">Price Breakdown</h2>
+          <table className="w-full border-collapse mb-4">
+            <tbody>
+              <tr className="border-b">
+                <td className="py-2">Sale Price</td>
+                <td className="py-2 text-right font-semibold">${salePrice.toLocaleString()}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">Rebates</td>
+                <td className="py-2 text-right text-red-600">-${rebates.toLocaleString()}</td>
+              </tr>
+              <tr className="border-b bg-gray-100">
+                <td className="py-2 font-semibold">Subtotal</td>
+                <td className="py-2 text-right font-bold">${subtotal.toLocaleString()}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">Doc Fee</td>
+                <td className="py-2 text-right">${docFee.toLocaleString()}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">Title Fee</td>
+                <td className="py-2 text-right">${titleFee.toLocaleString()}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">Registration Fee</td>
+                <td className="py-2 text-right">${registrationFee.toLocaleString()}</td>
+              </tr>
+              {customFees.map((fee, idx) => (
+                <tr key={idx} className="border-b">
+                  <td className="py-2">{fee.name}</td>
+                  <td className="py-2 text-right">${fee.amount.toLocaleString()}</td>
+                </tr>
+              ))}
+              <tr className="border-b">
+                <td className="py-2">Sales Tax ({salesTaxRate}%)</td>
+                <td className="py-2 text-right">${salesTax.toLocaleString()}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">F&I Products</td>
+                <td className="py-2 text-right">${fiProductsRetail.toLocaleString()}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">Aftermarket</td>
+                <td className="py-2 text-right">${aftermarketTotal.toLocaleString()}</td>
+              </tr>
+              <tr className="border-b bg-blue-50">
+                <td className="py-3 font-bold text-lg">Total Price</td>
+                <td className="py-3 text-right font-bold text-lg text-blue-600">${totalPrice.toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-4 border-b-2 border-gray-300 pb-2">Trade-In Information</h2>
+          <table className="w-full border-collapse">
+            <tbody>
+              <tr className="border-b">
+                <td className="py-2">Trade Allowance</td>
+                <td className="py-2 text-right">${tradeAllowance.toLocaleString()}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">Trade Payoff</td>
+                <td className="py-2 text-right text-red-600">-${tradePayoff.toLocaleString()}</td>
+              </tr>
+              <tr className="border-b bg-green-50">
+                <td className="py-2 font-semibold">Net Trade Value</td>
+                <td className="py-2 text-right font-bold text-green-600">${netTrade.toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-4 border-b-2 border-gray-300 pb-2">Financing Details</h2>
+          <table className="w-full border-collapse">
+            <tbody>
+              <tr className="border-b">
+                <td className="py-2">Down Payment</td>
+                <td className="py-2 text-right">${downPayment.toLocaleString()}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">Net Trade Applied</td>
+                <td className="py-2 text-right">${netTrade.toLocaleString()}</td>
+              </tr>
+              <tr className="border-b bg-orange-50">
+                <td className="py-2 font-semibold">Amount Financed</td>
+                <td className="py-2 text-right font-bold text-orange-600">${amountFinanced.toLocaleString()}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">Term</td>
+                <td className="py-2 text-right">{term} months</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">APR</td>
+                <td className="py-2 text-right">{apr}%</td>
+              </tr>
+              <tr className="border-b bg-green-50">
+                <td className="py-3 font-bold text-lg">Monthly Payment</td>
+                <td className="py-3 text-right font-bold text-lg text-green-600">${monthlyPayment.toFixed(2)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        {fiProducts.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold mb-4 border-b-2 border-gray-300 pb-2">F&I Products</h2>
+            <table className="w-full border-collapse">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="py-2 text-left">Product</th>
+                  <th className="py-2 text-right">Retail</th>
+                  <th className="py-2 text-right">Term</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fiProducts.map((product, idx) => (
+                  <tr key={idx} className="border-b">
+                    <td className="py-2">{product.name}</td>
+                    <td className="py-2 text-right">${product.retail.toLocaleString()}</td>
+                    <td className="py-2 text-right">{product.term} mo</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        
+        {aftermarket.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold mb-4 border-b-2 border-gray-300 pb-2">Aftermarket Items</h2>
+            <table className="w-full border-collapse">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="py-2 text-left">Item</th>
+                  <th className="py-2 text-right">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {aftermarket.map((item, idx) => (
+                  <tr key={idx} className="border-b">
+                    <td className="py-2">{item.name}</td>
+                    <td className="py-2 text-right">${item.price.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        
+        <div className="text-center mt-12 pt-8 border-t-2 border-gray-300">
+          <p className="text-sm text-gray-600">Customer Signature: ___________________________ Date: _______________</p>
+        </div>
+      </div>
+      
       {/* Payment Matrix Dialog */}
       <Dialog open={paymentMatrixOpen} onOpenChange={setPaymentMatrixOpen}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-auto">
@@ -1044,6 +1224,77 @@ export default function ProfessionalDealDesk() {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Print-specific CSS */}
+      <style>{`
+        @media print {
+          /* Hide all UI elements */
+          .no-print,
+          header, nav, button,
+          [role="dialog"],
+          [role="alertdialog"] {
+            display: none !important;
+          }
+          
+          /* Show only print summary */
+          .print-summary {
+            display: block !important;
+            padding: 20px;
+            max-width: 100%;
+            color: black !important;
+            background: white !important;
+          }
+          
+          /* Override dark mode for print */
+          .print-summary * {
+            color: black !important;
+            background: white !important;
+          }
+          
+          /* Special colors for highlights */
+          .print-summary .text-blue-600,
+          .print-summary .text-green-600,
+          .print-summary .text-red-600,
+          .print-summary .text-orange-600 {
+            color: black !important;
+            font-weight: bold;
+          }
+          
+          /* Keep background colors for table rows */
+          .print-summary .bg-gray-100,
+          .print-summary .bg-blue-50,
+          .print-summary .bg-green-50,
+          .print-summary .bg-orange-50 {
+            background: #f3f4f6 !important;
+          }
+          
+          /* Clean table borders for print */
+          .print-summary table {
+            page-break-inside: avoid;
+            border-collapse: collapse;
+          }
+          
+          .print-summary table td,
+          .print-summary table th {
+            border: 1px solid #d1d5db !important;
+          }
+          
+          /* Ensure proper page breaks */
+          .print-summary h2 {
+            page-break-after: avoid;
+          }
+          
+          /* Remove shadows */
+          .print-summary * {
+            box-shadow: none !important;
+          }
+          
+          /* Set page margins */
+          @page {
+            margin: 1cm;
+          }
+        }
+      `}</style>
     </div>
   );
 }
