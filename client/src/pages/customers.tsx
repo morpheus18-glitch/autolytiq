@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ModuleHeader, FilterPill } from '@/components/ui/module-header';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
@@ -25,7 +27,8 @@ import {
   CheckCircle,
   AlertCircle,
   Download,
-  Upload
+  Upload,
+  Users
 } from 'lucide-react';
 import CustomerQuickActions from '@/components/customer-quick-actions';
 import type { Customer } from '@shared/schema';
@@ -96,6 +99,13 @@ export default function Customers() {
     }
   };
 
+  // Get initials for avatar
+  const getInitials = (firstName: string, lastName: string) => {
+    const first = firstName?.charAt(0) || '';
+    const last = lastName?.charAt(0) || '';
+    return (first + last).toUpperCase();
+  };
+
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -111,307 +121,334 @@ export default function Customers() {
     );
   }
 
+  // Calculate stats
+  const totalCustomers = customers.length;
+  const hotCustomers = customers.filter(c => c.status === 'hot').length;
+  const warmCustomers = customers.filter(c => c.status === 'warm').length;
+  const activeCustomers = customers.filter(c => c.status === 'customer').length;
+
   return (
-    <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
-      <div className="flex flex-col gap-3 md:gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Customers</h1>
-          <p className="text-xs sm:text-sm text-gray-600 mt-1">Manage your customer relationships and contacts</p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button variant="outline" size="sm" className="w-full sm:w-auto">
-            <Upload className="h-4 w-4 mr-2" />
-            Import
-          </Button>
-          <Button variant="outline" size="sm" className="w-full sm:w-auto">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Link href="/customers/new" className="w-full sm:w-auto">
-            <Button size="sm" className="w-full">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* ModuleHeader with stats and filters */}
+      <ModuleHeader
+        module="crm"
+        title="Customers"
+        subtitle="Manage your customer relationships and contacts"
+        icon={Users}
+        action={
+          <Link href="/customers/new">
+            <Button 
+              size="sm" 
+              className="bg-white text-indigo-600 hover:bg-white/90 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]"
+              data-testid="button-add-customer"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Customer
             </Button>
           </Link>
-        </div>
-      </div>
+        }
+        stats={[
+          { label: 'Total', value: totalCustomers },
+          { label: 'Hot', value: hotCustomers },
+          { label: 'Warm', value: warmCustomers },
+          { label: 'Active', value: activeCustomers }
+        ]}
+        filters={
+          <>
+            <FilterPill 
+              active={filterStatus === 'all'} 
+              onClick={() => setFilterStatus('all')}
+              testId="filter-all"
+            >
+              All
+            </FilterPill>
+            <FilterPill 
+              active={filterStatus === 'hot'} 
+              onClick={() => setFilterStatus('hot')}
+              testId="filter-hot"
+            >
+              Hot
+            </FilterPill>
+            <FilterPill 
+              active={filterStatus === 'warm'} 
+              onClick={() => setFilterStatus('warm')}
+              testId="filter-warm"
+            >
+              Warm
+            </FilterPill>
+            <FilterPill 
+              active={filterStatus === 'cold'} 
+              onClick={() => setFilterStatus('cold')}
+              testId="filter-cold"
+            >
+              Cold
+            </FilterPill>
+            <FilterPill 
+              active={filterStatus === 'customer'} 
+              onClick={() => setFilterStatus('customer')}
+              testId="filter-customer"
+            >
+              Customer
+            </FilterPill>
+            <FilterPill 
+              active={filterStatus === 'prospect'} 
+              onClick={() => setFilterStatus('prospect')}
+              testId="filter-prospect"
+            >
+              Prospect
+            </FilterPill>
+          </>
+        }
+      />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-        <Card>
-          <CardContent className="p-2 sm:p-3 md:p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-              <div className="flex-1">
-                <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">Total</p>
-                <p className="text-lg sm:text-xl md:text-2xl font-bold">{customers.length}</p>
-              </div>
-              <User className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-blue-600 self-end sm:self-auto" />
+      <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+        {/* Search and Additional Actions */}
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search customers by name, email, or phone..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+                data-testid="input-search-customers"
+              />
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-2 sm:p-3 md:p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-              <div className="flex-1">
-                <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">Hot</p>
-                <p className="text-lg sm:text-xl md:text-2xl font-bold text-red-600">
-                  {customers.filter(c => c.status === 'hot').length}
-                </p>
-              </div>
-              <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-red-600 self-end sm:self-auto" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-2 sm:p-3 md:p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-              <div className="flex-1">
-                <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">Warm</p>
-                <p className="text-lg sm:text-xl md:text-2xl font-bold text-yellow-600">
-                  {customers.filter(c => c.status === 'warm').length}
-                </p>
-              </div>
-              <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-yellow-600 self-end sm:self-auto" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-2 sm:p-3 md:p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-              <div className="flex-1">
-                <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">Active</p>
-                <p className="text-lg sm:text-xl md:text-2xl font-bold text-green-600">
-                  {customers.filter(c => c.status === 'customer').length}
-                </p>
-              </div>
-              <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-green-600 self-end sm:self-auto" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search customers by name, email, or phone..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-initial" data-testid="button-import">
+              <Upload className="h-4 w-4 mr-2" />
+              Import
+            </Button>
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-initial" data-testid="button-export">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
           </div>
         </div>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="hot">Hot</SelectItem>
-            <SelectItem value="warm">Warm</SelectItem>
-            <SelectItem value="cold">Cold</SelectItem>
-            <SelectItem value="customer">Customer</SelectItem>
-            <SelectItem value="prospect">Prospect</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
 
-      {/* Customer List */}
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      ) : (
-        <>
-          {/* Mobile Cards */}
-          <div className="md:hidden space-y-3">
-            {filteredCustomers.map((customer) => (
-              <Card 
-                key={customer.id} 
-                className="p-3 cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => setLocation(`/customers/${customer.id}`)}
-                data-testid={`row-customer-${customer.id}`}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm">{customer.firstName} {customer.lastName}</h3>
-                    <p className="text-xs text-gray-500">Customer #{customer.id}</p>
-                  </div>
-                  <Badge className={`${getStatusColor(customer.status || 'prospect')} text-xs px-2 py-1 ml-2`}>
-                    {getStatusIcon(customer.status || 'prospect')}
-                    <span className="ml-1 capitalize">{customer.status || 'prospect'}</span>
-                  </Badge>
-                </div>
-                <div className="space-y-1 mb-3 text-xs">
-                  <div className="flex items-center gap-1">
-                    <Mail className="h-3 w-3 text-gray-400" />
-                    <span className="truncate">{customer.email}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Phone className="h-3 w-3 text-gray-400" />
-                    <span>{customer.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3 text-gray-400" />
-                    <span>{customer.city}, {customer.state}</span>
-                  </div>
-                </div>
-                <div className="flex justify-end gap-1">
-                  <CustomerQuickActions
-                    customer={customer}
-                    buttonVariant="outline"
-                    buttonSize="icon"
-                    className="p-2"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="p-2"
-                    title="Call"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      window.open(`tel:${customer.phone}`);
-                    }}
-                  >
-                    <Phone className="h-3 w-3" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="p-2"
-                    title="Email"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      window.open(`mailto:${customer.email}`);
-                    }}
-                  >
-                    <Mail className="h-3 w-3" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="p-2"
-                    title="Delete"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(customer.id);
-                    }}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </Card>
-            ))}
+        {/* Customer List */}
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           </div>
-
-          {/* Desktop Table */}
-          <Card className="hidden md:block">
-            <CardHeader>
-              <CardTitle>Customer Directory</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Lead Source</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCustomers.map((customer) => (
-                  <TableRow 
-                    key={customer.id}
-                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                    onClick={() => setLocation(`/customers/${customer.id}`)}
-                    data-testid={`row-customer-${customer.id}`}
-                  >
-                    <TableCell>
-                      <div className="font-medium">
-                        {customer.firstName} {customer.lastName}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Customer #{customer.id}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-sm">
-                          <Mail className="h-3 w-3" />
-                          {customer.email}
-                        </div>
-                        <div className="flex items-center gap-1 text-sm">
-                          <Phone className="h-3 w-3" />
-                          {customer.phone}
+        ) : (
+          <>
+            {/* Mobile Cards - New Design */}
+            <div className="md:hidden space-y-3">
+              {filteredCustomers.map((customer) => (
+                <Card 
+                  key={customer.id} 
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
+                  onClick={() => {
+                    trackInteraction('customer_view', { customerId: customer.id });
+                    setLocation(`/customers/${customer.id}`);
+                  }}
+                  data-testid={`card-customer-${customer.id}`}
+                >
+                  <CardContent className="p-4">
+                    {/* Top Section: Avatar + Name + Status Badge */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-12 w-12">
+                          <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white font-bold">
+                            {getInitials(customer.firstName, customer.lastName)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="font-bold text-sm dark:text-white">{customer.firstName} {customer.lastName}</h3>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{customer.email}</p>
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(customer.status || 'prospect')}>
-                        {getStatusIcon(customer.status || 'prospect')}
-                        <span className="ml-1 capitalize">{customer.status || 'prospect'}</span>
+                      <Badge className={`${getStatusColor(customer.status || 'prospect')} text-xs px-2 py-1 ml-2 capitalize`}>
+                        {customer.status || 'prospect'}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm">
+                    </div>
+
+                    {/* Contact Info */}
+                    <div className="space-y-2 mb-3">
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <Phone className="h-3 w-3" />
+                        <span>{customer.phone}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                         <MapPin className="h-3 w-3" />
-                        {customer.city}, {customer.state}
+                        <span>{customer.city}, {customer.state}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm capitalize">{customer.leadSource || 'website'}</span>
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center gap-1">
-                        <CustomerQuickActions customer={customer} buttonVariant="ghost" buttonSize="icon" />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title="Call"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.open(`tel:${customer.phone}`);
-                          }}
-                        >
-                          <Phone className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          title="Email"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.open(`mailto:${customer.email}`);
-                          }}
-                        >
-                          <Mail className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          title="Delete"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(customer.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 pt-3 border-t border-gray-100 dark:border-gray-700" onClick={(e) => e.stopPropagation()}>
+                      <CustomerQuickActions
+                        customer={customer}
+                        buttonVariant="outline"
+                        buttonSize="sm"
+                        className="flex-1"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        title="Call"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          trackInteraction('customer_call', { customerId: customer.id });
+                          window.open(`tel:${customer.phone}`);
+                        }}
+                        data-testid={`button-call-${customer.id}`}
+                      >
+                        <Phone className="h-3 w-3 mr-1" />
+                        Call
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="flex-1"
+                        title="Email"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          trackInteraction('customer_email', { customerId: customer.id });
+                          window.open(`mailto:${customer.email}`);
+                        }}
+                        data-testid={`button-email-${customer.id}`}
+                      >
+                        <Mail className="h-3 w-3 mr-1" />
+                        Email
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        title="Delete"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(customer.id);
+                        }}
+                        data-testid={`button-delete-${customer.id}`}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Desktop Table */}
+            <Card className="hidden md:block">
+              <CardHeader>
+                <CardTitle>Customer Directory</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Lead Source</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </>
-      )}
+                </TableHeader>
+                <TableBody>
+                  {filteredCustomers.map((customer) => (
+                    <TableRow 
+                      key={customer.id}
+                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                      onClick={() => {
+                        trackInteraction('customer_view', { customerId: customer.id });
+                        setLocation(`/customers/${customer.id}`);
+                      }}
+                      data-testid={`row-customer-${customer.id}`}
+                    >
+                      <TableCell>
+                        <div className="font-medium">
+                          {customer.firstName} {customer.lastName}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Customer #{customer.id}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1 text-sm">
+                            <Mail className="h-3 w-3" />
+                            {customer.email}
+                          </div>
+                          <div className="flex items-center gap-1 text-sm">
+                            <Phone className="h-3 w-3" />
+                            {customer.phone}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(customer.status || 'prospect')}>
+                          {getStatusIcon(customer.status || 'prospect')}
+                          <span className="ml-1 capitalize">{customer.status || 'prospect'}</span>
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-sm">
+                          <MapPin className="h-3 w-3" />
+                          {customer.city}, {customer.state}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm capitalize">{customer.leadSource || 'website'}</span>
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-1">
+                          <CustomerQuickActions customer={customer} buttonVariant="ghost" buttonSize="icon" />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title="Call"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              trackInteraction('customer_call', { customerId: customer.id });
+                              window.open(`tel:${customer.phone}`);
+                            }}
+                            data-testid={`button-call-${customer.id}`}
+                          >
+                            <Phone className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            title="Email"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              trackInteraction('customer_email', { customerId: customer.id });
+                              window.open(`mailto:${customer.email}`);
+                            }}
+                            data-testid={`button-email-${customer.id}`}
+                          >
+                            <Mail className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            title="Delete"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(customer.id);
+                            }}
+                            data-testid={`button-delete-${customer.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </>
+        )}
+      </div>
     </div>
   );
 }
