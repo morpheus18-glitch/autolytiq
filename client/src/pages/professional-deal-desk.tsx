@@ -99,7 +99,7 @@ export default function ProfessionalDealDesk() {
   const [downPayment, setDownPayment] = useState<number>(0);
   
   // Products
-  const [fiProducts, setFiProducts] = useState<Array<{name: string; retail: number; cost: number}>>([]);
+  const [fiProducts, setFiProducts] = useState<Array<{name: string; retail: number; cost: number; term: number}>>([]);
   const [aftermarket, setAftermarket] = useState<Array<{name: string; price: number}>>([]);
   
   // Dialog states
@@ -706,6 +706,222 @@ export default function ProfessionalDealDesk() {
           </div>
         </Card>
       </div>
+      
+      {/* F&I Products Dialog */}
+      <Dialog open={productsDialogOpen} onOpenChange={setProductsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">F&I Products</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="border rounded-lg">
+              <table className="w-full">
+                <thead className="bg-gray-100 dark:bg-gray-800">
+                  <tr>
+                    <th className="p-2 text-left">Product Name</th>
+                    <th className="p-2 text-right">Retail</th>
+                    <th className="p-2 text-right">Cost</th>
+                    <th className="p-2 text-center">Term</th>
+                    <th className="p-2 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fiProducts.map((product, idx) => (
+                    <tr key={idx} className="border-t">
+                      <td className="p-2">
+                        <Input
+                          value={product.name}
+                          onChange={(e) => {
+                            const updated = [...fiProducts];
+                            updated[idx].name = e.target.value;
+                            setFiProducts(updated);
+                          }}
+                          placeholder="Extended Warranty"
+                          className="border-2"
+                          data-testid={`input-fi-name-${idx}`}
+                        />
+                      </td>
+                      <td className="p-2">
+                        <Input
+                          type="number"
+                          value={product.retail || ''}
+                          onChange={(e) => {
+                            const updated = [...fiProducts];
+                            updated[idx].retail = parseFloat(e.target.value) || 0;
+                            setFiProducts(updated);
+                          }}
+                          className="border-2 text-right"
+                          data-testid={`input-fi-retail-${idx}`}
+                        />
+                      </td>
+                      <td className="p-2">
+                        <Input
+                          type="number"
+                          value={product.cost || ''}
+                          onChange={(e) => {
+                            const updated = [...fiProducts];
+                            updated[idx].cost = parseFloat(e.target.value) || 0;
+                            setFiProducts(updated);
+                          }}
+                          className="border-2 text-right"
+                          data-testid={`input-fi-cost-${idx}`}
+                        />
+                      </td>
+                      <td className="p-2">
+                        <Input
+                          type="number"
+                          value={product.term || ''}
+                          onChange={(e) => {
+                            const updated = [...fiProducts];
+                            updated[idx].term = parseInt(e.target.value) || 0;
+                            setFiProducts(updated);
+                          }}
+                          className="border-2 text-center w-20"
+                          data-testid={`input-fi-term-${idx}`}
+                        />
+                      </td>
+                      <td className="p-2 text-center">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const updated = fiProducts.filter((_, i) => i !== idx);
+                            setFiProducts(updated);
+                          }}
+                          className="text-red-600 hover:text-red-700"
+                          data-testid={`button-remove-fi-${idx}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            <Button
+              onClick={() => setFiProducts([...fiProducts, { name: '', retail: 0, cost: 0, term: 0 }])}
+              className="w-full shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]"
+              data-testid="button-add-fi-product"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add F&I Product
+            </Button>
+            
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-lg flex justify-between items-center">
+              <span className="font-semibold">Total F&I Retail:</span>
+              <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                ${fiProductsRetail.toLocaleString()}
+              </span>
+            </div>
+            
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setProductsDialogOpen(false)}
+                className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Aftermarket Dialog */}
+      <Dialog open={aftermarketDialogOpen} onOpenChange={setAftermarketDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Aftermarket Products</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="border rounded-lg">
+              <table className="w-full">
+                <thead className="bg-gray-100 dark:bg-gray-800">
+                  <tr>
+                    <th className="p-2 text-left">Item Name</th>
+                    <th className="p-2 text-right">Price</th>
+                    <th className="p-2 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aftermarket.map((item, idx) => (
+                    <tr key={idx} className="border-t">
+                      <td className="p-2">
+                        <Input
+                          value={item.name}
+                          onChange={(e) => {
+                            const updated = [...aftermarket];
+                            updated[idx].name = e.target.value;
+                            setAftermarket(updated);
+                          }}
+                          placeholder="Floor Mats, Window Tint, etc."
+                          className="border-2"
+                          data-testid={`input-am-name-${idx}`}
+                        />
+                      </td>
+                      <td className="p-2">
+                        <Input
+                          type="number"
+                          value={item.price || ''}
+                          onChange={(e) => {
+                            const updated = [...aftermarket];
+                            updated[idx].price = parseFloat(e.target.value) || 0;
+                            setAftermarket(updated);
+                          }}
+                          className="border-2 text-right"
+                          data-testid={`input-am-price-${idx}`}
+                        />
+                      </td>
+                      <td className="p-2 text-center">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const updated = aftermarket.filter((_, i) => i !== idx);
+                            setAftermarket(updated);
+                          }}
+                          className="text-red-600 hover:text-red-700"
+                          data-testid={`button-remove-am-${idx}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            <Button
+              onClick={() => setAftermarket([...aftermarket, { name: '', price: 0 }])}
+              className="w-full shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]"
+              data-testid="button-add-aftermarket"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Aftermarket Item
+            </Button>
+            
+            <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg flex justify-between items-center">
+              <span className="font-semibold">Total Aftermarket:</span>
+              <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                ${aftermarketTotal.toLocaleString()}
+              </span>
+            </div>
+            
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setAftermarketDialogOpen(false)}
+                className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       
       {/* Payment Matrix Dialog */}
       <Dialog open={paymentMatrixOpen} onOpenChange={setPaymentMatrixOpen}>
