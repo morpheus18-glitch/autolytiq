@@ -7,6 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ModuleHeader } from '@/components/ui/module-header';
+import { CollapsibleSection } from '@/components/ui/collapsible-section';
+import { TabNavigation } from '@/components/ui/tab-navigation';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { 
@@ -68,6 +71,17 @@ export default function ProfessionalDealDesk() {
   const urlCustomerId = searchParams.get('customerId');
   const urlVehicleId = searchParams.get('vehicleId');
   
+  // UI State
+  const [activeTab, setActiveTab] = useState<string>('deal');
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    customer: true,
+    vehicle: true,
+    tradeIn: false,
+    payment: true,
+    fiProducts: false,
+    aftermarket: false,
+  });
+  
   // Customer & Vehicle Selection
   const [customerId, setCustomerId] = useState<number | null>(urlCustomerId ? parseInt(urlCustomerId) : null);
   const [vehicleId, setVehicleId] = useState<number | null>(urlVehicleId ? parseInt(urlVehicleId) : null);
@@ -126,6 +140,14 @@ export default function ProfessionalDealDesk() {
   
   const selectedCustomer = customers.find(c => c.id === customerId);
   const selectedVehicle = vehicles.find(v => v.id === vehicleId);
+  
+  // Toggle collapsible section
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
   
   // Auto-populate from dealer settings
   useEffect(() => {
@@ -242,18 +264,17 @@ export default function ProfessionalDealDesk() {
   
   return (
     <div className="min-h-[100dvh] w-full max-w-full overflow-x-hidden bg-gray-50 dark:bg-gray-900 pb-6">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40 no-print">
-        <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Calculator className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 flex-shrink-0" />
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Professional Deal Desk</h1>
-          </div>
-          <div className="flex gap-2 w-full sm:w-auto">
+      {/* Module Header */}
+      <ModuleHeader
+        module="desking"
+        title="Professional Deal Desk"
+        icon={Calculator}
+        action={
+          <div className="flex gap-2">
             <Button
               variant="outline"
               onClick={handlePrint}
-              className="flex-1 sm:flex-initial shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]"
+              className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] bg-white text-gray-900 hover:bg-gray-100"
               data-testid="button-print-deal"
             >
               <Printer className="h-4 w-4 mr-2" />
@@ -262,709 +283,799 @@ export default function ProfessionalDealDesk() {
             <Button
               onClick={() => saveDealMutation.mutate()}
               disabled={!customerId || !vehicleId || saveDealMutation.isPending}
-              className="flex-1 sm:flex-initial shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]"
+              className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]"
               data-testid="button-save-deal"
             >
               <Save className="h-4 w-4 mr-2" />
               <span>Save Deal</span>
             </Button>
           </div>
-        </div>
-      </div>
+        }
+      />
       
-      <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-3 sm:space-y-4 no-print">
-        {/* Data Table Structure - Clean Rows */}
-        
-        {/* Customer Row - FIRST */}
-        <Card className="p-3 sm:p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <User className="h-5 w-5 text-blue-600" />
-              <Label className="font-semibold text-sm sm:text-base">Customer</Label>
-            </div>
-            <div className="flex-1 w-full sm:w-auto">
-              <Select value={customerId?.toString()} onValueChange={(v) => setCustomerId(parseInt(v))}>
-                <SelectTrigger data-testid="select-customer" className="border-2 w-full">
-                  <SelectValue placeholder="Select customer first..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {customers.map(c => (
-                    <SelectItem key={c.id} value={c.id.toString()}>
-                      {c.firstName} {c.lastName} {c.phone ? `- ${c.phone}` : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {selectedCustomer && (
-              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                ZIP: {customerZip || 'N/A'} | Credit: {selectedCustomer.creditScore || 'N/A'}
+      {/* Tab Navigation */}
+      <TabNavigation
+        tabs={[
+          { id: 'deal', label: 'Deal Structure' },
+          { id: 'summary', label: 'Summary' }
+        ]}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
+      
+      <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 no-print">
+        {activeTab === 'deal' ? (
+          <div className="space-y-3">
+            {/* Customer Selection */}
+            <CollapsibleSection
+              title="Customer Selection"
+              icon={User}
+              iconColor="text-blue-600"
+              isExpanded={expandedSections.customer}
+              onToggle={() => toggleSection('customer')}
+              badge={selectedCustomer ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}` : 'Select customer'}
+            >
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2">
+                  <Label>Select Customer</Label>
+                  <Select value={customerId?.toString()} onValueChange={(v) => setCustomerId(parseInt(v))}>
+                    <SelectTrigger data-testid="select-customer" className="border-2">
+                      <SelectValue placeholder="Select customer first..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {customers.map(c => (
+                        <SelectItem key={c.id} value={c.id.toString()}>
+                          {c.firstName} {c.lastName} {c.phone ? `- ${c.phone}` : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {selectedCustomer && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg space-y-1 text-sm">
+                    <div><span className="font-medium">ZIP Code:</span> {customerZip || 'N/A'}</div>
+                    <div><span className="font-medium">Credit Score:</span> {selectedCustomer.creditScore || 'N/A'}</div>
+                    {selectedCustomer.email && <div><span className="font-medium">Email:</span> {selectedCustomer.email}</div>}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </Card>
-        
-        {/* Vehicle Row */}
-        <Card className="p-3 sm:p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Car className="h-5 w-5 text-green-600" />
-              <Label className="font-semibold text-sm sm:text-base">Vehicle</Label>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 flex-1 w-full sm:w-auto">
-              <div className="flex gap-2 items-center">
-                <Label className="text-xs sm:text-sm whitespace-nowrap">Stock#</Label>
-                <Input
-                  value={stockNumber}
-                  onChange={(e) => setStockNumber(e.target.value)}
-                  onBlur={handleStockLookup}
-                  className="w-full sm:w-32 border-2"
-                  placeholder="Enter stock#"
-                  data-testid="input-stock-number"
-                />
-              </div>
-              <div className="flex-1 w-full sm:w-auto">
-                <Select value={vehicleId?.toString()} onValueChange={(v) => setVehicleId(parseInt(v))}>
-                  <SelectTrigger data-testid="select-vehicle" className="border-2 w-full">
-                    <SelectValue placeholder="Or select vehicle..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {vehicles.map(v => (
-                      <SelectItem key={v.id} value={v.id.toString()}>
-                        {v.stockNo} - {v.year} {v.make} {v.model}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            {selectedVehicle && (
-              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                {selectedVehicle.mileage?.toLocaleString()} mi | {selectedVehicle.exteriorColor || ''} | {selectedVehicle.driveType || ''}
-              </div>
-            )}
-          </div>
-        </Card>
-        
-        {/* Pricing Row */}
-        <Card className="p-3 sm:p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <DollarSign className="h-5 w-5 text-amber-600" />
-              <Label className="font-semibold text-sm sm:text-base whitespace-nowrap">Pricing</Label>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
-              <div className="flex flex-col gap-1 flex-1">
-                <Label className="text-xs text-gray-500">MSRP</Label>
-                <Input
-                  type="number"
-                  value={msrp || ''}
-                  onChange={(e) => setMsrp(parseFloat(e.target.value) || 0)}
-                  className="w-full sm:w-32 border-2"
-                  data-testid="input-msrp"
-                />
-              </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <Label className="text-xs text-gray-500">Sale Price</Label>
-                <Input
-                  type="number"
-                  value={salePrice || ''}
-                  onChange={(e) => setSalePrice(parseFloat(e.target.value) || 0)}
-                  className="w-full sm:w-32 border-2"
-                  data-testid="input-sale-price"
-                />
-              </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <Label className="text-xs text-gray-500">Rebates</Label>
-                <Input
-                  type="number"
-                  value={rebates || ''}
-                  onChange={(e) => setRebates(parseFloat(e.target.value) || 0)}
-                  className="w-full sm:w-32 border-2"
-                  data-testid="input-rebates"
-                />
-              </div>
-            </div>
-            <div className="text-xs sm:text-sm font-semibold text-blue-600 truncate">
-              Net: ${(salePrice - rebates).toLocaleString()}
-            </div>
-          </div>
-        </Card>
-        
-        {/* Trade Row with Drill-Down */}
-        <Card className="p-3 sm:p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Car className="h-5 w-5 text-purple-600" />
-              <Label className="font-semibold text-sm sm:text-base whitespace-nowrap">Trade</Label>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
-              <div className="flex flex-col gap-1 flex-1">
-                <Label className="text-xs text-gray-500">Allowance</Label>
-                <Input
-                  type="number"
-                  value={tradeAllowance || ''}
-                  onChange={(e) => setTradeAllowance(parseFloat(e.target.value) || 0)}
-                  className="w-full sm:w-32 border-2"
-                  data-testid="input-trade-allowance"
-                />
-              </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <Label className="text-xs text-gray-500">Payoff</Label>
-                <Input
-                  type="number"
-                  value={tradePayoff || ''}
-                  onChange={(e) => setTradePayoff(parseFloat(e.target.value) || 0)}
-                  className="w-full sm:w-32 border-2"
-                  data-testid="input-trade-payoff"
-                />
-              </div>
-            </div>
-            <Dialog open={tradeDialogOpen} onOpenChange={setTradeDialogOpen}>
-              <DialogTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] w-full sm:w-auto"
-                  data-testid="button-trade-details"
-                >
-                  <Settings className="h-4 w-4 sm:mr-1" />
-                  <span className="hidden sm:inline">Details</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Trade Details</DialogTitle>
-                </DialogHeader>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
-                  <div className="space-y-2">
-                    <Label>Actual Cash Value (ACV)</Label>
+            </CollapsibleSection>
+
+            {/* Vehicle Selection */}
+            <CollapsibleSection
+              title="Vehicle Selection"
+              icon={Car}
+              iconColor="text-blue-600"
+              isExpanded={expandedSections.vehicle}
+              onToggle={() => toggleSection('vehicle')}
+              badge={selectedVehicle ? `${selectedVehicle.year} ${selectedVehicle.make} ${selectedVehicle.model}` : 'Select vehicle'}
+            >
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex-1">
+                    <Label>Stock Number</Label>
                     <Input
-                      type="number"
-                      value={tradeAcv || ''}
-                      onChange={(e) => setTradeAcv(parseFloat(e.target.value) || 0)}
-                      data-testid="input-trade-acv"
+                      value={stockNumber}
+                      onChange={(e) => setStockNumber(e.target.value)}
+                      onBlur={handleStockLookup}
+                      className="border-2"
+                      placeholder="Enter stock#"
+                      data-testid="input-stock-number"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Reconditioning</Label>
+                  <div className="flex-1">
+                    <Label>Or Select Vehicle</Label>
+                    <Select value={vehicleId?.toString()} onValueChange={(v) => setVehicleId(parseInt(v))}>
+                      <SelectTrigger data-testid="select-vehicle" className="border-2">
+                        <SelectValue placeholder="Select from list..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {vehicles.map(v => (
+                          <SelectItem key={v.id} value={v.id.toString()}>
+                            {v.stockNo} - {v.year} {v.make} {v.model}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {selectedVehicle && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg space-y-1 text-sm">
+                    <div><span className="font-medium">VIN:</span> {selectedVehicle.vin}</div>
+                    <div><span className="font-medium">Mileage:</span> {selectedVehicle.mileage?.toLocaleString()} mi</div>
+                    <div><span className="font-medium">Color:</span> {selectedVehicle.exteriorColor || 'N/A'}</div>
+                    <div><span className="font-medium">Drive Type:</span> {selectedVehicle.driveType || 'N/A'}</div>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <Label>MSRP</Label>
                     <Input
                       type="number"
-                      value={tradeRecon || ''}
-                      onChange={(e) => setTradeRecon(parseFloat(e.target.value) || 0)}
-                      data-testid="input-trade-recon"
+                      value={msrp || ''}
+                      onChange={(e) => setMsrp(parseFloat(e.target.value) || 0)}
+                      className="border-2"
+                      data-testid="input-msrp"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div>
+                    <Label>Sale Price</Label>
+                    <Input
+                      type="number"
+                      value={salePrice || ''}
+                      onChange={(e) => setSalePrice(parseFloat(e.target.value) || 0)}
+                      className="border-2"
+                      data-testid="input-sale-price"
+                    />
+                  </div>
+                  <div>
+                    <Label>Rebates</Label>
+                    <Input
+                      type="number"
+                      value={rebates || ''}
+                      onChange={(e) => setRebates(parseFloat(e.target.value) || 0)}
+                      className="border-2"
+                      data-testid="input-rebates"
+                    />
+                  </div>
+                </div>
+                <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                  <span className="font-semibold">Net Price:</span> ${(salePrice - rebates).toLocaleString()}
+                </div>
+              </div>
+            </CollapsibleSection>
+
+            {/* Trade-In */}
+            <CollapsibleSection
+              title="Trade-In"
+              icon={Package}
+              iconColor="text-blue-600"
+              isExpanded={expandedSections.tradeIn}
+              onToggle={() => toggleSection('tradeIn')}
+              badge={`Net: $${netTrade.toLocaleString()}`}
+            >
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
                     <Label>Trade Allowance</Label>
                     <Input
                       type="number"
                       value={tradeAllowance || ''}
                       onChange={(e) => setTradeAllowance(parseFloat(e.target.value) || 0)}
+                      className="border-2"
+                      data-testid="input-trade-allowance"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Payoff Amount</Label>
+                  <div>
+                    <Label>Payoff</Label>
                     <Input
                       type="number"
                       value={tradePayoff || ''}
                       onChange={(e) => setTradePayoff(parseFloat(e.target.value) || 0)}
+                      className="border-2"
+                      data-testid="input-trade-payoff"
                     />
                   </div>
                 </div>
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-lg">
-                  <div className="text-sm font-semibold">Net Trade: ${netTrade.toLocaleString()}</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                    Allowance ${tradeAllowance.toLocaleString()} - Payoff ${tradePayoff.toLocaleString()}
+                <Dialog open={tradeDialogOpen} onOpenChange={setTradeDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] w-full"
+                      data-testid="button-trade-details"
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      Advanced Trade Details
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Trade Details</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
+                      <div className="space-y-2">
+                        <Label>Actual Cash Value (ACV)</Label>
+                        <Input
+                          type="number"
+                          value={tradeAcv || ''}
+                          onChange={(e) => setTradeAcv(parseFloat(e.target.value) || 0)}
+                          data-testid="input-trade-acv"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Reconditioning</Label>
+                        <Input
+                          type="number"
+                          value={tradeRecon || ''}
+                          onChange={(e) => setTradeRecon(parseFloat(e.target.value) || 0)}
+                          data-testid="input-trade-recon"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Trade Allowance</Label>
+                        <Input
+                          type="number"
+                          value={tradeAllowance || ''}
+                          onChange={(e) => setTradeAllowance(parseFloat(e.target.value) || 0)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Payoff Amount</Label>
+                        <Input
+                          type="number"
+                          value={tradePayoff || ''}
+                          onChange={(e) => setTradePayoff(parseFloat(e.target.value) || 0)}
+                        />
+                      </div>
+                    </div>
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-lg">
+                      <div className="text-sm font-semibold">Net Trade: ${netTrade.toLocaleString()}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        Allowance ${tradeAllowance.toLocaleString()} - Payoff ${tradePayoff.toLocaleString()}
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg">
+                  <span className="font-semibold">Net Trade Value:</span> ${netTrade.toLocaleString()}
+                </div>
+              </div>
+            </CollapsibleSection>
+
+            {/* Payment Calculator */}
+            <CollapsibleSection
+              title="Payment Calculator"
+              icon={Calculator}
+              iconColor="text-blue-600"
+              isExpanded={expandedSections.payment}
+              onToggle={() => toggleSection('payment')}
+              badge={`$${monthlyPayment.toFixed(2)}/mo`}
+            >
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Doc Fee</Label>
+                    <Input
+                      type="number"
+                      value={docFee || ''}
+                      onChange={(e) => setDocFee(parseFloat(e.target.value) || 0)}
+                      className="border-2"
+                      data-testid="input-doc-fee"
+                    />
+                  </div>
+                  <div>
+                    <Label>Title Fee</Label>
+                    <Input
+                      type="number"
+                      value={titleFee || ''}
+                      onChange={(e) => setTitleFee(parseFloat(e.target.value) || 0)}
+                      className="border-2"
+                      data-testid="input-title-fee"
+                    />
+                  </div>
+                  <div>
+                    <Label>Registration</Label>
+                    <Input
+                      type="number"
+                      value={registrationFee || ''}
+                      onChange={(e) => setRegistrationFee(parseFloat(e.target.value) || 0)}
+                      className="border-2"
+                      data-testid="input-reg-fee"
+                    />
                   </div>
                 </div>
-              </DialogContent>
-            </Dialog>
-            <div className="text-xs sm:text-sm font-semibold text-purple-600 truncate">
-              Net: ${netTrade.toLocaleString()}
-            </div>
-          </div>
-        </Card>
-        
-        {/* Fees Row with Drill-Down */}
-        <Card className="p-3 sm:p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Receipt className="h-5 w-5 text-red-600" />
-              <Label className="font-semibold text-sm sm:text-base whitespace-nowrap">Fees</Label>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
-              <div className="flex flex-col gap-1 flex-1">
-                <Label className="text-xs text-gray-500">Doc Fee</Label>
-                <Input
-                  type="number"
-                  value={docFee || ''}
-                  onChange={(e) => setDocFee(parseFloat(e.target.value) || 0)}
-                  className="w-full sm:w-28 border-2"
-                  data-testid="input-doc-fee"
-                />
-              </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <Label className="text-xs text-gray-500">Title</Label>
-                <Input
-                  type="number"
-                  value={titleFee || ''}
-                  onChange={(e) => setTitleFee(parseFloat(e.target.value) || 0)}
-                  className="w-full sm:w-28 border-2"
-                  data-testid="input-title-fee"
-                />
-              </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <Label className="text-xs text-gray-500">Registration</Label>
-                <Input
-                  type="number"
-                  value={registrationFee || ''}
-                  onChange={(e) => setRegistrationFee(parseFloat(e.target.value) || 0)}
-                  className="w-full sm:w-28 border-2"
-                  data-testid="input-reg-fee"
-                />
-              </div>
-            </div>
-            <Dialog open={feesDialogOpen} onOpenChange={setFeesDialogOpen}>
-              <DialogTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] w-full sm:w-auto"
-                  data-testid="button-add-fees"
-                >
-                  <Settings className="h-4 w-4 sm:mr-1" />
-                  <span className="hidden sm:inline">Add Fees</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Custom Fees</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  {customFees.map((fee, idx) => (
-                    <div key={idx} className="flex flex-col sm:flex-row gap-2">
-                      <Input
-                        value={fee.name}
-                        onChange={(e) => {
-                          const updated = [...customFees];
-                          updated[idx].name = e.target.value;
-                          setCustomFees(updated);
-                        }}
-                        placeholder="Fee name"
-                        className="flex-1"
-                      />
-                      <Input
-                        type="number"
-                        value={fee.amount}
-                        onChange={(e) => {
-                          const updated = [...customFees];
-                          updated[idx].amount = parseFloat(e.target.value) || 0;
-                          setCustomFees(updated);
-                        }}
-                        placeholder="Amount"
-                        className="w-full sm:w-32"
-                      />
+                
+                <Dialog open={feesDialogOpen} onOpenChange={setFeesDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] w-full"
+                      data-testid="button-add-fees"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Custom Fees
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Custom Fees</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      {customFees.map((fee, idx) => (
+                        <div key={idx} className="flex flex-col sm:flex-row gap-2">
+                          <Input
+                            value={fee.name}
+                            onChange={(e) => {
+                              const updated = [...customFees];
+                              updated[idx].name = e.target.value;
+                              setCustomFees(updated);
+                            }}
+                            placeholder="Fee name"
+                            className="flex-1"
+                          />
+                          <Input
+                            type="number"
+                            value={fee.amount}
+                            onChange={(e) => {
+                              const updated = [...customFees];
+                              updated[idx].amount = parseFloat(e.target.value) || 0;
+                              setCustomFees(updated);
+                            }}
+                            placeholder="Amount"
+                            className="w-full sm:w-32"
+                          />
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => {
+                              const updated = customFees.filter((_, i) => i !== idx);
+                              setCustomFees(updated);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        onClick={() => setCustomFees([...customFees, {name: '', amount: 0}])}
+                        className="w-full shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]"
+                      >
+                        Add Fee
+                      </Button>
                     </div>
-                  ))}
-                  <Button
-                    onClick={() => setCustomFees([...customFees, {name: '', amount: 0}])}
-                    className="w-full shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]"
-                  >
-                    Add Fee
-                  </Button>
+                  </DialogContent>
+                </Dialog>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Term (months)</Label>
+                    <Select value={term.toString()} onValueChange={(v) => setTerm(parseInt(v))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(dealerSettings?.availableTerms || [36,48,60,72,84]).map(t => (
+                          <SelectItem key={t} value={t.toString()}>{t} mo</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>APR %</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={apr || ''}
+                      onChange={(e) => setApr(parseFloat(e.target.value) || 0)}
+                      className="border-2"
+                      data-testid="input-apr"
+                    />
+                  </div>
+                  <div>
+                    <Label>Down Payment</Label>
+                    <Input
+                      type="number"
+                      value={downPayment || ''}
+                      onChange={(e) => setDownPayment(parseFloat(e.target.value) || 0)}
+                      className="border-2"
+                      data-testid="input-down-payment"
+                    />
+                  </div>
                 </div>
-              </DialogContent>
-            </Dialog>
-            <div className="text-xs sm:text-sm font-semibold text-red-600 truncate">
-              Total: ${totalFees.toLocaleString()}
-            </div>
-          </div>
-        </Card>
-        
-        {/* Products & Aftermarket Row */}
-        <Card className="p-3 sm:p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Package className="h-5 w-5 text-indigo-600" />
-              <Label className="font-semibold text-sm sm:text-base whitespace-nowrap">Products</Label>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 flex-1 w-full sm:w-auto">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setProductsDialogOpen(true)}
-                className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] w-full sm:w-auto"
-                data-testid="button-fi-products"
-              >
-                F&I Products ({fiProducts.length})
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setAftermarketDialogOpen(true)}
-                className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] w-full sm:w-auto"
-                data-testid="button-aftermarket"
-              >
-                Aftermarket ({aftermarket.length})
-              </Button>
-            </div>
-            <div className="text-xs sm:text-sm font-semibold text-indigo-600 truncate">
-              F&I: ${fiProductsRetail.toLocaleString()} | AM: ${aftermarketTotal.toLocaleString()}
-            </div>
-          </div>
-        </Card>
-        
-        {/* Finance & Payment Row */}
-        <Card className="p-3 sm:p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <DollarSign className="h-5 w-5 text-green-600" />
-              <Label className="font-semibold text-sm sm:text-base whitespace-nowrap">Finance</Label>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
-              <div className="flex flex-col gap-1 flex-1">
-                <Label className="text-xs text-gray-500">Term</Label>
-                <Select value={term.toString()} onValueChange={(v) => setTerm(parseInt(v))}>
-                  <SelectTrigger className="w-full sm:w-28">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(dealerSettings?.availableTerms || [36,48,60,72,84]).map(t => (
-                      <SelectItem key={t} value={t.toString()}>{t} mo</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+
+                <Button
+                  variant="outline"
+                  onClick={() => setPaymentMatrixOpen(true)}
+                  className="w-full shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]"
+                  data-testid="button-payment-matrix"
+                >
+                  <Calculator className="h-4 w-4 mr-2" />
+                  View Payment Matrix
+                </Button>
+
+                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium">Total Fees:</span>
+                    <span>${totalFees.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Sales Tax ({salesTaxRate}%):</span>
+                    <span>${salesTax.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Amount Financed:</span>
+                    <span>${amountFinanced.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-lg border-t pt-2">
+                    <span className="font-bold">Monthly Payment:</span>
+                    <span className="font-bold text-green-600">${monthlyPayment.toFixed(2)}</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <Label className="text-xs text-gray-500">APR %</Label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  value={apr || ''}
-                  onChange={(e) => setApr(parseFloat(e.target.value) || 0)}
-                  className="w-full sm:w-24 border-2"
-                  data-testid="input-apr"
-                />
-              </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <Label className="text-xs text-gray-500">Down Payment</Label>
-                <Input
-                  type="number"
-                  value={downPayment || ''}
-                  onChange={(e) => setDownPayment(parseFloat(e.target.value) || 0)}
-                  className="w-full sm:w-32 border-2"
-                  data-testid="input-down-payment"
-                />
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPaymentMatrixOpen(true)}
-              className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] w-full sm:w-auto"
-              data-testid="button-payment-matrix"
+            </CollapsibleSection>
+
+            {/* F&I Products */}
+            <CollapsibleSection
+              title="F&I Products"
+              icon={Receipt}
+              iconColor="text-blue-600"
+              isExpanded={expandedSections.fiProducts}
+              onToggle={() => toggleSection('fiProducts')}
+              badge={`${fiProducts.length} products - $${fiProductsRetail.toLocaleString()}`}
             >
-              <span className="hidden sm:inline">Payment Matrix</span>
-              <span className="sm:hidden">Matrix</span>
-            </Button>
-            <div className="text-sm sm:text-lg font-bold text-green-600 truncate">
-              ${monthlyPayment.toFixed(2)}/mo
-            </div>
+              <div className="space-y-4">
+                <Dialog open={productsDialogOpen} onOpenChange={setProductsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      className="w-full shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]"
+                      data-testid="button-fi-products"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add F&I Product
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>F&I Products</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      {fiProducts.map((product, idx) => (
+                        <div key={idx} className="border p-3 rounded-lg space-y-2">
+                          <Input
+                            value={product.name}
+                            onChange={(e) => {
+                              const updated = [...fiProducts];
+                              updated[idx].name = e.target.value;
+                              setFiProducts(updated);
+                            }}
+                            placeholder="Product name"
+                          />
+                          <div className="grid grid-cols-3 gap-2">
+                            <Input
+                              type="number"
+                              value={product.retail}
+                              onChange={(e) => {
+                                const updated = [...fiProducts];
+                                updated[idx].retail = parseFloat(e.target.value) || 0;
+                                setFiProducts(updated);
+                              }}
+                              placeholder="Retail"
+                            />
+                            <Input
+                              type="number"
+                              value={product.cost}
+                              onChange={(e) => {
+                                const updated = [...fiProducts];
+                                updated[idx].cost = parseFloat(e.target.value) || 0;
+                                setFiProducts(updated);
+                              }}
+                              placeholder="Cost"
+                            />
+                            <Input
+                              type="number"
+                              value={product.term}
+                              onChange={(e) => {
+                                const updated = [...fiProducts];
+                                updated[idx].term = parseInt(e.target.value) || 0;
+                                setFiProducts(updated);
+                              }}
+                              placeholder="Term (mo)"
+                            />
+                          </div>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => {
+                              const updated = fiProducts.filter((_, i) => i !== idx);
+                              setFiProducts(updated);
+                            }}
+                            className="w-full"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Remove
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        onClick={() => setFiProducts([...fiProducts, {name: '', retail: 0, cost: 0, term: term}])}
+                        className="w-full shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]"
+                      >
+                        Add Product
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                {fiProducts.length > 0 && (
+                  <div className="space-y-2">
+                    {fiProducts.map((product, idx) => (
+                      <div key={idx} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg flex justify-between items-center">
+                        <div>
+                          <div className="font-medium">{product.name}</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">{product.term} months</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold">${product.retail.toLocaleString()}</div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">Gross: ${(product.retail - product.cost).toLocaleString()}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CollapsibleSection>
+
+            {/* Aftermarket */}
+            <CollapsibleSection
+              title="Aftermarket"
+              icon={Settings}
+              iconColor="text-blue-600"
+              isExpanded={expandedSections.aftermarket}
+              onToggle={() => toggleSection('aftermarket')}
+              badge={`${aftermarket.length} items - $${aftermarketTotal.toLocaleString()}`}
+            >
+              <div className="space-y-4">
+                <Dialog open={aftermarketDialogOpen} onOpenChange={setAftermarketDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      className="w-full shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]"
+                      data-testid="button-aftermarket"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Aftermarket Item
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Aftermarket Items</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      {aftermarket.map((item, idx) => (
+                        <div key={idx} className="flex gap-2">
+                          <Input
+                            value={item.name}
+                            onChange={(e) => {
+                              const updated = [...aftermarket];
+                              updated[idx].name = e.target.value;
+                              setAftermarket(updated);
+                            }}
+                            placeholder="Item name"
+                            className="flex-1"
+                          />
+                          <Input
+                            type="number"
+                            value={item.price}
+                            onChange={(e) => {
+                              const updated = [...aftermarket];
+                              updated[idx].price = parseFloat(e.target.value) || 0;
+                              setAftermarket(updated);
+                            }}
+                            placeholder="Price"
+                            className="w-32"
+                          />
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => {
+                              const updated = aftermarket.filter((_, i) => i !== idx);
+                              setAftermarket(updated);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        onClick={() => setAftermarket([...aftermarket, {name: '', price: 0}])}
+                        className="w-full shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]"
+                      >
+                        Add Item
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                {aftermarket.length > 0 && (
+                  <div className="space-y-2">
+                    {aftermarket.map((item, idx) => (
+                      <div key={idx} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg flex justify-between items-center">
+                        <div className="font-medium">{item.name}</div>
+                        <div className="font-semibold">${item.price.toLocaleString()}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CollapsibleSection>
           </div>
-        </Card>
-        
-        {/* Totals Summary Row */}
-        <Card className="p-4 sm:p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)]">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            <div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Subtotal</div>
-              <div className="text-lg sm:text-xl font-bold truncate">${subtotal.toLocaleString()}</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Sales Tax ({salesTaxRate}%)</div>
-              <div className="text-lg sm:text-xl font-bold truncate">${salesTax.toFixed(2)}</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Total Price</div>
-              <div className="text-lg sm:text-xl font-bold text-blue-600 truncate">${totalPrice.toFixed(2)}</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Amount Financed</div>
-              <div className="text-lg sm:text-xl font-bold text-green-600 truncate">${amountFinanced.toFixed(2)}</div>
-            </div>
+        ) : (
+          /* Summary Tab */
+          <div className="space-y-4">
+            <Card className="p-4">
+              <h3 className="font-bold text-lg mb-4">Deal Summary</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between py-2 border-b">
+                  <span>Vehicle Price</span>
+                  <span className="font-semibold">${salePrice.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span>Rebates</span>
+                  <span className="text-red-600">-${rebates.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span>Aftermarket</span>
+                  <span className="font-semibold">${aftermarketTotal.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span>Total Fees</span>
+                  <span className="font-semibold">${totalFees.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span>Sales Tax ({salesTaxRate}%)</span>
+                  <span className="font-semibold">${salesTax.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span>F&I Products</span>
+                  <span className="font-semibold">${fiProductsRetail.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between py-3 border-t-2 bg-blue-50 dark:bg-blue-900/20 -mx-4 px-4">
+                  <span className="font-bold text-lg">Total Price</span>
+                  <span className="font-bold text-lg text-blue-600">${totalPrice.toLocaleString()}</span>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-4">
+              <h3 className="font-bold text-lg mb-4">Trade-In</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between py-2 border-b">
+                  <span>Trade Allowance</span>
+                  <span className="font-semibold">${tradeAllowance.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span>Trade Payoff</span>
+                  <span className="text-red-600">-${tradePayoff.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between py-3 bg-green-50 dark:bg-green-900/20 -mx-4 px-4">
+                  <span className="font-bold">Net Trade Value</span>
+                  <span className="font-bold text-green-600">${netTrade.toLocaleString()}</span>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-4">
+              <h3 className="font-bold text-lg mb-4">Financing</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between py-2 border-b">
+                  <span>Down Payment</span>
+                  <span className="font-semibold">${downPayment.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span>Net Trade Applied</span>
+                  <span className="font-semibold">${netTrade.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b bg-orange-50 dark:bg-orange-900/20 -mx-4 px-4">
+                  <span className="font-bold">Amount Financed</span>
+                  <span className="font-bold text-orange-600">${amountFinanced.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span>Term</span>
+                  <span>{term} months</span>
+                </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span>APR</span>
+                  <span>{apr}%</span>
+                </div>
+                <div className="flex justify-between py-3 border-t-2 bg-green-50 dark:bg-green-900/20 -mx-4 px-4">
+                  <span className="font-bold text-lg">Monthly Payment</span>
+                  <span className="font-bold text-lg text-green-600">${monthlyPayment.toFixed(2)}</span>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-4">
+              <h3 className="font-bold text-lg mb-4">Profit Analysis</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between py-2 border-b">
+                  <span>Front Gross</span>
+                  <span className="font-semibold">${frontGross.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span>Back Gross</span>
+                  <span className="font-semibold">${backGross.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between py-3 bg-green-50 dark:bg-green-900/20 -mx-4 px-4">
+                  <span className="font-bold">Total Gross</span>
+                  <span className="font-bold text-green-600">${totalGross.toLocaleString()}</span>
+                </div>
+              </div>
+            </Card>
           </div>
-          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-300 dark:border-gray-700 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-            <div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Front Gross</div>
-              <div className="text-base sm:text-lg font-semibold truncate">${frontGross.toLocaleString()}</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Back Gross</div>
-              <div className="text-base sm:text-lg font-semibold truncate">${backGross.toFixed(2)}</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Total Gross</div>
-              <div className="text-base sm:text-lg font-bold text-emerald-600 truncate">${totalGross.toFixed(2)}</div>
-            </div>
-          </div>
-        </Card>
+        )}
       </div>
       
-      {/* F&I Products Dialog */}
-      <Dialog open={productsDialogOpen} onOpenChange={setProductsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">F&I Products</DialogTitle>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            <div className="border rounded-lg">
-              <table className="w-full">
-                <thead className="bg-gray-100 dark:bg-gray-800">
-                  <tr>
-                    <th className="p-2 text-left">Product Name</th>
-                    <th className="p-2 text-right">Retail</th>
-                    <th className="p-2 text-right">Cost</th>
-                    <th className="p-2 text-center">Term</th>
-                    <th className="p-2 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {fiProducts.map((product, idx) => (
-                    <tr key={idx} className="border-t">
-                      <td className="p-2">
-                        <Input
-                          value={product.name}
-                          onChange={(e) => {
-                            const updated = [...fiProducts];
-                            updated[idx].name = e.target.value;
-                            setFiProducts(updated);
-                          }}
-                          placeholder="Extended Warranty"
-                          className="border-2"
-                          data-testid={`input-fi-name-${idx}`}
-                        />
-                      </td>
-                      <td className="p-2">
-                        <Input
-                          type="number"
-                          value={product.retail || ''}
-                          onChange={(e) => {
-                            const updated = [...fiProducts];
-                            updated[idx].retail = parseFloat(e.target.value) || 0;
-                            setFiProducts(updated);
-                          }}
-                          className="border-2 text-right"
-                          data-testid={`input-fi-retail-${idx}`}
-                        />
-                      </td>
-                      <td className="p-2">
-                        <Input
-                          type="number"
-                          value={product.cost || ''}
-                          onChange={(e) => {
-                            const updated = [...fiProducts];
-                            updated[idx].cost = parseFloat(e.target.value) || 0;
-                            setFiProducts(updated);
-                          }}
-                          className="border-2 text-right"
-                          data-testid={`input-fi-cost-${idx}`}
-                        />
-                      </td>
-                      <td className="p-2">
-                        <Input
-                          type="number"
-                          value={product.term || ''}
-                          onChange={(e) => {
-                            const updated = [...fiProducts];
-                            updated[idx].term = parseInt(e.target.value) || 0;
-                            setFiProducts(updated);
-                          }}
-                          className="border-2 text-center w-20"
-                          data-testid={`input-fi-term-${idx}`}
-                        />
-                      </td>
-                      <td className="p-2 text-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const updated = fiProducts.filter((_, i) => i !== idx);
-                            setFiProducts(updated);
-                          }}
-                          className="text-red-600 hover:text-red-700"
-                          data-testid={`button-remove-fi-${idx}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            <Button
-              onClick={() => setFiProducts([...fiProducts, { name: '', retail: 0, cost: 0, term: 0 }])}
-              className="w-full shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]"
-              data-testid="button-add-fi-product"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add F&I Product
-            </Button>
-            
-            <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-lg flex justify-between items-center">
-              <span className="font-semibold">Total F&I Retail:</span>
-              <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
-                ${fiProductsRetail.toLocaleString()}
-              </span>
-            </div>
-            
-            <div className="flex gap-2 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setProductsDialogOpen(false)}
-                className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]"
-              >
-                Close
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Aftermarket Dialog */}
-      <Dialog open={aftermarketDialogOpen} onOpenChange={setAftermarketDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Aftermarket Products</DialogTitle>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            <div className="border rounded-lg">
-              <table className="w-full">
-                <thead className="bg-gray-100 dark:bg-gray-800">
-                  <tr>
-                    <th className="p-2 text-left">Item Name</th>
-                    <th className="p-2 text-right">Price</th>
-                    <th className="p-2 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {aftermarket.map((item, idx) => (
-                    <tr key={idx} className="border-t">
-                      <td className="p-2">
-                        <Input
-                          value={item.name}
-                          onChange={(e) => {
-                            const updated = [...aftermarket];
-                            updated[idx].name = e.target.value;
-                            setAftermarket(updated);
-                          }}
-                          placeholder="Floor Mats, Window Tint, etc."
-                          className="border-2"
-                          data-testid={`input-am-name-${idx}`}
-                        />
-                      </td>
-                      <td className="p-2">
-                        <Input
-                          type="number"
-                          value={item.price || ''}
-                          onChange={(e) => {
-                            const updated = [...aftermarket];
-                            updated[idx].price = parseFloat(e.target.value) || 0;
-                            setAftermarket(updated);
-                          }}
-                          className="border-2 text-right"
-                          data-testid={`input-am-price-${idx}`}
-                        />
-                      </td>
-                      <td className="p-2 text-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const updated = aftermarket.filter((_, i) => i !== idx);
-                            setAftermarket(updated);
-                          }}
-                          className="text-red-600 hover:text-red-700"
-                          data-testid={`button-remove-am-${idx}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            <Button
-              onClick={() => setAftermarket([...aftermarket, { name: '', price: 0 }])}
-              className="w-full shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]"
-              data-testid="button-add-aftermarket"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Aftermarket Item
-            </Button>
-            
-            <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg flex justify-between items-center">
-              <span className="font-semibold">Total Aftermarket:</span>
-              <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
-                ${aftermarketTotal.toLocaleString()}
-              </span>
-            </div>
-            
-            <div className="flex gap-2 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setAftermarketDialogOpen(false)}
-                className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]"
-              >
-                Close
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Print-only Deal Summary */}
-      <div className="hidden print:block print-summary">
+      {/* Print Summary - Hidden on screen, shown in print */}
+      <div className="print-summary hidden">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Customer Pricing Worksheet</h1>
-          <p className="text-gray-600">AutolytiQ Dealership</p>
+          <h1 className="text-3xl font-bold mb-2">Deal Summary</h1>
+          {selectedCustomer && selectedVehicle && (
+            <p className="text-lg">
+              {selectedCustomer.firstName} {selectedCustomer.lastName} - {selectedVehicle.year} {selectedVehicle.make} {selectedVehicle.model}
+            </p>
+          )}
         </div>
         
-        <div className="grid grid-cols-2 gap-8 mb-8">
-          <div>
-            <h2 className="text-xl font-bold mb-4 border-b-2 border-gray-300 pb-2">Customer Information</h2>
-            <p><strong>Name:</strong> {selectedCustomer?.firstName} {selectedCustomer?.lastName}</p>
-            <p><strong>Email:</strong> {selectedCustomer?.email}</p>
-            <p><strong>Phone:</strong> {selectedCustomer?.phone}</p>
-          </div>
-          <div>
-            <h2 className="text-xl font-bold mb-4 border-b-2 border-gray-300 pb-2">Vehicle Information</h2>
-            <p><strong>Stock #:</strong> {selectedVehicle?.stockNo}</p>
-            <p><strong>Vehicle:</strong> {selectedVehicle?.year} {selectedVehicle?.make} {selectedVehicle?.model}</p>
-            <p><strong>VIN:</strong> {selectedVehicle?.vin}</p>
-            <p><strong>MSRP:</strong> ${selectedVehicle?.msrp?.toLocaleString() || 'N/A'}</p>
-          </div>
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-4 border-b-2 border-gray-300 pb-2">Vehicle Information</h2>
+          <table className="w-full border-collapse">
+            <tbody>
+              <tr className="border-b">
+                <td className="py-2">Stock #</td>
+                <td className="py-2 text-right">{selectedVehicle?.stockNo}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">VIN</td>
+                <td className="py-2 text-right">{selectedVehicle?.vin}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">Vehicle</td>
+                <td className="py-2 text-right">{selectedVehicle?.year} {selectedVehicle?.make} {selectedVehicle?.model}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">MSRP</td>
+                <td className="py-2 text-right">${msrp.toLocaleString()}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">Sale Price</td>
+                <td className="py-2 text-right">${salePrice.toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-4 border-b-2 border-gray-300 pb-2">Customer Information</h2>
+          <table className="w-full border-collapse">
+            <tbody>
+              <tr className="border-b">
+                <td className="py-2">Name</td>
+                <td className="py-2 text-right">{selectedCustomer?.firstName} {selectedCustomer?.lastName}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">Phone</td>
+                <td className="py-2 text-right">{selectedCustomer?.phone}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">Email</td>
+                <td className="py-2 text-right">{selectedCustomer?.email}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-2">ZIP Code</td>
+                <td className="py-2 text-right">{customerZip}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
         
         <div className="mb-8">
           <h2 className="text-xl font-bold mb-4 border-b-2 border-gray-300 pb-2">Price Breakdown</h2>
-          <table className="w-full border-collapse mb-4">
+          <table className="w-full border-collapse">
             <tbody>
               <tr className="border-b">
-                <td className="py-2">Sale Price</td>
-                <td className="py-2 text-right font-semibold">${salePrice.toLocaleString()}</td>
+                <td className="py-2">Vehicle Price</td>
+                <td className="py-2 text-right">${salePrice.toLocaleString()}</td>
               </tr>
               <tr className="border-b">
                 <td className="py-2">Rebates</td>
                 <td className="py-2 text-right text-red-600">-${rebates.toLocaleString()}</td>
               </tr>
+              <tr className="border-b">
+                <td className="py-2">Aftermarket</td>
+                <td className="py-2 text-right">${aftermarketTotal.toLocaleString()}</td>
+              </tr>
               <tr className="border-b bg-gray-100">
                 <td className="py-2 font-semibold">Subtotal</td>
-                <td className="py-2 text-right font-bold">${subtotal.toLocaleString()}</td>
+                <td className="py-2 text-right font-semibold">${subtotal.toLocaleString()}</td>
               </tr>
               <tr className="border-b">
                 <td className="py-2">Doc Fee</td>
