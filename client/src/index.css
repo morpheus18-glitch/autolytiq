@@ -517,6 +517,15 @@ textarea {
     scrollbar-width: none;
   }
 
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   .line-clamp-1 {
     overflow: hidden;
     display: -webkit-box;
@@ -540,6 +549,22 @@ textarea {
 
   .safe-area-pb {
     padding-bottom: calc(env(safe-area-inset-bottom) + 0.75rem);
+  }
+
+  .pb-mobile-footer {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 4.5rem);
+  }
+
+  @media (min-width: 768px) {
+    .pb-mobile-footer {
+      padding-bottom: calc(env(safe-area-inset-bottom) + 3.5rem);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .pb-mobile-footer {
+      padding-bottom: calc(env(safe-area-inset-bottom) + 3rem);
+    }
   }
 
   @media (max-width: 768px) {
