@@ -18,7 +18,9 @@ import {
   DollarSign,
   Receipt,
   Package,
-  Settings
+  Settings,
+  Plus,
+  Trash2
 } from 'lucide-react';
 
 interface Vehicle {
@@ -939,7 +941,7 @@ export default function ProfessionalDealDesk() {
           </div>
           <div>
             <h2 className="text-xl font-bold mb-4 border-b-2 border-gray-300 pb-2">Vehicle Information</h2>
-            <p><strong>Stock #:</strong> {selectedVehicle?.stockNumber}</p>
+            <p><strong>Stock #:</strong> {selectedVehicle?.stockNo}</p>
             <p><strong>Vehicle:</strong> {selectedVehicle?.year} {selectedVehicle?.make} {selectedVehicle?.model}</p>
             <p><strong>VIN:</strong> {selectedVehicle?.vin}</p>
             <p><strong>MSRP:</strong> ${selectedVehicle?.msrp?.toLocaleString() || 'N/A'}</p>
