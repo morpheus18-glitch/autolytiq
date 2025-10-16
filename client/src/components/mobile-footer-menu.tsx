@@ -40,7 +40,7 @@ export function MobileFooterMenu() {
   return (
     <>
       {/* Sticky Bottom Mobile Footer - Only visible on mobile */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 mobile-glass-nav z-50 safe-area-pb">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 mobile-glass-nav z-sticky safe-area-pb">
         <div className="grid grid-cols-4 gap-0">
           {MOBILE_PRIMARY_NAV_ITEMS.map((item) => {
             const isActive = isPathActive(item);
@@ -51,7 +51,7 @@ export function MobileFooterMenu() {
                 <button
                   key={item.name}
                   onClick={() => handleNavClick(item)}
-                  className="flex flex-col items-center justify-center px-2 py-2.5 min-h-[54px] transition-all text-muted-foreground hover:text-primary hover:bg-white/75 dark:hover:bg-white/10"
+                  className="flex flex-col items-center justify-center px-2 py-2.5 min-h-[54px] transition-all text-muted-foreground hover:text-brand-primary hover:bg-surface-base/80 dark:hover:bg-surface-dark/60"
                 >
                   <Icon className="w-5 h-5" />
                   <span className="text-xs mt-1 font-medium">{item.name}</span>
@@ -64,8 +64,8 @@ export function MobileFooterMenu() {
                 <div
                   className={`flex flex-col items-center justify-center p-3 min-h-[60px] transition-colors ${
                     isActive
-                      ? 'bg-primary/15 text-primary shadow-sm'
-                      : 'text-muted-foreground hover:text-primary hover:bg-white/75 dark:hover:bg-white/10'
+                      ? 'bg-brand-primary/15 text-brand-primary shadow-sm'
+                      : 'text-muted-foreground hover:text-brand-primary hover:bg-surface-base/80 dark:hover:bg-surface-dark/60'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -80,12 +80,12 @@ export function MobileFooterMenu() {
 
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-background/88 backdrop-blur-lg">
-          <div className="fixed bottom-0 left-0 right-0 rounded-t-2xl bg-background/95 shadow-card-xl max-h-[80vh] overflow-y-auto">
+        <div className="md:hidden fixed inset-0 z-modalBackdrop bg-overlay-backdrop backdrop-blur-lg">
+          <div className="fixed bottom-0 left-0 right-0 rounded-t-3xl border-t border-border/60 bg-surface-base/95 shadow-modal max-h-[80vh] overflow-y-auto">
             {/* Header */}
-            <div className="flex items-center justify-between rounded-t-2xl border-b border-border/55 bg-white/85 px-5 py-4 dark:bg-white/10">
+            <div className="flex items-center justify-between rounded-t-3xl border-b border-border/60 bg-surface-base/90 px-5 py-4 backdrop-blur-xl dark:bg-surface-dark/70">
               <div className="flex items-center space-x-2 text-foreground">
-                <Building className="w-5 h-5 text-primary" />
+                <Building className="w-5 h-5 text-brand-primary" />
                 <h3 className="text-lg font-semibold">AutolytiQ Navigation</h3>
               </div>
               <Button
@@ -113,11 +113,11 @@ export function MobileFooterMenu() {
                       <div
                         className={`flex items-center rounded-2xl border px-4 py-4 transition-all duration-200 ${
                           isActive
-                            ? 'border-primary/35 bg-primary/10 shadow-sm'
-                            : 'border-border/60 hover:border-primary/30 hover:bg-white/80 dark:hover:bg-white/10'
+                            ? 'border-brand-primary/35 bg-brand-primary/10 shadow-sm'
+                            : 'border-border/60 hover:border-brand-primary/30 hover:bg-surface-base/85 dark:hover:bg-surface-dark/60'
                         }`}
                       >
-                        <div className={`mr-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary`}>
+                        <div className={`mr-3 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-primary/10 text-brand-primary`}>
                           <Icon className={`w-5 h-5 ${item.color}`} />
                         </div>
                         <div className="text-left">
@@ -153,7 +153,7 @@ export function MobileFooterMenu() {
                         href={action.href}
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        <Button variant="outline" size="sm" className="w-full justify-start gap-2 rounded-lg border-border/60 text-xs hover:border-primary/35">
+                        <Button variant="outline" size="sm" className="w-full justify-start gap-2 rounded-lg border-border/60 text-xs hover:border-brand-primary/35">
                           <ActionIcon className="h-3 w-3" />
                           {action.label}
                         </Button>
