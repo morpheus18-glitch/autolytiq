@@ -270,10 +270,10 @@ export default function AICustomerIntelligence() {
   }
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="space-y-6 p-3 sm:p-4">
       {/* Header with AI Status */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Brain className="w-8 h-8 text-purple-600" />
           <div>
             <h2 className="text-2xl font-bold">AI Customer Intelligence</h2>
@@ -297,8 +297,8 @@ export default function AICustomerIntelligence() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
-          <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
+        <div className="mobile-tabs -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0">
+          <TabsList className="inline-flex w-full min-w-0 justify-start md:grid md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
             <TabsTrigger value="hot-prospects" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-hot-prospects">Hot Prospects</TabsTrigger>
             <TabsTrigger value="behavior" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-behavior">Behavior Analysis</TabsTrigger>
             <TabsTrigger value="lifecycle" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-lifecycle">Customer Lifecycle</TabsTrigger>
@@ -311,13 +311,13 @@ export default function AICustomerIntelligence() {
           {/* AI Intelligence Overview */}
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <Target className="w-5 h-5 text-blue-600" />
                 AI Intelligence Overview
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-responsive-4 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">{hotProspects.length}</div>
                   <div className="text-sm text-gray-600">Hot Prospects</div>
@@ -338,11 +338,11 @@ export default function AICustomerIntelligence() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-responsive-3 gap-4">
             {hotProspects.map((prospect) => (
               <Card key={prospect.id} className="hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-green-500">
                 <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-3">
                     <div>
                       <h3 className="font-semibold text-lg">{prospect.firstName} {prospect.lastName}</h3>
                       <p className="text-sm text-gray-600">{prospect.email}</p>
@@ -351,15 +351,15 @@ export default function AICustomerIntelligence() {
                   </div>
                   
                   <div className="space-y-2 text-sm mb-4">
-                    <div className="flex justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-gray-600">Credit Score:</span>
                       <span className="font-medium">{prospect.creditScore || 'N/A'}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-gray-600">Status:</span>
                       <span className="font-medium capitalize">{prospect.status}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-gray-600">Added:</span>
                       <span className="font-medium">
                         {new Date(prospect.createdAt).toLocaleDateString()}
@@ -367,7 +367,7 @@ export default function AICustomerIntelligence() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row">
                     <Button 
                       size="sm" 
                       onClick={() => handleCustomerAnalysis(prospect)}
@@ -431,7 +431,7 @@ export default function AICustomerIntelligence() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pt-3 border-t border-gray-100">
                     <div className="text-sm">
                       <span className="text-gray-600">Next Action: </span>
                       <span className="font-medium">{insight.action}</span>
@@ -453,10 +453,10 @@ export default function AICustomerIntelligence() {
 
         {/* Customer Lifecycle Tab */}
         <TabsContent value="lifecycle" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-responsive-4 gap-4">
             {lifecycleStages.map((stage, index) => (
               <Card key={index} className="text-center">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className={`w-12 h-12 ${stage.color} rounded-full mx-auto mb-4 flex items-center justify-center`}>
                     <Users className="w-6 h-6 text-white" />
                   </div>
@@ -471,21 +471,21 @@ export default function AICustomerIntelligence() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <TrendingUp className="w-5 h-5 text-green-600" />
                 Lifecycle Insights
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4">
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 bg-green-50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-green-600" />
                     <span className="font-medium">Conversion Rate Improving</span>
                   </div>
                   <Badge className="bg-green-100 text-green-800">+12% this month</Badge>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 bg-blue-50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <Users className="w-5 h-5 text-blue-600" />
                     <span className="font-medium">High-Quality Leads Identified</span>
@@ -503,7 +503,7 @@ export default function AICustomerIntelligence() {
             {purchasePredictions.map((prediction, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <Brain className="w-6 h-6 text-purple-600" />
                       <div>
@@ -516,7 +516,7 @@ export default function AICustomerIntelligence() {
                     </Badge>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div className="grid grid-responsive-4 gap-4 mb-4">
                     <div>
                       <div className="text-xs text-gray-600 mb-1">Timeframe</div>
                       <div className="font-medium">{prediction.timeframe}</div>
@@ -538,7 +538,7 @@ export default function AICustomerIntelligence() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pt-3 border-t border-gray-100">
                     <div className="text-sm">
                       <span className="text-gray-600">Recommended: </span>
                       <span className="font-medium">{prediction.nextBestAction}</span>
@@ -566,7 +566,7 @@ export default function AICustomerIntelligence() {
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-responsive-2 gap-4">
                 <div>
                   <div className="text-sm text-gray-600 mb-1">Purchase Intent Score</div>
                   <div className="flex items-center gap-2">

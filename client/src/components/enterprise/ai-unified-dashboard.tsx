@@ -348,7 +348,7 @@ export default function AIUnifiedDashboard() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                <div className="grid grid-responsive-2 gap-3 mb-3">
                   <div>
                     <div className="text-xs text-gray-600 mb-1">Potential Impact</div>
                     <div className="font-semibold text-sm text-green-600">{alert.impact}</div>
@@ -376,7 +376,7 @@ export default function AIUnifiedDashboard() {
       </div>
 
         {/* Quick Actions Dashboard */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-responsive-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card className="text-center" data-testid="card-revenue-forecast">
           <CardContent className="p-4 sm:p-6">
             <DollarSign className="w-10 h-10 sm:w-12 sm:h-12 text-green-600 mx-auto mb-3 sm:mb-4" />

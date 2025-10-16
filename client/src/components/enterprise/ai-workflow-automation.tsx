@@ -323,10 +323,10 @@ export default function AIWorkflowAutomation() {
   };
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="space-y-6 p-3 sm:p-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Bot className="w-8 h-8 text-purple-600" />
           <div>
             <h2 className="text-2xl font-bold">AI Workflow Automation</h2>
@@ -346,8 +346,8 @@ export default function AIWorkflowAutomation() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
-          <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
+        <div className="mobile-tabs -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0">
+          <TabsList className="inline-flex w-full min-w-0 justify-start md:grid md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
             <TabsTrigger value="workflows" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-workflows">Active Workflows</TabsTrigger>
             <TabsTrigger value="metrics" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-metrics">Performance Metrics</TabsTrigger>
             <TabsTrigger value="optimizations" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-optimizations">AI Optimizations</TabsTrigger>
@@ -357,12 +357,12 @@ export default function AIWorkflowAutomation() {
 
         {/* Active Workflows Tab */}
         <TabsContent value="workflows" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-responsive-2 gap-4">
             {automationWorkflows.map((workflow) => (
               <Card key={workflow.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                       {getCategoryIcon(workflow.category)}
                       <div>
                         <h3 className="font-semibold text-lg">{workflow.name}</h3>
@@ -384,7 +384,7 @@ export default function AIWorkflowAutomation() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="grid grid-responsive-3 gap-4 mb-4">
                     <div className="text-center">
                       <div className="text-lg font-bold text-blue-600">{workflow.actions}</div>
                       <div className="text-xs text-gray-600">Actions</div>
@@ -400,21 +400,21 @@ export default function AIWorkflowAutomation() {
                   </div>
 
                   <div className="space-y-2 mb-4">
-                    <div className="flex justify-between text-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                       <span>Trigger:</span>
                       <span className="font-medium">{workflow.trigger}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                       <span>Last run:</span>
                       <span className="text-gray-600">{workflow.lastRun}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                       <span>Next run:</span>
                       <span className="text-gray-600">{workflow.nextRun}</span>
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row">
                     <Button 
                       size="sm" 
                       variant="outline" 
@@ -455,10 +455,10 @@ export default function AIWorkflowAutomation() {
 
         {/* Performance Metrics Tab */}
         <TabsContent value="metrics" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-responsive-4 gap-4">
             {automationMetrics.map((metric) => (
               <Card key={metric.id} className="text-center">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="text-3xl font-bold mb-2">
                     {metric.unit === '$' ? '$' : ''}{metric.value.toLocaleString()}{metric.unit !== '$' ? metric.unit : ''}
                   </div>
@@ -481,15 +481,15 @@ export default function AIWorkflowAutomation() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <BarChart3 className="w-5 h-5 text-blue-600" />
                 Workflow Performance Trends
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-responsive-3 gap-6">
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                     <span>Lead Nurturing Efficiency</span>
                     <span className="text-green-600">89%</span>
                   </div>
@@ -497,7 +497,7 @@ export default function AIWorkflowAutomation() {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                     <span>Customer Follow-up Success</span>
                     <span className="text-green-600">94%</span>
                   </div>
@@ -505,7 +505,7 @@ export default function AIWorkflowAutomation() {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                     <span>Sales Process Automation</span>
                     <span className="text-blue-600">87%</span>
                   </div>
@@ -521,9 +521,9 @@ export default function AIWorkflowAutomation() {
           <div className="grid gap-4">
             {aiOptimizations.map((optimization) => (
               <Card key={optimization.id} className="border-l-4 border-purple-500">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                       <Lightbulb className="w-6 h-6 text-purple-600" />
                       <div>
                         <h3 className="font-semibold text-lg">AI Optimization Suggestion</h3>
@@ -592,13 +592,13 @@ export default function AIWorkflowAutomation() {
         <TabsContent value="builder" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <Workflow className="w-5 h-5 text-purple-600" />
                 AI Workflow Builder
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-responsive-2 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">Workflow Name</label>
                   <input
@@ -642,7 +642,7 @@ export default function AIWorkflowAutomation() {
 
               <div className="space-y-3">
                 <label className="text-sm font-medium">AI Features</label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-responsive-2 gap-3">
                   <div className="flex items-center space-x-2">
                     <input type="checkbox" id="smart_timing" className="rounded" defaultChecked />
                     <label htmlFor="smart_timing" className="text-sm">Smart Timing Optimization</label>

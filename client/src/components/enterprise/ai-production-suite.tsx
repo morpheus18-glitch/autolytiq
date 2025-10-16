@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { cn } from "@/lib/utils";
 import { 
   BarChart3,
   TrendingUp,
@@ -191,21 +192,28 @@ export default function AIProductionSuite() {
   };
 
   return (
-    <div className="p-4 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <div className="space-y-6 p-3 sm:p-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <BarChart3 className="w-8 h-8 text-blue-600" />
-          <div>
-            <h2 className="text-2xl font-bold">AI Production Intelligence</h2>
-            <p className="text-sm text-gray-600">Real-time performance analytics with AI recommendations</p>
+          <div className="space-y-1">
+            <h2 className="text-xl font-bold sm:text-2xl">AI Production Intelligence</h2>
+            <p className="text-sm text-gray-600 max-w-xl">
+              Real-time performance analytics with AI recommendations
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge className="bg-green-100 text-green-800">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+          <Badge className="bg-green-100 text-green-800 w-full justify-center sm:w-auto">
             <Brain className="w-3 h-3 mr-1" />
             AI Active
           </Badge>
-          <Button onClick={() => queryClient.invalidateQueries()} variant="outline" size="sm">
+          <Button
+            onClick={() => queryClient.invalidateQueries()}
+            variant="outline"
+            size="sm"
+            className="w-full sm:w-auto"
+          >
             <Activity className="w-4 h-4 mr-2" />
             Refresh Analytics
           </Button>
@@ -213,44 +221,52 @@ export default function AIProductionSuite() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
-          <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
-            <TabsTrigger value="performance" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-performance">Performance Metrics</TabsTrigger>
-            <TabsTrigger value="team" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-team">Team Analytics</TabsTrigger>
-            <TabsTrigger value="insights" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-insights">AI Insights</TabsTrigger>
-            <TabsTrigger value="optimization" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-optimization">Optimization</TabsTrigger>
+        <div className="mobile-tabs -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0">
+          <TabsList className="inline-flex w-full min-w-0 justify-start md:grid md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
+            <TabsTrigger value="performance" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-performance">
+              Performance Metrics
+            </TabsTrigger>
+            <TabsTrigger value="team" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-team">
+              Team Analytics
+            </TabsTrigger>
+            <TabsTrigger value="insights" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-insights">
+              AI Insights
+            </TabsTrigger>
+            <TabsTrigger value="optimization" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-optimization">
+              Optimization
+            </TabsTrigger>
           </TabsList>
         </div>
 
         {/* Performance Metrics Tab */}
         <TabsContent value="performance" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-responsive-2 gap-4">
             {productionMetrics.map((metric) => (
               <Card key={metric.id} className="hover:shadow-lg transition-shadow cursor-pointer">
                 <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="font-semibold text-lg">{metric.title}</h3>
-                      <div className="flex items-center gap-2 mt-1">
+                  <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-semibold">{metric.title}</h3>
+                      <div className="flex flex-wrap items-baseline gap-2">
                         <span className="text-2xl font-bold">{metric.value}</span>
                         <span className="text-sm text-gray-500">/ {metric.target}</span>
                       </div>
                     </div>
-                    <Badge className={getStatusColor(metric.status)}>
+                    <Badge className={cn("justify-center sm:justify-start", getStatusColor(metric.status))}>
                       {getStatusIcon(metric.status)}
                       <span className="ml-1 capitalize">{metric.status}</span>
                     </Badge>
                   </div>
 
-                  <div className="mb-3">
-                    <div className="flex justify-between text-sm mb-1">
+                  <div className="mb-3 space-y-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                       <span>Progress to Target</span>
                       <span>{Math.round((metric.value / metric.target) * 100)}%</span>
                     </div>
                     <Progress value={(metric.value / metric.target) * 100} className="h-2" />
                   </div>
 
-                  <div className="flex items-center justify-between text-sm mb-3">
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm">
                     <div className="flex items-center gap-1">
                       <TrendingUp className="w-3 h-3 text-green-600" />
                       <span className="text-green-600">+{metric.trend}%</span>
@@ -289,7 +305,7 @@ export default function AIProductionSuite() {
             {teamPerformance.map((member) => (
               <Card key={member.id} className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
                         {member.name.split(' ').map(n => n[0]).join('')}
@@ -304,16 +320,16 @@ export default function AIProductionSuite() {
                     </Badge>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="text-center">
+                  <div className="mb-4 grid grid-responsive-3 gap-4">
+                    <div className="text-center sm:text-left">
                       <div className="text-2xl font-bold text-blue-600">{member.salesCount}</div>
                       <div className="text-xs text-gray-600">Sales This Month</div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">${(member.revenue).toLocaleString()}</div>
+                    <div className="text-center sm:text-left">
+                      <div className="text-2xl font-bold text-green-600">${member.revenue.toLocaleString()}</div>
                       <div className="text-xs text-gray-600">Revenue Generated</div>
                     </div>
-                    <div className="text-center">
+                    <div className="text-center sm:text-left">
                       <div className="text-2xl font-bold text-purple-600">{member.efficiency}%</div>
                       <div className="text-xs text-gray-600">Efficiency Score</div>
                     </div>
@@ -329,7 +345,7 @@ export default function AIProductionSuite() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row">
                     <Button size="sm" variant="outline" className="flex-1">
                       <Eye className="w-3 h-3 mr-1" />
                       View Details
@@ -349,18 +365,18 @@ export default function AIProductionSuite() {
         <TabsContent value="insights" className="space-y-4">
           <div className="grid gap-4">
             <Card className="border-l-4 border-green-500">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
+              <CardContent className="space-y-3 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                   <CheckCircle className="w-6 h-6 text-green-600 mt-1" />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-2">Production Optimization Opportunity</h3>
-                    <p className="text-gray-700 mb-3">
-                      AI analysis indicates a 23% increase in sales velocity by focusing on luxury vehicle inventory. 
+                  <div className="flex-1 space-y-3">
+                    <h3 className="text-lg font-semibold">Production Optimization Opportunity</h3>
+                    <p className="text-gray-700">
+                      AI analysis indicates a 23% increase in sales velocity by focusing on luxury vehicle inventory.
                       High-credit customers show 89% purchase intent for premium models.
                     </p>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
                       <Badge className="bg-green-100 text-green-800">98% Confidence</Badge>
-                      <Button size="sm">
+                      <Button size="sm" className="w-full sm:w-auto">
                         Implement Strategy
                         <Zap className="w-3 h-3 ml-1" />
                       </Button>
@@ -371,18 +387,18 @@ export default function AIProductionSuite() {
             </Card>
 
             <Card className="border-l-4 border-blue-500">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
+              <CardContent className="space-y-3 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                   <Brain className="w-6 h-6 text-blue-600 mt-1" />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-2">Inventory Rebalancing Recommendation</h3>
-                    <p className="text-gray-700 mb-3">
-                      Predictive analytics suggests moving 15 SUV units to meet increasing demand while 
+                  <div className="flex-1 space-y-3">
+                    <h3 className="text-lg font-semibold">Inventory Rebalancing Recommendation</h3>
+                    <p className="text-gray-700">
+                      Predictive analytics suggests moving 15 SUV units to meet increasing demand while
                       reducing sedan inventory by 8%. This shift could improve turnover by 31%.
                     </p>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
                       <Badge className="bg-blue-100 text-blue-800">94% Confidence</Badge>
-                      <Button size="sm">
+                      <Button size="sm" className="w-full sm:w-auto">
                         Review Plan
                         <ArrowRight className="w-3 h-3 ml-1" />
                       </Button>
@@ -393,18 +409,18 @@ export default function AIProductionSuite() {
             </Card>
 
             <Card className="border-l-4 border-yellow-500">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
+              <CardContent className="space-y-3 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                   <AlertTriangle className="w-6 h-6 text-yellow-600 mt-1" />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-2">Team Performance Alert</h3>
-                    <p className="text-gray-700 mb-3">
-                      Two team members show declining efficiency metrics. Targeted training in closing techniques 
+                  <div className="flex-1 space-y-3">
+                    <h3 className="text-lg font-semibold">Team Performance Alert</h3>
+                    <p className="text-gray-700">
+                      Two team members show declining efficiency metrics. Targeted training in closing techniques
                       and CRM utilization could restore performance to optimal levels.
                     </p>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
                       <Badge className="bg-yellow-100 text-yellow-800">87% Confidence</Badge>
-                      <Button size="sm">
+                      <Button size="sm" className="w-full sm:w-auto">
                         Schedule Training
                         <Users className="w-3 h-3 ml-1" />
                       </Button>
@@ -418,7 +434,7 @@ export default function AIProductionSuite() {
 
         {/* Optimization Tab */}
         <TabsContent value="optimization" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-responsive-3 gap-4">
             <Card className="text-center">
               <CardContent className="p-6">
                 <Target className="w-12 h-12 text-blue-600 mx-auto mb-4" />
@@ -463,16 +479,18 @@ export default function AIProductionSuite() {
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-responsive-2 gap-4">
                 <div>
                   <div className="text-sm text-gray-600 mb-1">Current Performance</div>
                   <div className="text-2xl font-bold">{selectedMetric.value}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-600 mb-1">Target Achievement</div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <Progress value={(selectedMetric.value / selectedMetric.target) * 100} className="h-3 flex-1" />
-                    <span className="text-sm font-medium">{Math.round((selectedMetric.value / selectedMetric.target) * 100)}%</span>
+                    <span className="text-sm font-medium">
+                      {Math.round((selectedMetric.value / selectedMetric.target) * 100)}%
+                    </span>
                   </div>
                 </div>
               </div>

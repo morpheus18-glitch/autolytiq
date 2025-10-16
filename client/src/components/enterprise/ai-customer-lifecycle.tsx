@@ -187,17 +187,17 @@ export default function AICustomerLifecycle() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 p-3 sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Users className="w-8 h-8 text-blue-600" />
           <div>
             <h2 className="text-2xl font-bold">Customer Lifecycle Intelligence</h2>
             <p className="text-sm text-gray-600">AI-powered customer journey tracking and purchase intent analysis</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Badge className="bg-blue-100 text-blue-800">
             <Activity className="w-3 h-3 mr-1" />
             Real-time Tracking Active
@@ -210,10 +210,10 @@ export default function AICustomerLifecycle() {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-7 gap-4">
+      <div className="grid grid-responsive-4 lg:grid-cols-7 gap-4">
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Customers</p>
                 <p className="text-2xl font-bold">{lifecycleMetrics.totalCustomers.toLocaleString()}</p>
@@ -225,7 +225,7 @@ export default function AICustomerLifecycle() {
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Active Journeys</p>
                 <p className="text-2xl font-bold text-green-600">{lifecycleMetrics.activeJourneys}</p>
@@ -237,7 +237,7 @@ export default function AICustomerLifecycle() {
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">High Intent</p>
                 <p className="text-2xl font-bold text-orange-600">{lifecycleMetrics.highIntentCustomers}</p>
@@ -249,7 +249,7 @@ export default function AICustomerLifecycle() {
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Ready to Buy</p>
                 <p className="text-2xl font-bold text-red-600">{lifecycleMetrics.readyToBuy}</p>
@@ -261,7 +261,7 @@ export default function AICustomerLifecycle() {
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Avg Journey</p>
                 <p className="text-2xl font-bold">{lifecycleMetrics.avgJourneyDuration}</p>
@@ -273,7 +273,7 @@ export default function AICustomerLifecycle() {
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Conversion</p>
                 <p className="text-2xl font-bold">{lifecycleMetrics.conversionRate}%</p>
@@ -285,7 +285,7 @@ export default function AICustomerLifecycle() {
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Pipeline Value</p>
                 <p className="text-xl font-bold">${(lifecycleMetrics.totalValuePipeline / 1000000).toFixed(1)}M</p>
@@ -326,7 +326,7 @@ export default function AICustomerLifecycle() {
       {/* Customer Journey Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <BarChart3 className="w-5 h-5" />
             Customer Journey Analytics
           </CardTitle>
@@ -364,7 +364,7 @@ export default function AICustomerLifecycle() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                       <Progress value={customer.purchaseIntent} className="w-16" />
                       <span className="text-sm font-medium">{customer.purchaseIntent}%</span>
                     </div>
@@ -425,7 +425,7 @@ export default function AICustomerLifecycle() {
             {customerJourneyData
               .filter(customer => customer.urgency === "critical" || customer.urgency === "urgent")
               .map((customer) => (
-                <div key={customer.id} className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
+                <div key={customer.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-4 border border-red-200 rounded-lg bg-red-50">
                   <div className="flex items-center gap-4">
                     <AlertCircle className="w-6 h-6 text-red-600" />
                     <div>
@@ -438,7 +438,7 @@ export default function AICustomerLifecycle() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <Button size="sm" className="bg-red-600 hover:bg-red-700">
                       <Phone className="w-4 h-4 mr-1" />
                       Call Now
