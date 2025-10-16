@@ -185,9 +185,16 @@ export default function ProfessionalDealDesk() {
   
   // Monthly payment calculation
   const monthlyRate = apr / 100 / 12;
-  const monthlyPayment = monthlyRate > 0 
-    ? (amountFinanced * monthlyRate * Math.pow(1 + monthlyRate, term)) / (Math.pow(1 + monthlyRate, term) - 1)
-    : amountFinanced / term;
+  let monthlyPayment = 0;
+  if (!term || term === 0) {
+    monthlyPayment = 0;
+  } else if (apr === 0) {
+    // Zero APR: simple division
+    monthlyPayment = amountFinanced / term;
+  } else {
+    // Standard amortization formula
+    monthlyPayment = (amountFinanced * monthlyRate * Math.pow(1 + monthlyRate, term)) / (Math.pow(1 + monthlyRate, term) - 1);
+  }
   
   // Profit calculations
   const frontGross = salePrice - vehicleCost;
@@ -700,16 +707,124 @@ export default function ProfessionalDealDesk() {
         </Card>
       </div>
       
-      {/* Payment Matrix Dialog - TODO: Implement payment grid */}
+      {/* Payment Matrix Dialog */}
       <Dialog open={paymentMatrixOpen} onOpenChange={setPaymentMatrixOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-auto">
           <DialogHeader>
-            <DialogTitle>Payment Matrix</DialogTitle>
+            <DialogTitle className="text-xl font-bold">Payment Matrix Calculator</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <p className="text-sm text-gray-500 mb-4">Down Payment × Term = Monthly Payment Grid</p>
-            {/* TODO: Implement payment matrix table */}
-            <div className="text-center text-gray-400 py-8">Payment Matrix Coming Soon</div>
+          <div className="py-4 space-y-4">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400">Total Price:</span>
+                  <span className="ml-2 font-semibold">${totalPrice.toFixed(2)}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400">Net Trade:</span>
+                  <span className="ml-2 font-semibold">${netTrade.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400">APR:</span>
+                  <span className="ml-2 font-semibold">{apr}%</span>
+                </div>
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400">Current Down:</span>
+                  <span className="ml-2 font-semibold">${downPayment.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-gray-300 dark:border-gray-700">
+                <thead>
+                  <tr className="bg-gray-100 dark:bg-gray-800">
+                    <th className="border border-gray-300 dark:border-gray-700 p-2 text-left font-semibold">
+                      Down Payment
+                    </th>
+                    {(dealerSettings?.availableTerms || [36,48,60,72,84]).map(termMonths => (
+                      <th key={termMonths} className="border border-gray-300 dark:border-gray-700 p-2 text-center font-semibold">
+                        {termMonths} months
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[0, 2500, 5000, 7500, 10000, 15000, 20000].map((downPmt) => {
+                    // Use same calculation as main deal: totalPrice - netTrade - downPmt
+                    const amtFinanced = Math.max(0, totalPrice - netTrade - downPmt);
+                    
+                    return (
+                      <tr key={downPmt} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                        <td className="border border-gray-300 dark:border-gray-700 p-2 font-medium">
+                          ${downPmt.toLocaleString()}
+                        </td>
+                        {(dealerSettings?.availableTerms || [36,48,60,72,84]).map(termMonths => {
+                          const monthlyRate = apr / 100 / 12;
+                          
+                          // Handle zero APR case and zero/undefined term (matches main deal logic)
+                          let payment = 0;
+                          if (!termMonths || termMonths === 0) {
+                            payment = 0;
+                          } else if (apr === 0) {
+                            // Zero APR: simple division
+                            payment = amtFinanced / termMonths;
+                          } else {
+                            // Standard amortization formula
+                            payment = (amtFinanced * monthlyRate * Math.pow(1 + monthlyRate, termMonths)) / (Math.pow(1 + monthlyRate, termMonths) - 1);
+                          }
+                          
+                          const isCurrentSelection = downPmt === downPayment && termMonths === term;
+                          
+                          return (
+                            <td 
+                              key={termMonths} 
+                              className={`border border-gray-300 dark:border-gray-700 p-2 text-center cursor-pointer transition-colors ${
+                                isCurrentSelection 
+                                  ? 'bg-green-100 dark:bg-green-900/30 font-bold text-green-700 dark:text-green-400' 
+                                  : 'hover:bg-blue-50 dark:hover:bg-blue-900/20'
+                              }`}
+                              onClick={() => {
+                                setDownPayment(downPmt);
+                                setTerm(termMonths);
+                                setPaymentMatrixOpen(false);
+                              }}
+                              data-testid={`payment-cell-${downPmt}-${termMonths}`}
+                            >
+                              ${payment.toFixed(2)}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Click any cell to apply that down payment and term to your deal. Green cell indicates current selection.
+            </div>
+            
+            <div className="flex gap-2 justify-end mt-4">
+              <Button
+                variant="outline"
+                onClick={() => setPaymentMatrixOpen(false)}
+                className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]"
+              >
+                Close
+              </Button>
+              <Button
+                onClick={() => {
+                  window.print();
+                }}
+                className="shadow-[2px_2px_0px_0px_rgba(0,0,0,0.15)]"
+                data-testid="button-print-matrix"
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Print Matrix
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
