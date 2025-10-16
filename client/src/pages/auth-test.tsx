@@ -30,7 +30,7 @@ export default function AuthTest() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-gray-50 p-4">
+    <div className="min-h-0 bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto">
         <Card>
           <CardHeader>

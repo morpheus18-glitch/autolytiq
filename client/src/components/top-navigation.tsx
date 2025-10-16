@@ -339,8 +339,8 @@ export default function TopNavigation() {
       </div>
 
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-xl">
-          <div className="flex h-16 items-center justify-between border-b border-border/50 px-4 bg-background/80">
+        <div className="lg:hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-xl flex flex-col">
+          <div className="flex h-16 items-center justify-between border-b border-border/50 px-4 bg-background/80 flex-shrink-0">
             <div className="flex items-center gap-3">
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl brand-gradient shadow-brand">
                 <Car className="h-5 w-5" />
@@ -359,7 +359,8 @@ export default function TopNavigation() {
             </Button>
           </div>
 
-          <div className="space-y-6 overflow-y-auto px-4 pb-28 pt-6">
+          <div className="flex-1 overflow-y-auto overscroll-contain">
+            <div className="space-y-6 px-4 pb-28 pt-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60" size={18} />
               <Input
@@ -490,6 +491,7 @@ export default function TopNavigation() {
                 </Button>
               </div>
             </div>
+          </div>
           </div>
         </div>
       )}

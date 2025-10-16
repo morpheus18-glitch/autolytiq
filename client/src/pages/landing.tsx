@@ -22,8 +22,8 @@ export default function Landing() {
   };
 
   return (
-    <div className="landing-surface min-h-[100dvh] text-foreground">
-      <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col px-4 pb-16 pt-6 sm:px-6 lg:px-10 lg:pb-24">
+    <div className="landing-surface text-foreground">
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col px-4 pb-16 pt-6 sm:px-6 lg:px-10 lg:pb-24">
         <div className="absolute inset-x-10 top-24 h-[420px] rounded-full blur-3xl hero-spotlight" aria-hidden="true" />
         <div className="absolute inset-0 grid-overlay opacity-50 dark:opacity-25" aria-hidden="true" />
 
