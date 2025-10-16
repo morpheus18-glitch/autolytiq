@@ -128,11 +128,16 @@ interface Deal {
   customerId?: number;
   buyerName: string;
   dealType: 'retail' | 'lease' | 'cash';
+  msrp?: number;
   salePrice: number;
   cashDown: number;
   rebates: number;
+  tradeVin?: string;
   tradeAllowance: number;
   tradePayoff: number;
+  payoffLenderName?: string;
+  payoffGoodThrough?: string | Date;
+  payoffLenderState?: string;
   salesTax: number;
   docFee: number;
   titleFee: number;
@@ -141,6 +146,25 @@ interface Deal {
   term?: number;
   rate?: string;
   creditTier?: string;
+  msrpCents?: number | null;
+  packCents?: number | null;
+  holdbackCents?: number | null;
+  rebatesCents?: number | null;
+  rebatesTaxable?: boolean | null;
+  tradeAcvCents?: number | null;
+  tradeReconCents?: number | null;
+  tradeAllowanceCents?: number | null;
+  tradePayoffCents?: number | null;
+  payoffGoodThru?: string | null;
+  lienholderName?: string | null;
+  titleState?: string | null;
+  cashDownCents?: number | null;
+  deferredDownCents?: number | null;
+  aprBps?: number | null;
+  buyRateBps?: number | null;
+  reserveBasis?: string | null;
+  reserveAmountCents?: number | null;
+  paymentFrequency?: string | null;
 }
 
 interface BackendProduct {
@@ -600,7 +624,8 @@ export default function ProfessionalDealDesk() {
     }
 
     setLienholderName(existingDeal.payoffLenderName ?? null);
-    setPayoffGoodThru(existingDeal.payoffGoodThrough ?? null);
+    const goodThruValue = existingDeal.payoffGoodThrough;
+    setPayoffGoodThru(goodThruValue ? (goodThruValue instanceof Date ? goodThruValue.toISOString().split('T')[0] : goodThruValue) : null);
     setTitleState(existingDeal.payoffLenderState ?? null);
 
     if (existingDeal.creditTier) {
@@ -979,14 +1004,13 @@ export default function ProfessionalDealDesk() {
           await apiRequest(`/api/deals/${savedDeal.id}/products`, {
             method: 'POST',
             body: JSON.stringify({
-              productCode: product.code,
-              productName: product.name,
-              providerName: product.provider,
+              productCode: product.productCode,
+              productName: product.productName,
+              providerName: product.providerName,
               retailCents: product.retailCents,
               costCents: product.costCents,
               termMonths: product.termMonths,
-              mileageLimit: product.mileageLimit,
-              isTaxable: product.isTaxable,
+              taxable: product.taxable,
             }),
           });
         }
@@ -1001,7 +1025,7 @@ export default function ProfessionalDealDesk() {
               feeCode: fee.code,
               description: fee.description,
               amountCents: fee.amountCents,
-              isTaxable: fee.isTaxable,
+              taxable: fee.taxable,
             }),
           });
         }
@@ -2384,9 +2408,13 @@ export default function ProfessionalDealDesk() {
                   vehicleCost={vehicleCost}
                   salePrice={salePrice}
                   products={products}
-                  reserveAmount={reserveAmountCents / 100}
+                  reserveAmount={(reserveAmountCents ?? 0) / 100}
                   onApplyOptimization={(optimizedProducts) => {
-                    setProducts(optimizedProducts);
+                    const withCategory = optimizedProducts.map(p => ({
+                      ...p,
+                      category: ('category' in p && typeof p.category === 'string' ? p.category : 'warranty') as string
+                    }));
+                    setProducts(withCategory);
                     toast({
                       title: "Optimization Applied",
                       description: "Backend products updated with optimized pricing"

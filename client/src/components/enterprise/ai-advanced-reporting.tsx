@@ -229,22 +229,29 @@ export default function AIAdvancedReporting() {
   };
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="space-y-6 p-3 sm:p-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <FileText className="w-8 h-8 text-green-600" />
-          <div>
-            <h2 className="text-2xl font-bold">AI Advanced Reporting</h2>
-            <p className="text-sm text-gray-600">Intelligent business reports with AI-powered insights and analytics</p>
+          <div className="space-y-1">
+            <h2 className="text-xl font-bold sm:text-2xl">AI Advanced Reporting</h2>
+            <p className="text-sm text-gray-600 max-w-xl">
+              Intelligent business reports with AI-powered insights and analytics
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge className="bg-green-100 text-green-800">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+          <Badge className="bg-green-100 text-green-800 w-full justify-center sm:w-auto">
             <Brain className="w-3 h-3 mr-1" />
             AI Analytics Active
           </Badge>
-          <Button onClick={() => queryClient.invalidateQueries()} variant="outline" size="sm">
+          <Button
+            onClick={() => queryClient.invalidateQueries()}
+            variant="outline"
+            size="sm"
+            className="w-full sm:w-auto"
+          >
             <Activity className="w-4 h-4 mr-2" />
             Refresh Data
           </Button>
@@ -252,8 +259,8 @@ export default function AIAdvancedReporting() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
-          <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
+        <div className="mobile-tabs -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0">
+          <TabsList className="inline-flex w-full min-w-0 justify-start md:grid md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
             <TabsTrigger value="templates" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-templates">Report Templates</TabsTrigger>
             <TabsTrigger value="insights" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-insights">AI Insights</TabsTrigger>
             <TabsTrigger value="custom" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-custom">Custom Reports</TabsTrigger>
@@ -263,9 +270,9 @@ export default function AIAdvancedReporting() {
 
         {/* Report Templates Tab */}
         <TabsContent value="templates" className="space-y-4">
-          <div className="flex items-center gap-4 mb-6">
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Select value={selectedReport} onValueChange={setSelectedReport}>
-              <SelectTrigger className="w-64">
+              <SelectTrigger className="w-full sm:w-64">
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
@@ -280,7 +287,7 @@ export default function AIAdvancedReporting() {
 
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-40">
+                <Button variant="outline" className="w-full sm:w-40">
                   <CalendarIcon className="w-4 h-4 mr-2" />
                   {dateRange ? format(dateRange, "PPP") : "Date Range"}
                 </Button>
@@ -296,24 +303,24 @@ export default function AIAdvancedReporting() {
             </Popover>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-responsive-2 gap-4">
             {reportTemplates.map((template) => (
               <Card key={template.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center gap-3">
+                <CardContent className="space-y-4 p-4 sm:p-6">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                       {getCategoryIcon(template.category)}
                       <div>
                         <h3 className="font-semibold text-lg">{template.title}</h3>
                         <p className="text-sm text-gray-600 mt-1">{template.description}</p>
                       </div>
                     </div>
-                    <Badge className={getCategoryColor(template.category)}>
+                    <Badge className={`${getCategoryColor(template.category)} w-full justify-center sm:w-auto`}>
                       {template.category}
                     </Badge>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="grid grid-responsive-3 gap-4">
                     <div className="text-center">
                       <div className="text-lg font-bold text-blue-600">{template.dataPoints}</div>
                       <div className="text-xs text-gray-600">Data Points</div>
@@ -330,7 +337,7 @@ export default function AIAdvancedReporting() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-sm mb-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
                     <span className="text-gray-600">Last generated: {template.lastGenerated}</span>
                     {template.aiInsights && (
                       <Badge className="bg-blue-100 text-blue-800">
@@ -340,20 +347,20 @@ export default function AIAdvancedReporting() {
                     )}
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="flex-1"
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full sm:flex-1"
                       onClick={() => handleGenerateReport(template.id)}
                       disabled={isGenerating}
                     >
                       <Eye className="w-3 h-3 mr-1" />
                       Preview
                     </Button>
-                    <Button 
-                      size="sm" 
-                      className="flex-1 bg-green-600 hover:bg-green-700"
+                    <Button
+                      size="sm"
+                      className="w-full bg-green-600 hover:bg-green-700 sm:flex-1"
                       onClick={() => handleGenerateReport(template.id)}
                       disabled={isGenerating}
                     >
@@ -381,17 +388,17 @@ export default function AIAdvancedReporting() {
           <div className="grid gap-4">
             {reportInsights.map((insight) => (
               <Card key={insight.id} className="border-l-4 border-blue-500">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
+                <CardContent className="space-y-4 p-4 sm:p-6">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                       <Lightbulb className="w-6 h-6 text-blue-600" />
                       <div>
                         <h3 className="font-semibold text-lg">{insight.title}</h3>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="mt-1 flex flex-wrap items-center gap-2">
                           <Badge className={getPriorityColor(insight.priority)}>
                             {insight.priority.toUpperCase()} PRIORITY
                           </Badge>
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="w-full justify-center sm:w-auto">
                             {insight.confidence}% Confidence
                           </Badge>
                         </div>
@@ -416,16 +423,16 @@ export default function AIAdvancedReporting() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2 mt-4">
-                    <Button size="sm" variant="outline" className="flex-1">
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                    <Button size="sm" variant="outline" className="w-full sm:flex-1">
                       <Eye className="w-3 h-3 mr-1" />
                       Deep Analysis
                     </Button>
-                    <Button size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700">
+                    <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700 sm:flex-1">
                       <Zap className="w-3 h-3 mr-1" />
                       Implement
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" className="w-full sm:w-auto">
                       <Download className="w-3 h-3 mr-1" />
                       Export
                     </Button>
@@ -440,13 +447,13 @@ export default function AIAdvancedReporting() {
         <TabsContent value="custom" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <Brain className="w-5 h-5 text-purple-600" />
                 Custom Report Builder
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-responsive-2 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">Report Type</label>
                   <Select>
@@ -479,7 +486,7 @@ export default function AIAdvancedReporting() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">AI Features</label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-responsive-2 gap-2">
                   <div className="flex items-center space-x-2">
                     <input type="checkbox" id="predictive" className="rounded" defaultChecked />
                     <label htmlFor="predictive" className="text-sm">Predictive Analytics</label>
@@ -509,9 +516,9 @@ export default function AIAdvancedReporting() {
 
         {/* Live Analytics Tab */}
         <TabsContent value="analytics" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-responsive-4 gap-4">
             <Card className="text-center">
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <PieChart className="w-12 h-12 text-blue-600 mx-auto mb-4" />
                 <h3 className="font-semibold text-lg mb-2">Sales Distribution</h3>
                 <div className="text-2xl font-bold mb-2">{sales.length}</div>
@@ -521,7 +528,7 @@ export default function AIAdvancedReporting() {
             </Card>
 
             <Card className="text-center">
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <LineChart className="w-12 h-12 text-green-600 mx-auto mb-4" />
                 <h3 className="font-semibold text-lg mb-2">Revenue Trend</h3>
                 <div className="text-2xl font-bold mb-2">+{Math.round(sales.length * 1.2)}%</div>
@@ -531,7 +538,7 @@ export default function AIAdvancedReporting() {
             </Card>
 
             <Card className="text-center">
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <Users className="w-12 h-12 text-purple-600 mx-auto mb-4" />
                 <h3 className="font-semibold text-lg mb-2">Customer Metrics</h3>
                 <div className="text-2xl font-bold mb-2">{customers.length}</div>
@@ -541,7 +548,7 @@ export default function AIAdvancedReporting() {
             </Card>
 
             <Card className="text-center">
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <Car className="w-12 h-12 text-orange-600 mx-auto mb-4" />
                 <h3 className="font-semibold text-lg mb-2">Inventory Status</h3>
                 <div className="text-2xl font-bold mb-2">{vehicles.length}</div>
@@ -553,15 +560,15 @@ export default function AIAdvancedReporting() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <Activity className="w-5 h-5 text-green-600" />
                 Real-Time Business Metrics
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-responsive-3 gap-6">
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-sm font-medium">Sales Performance</span>
                     <span className="text-sm text-gray-600">{Math.round((sales.length / 50) * 100)}%</span>
                   </div>
@@ -574,7 +581,7 @@ export default function AIAdvancedReporting() {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-sm font-medium">Inventory Turnover</span>
                     <span className="text-sm text-gray-600">{Math.round((sales.length / Math.max(vehicles.length, 1)) * 100)}%</span>
                   </div>
@@ -587,7 +594,7 @@ export default function AIAdvancedReporting() {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-sm font-medium">Customer Satisfaction</span>
                     <span className="text-sm text-gray-600">94%</span>
                   </div>
