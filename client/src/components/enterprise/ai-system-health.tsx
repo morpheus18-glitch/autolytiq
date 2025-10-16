@@ -338,10 +338,10 @@ export default function AISystemHealth() {
   };
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="space-y-6 p-3 sm:p-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Shield className="w-8 h-8 text-green-600" />
           <div>
             <h2 className="text-2xl font-bold">AI System Health Monitor</h2>
@@ -361,8 +361,8 @@ export default function AISystemHealth() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="mobile-tabs overflow-x-auto -mx-2 px-2 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 scrollbar-hide">
-          <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
+        <div className="mobile-tabs -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0">
+          <TabsList className="inline-flex w-full min-w-0 justify-start md:grid md:grid-cols-4 h-12 md:h-11 gap-1 p-1">
             <TabsTrigger value="overview" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-overview">System Overview</TabsTrigger>
             <TabsTrigger value="performance" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-performance">Performance</TabsTrigger>
             <TabsTrigger value="security" className="min-h-[48px] md:min-h-0 px-4 md:px-3" data-testid="tab-security">Security</TabsTrigger>
@@ -372,12 +372,12 @@ export default function AISystemHealth() {
 
         {/* System Overview Tab */}
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-responsive-3 gap-4">
             {systemComponents.map((component) => (
               <Card key={component.id} className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                       {getComponentIcon(component.id)}
                       <div>
                         <h3 className="font-semibold text-lg">{component.name}</h3>
@@ -390,7 +390,7 @@ export default function AISystemHealth() {
                     </Badge>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-responsive-2 gap-4 mb-4">
                     <div>
                       <div className="text-xs text-gray-600 mb-1">Uptime</div>
                       <div className="font-semibold text-green-600">{component.uptime}</div>
@@ -437,12 +437,12 @@ export default function AISystemHealth() {
 
         {/* Performance Tab */}
         <TabsContent value="performance" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-responsive-2 gap-4">
             {performanceMetrics.map((metric) => (
               <Card key={metric.id} className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                       {getMetricIcon(metric.id)}
                       <div>
                         <h3 className="font-semibold text-lg">{metric.name}</h3>
@@ -462,7 +462,7 @@ export default function AISystemHealth() {
                   </div>
 
                   <div className="mb-3">
-                    <div className="flex justify-between text-sm mb-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-sm mb-1">
                       <span>Usage vs Threshold</span>
                       <span>{Math.round((metric.value / metric.threshold) * 100)}%</span>
                     </div>
@@ -472,7 +472,7 @@ export default function AISystemHealth() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between text-sm mb-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-sm mb-3">
                     <div className="flex items-center gap-1">
                       {metric.trend > 0 ? (
                         <TrendingUp className="w-3 h-3 text-red-600" />
@@ -508,7 +508,7 @@ export default function AISystemHealth() {
               <Card key={alert.id} className={`border-l-4 ${getAlertTypeColor(alert.type)}`}>
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                       {getAlertIcon(alert.type)}
                       <div>
                         <h3 className="font-semibold text-lg">{alert.title}</h3>
@@ -540,7 +540,7 @@ export default function AISystemHealth() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row">
                     <Button size="sm" variant="outline" className="flex-1">
                       <Eye className="w-3 h-3 mr-1" />
                       View Details
@@ -560,16 +560,16 @@ export default function AISystemHealth() {
 
         {/* AI Insights Tab */}
         <TabsContent value="insights" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-responsive-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <Brain className="w-5 h-5 text-purple-600" />
                   System Intelligence Summary
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 bg-green-50 rounded-lg">
                   <div>
                     <div className="font-medium text-green-900">Overall Health Score</div>
                     <div className="text-sm text-green-700">All systems operating optimally</div>
@@ -577,7 +577,7 @@ export default function AISystemHealth() {
                   <div className="text-2xl font-bold text-green-600">98.7%</div>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 bg-blue-50 rounded-lg">
                   <div>
                     <div className="font-medium text-blue-900">Performance Index</div>
                     <div className="text-sm text-blue-700">Above baseline performance</div>
@@ -585,7 +585,7 @@ export default function AISystemHealth() {
                   <div className="text-2xl font-bold text-blue-600">92.4%</div>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 bg-purple-50 rounded-lg">
                   <div>
                     <div className="font-medium text-purple-900">AI Confidence</div>
                     <div className="text-sm text-purple-700">High confidence in predictions</div>
@@ -597,14 +597,14 @@ export default function AISystemHealth() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <BarChart3 className="w-5 h-5 text-blue-600" />
                   Predictive Analytics
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                     <span>System Load Forecast (Next 24h)</span>
                     <span className="text-green-600">Normal</span>
                   </div>
@@ -612,7 +612,7 @@ export default function AISystemHealth() {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                     <span>Resource Utilization Trend</span>
                     <span className="text-blue-600">Stable</span>
                   </div>
@@ -620,7 +620,7 @@ export default function AISystemHealth() {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                     <span>Security Risk Assessment</span>
                     <span className="text-green-600">Low</span>
                   </div>
@@ -628,7 +628,7 @@ export default function AISystemHealth() {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                     <span>Maintenance Recommendations</span>
                     <span className="text-yellow-600">Scheduled</span>
                   </div>
@@ -640,14 +640,14 @@ export default function AISystemHealth() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <ThermometerSun className="w-5 h-5 text-orange-600" />
                 AI Optimization Recommendations
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-start gap-3 p-4 bg-yellow-50 rounded-lg">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start p-4 bg-yellow-50 rounded-lg">
                   <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
                   <div className="flex-1">
                     <h4 className="font-medium text-yellow-900 mb-1">Storage Optimization Needed</h4>
@@ -660,7 +660,7 @@ export default function AISystemHealth() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start p-4 bg-blue-50 rounded-lg">
                   <Signal className="w-5 h-5 text-blue-600 mt-0.5" />
                   <div className="flex-1">
                     <h4 className="font-medium text-blue-900 mb-1">Performance Enhancement Available</h4>
@@ -673,7 +673,7 @@ export default function AISystemHealth() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 bg-green-50 rounded-lg">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start p-4 bg-green-50 rounded-lg">
                   <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
                   <div className="flex-1">
                     <h4 className="font-medium text-green-900 mb-1">Security Posture Excellent</h4>
