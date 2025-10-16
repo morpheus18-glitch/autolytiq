@@ -1153,7 +1153,7 @@ export default function ProfessionalDealDesk() {
               </p>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="hidden md:flex gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -1183,36 +1183,38 @@ export default function ProfessionalDealDesk() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Manager/Customer Mode Toggle */}
-        <div className="flex items-center justify-end gap-3 mb-4">
-          <Label htmlFor="manager-mode" className="text-sm font-medium flex items-center gap-2">
+        {/* Manager/Customer Mode Toggle - Touch-optimized */}
+        <div className="flex items-center justify-end gap-2 md:gap-3 mb-4 p-2 md:p-0">
+          <Label htmlFor="manager-mode" className="text-xs md:text-sm font-medium flex items-center gap-1.5 md:gap-2 cursor-pointer">
             {managerMode ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-            {managerMode ? 'Manager Mode' : 'Customer Mode'}
+            <span className="hidden sm:inline">{managerMode ? 'Manager Mode' : 'Customer Mode'}</span>
+            <span className="sm:hidden">{managerMode ? 'Manager' : 'Customer'}</span>
           </Label>
           <Switch
             id="manager-mode"
             checked={managerMode}
             onCheckedChange={setManagerMode}
             data-testid="switch-manager-mode"
+            className="scale-110 md:scale-100"
           />
         </div>
 
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-6">
           {onboardingSteps.map((step, index) => (
             <div
               key={step.id}
-              className={`rounded-lg border p-4 transition-colors ${
+              className={`rounded-lg border p-3 md:p-4 transition-colors ${
                 step.complete
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                   : 'border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900/60'
               }`}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3">
+              <div className="flex items-start justify-between gap-2 md:gap-3">
+                <div className="flex items-start gap-2 md:gap-3">
                   <Badge
                     variant={step.complete ? 'default' : 'outline'}
-                    className={`h-8 w-8 shrink-0 rounded-full text-xs flex items-center justify-center ${
+                    className={`h-7 w-7 md:h-8 md:w-8 shrink-0 rounded-full text-xs flex items-center justify-center ${
                       step.complete
                         ? 'bg-blue-600 text-white hover:bg-blue-600'
                         : 'border-gray-400 text-gray-600 dark:text-gray-300'
@@ -1221,14 +1223,14 @@ export default function ProfessionalDealDesk() {
                     {index + 1}
                   </Badge>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{step.label}</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{step.description}</p>
+                    <p className="text-xs md:text-sm font-semibold text-gray-900 dark:text-white">{step.label}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 md:mt-1 hidden sm:block">{step.description}</p>
                   </div>
                 </div>
                 {step.complete ? (
-                  <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
                 ) : (
-                  <ClipboardList className="h-4 w-4 text-gray-400" />
+                  <ClipboardList className="h-4 w-4 text-gray-400 shrink-0" />
                 )}
               </div>
             </div>
@@ -2448,6 +2450,34 @@ export default function ProfessionalDealDesk() {
             }
           }}
         />
+      </div>
+
+      {/* Mobile-First FAB - Floating Action Button */}
+      <div className="md:hidden fixed bottom-20 right-4 z-50 flex flex-col gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handlePrint}
+          className="h-12 w-12 rounded-full shadow-lg bg-white dark:bg-gray-800 border-2"
+          data-testid="button-mobile-print"
+        >
+          <Printer className="h-5 w-5" />
+        </Button>
+        <Button
+          size="icon"
+          onClick={() => saveDealMutation.mutate()}
+          disabled={!selectedCustomer || !selectedVehicle || !calc || saveDealMutation.isPending || dealId !== null}
+          className="h-14 w-14 rounded-full shadow-lg"
+          data-testid="button-mobile-save-deal"
+        >
+          {saveDealMutation.isPending ? (
+            <Loader2 className="h-6 w-6 animate-spin" />
+          ) : dealId ? (
+            <CheckCircle className="h-6 w-6" />
+          ) : (
+            <Save className="h-6 w-6" />
+          )}
+        </Button>
       </div>
     </div>
   );
