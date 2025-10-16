@@ -194,7 +194,7 @@ export default function CustomerDetail() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50 pb-6">
       {/* Content */}
       <div className="px-4 py-4">
         {/* Back Button */}
