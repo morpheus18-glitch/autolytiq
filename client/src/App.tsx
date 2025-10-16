@@ -20,10 +20,10 @@ function Router() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[100dvh]">
+      <div className="flex items-center justify-center min-h-[calc(var(--vh,1vh)*100)] bg-surface-base">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-brand-primary"></div>
+          <p className="mt-4 text-neutral-600">Loading...</p>
         </div>
       </div>
     );
