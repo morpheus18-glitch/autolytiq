@@ -1,7 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import { type ReactNode, useEffect } from 'react';
-import { lockScroll, unlockScroll } from '../../../lib/scroll-lock';
+import { lockScroll, unlockScroll } from '@/lib/scroll-lock';
 import { cn } from '@/lib/utils';
 
 export interface ModalProps {

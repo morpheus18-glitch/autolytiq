@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum TenantPlan {
@@ -20,7 +21,7 @@ enum TenantStatus {
   CANCELLED
 }
 
-enum AppRole {
+enum UserRole {
   ADMIN
   MANAGER
   SALES
@@ -34,68 +35,625 @@ enum UserStatus {
   INACTIVE
 }
 
+enum PreferredContactMethod {
+  EMAIL
+  PHONE
+  SMS
+}
+
+enum LeadSource {
+  WEBSITE
+  REFERRAL
+  WALKIN
+  PHONE
+  EMAIL
+  SOCIAL_MEDIA
+  THIRD_PARTY
+  OTHER
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  HOT
+  WARM
+  COLD
+  LOST
+  CUSTOMER
+}
+
+enum InteractionType {
+  CALL
+  EMAIL
+  SMS
+  VISIT
+  TEST_DRIVE
+  FOLLOW_UP
+}
+
+enum InteractionDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum CustomerVehicleStatus {
+  OWNED
+  TRADED
+  SOLD
+}
+
+enum VehicleType {
+  NEW
+  USED
+  CERTIFIED
+}
+
+enum FuelType {
+  GASOLINE
+  DIESEL
+  HYBRID
+  ELECTRIC
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  PENDING
+  SOLD
+  IN_TRANSIT
+  SERVICE
+  WHOLESALE
+}
+
+enum VehicleHistoryType {
+  SERVICE
+  ACCIDENT
+  OWNERSHIP
+  INSPECTION
+}
+
+enum DealType {
+  CASH
+  FINANCE
+  LEASE
+}
+
+enum DealStatus {
+  DRAFT
+  PENDING
+  SUBMITTED
+  APPROVED
+  FUNDED
+  DELIVERED
+  CANCELLED
+}
+
+enum DealDocumentType {
+  CONTRACT
+  CREDIT_APP
+  INSURANCE
+  REGISTRATION
+  OTHER
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum NormalBalance {
+  DEBIT
+  CREDIT
+}
+
+enum JournalStatus {
+  DRAFT
+  POSTED
+  VOID
+}
+
+enum LineType {
+  DEBIT
+  CREDIT
+}
+
+enum CommissionType {
+  FRONT
+  BACK
+  BONUS
+  SPIFF
+}
+
+enum CommissionStatus {
+  PENDING
+  APPROVED
+  PAID
+  CHARGEBACK
+}
+
+enum ReportType {
+  SALES
+  INVENTORY
+  FINANCE
+  CUSTOM
+}
+
+enum NotificationType {
+  DEAL_APPROVAL
+  FOLLOW_UP
+  INVENTORY_ALERT
+  TASK
+  SYSTEM
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  VIEW
+}
+
 model Tenant {
-  id             String          @id @default(uuid())
-  name           String
-  plan           TenantPlan      @default(BASIC)
-  status         TenantStatus    @default(ACTIVE)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  users          User[]
-  systemSettings SystemSetting[]
-  auditLogs      AuditLog[]
+  id                 String             @id @default(cuid())
+  name               String
+  subdomain          String             @unique
+  plan               TenantPlan         @default(BASIC)
+  status             TenantStatus       @default(ACTIVE)
+  settings           Json               @default(dbgenerated("'{}'::jsonb"))
+  billingEmail       String
+  subscriptionEndsAt DateTime?          @db.Timestamptz(6)
+  createdAt          DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime           @updatedAt @db.Timestamptz(6)
+
+  users                User[]
+  customers            Customer[]
+  customerInteractions CustomerInteraction[]
+  customerVehicles     CustomerVehicle[]
+  vehicles             Vehicle[]
+  vehicleHistories     VehicleHistory[]
+  deals                Deal[]
+  dealDocuments        DealDocument[]
+  glAccounts           GLAccount[]
+  journalEntries       JournalEntry[]
+  journalEntryLines    JournalEntryLine[]
+  commissions          Commission[]
+  reports              Report[]
+  notifications        Notification[]
+  auditLogs            AuditLog[]
+  systemSettings       SystemSetting[]
 }
 
 model User {
-  id          String     @id @default(uuid())
-  tenantId    String
-  email       String
-  password    String
-  firstName   String
-  lastName    String
-  phone       String?
-  role        AppRole
-  status      UserStatus @default(ACTIVE)
-  permissions Json?
-  lastLoginAt DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  systemSettings SystemSetting[] @relation("UpdatedBy")
-  auditLogs   AuditLog[]
+  id           String    @id @default(cuid())
+  tenantId     String
+  email        String
+  password     String
+  firstName    String
+  lastName     String
+  phone        String?
+  role         UserRole  @default(SALES)
+  permissions  Json      @default(dbgenerated("jsonb_build_array()"))
+  status       UserStatus @default(ACTIVE)
+  isSuperAdmin Boolean   @default(false)
+  lastLoginAt  DateTime? @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customers      Customer[]  @relation("CustomerAssignedTo")
+  interactions   CustomerInteraction[]
+  dealsAsSales   Deal[]      @relation("SalesPersonDeals")
+  dealsAsFinance Deal[]      @relation("FinanceManagerDeals")
+  journalEntries       JournalEntry[]
+  commissions          Commission[]
+  reports              Report[]    @relation("ReportCreatedBy")
+  notifications        Notification[]
+  auditLogs            AuditLog[]
+  systemSettings       SystemSetting[]
+  uploadedDealDocuments DealDocument[] @relation("DealDocumentUploader")
 
   @@unique([tenantId, email])
   @@index([tenantId])
+  @@index([isSuperAdmin])
 }
 
-model SystemSetting {
-  id        String   @id @default(uuid())
-  tenantId  String
-  key       String
-  value     Json
-  updatedBy String
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user      User     @relation("UpdatedBy", fields: [updatedBy], references: [id], onDelete: Cascade)
+model Customer {
+  id                     String        @id @default(cuid())
+  tenantId               String
+  firstName              String
+  lastName               String
+  email                  String?
+  phone                  String?
+  mobile                 String?
+  dateOfBirth            DateTime?     @db.Date
+  driversLicenseNumber   String?
+  driversLicenseState    String?
+  ssn                    String?
+  addressStreet          String?
+  addressCity            String?
+  addressState           String?
+  addressZip             String?
+  addressCountry         String?
+  preferredContactMethod PreferredContactMethod @default(EMAIL)
+  leadSource             LeadSource     @default(WEBSITE)
+  leadStatus             LeadStatus     @default(NEW)
+  leadScore              Int            @default(0)
+  creditScore            Int?
+  assignedToUserId       String?
+  tags                   String[]       @default([])
+  notes                  String?
+  lifetimeValue          Decimal        @db.Decimal(18, 2) @default(0)
+  createdAt              DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime       @updatedAt @db.Timestamptz(6)
+  deletedAt              DateTime?      @db.Timestamptz(6)
+  searchVector           Unsupported("tsvector")? @default(dbgenerated("to_tsvector('english', coalesce(\"firstName\",'') || ' ' || coalesce(\"lastName\",'') || ' ' || coalesce(\"email\",'') || ' ' || coalesce(\"phone\",''))")) @map("search_vector")
 
-  @@unique([tenantId, key], name: "tenantId_key")
-  @@index([tenantId])
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignedToUser User?   @relation("CustomerAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  interactions   CustomerInteraction[]
+  vehicles       CustomerVehicle[]
+  deals          Deal[]
+
+  @@index([tenantId, leadStatus])
+  @@index([tenantId, assignedToUserId])
+  @@index([searchVector], type: Gin)
+  @@index([tenantId, lastName, firstName])
+}
+
+model CustomerInteraction {
+  id          String              @id @default(cuid())
+  tenantId    String
+  customerId  String
+  userId      String
+  type        InteractionType
+  direction   InteractionDirection
+  subject     String?
+  notes       String?
+  duration    Int?
+  scheduledAt DateTime?           @db.Timestamptz(6)
+  completedAt DateTime?           @db.Timestamptz(6)
+  createdAt   DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime            @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime?           @db.Timestamptz(6)
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, customerId])
+  @@index([tenantId, scheduledAt])
+}
+
+model CustomerVehicle {
+  id             String                @id @default(cuid())
+  tenantId       String
+  customerId     String
+  vin            String
+  year           Int
+  make           String
+  model          String
+  trim           String?
+  purchaseDate   DateTime?             @db.Timestamptz(6)
+  purchasePrice  Decimal?              @db.Decimal(18, 2)
+  currentMileage Int?
+  status         CustomerVehicleStatus @default(OWNED)
+  tradedInDate   DateTime?             @db.Timestamptz(6)
+  notes          String?
+  createdAt      DateTime              @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime              @updatedAt @db.Timestamptz(6)
+
+  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer   Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tradeDeals Deal[]          @relation("TradeVehicleDeal")
+
+  @@index([tenantId, customerId])
+  @@unique([tenantId, vin])
+}
+
+model Vehicle {
+  id                    String        @id @default(cuid())
+  tenantId              String
+  stockNumber           String
+  vin                   String
+  type                  VehicleType
+  year                  Int
+  make                  String
+  model                 String
+  trim                  String?
+  exteriorColor         String?
+  interiorColor         String?
+  mileage               Int?
+  engineType            String?
+  transmission          String?
+  drivetrain            String?
+  fuelType              FuelType
+  msrp                  Decimal?      @db.Decimal(18, 2)
+  invoiceCost           Decimal?      @db.Decimal(18, 2)
+  listPrice             Decimal?      @db.Decimal(18, 2)
+  specialPrice          Decimal?      @db.Decimal(18, 2)
+  status                VehicleStatus @default(AVAILABLE)
+  location              String?
+  dateReceived          DateTime?     @db.Timestamptz(6)
+  dateSold              DateTime?     @db.Timestamptz(6)
+  daysInStock           Int?          @default(0)
+  images                String[]      @default([])
+  features              String[]      @default([])
+  certificationNumber   String?
+  floorPlanId           String?
+  floorPlanDate         DateTime?     @db.Timestamptz(6)
+  floorPlanInterestRate Decimal?      @db.Decimal(5, 2)
+  notes                 String?
+  createdAt             DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime      @updatedAt @db.Timestamptz(6)
+  deletedAt             DateTime?     @db.Timestamptz(6)
+  searchVector          Unsupported("tsvector")? @default(dbgenerated("to_tsvector('english', coalesce(\"vin\",'') || ' ' || coalesce(\"make\",'') || ' ' || coalesce(\"model\",''))")) @map("search_vector")
+
+  tenant    Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deals     Deal[]
+  histories VehicleHistory[]
+
+  @@unique([tenantId, stockNumber])
+  @@unique([vin])
+  @@index([tenantId, status])
+  @@index([tenantId, make, model])
+  @@index([searchVector], type: Gin)
+}
+
+model VehicleHistory {
+  id        String            @id @default(cuid())
+  tenantId  String
+  vehicleId String
+  type      VehicleHistoryType
+  date      DateTime          @db.Timestamptz(6)
+  description String
+  documentUrl String?
+  createdAt DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime          @updatedAt @db.Timestamptz(6)
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, vehicleId])
+}
+
+model Deal {
+  id               String   @id @default(cuid())
+  tenantId         String
+  dealNumber       String
+  customerId       String
+  vehicleId        String
+  salesPersonId    String
+  financeManagerId String?
+  dealType         DealType
+  status           DealStatus   @default(DRAFT)
+  vehiclePrice     Decimal      @db.Decimal(18, 2)
+  discount         Decimal      @db.Decimal(18, 2) @default(0)
+  netVehiclePrice  Decimal      @db.Decimal(18, 2)
+  tradeVehicleId   String?
+  tradeAllowance   Decimal?     @db.Decimal(18, 2)
+  tradePayoff      Decimal?     @db.Decimal(18, 2)
+  tradeEquity      Decimal?     @db.Decimal(18, 2)
+  downPayment      Decimal?     @db.Decimal(18, 2)
+  amountFinanced   Decimal?     @db.Decimal(18, 2)
+  apr              Decimal?     @db.Decimal(5, 2)
+  term             Int?
+  monthlyPayment   Decimal?     @db.Decimal(18, 2)
+  lenderName       String?
+  lenderRate       Decimal?     @db.Decimal(5, 2)
+  dealerReserve    Decimal?     @db.Decimal(18, 2)
+  docFee           Decimal?     @db.Decimal(18, 2)
+  registrationFee  Decimal?     @db.Decimal(18, 2)
+  salesTax         Decimal?     @db.Decimal(18, 2)
+  otherFees        Json?
+  warrantyProduct  String?
+  warrantyCost     Decimal?     @db.Decimal(18, 2)
+  gapInsurance     Boolean      @default(false)
+  gapCost          Decimal?     @db.Decimal(18, 2)
+  maintenancePlan  Boolean      @default(false)
+  maintenanceCost  Decimal?     @db.Decimal(18, 2)
+  otherProducts    Json?
+  frontEndGross    Decimal?     @db.Decimal(18, 2)
+  backEndGross     Decimal?     @db.Decimal(18, 2)
+  totalGross       Decimal?     @db.Decimal(18, 2)
+  packAmount       Decimal?     @db.Decimal(18, 2)
+  dealDate         DateTime     @db.Timestamptz(6)
+  fundedDate       DateTime?    @db.Timestamptz(6)
+  deliveryDate     DateTime?    @db.Timestamptz(6)
+  notes            String?
+  createdAt        DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime     @updatedAt @db.Timestamptz(6)
+  deletedAt        DateTime?    @db.Timestamptz(6)
+
+  tenant         Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer       Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  vehicle        Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  salesPerson    User     @relation("SalesPersonDeals", fields: [salesPersonId], references: [id], onDelete: Restrict)
+  financeManager User?    @relation("FinanceManagerDeals", fields: [financeManagerId], references: [id], onDelete: SetNull)
+  tradeVehicle   CustomerVehicle? @relation("TradeVehicleDeal", fields: [tradeVehicleId], references: [id], onDelete: SetNull)
+  documents      DealDocument[]
+  journalEntries JournalEntry[]
+  commissions    Commission[]
+
+  @@unique([tenantId, dealNumber])
+  @@index([tenantId, status])
+  @@index([tenantId, customerId])
+  @@index([tenantId, salesPersonId])
+}
+
+model DealDocument {
+  id        String          @id @default(cuid())
+  tenantId  String
+  dealId    String
+  type      DealDocumentType
+  name      String
+  fileUrl   String
+  signedAt  DateTime?       @db.Timestamptz(6)
+  uploadedBy String
+  createdAt DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime        @updatedAt @db.Timestamptz(6)
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal     Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  uploader User   @relation("DealDocumentUploader", fields: [uploadedBy], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, dealId])
+}
+
+model GLAccount {
+  id            String     @id @default(cuid())
+  tenantId      String
+  accountNumber String
+  accountName   String
+  accountType   AccountType
+  normalBalance NormalBalance
+  parentAccountId String?
+  isActive      Boolean    @default(true)
+  balance       Decimal?   @db.Decimal(18, 2)
+  createdAt     DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime   @updatedAt @db.Timestamptz(6)
+
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  parentAccount GLAccount?  @relation("GLAccountHierarchy", fields: [parentAccountId], references: [id], onDelete: SetNull)
+  subAccounts   GLAccount[] @relation("GLAccountHierarchy")
+  journalLines  JournalEntryLine[]
+
+  @@unique([tenantId, accountNumber])
+  @@index([tenantId, parentAccountId])
+}
+
+model JournalEntry {
+  id          String     @id @default(cuid())
+  tenantId    String
+  entryNumber String
+  memo        String?
+  status      JournalStatus @default(DRAFT)
+  postingDate DateTime    @db.Timestamptz(6)
+  dealId      String?
+  postedById  String
+  postedAt    DateTime?   @db.Timestamptz(6)
+  createdAt   DateTime    @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime    @updatedAt @db.Timestamptz(6)
+
+  tenant    Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal      Deal?       @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  postedBy  User        @relation(fields: [postedById], references: [id], onDelete: Restrict)
+  lines     JournalEntryLine[]
+
+  @@unique([tenantId, entryNumber])
+  @@index([tenantId, dealId])
+}
+
+model JournalEntryLine {
+  id             String     @id @default(cuid())
+  tenantId       String
+  journalEntryId String
+  glAccountId    String
+  type           LineType
+  amount         Decimal    @db.Decimal(18, 2)
+  description    String?
+  createdAt      DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime   @updatedAt @db.Timestamptz(6)
+
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  journalEntry JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  glAccount    GLAccount    @relation(fields: [glAccountId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, journalEntryId])
+  @@index([tenantId, glAccountId])
+}
+
+model Commission {
+  id             String           @id @default(cuid())
+  tenantId       String
+  dealId         String
+  userId         String
+  commissionType CommissionType
+  amount         Decimal          @db.Decimal(18, 2)
+  rate           Decimal?         @db.Decimal(5, 2)
+  status         CommissionStatus @default(PENDING)
+  paidDate       DateTime?        @db.Timestamptz(6)
+  notes          String?
+  createdAt      DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime         @updatedAt @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId])
+  @@index([tenantId, status])
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  type        ReportType
+  parameters  Json?
+  schedule    String?
+  lastRunAt   DateTime? @db.Timestamptz(6)
+  createdById String
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+
+  tenant    Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdBy User   @relation("ReportCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, type])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  tenantId  String
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  actionUrl String?
+  isRead    Boolean          @default(false)
+  readAt    DateTime?        @db.Timestamptz(6)
+  createdAt DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime         @updatedAt @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId, isRead])
 }
 
 model AuditLog {
-  id        String   @id @default(uuid())
-  tenantId  String
-  userId    String
-  action    String
-  resource  String
-  details   Json?
-  ipAddress String?
-  createdAt DateTime @default(now())
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  tenantId   String
+  userId     String?
+  action     String
+  resource   String
+  details    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
 
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, resource])
+  @@index([tenantId, userId])
+}
+
+model SystemSetting {
+  id         String   @id @default(cuid())
+  tenantId   String
+  key        String
+  value      Json
+  updatedById String
+  updatedAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  tenant    Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  updatedBy User   @relation(fields: [updatedById], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, key])
   @@index([tenantId])
-  @@index([userId])
-  @@index([createdAt])
 }

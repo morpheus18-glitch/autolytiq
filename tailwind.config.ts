@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-import { tokens } from "./lib/design-tokens";
+import { tokens } from './client/src/config/design-tokens';
 
 const parseFontStack = (stack: string) =>
   stack
