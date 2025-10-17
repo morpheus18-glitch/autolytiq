@@ -13,10 +13,10 @@ export async function fetchSettingsSection<T>(
     if (parsed.success) {
       return parsed.data;
     }
-    return fallback;
+    return JSON.parse(JSON.stringify(fallback)) as T;
   } catch (error) {
     console.warn(`Failed to load settings from ${endpoint}:`, error);
-    return fallback;
+    return JSON.parse(JSON.stringify(fallback)) as T;
   }
 }
 
@@ -33,5 +33,5 @@ export async function updateSettingsSection<T>(
   if (parsed.success) {
     return parsed.data;
   }
-  return payload;
+  return JSON.parse(JSON.stringify(payload)) as T;
 }

@@ -1,91 +1,138 @@
-import { z } from 'zod';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useMemo, useState } from 'react';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ColorPicker } from '@/components/settings/ColorPicker';
 import { ImageUploader } from '@/components/settings/ImageUploader';
 import { RichTextEditor } from '@/components/settings/RichTextEditor';
 import { ToggleSwitch } from '@/components/settings/ToggleSwitch';
+import {
+  brandingSettingsSchema,
+  defaultBrandingSettings,
+  type BrandingSettings,
+} from '@shared/settings-schema';
 import { useSettingsSection } from './useSettingsSection';
 
-const formSchema = z.object({
-  primaryColor: z.string().default('#2563EB'),
-  secondaryColor: z.string().default('#7C3AED'),
-  accentColor: z.string().default('#10B981'),
-  successColor: z.string().default('#10B981'),
-  warningColor: z.string().default('#F59E0B'),
-  errorColor: z.string().default('#EF4444'),
-  logoUrl: z.string().optional().default(''),
-  darkLogoUrl: z.string().optional().default(''),
-  faviconUrl: z.string().optional().default(''),
-  emailHeaderHtml: z.string().default(''),
-  emailFooterHtml: z.string().default(''),
-  customThemeEnabled: z.boolean().default(false),
-  fontFamily: z.enum(['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat']).default('Inter'),
-  borderRadius: z.number().min(0).max(20).default(8),
-});
+const LOGO_ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/svg+xml'];
+const FAVICON_ACCEPTED_TYPES = ['image/png', 'image/svg+xml', 'image/x-icon'];
+const BRAND_ASSET_MAX_SIZE = 500 * 1024;
 
-export type BrandingSettingsForm = z.infer<typeof formSchema>;
+type UploadableBrandAsset = 'logo' | 'darkLogo' | 'favicon' | 'invoiceHeader' | 'purchaseAgreementHeader';
 
-const defaultValues: BrandingSettingsForm = {
-  primaryColor: '#2563EB',
-  secondaryColor: '#7C3AED',
-  accentColor: '#10B981',
-  successColor: '#10B981',
-  warningColor: '#F59E0B',
-  errorColor: '#EF4444',
-  logoUrl: '',
-  darkLogoUrl: '',
-  faviconUrl: '',
-  emailHeaderHtml: '',
-  emailFooterHtml: '',
-  customThemeEnabled: false,
-  fontFamily: 'Inter',
-  borderRadius: 8,
-};
-
-async function uploadBrandAsset(type: 'logo' | 'darkLogo' | 'favicon', file: File): Promise<string> {
+async function uploadBrandAsset(type: UploadableBrandAsset, file: File): Promise<string> {
   const formData = new FormData();
   formData.append('logo', file);
   formData.append('type', type);
-  const response = await fetch(`/api/settings/branding/upload-logo?type=${type}`, {
+
+  const response = await fetch(`/api/settings/branding/upload-logo?type=${encodeURIComponent(type)}`, {
     method: 'POST',
     body: formData,
     credentials: 'include',
   });
+
   if (!response.ok) {
-    throw new Error('Failed to upload asset');
+    throw new Error('Unable to upload branding asset');
   }
-  const json = (await response.json()) as { url?: string };
-  if (!json?.url) {
-    throw new Error('Upload did not return a URL');
+
+  const payload = (await response.json()) as { url?: string };
+  if (!payload?.url) {
+    throw new Error('Upload response did not include a file URL');
   }
-  return json.url;
+
+  return payload.url;
 }
 
-async function deleteBrandAsset(type: 'logo' | 'darkLogo' | 'favicon'): Promise<void> {
-  const response = await fetch(`/api/settings/branding/logo/${type}`, {
+async function deleteBrandAsset(type: UploadableBrandAsset): Promise<void> {
+  const response = await fetch(`/api/settings/branding/logo/${encodeURIComponent(type)}`, {
     method: 'DELETE',
     credentials: 'include',
   });
+
   if (!response.ok) {
-    throw new Error('Failed to remove asset');
+    throw new Error('Unable to remove branding asset');
   }
 }
 
+function createDefaultValues(): BrandingSettings {
+  return {
+    ...defaultBrandingSettings,
+    colors: { ...defaultBrandingSettings.colors },
+    logos: { ...defaultBrandingSettings.logos },
+    emailBranding: { ...defaultBrandingSettings.emailBranding },
+    documentBranding: { ...defaultBrandingSettings.documentBranding },
+    portalTheme: { ...defaultBrandingSettings.portalTheme },
+  };
+}
+
 export function BrandingSettings(): JSX.Element {
-  const { form, query, mutation, onSubmit } = useSettingsSection<BrandingSettingsForm>({
+  const defaultValues = useMemo(() => createDefaultValues(), []);
+  const { form, query, mutation, onSubmit } = useSettingsSection<BrandingSettings>({
     endpoint: 'branding',
-    schema: formSchema,
+    schema: brandingSettingsSchema,
     defaultValues,
     successMessage: 'Brand preferences saved',
   });
+  const [isEmailPreviewOpen, setEmailPreviewOpen] = useState(false);
+
+  const colors = form.watch('colors');
+  const portalTheme = form.watch('portalTheme');
+  const emailHeaderHtml = form.watch('emailBranding.headerHtml');
+  const emailFooterHtml = form.watch('emailBranding.footerHtml');
+
+  const emailPreviewHtml = useMemo(() => {
+    const primary = colors?.primary ?? defaultBrandingSettings.colors.primary;
+    const secondary = colors?.secondary ?? defaultBrandingSettings.colors.secondary;
+    const accent = colors?.accent ?? defaultBrandingSettings.colors.accent;
+
+    const headerContent = emailHeaderHtml?.trim().length ? emailHeaderHtml : '<h2 style="margin:0">Welcome!</h2>';
+    const footerContent = emailFooterHtml?.trim().length
+      ? emailFooterHtml
+      : '<p style="margin:0">© 2024 Your Dealership. All rights reserved.</p>';
+
+    return `
+      <div style="font-family: 'Inter', sans-serif; background-color: #f3f4f6; padding: 24px;">
+        <div style="max-width: 640px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border-top: 6px solid ${primary}; box-shadow: 0 10px 40px rgba(15, 23, 42, 0.12);">
+          <div style="padding: 28px; background: ${primary}; color: #ffffff;">
+            ${headerContent}
+          </div>
+          <div style="padding: 28px; color: #111827; line-height: 1.6;">
+            <p style="margin-bottom: 16px;">Hi {{customerName}},</p>
+            <p style="margin-bottom: 16px;">Thank you for choosing our dealership. Here's a quick summary of your upcoming visit.</p>
+            <a href="#" style="display:inline-block; padding: 12px 24px; background:${accent}; color:#ffffff; border-radius:8px; text-decoration:none; font-weight:600;">View Appointment</a>
+          </div>
+          <div style="padding: 24px; background: ${secondary}; color: #ffffff;">
+            ${footerContent}
+          </div>
+        </div>
+      </div>
+    `;
+  }, [colors?.accent, colors?.primary, colors?.secondary, emailFooterHtml, emailHeaderHtml]);
 
   if (query.isLoading) {
-    return <Skeleton className="h-[600px] w-full" />;
+    return <Skeleton className="h-[720px] w-full" />;
   }
 
   return (
@@ -98,48 +145,116 @@ export function BrandingSettings(): JSX.Element {
           <CardContent className="grid gap-6 md:grid-cols-2">
             <FormField
               control={form.control}
-              name="primaryColor"
+              name="colors.primary"
               render={({ field }) => (
-                <ColorPicker label="Primary" value={field.value} onChange={field.onChange} />
+                <FormItem>
+                  <FormControl>
+                    <ColorPicker label="Primary" value={field.value} onChange={field.onChange} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="secondaryColor"
+              name="colors.secondary"
               render={({ field }) => (
-                <ColorPicker label="Secondary" value={field.value} onChange={field.onChange} />
+                <FormItem>
+                  <FormControl>
+                    <ColorPicker label="Secondary" value={field.value} onChange={field.onChange} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="accentColor"
+              name="colors.accent"
               render={({ field }) => (
-                <ColorPicker label="Accent" value={field.value} onChange={field.onChange} />
+                <FormItem>
+                  <FormControl>
+                    <ColorPicker label="Accent" value={field.value} onChange={field.onChange} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="successColor"
+              name="colors.success"
               render={({ field }) => (
-                <ColorPicker label="Success" value={field.value} onChange={field.onChange} />
+                <FormItem>
+                  <FormControl>
+                    <ColorPicker label="Success" value={field.value} onChange={field.onChange} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="warningColor"
+              name="colors.warning"
               render={({ field }) => (
-                <ColorPicker label="Warning" value={field.value} onChange={field.onChange} />
+                <FormItem>
+                  <FormControl>
+                    <ColorPicker label="Warning" value={field.value} onChange={field.onChange} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="errorColor"
+              name="colors.error"
               render={({ field }) => (
-                <ColorPicker label="Error" value={field.value} onChange={field.onChange} />
+                <FormItem>
+                  <FormControl>
+                    <ColorPicker label="Error" value={field.value} onChange={field.onChange} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
+            <div className="md:col-span-2">
+              <div className="rounded-lg border border-border bg-card/70 p-6">
+                <p className="text-sm font-medium text-muted-foreground">Live Preview</p>
+                <div className="mt-4 flex flex-wrap gap-4">
+                  <div
+                    className="rounded px-4 py-2 text-sm font-semibold text-white shadow-sm"
+                    style={{ backgroundColor: colors?.primary, borderRadius: '999px' }}
+                  >
+                    Primary Button
+                  </div>
+                  <div
+                    className="rounded px-4 py-2 text-sm font-semibold text-white shadow-sm"
+                    style={{ backgroundColor: colors?.secondary, borderRadius: '999px' }}
+                  >
+                    Secondary Button
+                  </div>
+                  <div
+                    className="rounded px-3 py-1 text-xs font-semibold text-white"
+                    style={{ backgroundColor: colors?.accent, borderRadius: '12px' }}
+                  >
+                    Accent Badge
+                  </div>
+                  <div className="flex items-center gap-2 rounded border border-border bg-background px-4 py-2 text-xs">
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: colors?.success }} />
+                    Success state
+                  </div>
+                  <div className="flex items-center gap-2 rounded border border-border bg-background px-4 py-2 text-xs">
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: colors?.warning }} />
+                    Warning state
+                  </div>
+                  <div className="flex items-center gap-2 rounded border border-border bg-background px-4 py-2 text-xs">
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: colors?.error }} />
+                    Error state
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="text-xl font-semibold">Logos & Assets</CardTitle>
@@ -147,81 +262,228 @@ export function BrandingSettings(): JSX.Element {
           <CardContent className="grid gap-6 md:grid-cols-3">
             <FormField
               control={form.control}
-              name="logoUrl"
+              name="logos.logo"
               render={({ field }) => (
-                <ImageUploader
-                  label="Primary Logo"
-                  currentImage={field.value}
-                  onUpload={async (file) => {
-                    const url = await uploadBrandAsset('logo', file);
-                    field.onChange(url);
-                  }}
-                  onRemove={async () => {
-                    await deleteBrandAsset('logo');
-                    field.onChange('');
-                  }}
-                />
+                <FormItem>
+                  <ImageUploader
+                    label="Primary Logo"
+                    currentImage={field.value || undefined}
+                    onUpload={async (file) => {
+                      const url = await uploadBrandAsset('logo', file);
+                      field.onChange(url);
+                    }}
+                    onRemove={async () => {
+                      await deleteBrandAsset('logo');
+                      field.onChange('');
+                    }}
+                    acceptedTypes={LOGO_ACCEPTED_TYPES}
+                    maxSize={BRAND_ASSET_MAX_SIZE}
+                    description="PNG, JPG, or SVG up to 500KB"
+                    disabled={mutation.isPending}
+                  />
+                  <FormMessage />
+                </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="darkLogoUrl"
+              name="logos.darkLogo"
               render={({ field }) => (
-                <ImageUploader
-                  label="Dark Mode Logo"
-                  currentImage={field.value}
-                  onUpload={async (file) => {
-                    const url = await uploadBrandAsset('darkLogo', file);
-                    field.onChange(url);
-                  }}
-                  onRemove={async () => {
-                    await deleteBrandAsset('darkLogo');
-                    field.onChange('');
-                  }}
-                />
+                <FormItem>
+                  <ImageUploader
+                    label="Dark Mode Logo"
+                    currentImage={field.value || undefined}
+                    onUpload={async (file) => {
+                      const url = await uploadBrandAsset('darkLogo', file);
+                      field.onChange(url);
+                    }}
+                    onRemove={async () => {
+                      await deleteBrandAsset('darkLogo');
+                      field.onChange('');
+                    }}
+                    acceptedTypes={LOGO_ACCEPTED_TYPES}
+                    maxSize={BRAND_ASSET_MAX_SIZE}
+                    description="Optimized for dark backgrounds"
+                    disabled={mutation.isPending}
+                  />
+                  <FormMessage />
+                </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="faviconUrl"
+              name="logos.favicon"
               render={({ field }) => (
-                <ImageUploader
-                  label="Favicon"
-                  currentImage={field.value}
-                  onUpload={async (file) => {
-                    const url = await uploadBrandAsset('favicon', file);
-                    field.onChange(url);
-                  }}
-                  onRemove={async () => {
-                    await deleteBrandAsset('favicon');
-                    field.onChange('');
-                  }}
-                />
+                <FormItem>
+                  <ImageUploader
+                    label="Favicon"
+                    currentImage={field.value || undefined}
+                    onUpload={async (file) => {
+                      const url = await uploadBrandAsset('favicon', file);
+                      field.onChange(url);
+                    }}
+                    onRemove={async () => {
+                      await deleteBrandAsset('favicon');
+                      field.onChange('');
+                    }}
+                    acceptedTypes={FAVICON_ACCEPTED_TYPES}
+                    maxSize={BRAND_ASSET_MAX_SIZE}
+                    description="SVG, PNG, or ICO up to 500KB"
+                    disabled={mutation.isPending}
+                  />
+                  <FormMessage />
+                </FormItem>
               )}
             />
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold">Email Branding</CardTitle>
+          <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <CardTitle className="text-xl font-semibold">Email Branding</CardTitle>
+            </div>
+            <Button type="button" variant="outline" onClick={() => setEmailPreviewOpen(true)}>
+              Preview Email
+            </Button>
           </CardHeader>
           <CardContent className="space-y-6">
             <FormField
               control={form.control}
-              name="emailHeaderHtml"
+              name="emailBranding.headerHtml"
               render={({ field }) => (
-                <RichTextEditor label="Email Header" value={field.value} onChange={field.onChange} />
+                <FormItem>
+                  <RichTextEditor
+                    label="Header HTML"
+                    value={field.value}
+                    onChange={field.onChange}
+                    description="Customize the hero section for branded emails."
+                  />
+                  <FormMessage />
+                </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="emailFooterHtml"
+              name="emailBranding.footerHtml"
               render={({ field }) => (
-                <RichTextEditor label="Email Footer" value={field.value} onChange={field.onChange} />
+                <FormItem>
+                  <RichTextEditor
+                    label="Footer HTML"
+                    value={field.value}
+                    onChange={field.onChange}
+                    description="Include legal disclaimers, contact details, and unsubscribe links."
+                  />
+                  <FormMessage />
+                </FormItem>
               )}
             />
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold">Document Branding</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-6 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="documentBranding.invoiceHeaderImageUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <ImageUploader
+                    label="Invoice Header Image"
+                    currentImage={field.value || undefined}
+                    onUpload={async (file) => {
+                      const url = await uploadBrandAsset('invoiceHeader', file);
+                      field.onChange(url);
+                    }}
+                    onRemove={async () => {
+                      await deleteBrandAsset('invoiceHeader');
+                      field.onChange('');
+                    }}
+                    acceptedTypes={LOGO_ACCEPTED_TYPES}
+                    maxSize={BRAND_ASSET_MAX_SIZE}
+                    description="Optional image displayed at the top of invoices"
+                    disabled={mutation.isPending}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="documentBranding.purchaseAgreementHeaderImageUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <ImageUploader
+                    label="Purchase Agreement Header"
+                    currentImage={field.value || undefined}
+                    onUpload={async (file) => {
+                      const url = await uploadBrandAsset('purchaseAgreementHeader', file);
+                      field.onChange(url);
+                    }}
+                    onRemove={async () => {
+                      await deleteBrandAsset('purchaseAgreementHeader');
+                      field.onChange('');
+                    }}
+                    acceptedTypes={LOGO_ACCEPTED_TYPES}
+                    maxSize={BRAND_ASSET_MAX_SIZE}
+                    description="Optional header image for purchase agreements"
+                    disabled={mutation.isPending}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="documentBranding.invoiceHeaderHtml"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <RichTextEditor
+                    label="Invoice Header HTML"
+                    value={field.value}
+                    onChange={field.onChange}
+                    description="Displayed above invoice line items when no image is provided."
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="documentBranding.invoiceFooterHtml"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <RichTextEditor
+                    label="Invoice Footer HTML"
+                    value={field.value}
+                    onChange={field.onChange}
+                    description="Terms, payment instructions, and compliance language."
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="documentBranding.purchaseAgreementHeaderHtml"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <RichTextEditor
+                    label="Purchase Agreement Header"
+                    value={field.value}
+                    onChange={field.onChange}
+                    description="HTML fallback if no header image is provided."
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="text-xl font-semibold">Customer Portal Theme</CardTitle>
@@ -229,23 +491,28 @@ export function BrandingSettings(): JSX.Element {
           <CardContent className="space-y-6">
             <FormField
               control={form.control}
-              name="customThemeEnabled"
+              name="portalTheme.enabled"
               render={({ field }) => (
-                <ToggleSwitch
-                  enabled={field.value}
-                  onChange={field.onChange}
-                  label="Enable custom portal theme"
-                  description="Override default styling for the customer experience."
-                />
+                <FormItem>
+                  <FormControl>
+                    <ToggleSwitch
+                      enabled={field.value}
+                      onChange={field.onChange}
+                      label="Enable Custom Theme"
+                      description="Override the default customer portal styling."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="fontFamily"
+              name="portalTheme.fontFamily"
               render={({ field }) => (
                 <FormItem className="max-w-sm">
                   <FormLabel>Font Family</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={!portalTheme?.enabled}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue />
@@ -265,7 +532,7 @@ export function BrandingSettings(): JSX.Element {
             />
             <FormField
               control={form.control}
-              name="borderRadius"
+              name="portalTheme.borderRadius"
               render={({ field }) => (
                 <FormItem className="max-w-sm">
                   <FormLabel>Border Radius ({field.value}px)</FormLabel>
@@ -276,32 +543,57 @@ export function BrandingSettings(): JSX.Element {
                       step={1}
                       value={[field.value]}
                       onValueChange={(value) => field.onChange(value[0] ?? 0)}
+                      disabled={!portalTheme?.enabled}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="rounded border border-border bg-card p-6">
+            <div
+              className="rounded-lg border border-border bg-card/60 p-6"
+              style={{
+                fontFamily: portalTheme?.enabled ? portalTheme.fontFamily : undefined,
+                borderRadius: portalTheme?.enabled ? `${portalTheme.borderRadius}px` : undefined,
+              }}
+            >
               <p className="text-sm font-medium text-muted-foreground">Live Preview</p>
-              <div className="mt-4 flex flex-wrap gap-4">
+              <div className="mt-4 space-y-4">
                 <div
-                  className="rounded px-4 py-2 text-white"
-                  style={{ backgroundColor: form.watch('primaryColor'), borderRadius: `${form.watch('borderRadius')}px` }}
+                  className="flex items-center justify-between rounded px-4 py-3 text-sm font-semibold text-white shadow"
+                  style={{ backgroundColor: colors?.primary, borderRadius: portalTheme?.enabled ? `${portalTheme.borderRadius}px` : undefined }}
                 >
-                  Primary Button
+                  <span>Primary action</span>
+                  <span className="text-xs uppercase" style={{ color: colors?.accent }}>
+                    Accent Link
+                  </span>
                 </div>
                 <div
-                  className="rounded px-4 py-2 text-white"
-                  style={{ backgroundColor: form.watch('secondaryColor'), borderRadius: `${form.watch('borderRadius')}px` }}
+                  className="rounded border border-border bg-background/80 p-4 text-sm text-muted-foreground"
+                  style={{ borderRadius: portalTheme?.enabled ? `${portalTheme.borderRadius}px` : undefined }}
                 >
-                  Secondary Button
-                </div>
-                <div
-                  className="rounded px-4 py-2 text-white"
-                  style={{ backgroundColor: form.watch('accentColor'), borderRadius: `${form.watch('borderRadius')}px` }}
-                >
-                  Accent Badge
+                  <p className="font-medium text-foreground">Customer Dashboard</p>
+                  <p className="mt-1">Preview of cards, inputs, and alerts using your palette.</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <span
+                      className="rounded px-3 py-1 text-xs font-semibold text-white"
+                      style={{ backgroundColor: colors?.success }}
+                    >
+                      Success
+                    </span>
+                    <span
+                      className="rounded px-3 py-1 text-xs font-semibold text-white"
+                      style={{ backgroundColor: colors?.warning }}
+                    >
+                      Warning
+                    </span>
+                    <span
+                      className="rounded px-3 py-1 text-xs font-semibold text-white"
+                      style={{ backgroundColor: colors?.error }}
+                    >
+                      Error
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -313,6 +605,19 @@ export function BrandingSettings(): JSX.Element {
           </CardFooter>
         </Card>
       </form>
+      <Dialog open={isEmailPreviewOpen} onOpenChange={setEmailPreviewOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Email Preview</DialogTitle>
+            <DialogDescription>
+              Preview how transactional and marketing emails will render with your current branding.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[70vh] overflow-y-auto rounded-md border border-border bg-background">
+            <div dangerouslySetInnerHTML={{ __html: emailPreviewHtml }} />
+          </div>
+        </DialogContent>
+      </Dialog>
     </Form>
   );
 }
