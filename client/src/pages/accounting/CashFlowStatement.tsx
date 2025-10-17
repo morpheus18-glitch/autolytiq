@@ -5,6 +5,7 @@ import {
   CalendarIcon,
   FileSpreadsheet,
   FileText,
+  Download,
   Loader2,
   Mail,
   Printer,
@@ -25,6 +26,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -36,6 +43,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -53,6 +61,13 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 });
+
+function parseAddresses(value: string): string[] {
+  return value
+    .split(/[,;\n]+/)
+    .map((entry) => entry.trim())
+    .filter((entry, index, array) => entry.length > 0 && array.indexOf(entry) === index);
+}
 
 type CashFlowMethod = 'indirect' | 'direct';
 type GroupKey = 'operating' | 'investing' | 'financing' | 'summary' | 'other';
@@ -266,11 +281,13 @@ export default function CashFlowStatement() {
   const [range, setRange] = useState(() => ({ startDate: startOfMonth(new Date()), endDate: new Date() }));
   const [method, setMethod] = useState<CashFlowMethod>('indirect');
   const [expandedAccounts, setExpandedAccounts] = useState<Record<string, boolean>>({});
-  const [activeExport, setActiveExport] = useState<'pdf' | 'excel' | null>(null);
+  const [activeExport, setActiveExport] = useState<'pdf' | 'excel' | 'quickbooks' | 'sage-xero' | null>(null);
   const [isEmailDialogOpen, setEmailDialogOpen] = useState(false);
   const [emailRecipients, setEmailRecipients] = useState('');
+  const [emailCc, setEmailCc] = useState('');
   const [emailSubject, setEmailSubject] = useState('');
   const [emailMessage, setEmailMessage] = useState('');
+  const [emailFormats, setEmailFormats] = useState<Set<'pdf' | 'excel'>>(new Set(['pdf']));
   const [isSendingEmail, setSendingEmail] = useState(false);
   const { toast } = useToast();
 
@@ -474,7 +491,7 @@ export default function CashFlowStatement() {
   }, []);
 
   const handleExport = useCallback(
-    async (formatType: 'pdf' | 'excel') => {
+    async (formatType: 'pdf' | 'excel' | 'quickbooks' | 'sage-xero') => {
       if (activeExport) {
         return;
       }
@@ -513,17 +530,28 @@ export default function CashFlowStatement() {
     }
   }, []);
 
+  const toggleEmailFormat = useCallback((formatType: 'pdf' | 'excel') => {
+    setEmailFormats((previous) => {
+      const next = new Set(previous);
+      if (next.has(formatType)) {
+        next.delete(formatType);
+      } else {
+        next.add(formatType);
+      }
+      return next;
+    });
+  }, []);
+
   const openEmailDialog = useCallback(() => {
     setEmailSubject(emailSubjectFallback);
     setEmailMessage(emailMessageFallback);
+    setEmailCc('');
+    setEmailFormats(new Set(['pdf']));
     setEmailDialogOpen(true);
   }, [emailMessageFallback, emailSubjectFallback]);
 
   const handleSendEmail = useCallback(async () => {
-    const recipients = emailRecipients
-      .split(',')
-      .map((recipient) => recipient.trim())
-      .filter(Boolean);
+    const recipients = parseAddresses(emailRecipients);
     if (recipients.length === 0) {
       toast({
         title: 'Recipients required',
@@ -532,11 +560,15 @@ export default function CashFlowStatement() {
       });
       return;
     }
+    const cc = parseAddresses(emailCc);
+    const formats = emailFormats.size ? Array.from(emailFormats) : ['pdf'];
     setSendingEmail(true);
     try {
       await emailStatementRequest({
         statement: 'cash-flow',
         recipients,
+        cc: cc.length ? cc : undefined,
+        formats,
         startDate: isoStart,
         endDate: isoEnd,
         method,
@@ -555,6 +587,8 @@ export default function CashFlowStatement() {
       setSendingEmail(false);
     }
   }, [
+    emailCc,
+    emailFormats,
     emailMessage,
     emailMessageFallback,
     emailRecipients,
@@ -739,7 +773,7 @@ export default function CashFlowStatement() {
                 size="sm"
                 className="gap-2"
                 onClick={() => void handleExport('pdf')}
-                disabled={activeExport !== null}
+                disabled={Boolean(activeExport)}
               >
                 {activeExport === 'pdf' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
                 PDF
@@ -749,11 +783,35 @@ export default function CashFlowStatement() {
                 size="sm"
                 className="gap-2"
                 onClick={() => void handleExport('excel')}
-                disabled={activeExport !== null}
+                disabled={Boolean(activeExport)}
               >
-                {activeExport === 'excel' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                {activeExport === 'excel' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileSpreadsheet className="h-4 w-4" />
+                )}
                 Excel
               </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2" disabled={Boolean(activeExport)}>
+                    {activeExport === 'quickbooks' || activeExport === 'sage-xero' ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                    Other Formats
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onSelect={() => void handleExport('quickbooks')}>
+                    QuickBooks IIF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => void handleExport('sage-xero')}>
+                    Sage/Xero CSV
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button variant="outline" size="sm" className="gap-2" onClick={openEmailDialog}>
                 <Mail className="h-4 w-4" />
                 Email
@@ -925,7 +983,18 @@ export default function CashFlowStatement() {
                 value={emailRecipients}
                 onChange={(event) => setEmailRecipients(event.target.value)}
               />
-              <p className="text-xs text-muted-foreground">Separate multiple email addresses with commas.</p>
+              <p className="text-xs text-muted-foreground">Separate multiple email addresses with commas or new lines.</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground" htmlFor="cash-flow-email-cc">
+                CC (optional)
+              </label>
+              <Input
+                id="cash-flow-email-cc"
+                placeholder="owner@dealership.com"
+                value={emailCc}
+                onChange={(event) => setEmailCc(event.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground" htmlFor="cash-flow-email-subject">
@@ -948,6 +1017,30 @@ export default function CashFlowStatement() {
                 onChange={(event) => setEmailMessage(event.target.value)}
                 placeholder={emailMessageFallback}
               />
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Attachments</p>
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2 text-sm" htmlFor="cash-flow-email-format-pdf">
+                  <Checkbox
+                    id="cash-flow-email-format-pdf"
+                    checked={emailFormats.has('pdf')}
+                    onCheckedChange={() => toggleEmailFormat('pdf')}
+                  />
+                  <span>PDF</span>
+                </label>
+                <label className="flex items-center gap-2 text-sm" htmlFor="cash-flow-email-format-excel">
+                  <Checkbox
+                    id="cash-flow-email-format-excel"
+                    checked={emailFormats.has('excel')}
+                    onCheckedChange={() => toggleEmailFormat('excel')}
+                  />
+                  <span>Excel (xlsx)</span>
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Choose at least one attachment type. PDF will be included automatically if none are selected.
+              </p>
             </div>
           </div>
           <DialogFooter>

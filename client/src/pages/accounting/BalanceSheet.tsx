@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import {
@@ -48,6 +48,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -60,6 +61,13 @@ const numberFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
+
+function parseAddresses(value: string): string[] {
+  return value
+    .split(/[,;\n]+/)
+    .map((item) => item.trim())
+    .filter((item, index, array) => item.length > 0 && array.indexOf(item) === index);
+}
 
 const comparisonOptions: Array<{ value: BalanceSheetComparisonMode; label: string }> = [
   { value: 'NONE', label: 'None' },
@@ -116,10 +124,12 @@ export default function BalanceSheet() {
   const [drilldownLine, setDrilldownLine] = useState<BalanceSheetLineItem | null>(null);
   const [isEmailDialogOpen, setEmailDialogOpen] = useState(false);
   const [emailRecipients, setEmailRecipients] = useState('');
+  const [emailCc, setEmailCc] = useState('');
   const [emailSubject, setEmailSubject] = useState('Balance Sheet');
   const [emailMessage, setEmailMessage] = useState('');
   const [isSendingEmail, setSendingEmail] = useState(false);
-  const [activeExport, setActiveExport] = useState<'pdf' | 'excel' | null>(null);
+  const [emailFormats, setEmailFormats] = useState<Set<'pdf' | 'excel'>>(new Set(['pdf']));
+  const [activeExport, setActiveExport] = useState<'pdf' | 'excel' | 'quickbooks' | 'sage-xero' | null>(null);
   const { toast } = useToast();
 
   const isoDate = useMemo(() => getEarliestDateString(selectedDate), [selectedDate]);
@@ -222,51 +232,79 @@ export default function BalanceSheet() {
     });
   };
 
-  const handleExport = async (format: 'pdf' | 'excel') => {
-    if (!statement) return;
-    if (activeExport) return;
-    setActiveExport(format);
-    try {
-      const result = await exportStatementRequest('balance-sheet', format, {
-        startDate: '1970-01-01',
-        endDate: `${isoDate}T23:59:59Z`,
-        comparison: comparison !== 'NONE' ? comparison : undefined,
-      });
-      const url = URL.createObjectURL(result.blob);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = result.filename;
-      anchor.click();
-      URL.revokeObjectURL(url);
-      toast({ title: 'Export complete', description: `Downloaded ${result.filename}` });
-    } catch (error) {
-      toast({
-        title: 'Export failed',
-        description: error instanceof Error ? error.message : 'Unable to export balance sheet.',
-        variant: 'destructive',
-      });
-    } finally {
-      setActiveExport(null);
-    }
-  };
+  const handleExport = useCallback(
+    async (format: 'pdf' | 'excel' | 'quickbooks' | 'sage-xero') => {
+      if (!statement) return;
+      if (activeExport) return;
+      setActiveExport(format);
+      try {
+        const result = await exportStatementRequest('balance-sheet', format, {
+          startDate: '1970-01-01',
+          endDate: `${isoDate}T23:59:59Z`,
+          comparison: comparison !== 'NONE' ? comparison : undefined,
+        });
+        const url = URL.createObjectURL(result.blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = result.filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+        toast({ title: 'Export complete', description: `Downloaded ${result.filename}` });
+      } catch (error) {
+        toast({
+          title: 'Export failed',
+          description: error instanceof Error ? error.message : 'Unable to export balance sheet.',
+          variant: 'destructive',
+        });
+      } finally {
+        setActiveExport(null);
+      }
+    },
+    [activeExport, comparison, isoDate, statement, toast],
+  );
 
-  const handleEmail = async () => {
+  const openEmailDialog = useCallback(() => {
+    const defaultSubject = `Balance Sheet – ${asOfLabel ?? isoDate}`;
+    const defaultMessage = `Please find attached the balance sheet as of ${asOfLabel ?? isoDate}.`;
+    setEmailSubject(defaultSubject);
+    setEmailMessage(defaultMessage);
+    setEmailCc('');
+    setEmailFormats(new Set(['pdf']));
+    setEmailDialogOpen(true);
+  }, [asOfLabel, isoDate]);
+
+  const toggleEmailFormat = useCallback((format: 'pdf' | 'excel') => {
+    setEmailFormats((previous) => {
+      const next = new Set(previous);
+      if (next.has(format)) {
+        next.delete(format);
+      } else {
+        next.add(format);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleEmail = useCallback(async () => {
     if (!statement) return;
-    const recipients = emailRecipients
-      .split(/[;,\s]+/)
-      .map((entry) => entry.trim())
-      .filter(Boolean);
+    const recipients = parseAddresses(emailRecipients);
     if (!recipients.length) {
       toast({ title: 'Add recipients', description: 'Enter at least one email address.', variant: 'destructive' });
       return;
     }
+    const cc = parseAddresses(emailCc);
+    const formats = emailFormats.size ? Array.from(emailFormats) : ['pdf'];
     setSendingEmail(true);
     try {
       await emailStatementRequest({
         statement: 'balance-sheet',
         recipients,
-        subject: emailSubject,
-        message: emailMessage,
+        cc: cc.length ? cc : undefined,
+        formats,
+        subject: emailSubject.trim() || `Balance Sheet – ${asOfLabel ?? isoDate}`,
+        message: emailMessage.trim() || undefined,
         startDate: '1970-01-01',
         endDate: `${isoDate}T23:59:59Z`,
         comparison: comparison !== 'NONE' ? comparison : undefined,
@@ -283,7 +321,18 @@ export default function BalanceSheet() {
     } finally {
       setSendingEmail(false);
     }
-  };
+  }, [
+    asOfLabel,
+    comparison,
+    emailCc,
+    emailFormats,
+    emailMessage,
+    emailRecipients,
+    emailSubject,
+    isoDate,
+    statement,
+    toast,
+  ]);
 
   const handlePrint = () => {
     window.print();
@@ -367,18 +416,25 @@ export default function BalanceSheet() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => handleExport('pdf')}>
+                <DropdownMenuItem onSelect={() => void handleExport('pdf')}>
                   <span className="flex items-center gap-2">
                     <Download className="h-4 w-4" /> PDF
                   </span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => handleExport('excel')}>
+                <DropdownMenuItem onSelect={() => void handleExport('excel')}>
                   <span className="flex items-center gap-2">
                     <Download className="h-4 w-4" /> Excel
                   </span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => setEmailDialogOpen(true)}>
+                <DropdownMenuItem onSelect={() => void handleExport('quickbooks')}>
+                  QuickBooks IIF
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => void handleExport('sage-xero')}>
+                  Sage/Xero CSV
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={openEmailDialog}>
                   <span className="flex items-center gap-2">
                     <Mail className="h-4 w-4" /> Email
                   </span>
@@ -558,6 +614,17 @@ export default function BalanceSheet() {
               />
             </div>
             <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground" htmlFor="balance-sheet-email-cc">
+                CC (optional)
+              </label>
+              <Input
+                id="balance-sheet-email-cc"
+                placeholder="controller@example.com"
+                value={emailCc}
+                onChange={(event) => setEmailCc(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
               <label className="text-sm font-medium text-foreground" htmlFor="balance-sheet-email-subject">
                 Subject
               </label>
@@ -579,12 +646,36 @@ export default function BalanceSheet() {
                 onChange={(event) => setEmailMessage(event.target.value)}
               />
             </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground">Attachments</p>
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2 text-sm" htmlFor="balance-sheet-email-format-pdf">
+                  <Checkbox
+                    id="balance-sheet-email-format-pdf"
+                    checked={emailFormats.has('pdf')}
+                    onCheckedChange={() => toggleEmailFormat('pdf')}
+                  />
+                  <span>PDF</span>
+                </label>
+                <label className="flex items-center gap-2 text-sm" htmlFor="balance-sheet-email-format-excel">
+                  <Checkbox
+                    id="balance-sheet-email-format-excel"
+                    checked={emailFormats.has('excel')}
+                    onCheckedChange={() => toggleEmailFormat('excel')}
+                  />
+                  <span>Excel (xlsx)</span>
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                At least one format must be selected. PDF will be sent by default if none are chosen.
+              </p>
+            </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setEmailDialogOpen(false)} disabled={isSendingEmail}>
               Cancel
             </Button>
-            <Button onClick={handleEmail} disabled={isSendingEmail}>
+            <Button onClick={() => void handleEmail()} disabled={isSendingEmail}>
               {isSendingEmail && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Send
             </Button>
