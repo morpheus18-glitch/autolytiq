@@ -32,11 +32,21 @@ router.get('/gl-accounts', requireRole([...financeViewRoles]), wrapAsync(control
 router.post('/gl-accounts', requireRole([...financeManageRoles]), wrapAsync(controller.upsertAccount));
 router.put('/gl-accounts/:id', requireRole([...financeManageRoles]), wrapAsync(controller.upsertAccount));
 router.delete('/gl-accounts/:id', requireRole([...financeManageRoles]), wrapAsync(controller.deactivateAccount));
+router.post(
+  '/gl-accounts/import-standard',
+  requireRole([...financeManageRoles]),
+  wrapAsync(controller.importStandardChartOfAccountsController),
+);
 
 router.post('/payroll/preview', requireRole([...financeManageRoles]), wrapAsync(controller.previewPayrollController));
 router.post('/payroll/finalize', requireRole([...financeManageRoles]), wrapAsync(controller.finalizePayrollController));
 router.get('/payroll', requireRole([...financeViewRoles]), wrapAsync(controller.listPayrollsController));
 router.get('/payroll/:id', requireRole([...financeViewRoles]), wrapAsync(controller.getPayrollController));
+router.get(
+  '/payroll/calculate',
+  requireRole([...financeManageRoles]),
+  wrapAsync(controller.calculatePayrollController),
+);
 
 router.post('/tax-reports', requireRole([...financeManageRoles]), wrapAsync(controller.generateTaxReportController));
 router.get('/tax-reports', requireRole([...financeViewRoles]), wrapAsync(controller.listTaxReportsController));

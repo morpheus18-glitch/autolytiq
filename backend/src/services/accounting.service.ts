@@ -7,6 +7,7 @@ import {
   Prisma,
   TaxReportType,
 } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 import type { TransportOptions } from 'nodemailer';
 import prisma from '../lib/prisma.js';
 import { BadRequest, NotFound } from '../lib/errors.js';
@@ -40,6 +41,124 @@ import {
 const DEFAULT_STATEMENT_RANGE_DAYS = 30;
 
 type DateRange = { startDate: Date; endDate: Date };
+
+type StatementComparisonRange = { startDate?: Date; endDate?: Date };
+
+export interface ProfitAndLossLine {
+  accountId: string;
+  accountNumber: string;
+  accountName: string;
+  amount: number;
+  percentOfRevenue: number;
+  comparisonAmount?: number;
+  variance?: number;
+  variancePercent?: number;
+}
+
+export interface ProfitAndLossSection {
+  label: string;
+  total: number;
+  percentOfRevenue: number;
+  comparisonTotal?: number;
+  varianceTotal?: number;
+  lines: ProfitAndLossLine[];
+}
+
+export interface ProfitAndLossStatement {
+  period: { startDate: string; endDate: string };
+  sections: ProfitAndLossSection[];
+  totals: { revenue: number; grossProfit: number; netIncome: number };
+  comparison?: {
+    period: { startDate: string; endDate: string };
+    totals: { revenue: number; grossProfit: number; netIncome: number };
+  };
+}
+
+export interface BalanceSheetAccountLine {
+  accountId: string;
+  accountNumber: string;
+  accountName: string;
+  balance: number;
+  comparisonBalance?: number;
+  variance?: number;
+}
+
+export interface BalanceSheetSection {
+  type: AccountType;
+  total: number;
+  comparisonTotal?: number;
+  varianceTotal?: number;
+  accounts: BalanceSheetAccountLine[];
+}
+
+export interface BalanceSheetRatios {
+  assetsToLiabilities: number;
+  debtToEquity: number;
+  equityRatio: number;
+}
+
+export interface BalanceSheetStatement {
+  asOf: string;
+  sections: BalanceSheetSection[];
+  totals: {
+    assets: number;
+    liabilities: number;
+    equity: number;
+    liabilitiesAndEquity: number;
+  };
+  ratios: BalanceSheetRatios;
+  comparison?: {
+    asOf: string;
+    totals: {
+      assets: number;
+      liabilities: number;
+      equity: number;
+      liabilitiesAndEquity: number;
+    };
+  };
+}
+
+export interface CashFlowLine {
+  label: string;
+  amount: number;
+}
+
+export interface CashFlowSection {
+  category: 'OPERATING' | 'INVESTING' | 'FINANCING' | 'SUPPLEMENTAL';
+  label: string;
+  total: number;
+  lines: CashFlowLine[];
+}
+
+export interface CashFlowStatement {
+  period: { startDate: string; endDate: string };
+  method: 'INDIRECT' | 'DIRECT';
+  sections: CashFlowSection[];
+  totals: {
+    netChange: number;
+    operating: number;
+    investing: number;
+    financing: number;
+  };
+  cash: { opening: number; closing: number };
+}
+
+export interface PayrollComputationResult {
+  period: { startDate: string; endDate: string };
+  employees: PayrollPreviewResult['lines'];
+  totals: PayrollPreviewResult['totals'];
+}
+
+export interface ChartOfAccountsImportResult {
+  summary: { created: number; existing: number; failed: number };
+  accounts: Array<{
+    accountNumber: string;
+    accountName: string;
+    status: 'created' | 'exists' | 'failed';
+    message?: string;
+    id?: string;
+  }>;
+}
 
 type JournalEntryPayload = {
   memo?: string;
@@ -94,6 +213,55 @@ type DashboardMetrics = {
   trailingNetIncome: number;
 };
 
+function toDecimal(value: Prisma.Decimal | Decimal | number | null | undefined): Decimal {
+  if (value instanceof Decimal) {
+    return value;
+  }
+  if (value && typeof (value as Prisma.Decimal)?.toString === 'function') {
+    return new Decimal((value as Prisma.Decimal).toString());
+  }
+  if (typeof value === 'number') {
+    return new Decimal(value);
+  }
+  return new Decimal(0);
+}
+
+function decimalToNumber(value: Decimal): number {
+  return Number(value.toFixed(2));
+}
+
+function percentageOf(part: Decimal, total: Decimal): number {
+  if (total.isZero()) {
+    return 0;
+  }
+  return decimalToNumber(part.div(total).mul(100));
+}
+
+function isEffectivelyZero(value: Decimal): boolean {
+  return value.abs().lessThan(new Decimal('0.005'));
+}
+
+function getRevenueTotal(statement: FinancialStatementResult): Decimal {
+  if (statement.totals.revenue !== undefined && statement.totals.revenue !== null) {
+    return toDecimal(statement.totals.revenue);
+  }
+  const revenueSection = statement.sections.find((section) => /revenue/i.test(section.label));
+  return toDecimal(revenueSection?.total ?? 0);
+}
+
+function resolveComparisonRange(range: DateRange, comparison?: StatementComparisonRange): DateRange | undefined {
+  if (!comparison) {
+    return undefined;
+  }
+  if (comparison.startDate && comparison.endDate) {
+    return resolveRange({ startDate: comparison.startDate, endDate: comparison.endDate });
+  }
+  const duration = range.endDate.getTime() - range.startDate.getTime();
+  const comparisonEnd = comparison.endDate ?? new Date(range.startDate.getTime() - 1);
+  const comparisonStart = comparison.startDate ?? new Date(comparisonEnd.getTime() - duration);
+  return resolveRange({ startDate: comparisonStart, endDate: comparisonEnd });
+}
+
 function resolveRange(range?: Partial<DateRange>): DateRange {
   const endDate = range?.endDate ?? new Date();
   const startDate = range?.startDate ?? new Date(endDate.getTime() - DEFAULT_STATEMENT_RANGE_DAYS * 24 * 60 * 60 * 1000);
@@ -145,6 +313,451 @@ export function createStatementOptions(
   };
 }
 
+const STANDARD_CHART_OF_ACCOUNTS: Array<{
+  accountNumber: string;
+  accountName: string;
+  accountType: AccountType;
+  normalBalance: NormalBalance;
+}> = [
+  { accountNumber: '1000', accountName: 'Cash and Cash Equivalents', accountType: AccountType.ASSET, normalBalance: NormalBalance.DEBIT },
+  { accountNumber: '1100', accountName: 'Accounts Receivable', accountType: AccountType.ASSET, normalBalance: NormalBalance.DEBIT },
+  { accountNumber: '1200', accountName: 'Inventory', accountType: AccountType.ASSET, normalBalance: NormalBalance.DEBIT },
+  { accountNumber: '1300', accountName: 'Vehicle Receivables', accountType: AccountType.ASSET, normalBalance: NormalBalance.DEBIT },
+  { accountNumber: '1400', accountName: 'Floorplan Advances', accountType: AccountType.ASSET, normalBalance: NormalBalance.DEBIT },
+  { accountNumber: '1500', accountName: 'Prepaid Expenses', accountType: AccountType.ASSET, normalBalance: NormalBalance.DEBIT },
+  { accountNumber: '2000', accountName: 'Accounts Payable', accountType: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT },
+  { accountNumber: '2100', accountName: 'Floorplan Payable', accountType: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT },
+  { accountNumber: '2200', accountName: 'Sales Tax Payable', accountType: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT },
+  { accountNumber: '2300', accountName: 'Payroll Liabilities', accountType: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT },
+  { accountNumber: '2400', accountName: 'Customer Deposits', accountType: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT },
+  { accountNumber: '3000', accountName: "Owner's Equity", accountType: AccountType.EQUITY, normalBalance: NormalBalance.CREDIT },
+  { accountNumber: '3100', accountName: 'Retained Earnings', accountType: AccountType.EQUITY, normalBalance: NormalBalance.CREDIT },
+  { accountNumber: '3200', accountName: 'Distributions', accountType: AccountType.EQUITY, normalBalance: NormalBalance.DEBIT },
+  { accountNumber: '4000', accountName: 'Vehicle Sales Revenue', accountType: AccountType.REVENUE, normalBalance: NormalBalance.CREDIT },
+  { accountNumber: '4100', accountName: 'Finance and Insurance Revenue', accountType: AccountType.REVENUE, normalBalance: NormalBalance.CREDIT },
+  { accountNumber: '4200', accountName: 'Service Contract Revenue', accountType: AccountType.REVENUE, normalBalance: NormalBalance.CREDIT },
+  { accountNumber: '4300', accountName: 'Other Income', accountType: AccountType.REVENUE, normalBalance: NormalBalance.CREDIT },
+  { accountNumber: '5000', accountName: 'Cost of Goods Sold - Vehicles', accountType: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT },
+  { accountNumber: '5100', accountName: 'Commissions Expense', accountType: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT },
+  { accountNumber: '5200', accountName: 'Payroll Expense', accountType: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT },
+  { accountNumber: '5300', accountName: 'Rent and Occupancy', accountType: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT },
+  { accountNumber: '5400', accountName: 'Marketing Expense', accountType: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT },
+  { accountNumber: '5500', accountName: 'Dealer Reserve Expense', accountType: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT },
+];
+
+type BalanceSnapshotAccount = {
+  id: string;
+  accountNumber: string;
+  accountName: string;
+  accountType: AccountType;
+  normalBalance: NormalBalance;
+};
+
+type BalanceSnapshot = {
+  asOf: Date;
+  accounts: BalanceSnapshotAccount[];
+  balances: Map<string, Decimal>;
+};
+
+function endOfDay(date: Date): Date {
+  const copy = new Date(date);
+  copy.setHours(23, 59, 59, 999);
+  return copy;
+}
+
+function previousDayEnd(date: Date): Date {
+  const previous = new Date(date);
+  previous.setDate(previous.getDate() - 1);
+  return endOfDay(previous);
+}
+
+async function buildBalanceSnapshot(tenantId: string, asOf: Date): Promise<BalanceSnapshot> {
+  const endDate = endOfDay(asOf);
+  const [accounts, balances] = await Promise.all([
+    prisma.gLAccount.findMany({
+      where: {
+        tenantId,
+        accountType: { in: [AccountType.ASSET, AccountType.LIABILITY, AccountType.EQUITY] },
+      },
+      select: {
+        id: true,
+        accountNumber: true,
+        accountName: true,
+        accountType: true,
+        normalBalance: true,
+      },
+      orderBy: { accountNumber: 'asc' },
+    }),
+    getAccountBalances(prisma, {
+      tenantId,
+      startDate: new Date(0),
+      endDate,
+      includeTransactions: false,
+    }),
+  ]);
+
+  const balanceMap = new Map<string, Decimal>();
+  for (const account of balances) {
+    balanceMap.set(account.accountId, toDecimal(account.total));
+  }
+
+  return { asOf: endDate, accounts, balances: balanceMap };
+}
+
+function mapCashFlowCategory(label: string): CashFlowSection['category'] {
+  if (/operating/i.test(label)) {
+    return 'OPERATING';
+  }
+  if (/investing/i.test(label)) {
+    return 'INVESTING';
+  }
+  if (/financing/i.test(label)) {
+    return 'FINANCING';
+  }
+  return 'SUPPLEMENTAL';
+}
+
+export async function generatePLStatement(
+  tenantId: string,
+  startDate?: Date,
+  endDate?: Date,
+  comparison?: StatementComparisonRange,
+): Promise<ProfitAndLossStatement> {
+  const range = resolveRange({ startDate, endDate });
+  const [statement, comparisonRange] = await Promise.all([
+    buildIncomeStatement(prisma, createStatementOptions(tenantId, range)),
+    Promise.resolve(resolveComparisonRange(range, comparison)),
+  ]);
+  const comparisonStatement = comparisonRange
+    ? await buildIncomeStatement(prisma, createStatementOptions(tenantId, comparisonRange))
+    : undefined;
+
+  const revenueTotal = getRevenueTotal(statement);
+  const comparisonRevenue = comparisonStatement ? getRevenueTotal(comparisonStatement) : new Decimal(0);
+
+  const sections = statement.sections.map((section) => {
+    const sectionTotal = toDecimal(section.total);
+    const comparisonSection = comparisonStatement?.sections.find((candidate) => candidate.label === section.label);
+    const comparisonTotal = comparisonSection ? toDecimal(comparisonSection.total) : undefined;
+
+    const lines = section.accounts.map((account) => {
+      const amount = toDecimal(account.total);
+      const comparisonAccount = comparisonSection?.accounts.find((candidate) => candidate.accountId === account.accountId);
+      const comparisonAmount = comparisonAccount ? toDecimal(comparisonAccount.total) : undefined;
+      const variance = comparisonAmount ? amount.minus(comparisonAmount) : undefined;
+      const variancePercent = comparisonAmount && !comparisonAmount.isZero()
+        ? variance!.div(comparisonAmount).mul(100)
+        : undefined;
+
+      return {
+        accountId: account.accountId,
+        accountNumber: account.accountNumber,
+        accountName: account.accountName,
+        amount: decimalToNumber(amount),
+        percentOfRevenue: percentageOf(amount.abs(), revenueTotal.abs()),
+        comparisonAmount: comparisonAmount ? decimalToNumber(comparisonAmount) : undefined,
+        variance: variance ? decimalToNumber(variance) : undefined,
+        variancePercent: variancePercent ? decimalToNumber(variancePercent) : undefined,
+      } satisfies ProfitAndLossLine;
+    });
+
+    return {
+      label: section.label,
+      total: decimalToNumber(sectionTotal),
+      percentOfRevenue: percentageOf(sectionTotal.abs(), revenueTotal.abs()),
+      comparisonTotal: comparisonTotal ? decimalToNumber(comparisonTotal) : undefined,
+      varianceTotal: comparisonTotal ? decimalToNumber(sectionTotal.minus(comparisonTotal)) : undefined,
+      lines,
+    } satisfies ProfitAndLossSection;
+  });
+
+  return {
+    period: { startDate: range.startDate.toISOString(), endDate: range.endDate.toISOString() },
+    sections,
+    totals: {
+      revenue: decimalToNumber(revenueTotal),
+      grossProfit: normalizeAmount(statement.totals.grossProfit ?? 0),
+      netIncome: normalizeAmount(statement.totals.netIncome ?? 0),
+    },
+    comparison: comparisonStatement
+      ? {
+          period: { startDate: comparisonRange!.startDate.toISOString(), endDate: comparisonRange!.endDate.toISOString() },
+          totals: {
+            revenue: decimalToNumber(comparisonRevenue),
+            grossProfit: normalizeAmount(comparisonStatement.totals.grossProfit ?? 0),
+            netIncome: normalizeAmount(comparisonStatement.totals.netIncome ?? 0),
+          },
+        }
+      : undefined,
+  } satisfies ProfitAndLossStatement;
+}
+
+function buildBalanceSection(
+  type: AccountType,
+  snapshot: BalanceSnapshot,
+  comparisonSnapshot?: BalanceSnapshot,
+): { section: BalanceSheetSection; total: Decimal; comparisonTotal?: Decimal } {
+  const linesInternal: Array<{ account: BalanceSnapshotAccount; balance: Decimal; comparison?: Decimal }> = [];
+  for (const account of snapshot.accounts) {
+    if (account.accountType !== type) {
+      continue;
+    }
+    const balance = snapshot.balances.get(account.id) ?? new Decimal(0);
+    const comparisonBalance = comparisonSnapshot?.balances.get(account.id);
+    if (isEffectivelyZero(balance) && (!comparisonBalance || isEffectivelyZero(comparisonBalance))) {
+      continue;
+    }
+    linesInternal.push({ account, balance, comparison: comparisonBalance });
+  }
+
+  const total = linesInternal.reduce((sum, entry) => sum.add(entry.balance), new Decimal(0));
+  const comparisonTotal = comparisonSnapshot
+    ? linesInternal.reduce((sum, entry) => sum.add(entry.comparison ?? new Decimal(0)), new Decimal(0))
+    : undefined;
+
+  const accounts = linesInternal.map((entry) => ({
+    accountId: entry.account.id,
+    accountNumber: entry.account.accountNumber,
+    accountName: entry.account.accountName,
+    balance: decimalToNumber(entry.balance),
+    comparisonBalance: entry.comparison ? decimalToNumber(entry.comparison) : undefined,
+    variance: entry.comparison ? decimalToNumber(entry.balance.minus(entry.comparison)) : undefined,
+  }));
+
+  return {
+    section: {
+      type,
+      total: decimalToNumber(total),
+      comparisonTotal: comparisonTotal ? decimalToNumber(comparisonTotal) : undefined,
+      varianceTotal: comparisonTotal ? decimalToNumber(total.minus(comparisonTotal)) : undefined,
+      accounts,
+    },
+    total,
+    comparisonTotal,
+  };
+}
+
+export async function generateBalanceSheet(
+  tenantId: string,
+  date?: Date,
+  comparisonDate?: Date,
+): Promise<BalanceSheetStatement> {
+  const asOf = date ? endOfDay(date) : endOfDay(new Date());
+  const [snapshot, comparisonSnapshot] = await Promise.all([
+    buildBalanceSnapshot(tenantId, asOf),
+    comparisonDate ? buildBalanceSnapshot(tenantId, comparisonDate) : Promise.resolve<BalanceSnapshot | undefined>(undefined),
+  ]);
+
+  const assetSection = buildBalanceSection(AccountType.ASSET, snapshot, comparisonSnapshot);
+  const liabilitySection = buildBalanceSection(AccountType.LIABILITY, snapshot, comparisonSnapshot);
+  const equitySection = buildBalanceSection(AccountType.EQUITY, snapshot, comparisonSnapshot);
+
+  const assets = assetSection.total;
+  const liabilities = liabilitySection.total;
+  const equity = equitySection.total;
+  const liabilitiesAndEquity = liabilities.add(equity);
+
+  const ratios: BalanceSheetRatios = {
+    assetsToLiabilities: liabilities.isZero() ? 0 : decimalToNumber(assets.div(liabilities)),
+    debtToEquity: equity.isZero() ? 0 : decimalToNumber(liabilities.div(equity)),
+    equityRatio: assets.isZero() ? 0 : decimalToNumber(equity.div(assets)),
+  };
+
+  return {
+    asOf: snapshot.asOf.toISOString(),
+    sections: [assetSection.section, liabilitySection.section, equitySection.section],
+    totals: {
+      assets: decimalToNumber(assets),
+      liabilities: decimalToNumber(liabilities),
+      equity: decimalToNumber(equity),
+      liabilitiesAndEquity: decimalToNumber(liabilitiesAndEquity),
+    },
+    ratios,
+    comparison: comparisonSnapshot
+      ? {
+          asOf: comparisonSnapshot.asOf.toISOString(),
+          totals: {
+            assets: decimalToNumber(assetSection.comparisonTotal ?? new Decimal(0)),
+            liabilities: decimalToNumber(liabilitySection.comparisonTotal ?? new Decimal(0)),
+            equity: decimalToNumber(equitySection.comparisonTotal ?? new Decimal(0)),
+            liabilitiesAndEquity: decimalToNumber(
+              (liabilitySection.comparisonTotal ?? new Decimal(0)).add(equitySection.comparisonTotal ?? new Decimal(0)),
+            ),
+          },
+        }
+      : undefined,
+  } satisfies BalanceSheetStatement;
+}
+
+export async function generateCashFlow(
+  tenantId: string,
+  startDate?: Date,
+  endDate?: Date,
+  method: 'INDIRECT' | 'DIRECT' = 'INDIRECT',
+): Promise<CashFlowStatement> {
+  const normalizedMethod = method.toUpperCase() as 'INDIRECT' | 'DIRECT';
+  if (normalizedMethod !== 'INDIRECT') {
+    throw BadRequest('Only the indirect cash flow method is currently supported');
+  }
+  const range = resolveRange({ startDate, endDate });
+  const statement = await buildCashFlowStatement(prisma, createStatementOptions(tenantId, range));
+
+  const sectionsInternal = statement.sections.map((section) => {
+    const sectionTotal = toDecimal(section.total);
+    return {
+      category: mapCashFlowCategory(section.label),
+      label: section.label,
+      total: decimalToNumber(sectionTotal),
+      totalDecimal: sectionTotal,
+      lines: section.accounts.map((account) => ({
+        label: account.accountName,
+        amount: normalizeAmount(account.total),
+      })),
+    };
+  });
+
+  const totalsDecimal = sectionsInternal.reduce(
+    (acc, section) => {
+      if (section.category === 'OPERATING') {
+        acc.operating = acc.operating.add(section.totalDecimal);
+      } else if (section.category === 'INVESTING') {
+        acc.investing = acc.investing.add(section.totalDecimal);
+      } else if (section.category === 'FINANCING') {
+        acc.financing = acc.financing.add(section.totalDecimal);
+      }
+      return acc;
+    },
+    { operating: new Decimal(0), investing: new Decimal(0), financing: new Decimal(0) },
+  );
+
+  const netChange = totalsDecimal.operating.add(totalsDecimal.investing).add(totalsDecimal.financing);
+  const openingBalance = await getAccountBalanceByName(tenantId, /cash|bank|checking|savings/i, previousDayEnd(range.startDate));
+  const closingBalance = await getAccountBalanceByName(tenantId, /cash|bank|checking|savings/i, endOfDay(range.endDate));
+
+  return {
+    period: { startDate: range.startDate.toISOString(), endDate: range.endDate.toISOString() },
+    method: normalizedMethod,
+    sections: sectionsInternal.map(({ totalDecimal, ...section }) => section),
+    totals: {
+      netChange: decimalToNumber(netChange),
+      operating: decimalToNumber(totalsDecimal.operating),
+      investing: decimalToNumber(totalsDecimal.investing),
+      financing: decimalToNumber(totalsDecimal.financing),
+    },
+    cash: {
+      opening: normalizeAmount(openingBalance),
+      closing: normalizeAmount(closingBalance),
+    },
+  } satisfies CashFlowStatement;
+}
+
+type AutoJournalEntryInput = {
+  tenantId: string;
+  dealId: string;
+  userId: string;
+  status?: JournalStatus;
+  memoOverride?: string;
+  postingDate?: Date;
+};
+
+export async function autoGenerateJournalEntry(input: AutoJournalEntryInput) {
+  const { tenantId, dealId, userId } = input;
+  if (!tenantId || !dealId || !userId) {
+    throw BadRequest('tenantId, dealId, and userId are required for automatic journal entry generation');
+  }
+  const generated = await generateJournalEntryFromDeal(prisma, tenantId, dealId);
+  const payload = {
+    ...generated,
+    memo: input.memoOverride ?? generated.memo,
+    postingDate: input.postingDate ?? generated.postingDate,
+  } satisfies typeof generated;
+  assertBalancedLines(payload.lines);
+  const status = input.status ?? JournalStatus.POSTED;
+  const entry = await createJournalEntryFromGenerated(prisma, tenantId, userId, payload, status, dealId);
+  await logAudit(tenantId, userId, 'CREATE', 'JournalEntry', { id: entry.id, dealId, autoGenerated: true });
+  return entry;
+}
+
+export async function calculatePayroll(
+  tenantId: string,
+  startDate: Date,
+  endDate: Date,
+): Promise<PayrollComputationResult> {
+  const range = resolveRange({ startDate, endDate });
+  const result = await calculatePayrollPreview(prisma, {
+    tenantId,
+    periodStart: range.startDate,
+    periodEnd: range.endDate,
+  });
+  return {
+    period: { startDate: result.periodStart, endDate: result.periodEnd },
+    employees: result.lines,
+    totals: result.totals,
+  } satisfies PayrollComputationResult;
+}
+
+export async function importStandardCOA(tenantId: string): Promise<ChartOfAccountsImportResult> {
+  const results: ChartOfAccountsImportResult['accounts'] = [];
+  let created = 0;
+  let existing = 0;
+  let failed = 0;
+
+  for (const template of STANDARD_CHART_OF_ACCOUNTS) {
+    try {
+      const current = await prisma.gLAccount.findFirst({
+        where: {
+          tenantId,
+          OR: [
+            { accountNumber: template.accountNumber },
+            { accountName: template.accountName },
+          ],
+        },
+      });
+      if (current) {
+        existing += 1;
+        results.push({
+          accountNumber: current.accountNumber,
+          accountName: current.accountName,
+          status: 'exists',
+          id: current.id,
+        });
+        continue;
+      }
+
+      const account = await prisma.gLAccount.create({
+        data: {
+          tenantId,
+          accountNumber: template.accountNumber,
+          accountName: template.accountName,
+          accountType: template.accountType,
+          normalBalance: template.normalBalance,
+          isActive: true,
+        },
+      });
+      created += 1;
+      results.push({
+        accountNumber: account.accountNumber,
+        accountName: account.accountName,
+        status: 'created',
+        id: account.id,
+      });
+    } catch (error: any) {
+      failed += 1;
+      results.push({
+        accountNumber: template.accountNumber,
+        accountName: template.accountName,
+        status: 'failed',
+        message: error?.message ?? 'Failed to import account',
+      });
+    }
+  }
+
+  return {
+    summary: { created, existing, failed },
+    accounts: results,
+  } satisfies ChartOfAccountsImportResult;
+}
+
 function getSmtpTransportOptions(): TransportOptions {
   const host = process.env.SMTP_HOST;
   const user = process.env.SMTP_USER;
@@ -164,8 +777,11 @@ function getSmtpTransportOptions(): TransportOptions {
   } satisfies TransportOptions;
 }
 
-async function getAccountBalanceByName(tenantId: string, pattern: RegExp): Promise<number> {
-  const balances = await getAccountBalances(prisma, createStatementOptions(tenantId));
+async function getAccountBalanceByName(tenantId: string, pattern: RegExp, asOf?: Date): Promise<number> {
+  const range = asOf
+    ? { startDate: new Date(0), endDate: endOfDay(asOf) }
+    : undefined;
+  const balances = await getAccountBalances(prisma, createStatementOptions(tenantId, range, false));
   return balances
     .filter((account) => pattern.test(account.accountName))
     .reduce((sum, account) => sum + account.total, 0);
