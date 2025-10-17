@@ -34,6 +34,7 @@ export const userSchema = z.object({
   role: z.enum(['ADMIN', 'MANAGER', 'SALES', 'FINANCE', 'SERVICE', 'BDC']),
   status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
   password: z.string().min(8).optional(),
+  isSuperAdmin: z.boolean().optional(),
   permissions: z
     .object({
       viewAllDeals: z.boolean(),

@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma, TenantStatus } from '@prisma/client';
+import { Prisma, TenantStatus } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { randomBytes, randomUUID, createHash } from 'crypto';
 import { BadRequest, NotFound } from '../lib/errors.js';
@@ -18,9 +18,8 @@ import {
   templateSchema,
   userSchema,
 } from '../validations/settings.validation.js';
+import prisma from '../lib/prisma.js';
 import type { z } from 'zod';
-
-const prisma = new PrismaClient();
 
 type DealershipSettings = z.infer<typeof dealershipSettingsSchema>;
 type PricingRules = z.infer<typeof pricingRulesSchema>;
@@ -68,8 +67,8 @@ async function upsertSetting<T>(tenantId: string, key: string, value: T, userId:
   const payload = toJsonValue(value);
   await prisma.systemSetting.upsert({
     where: { tenantId_key: { tenantId, key } },
-    update: { value: payload, updatedBy: userId, updatedAt: new Date() },
-    create: { tenantId, key, value: payload, updatedBy: userId },
+    update: { value: payload, updatedById: userId, updatedAt: new Date() },
+    create: { tenantId, key, value: payload, updatedById: userId },
   });
   return value;
 }
@@ -217,6 +216,7 @@ export async function createUser(tenantId: string, data: UserInput) {
       role: data.role,
       status: data.status ?? 'ACTIVE',
       permissions: data.permissions ?? {},
+      isSuperAdmin: data.isSuperAdmin ?? false,
     },
     select: {
       id: true,
@@ -227,6 +227,7 @@ export async function createUser(tenantId: string, data: UserInput) {
       status: true,
       createdAt: true,
       permissions: true,
+      isSuperAdmin: true,
     },
   });
   return created;
@@ -256,6 +257,7 @@ export async function updateUser(tenantId: string, id: string, data: Partial<Use
       status: true,
       permissions: true,
       updatedAt: true,
+      isSuperAdmin: true,
     },
   });
   return updated;

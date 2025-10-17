@@ -1,13 +1,15 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { Unauthorized } from '../lib/errors.js';
+import { runWithTenantContext } from '../lib/tenant-context.js';
 import type { AppRole } from '../types/express.js';
 
 type TokenPayload = JwtPayload & {
   userId: string;
-  tenantId: string;
+  tenantId?: string;
   role: AppRole;
   permissions?: string[];
+  isSuperAdmin?: boolean;
 };
 
 function extractToken(authorization?: string) {
@@ -26,26 +28,45 @@ export function authenticate(req: Request, _res: Response, next: NextFunction) {
   if (!token) {
     throw Unauthorized('Authentication required');
   }
+
   const secret = process.env.JWT_SECRET;
   if (!secret) {
     throw new Error('JWT_SECRET not configured');
   }
+
   let payload: TokenPayload;
   try {
-    const decoded = jwt.verify(token, secret) as TokenPayload;
-    payload = decoded;
-  } catch (error) {
+    payload = jwt.verify(token, secret) as TokenPayload;
+  } catch {
     throw Unauthorized('Invalid token');
   }
-  if (!payload.userId || !payload.tenantId || !payload.role) {
+
+  if (!payload.userId || !payload.role) {
     throw Unauthorized('Invalid token payload');
   }
+
+  const impersonatedTenantId =
+    payload.isSuperAdmin && req.header('x-tenant-id') ? req.header('x-tenant-id') ?? undefined : undefined;
+
+  const initialTenantId = payload.tenantId ?? impersonatedTenantId;
+
   req.user = {
     userId: payload.userId,
-    tenantId: payload.tenantId,
+    tenantId: initialTenantId ?? '',
     role: payload.role,
-    permissions: payload.permissions,
+    permissions: payload.permissions ?? [],
     ip: req.ip,
+    isSuperAdmin: Boolean(payload.isSuperAdmin),
+    impersonatedTenantId,
   };
-  next();
+
+  runWithTenantContext(
+    {
+      tenantId: initialTenantId,
+      userId: payload.userId,
+      isSuperAdmin: payload.isSuperAdmin,
+      impersonatedTenantId,
+    },
+    () => next(),
+  );
 }
