@@ -182,18 +182,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Map role_id to role name for frontend
+      // Map role_id to role name for frontend (using canonical names from spec)
       let roleName = undefined;
       let isDeveloper = false;
       
       if (dbUser.roleId) {
         const roleMapping: { [key: number]: string } = {
-          1: 'MANAGER',      // Sales Manager
-          2: 'SALES_REP',    // Sales Representative
-          3: 'MANAGER',      // Service Manager
-          4: 'TECHNICIAN',   // Technician
-          5: 'ACCOUNTANT',   // Accountant
-          6: 'ADMIN'         // System Administrator
+          1: 'MANAGER',      // Sales Manager → MANAGER
+          2: 'SALES',        // Sales Representative → SALES
+          3: 'SERVICE',      // Service Manager → SERVICE
+          4: 'SERVICE',      // Technician → SERVICE
+          5: 'FINANCE',      // Accountant → FINANCE
+          6: 'ADMIN'         // System Administrator → ADMIN
         };
         roleName = roleMapping[dbUser.roleId];
         
@@ -5474,7 +5474,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dealership Settings Routes
   app.post("/api/settings/dealership/logo", async (req, res) => {
     try {
-      res.json({ success: true, logoUrl: '/placeholder-logo.png' });
+      // Frontend expects { url: string } in response
+      res.json({ url: '/placeholder-logo.png' });
     } catch (error) {
       res.status(500).json({ message: "Failed to upload logo" });
     }
