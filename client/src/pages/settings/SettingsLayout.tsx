@@ -83,8 +83,12 @@ const NAVIGATION_ITEMS: SettingsNavItem[] = [
   },
 ];
 
-export function SettingsLayout(): JSX.Element {
-  const location = useLocation();
+interface SettingsLayoutProps {
+  children: React.ReactNode;
+}
+
+export function SettingsLayout({ children }: SettingsLayoutProps): JSX.Element {
+  const [location] = useLocation();
   const { hasAnyRole, hasPermission, canAccessDeveloper, user } = usePermissions();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -117,10 +121,10 @@ export function SettingsLayout(): JSX.Element {
   }, [canAccessDeveloper, hasAnyRole, hasPermission, user]);
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] flex-col bg-background text-foreground lg:flex-row">
+    <div className="flex flex-col bg-background text-foreground lg:flex-row">
       <aside
         className={cn(
-          'border-b border-border bg-card/60 backdrop-blur lg:sticky lg:top-0 lg:h-[calc(100vh-4rem)] lg:w-72 lg:border-b-0 lg:border-r',
+          'border-b border-border bg-card/60 backdrop-blur lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:border-b-0 lg:border-r',
           mobileOpen ? 'block' : 'hidden lg:block',
         )}
       >
@@ -138,13 +142,14 @@ export function SettingsLayout(): JSX.Element {
         <nav className="space-y-1 px-2 py-4">
           {items.map((item) => {
             const Icon = item.icon;
+            const isActive = location === `/settings/${item.to}`;
             return (
               <Link
                 key={item.to}
-                href={`/${item.to}`}
+                href={`/settings/${item.to}`}
                 className={cn(
                   'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                  location === `/${item.to}`
+                  isActive
                     ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                 )}
@@ -162,7 +167,7 @@ export function SettingsLayout(): JSX.Element {
           <div>
             <p className="text-xs uppercase text-muted-foreground">Settings</p>
             <h1 className="text-lg font-semibold">
-              {items.find((item) => location.pathname.endsWith(item.to))?.label ?? 'Overview'}
+              {items.find((item) => location === `/settings/${item.to}`)?.label ?? 'Overview'}
             </h1>
           </div>
           <Button
@@ -175,7 +180,7 @@ export function SettingsLayout(): JSX.Element {
           </Button>
         </header>
         <main className="mx-auto w-full max-w-6xl px-4 py-6">
-          {/* Content will be rendered by the parent route */}
+          {children}
         </main>
       </div>
     </div>
