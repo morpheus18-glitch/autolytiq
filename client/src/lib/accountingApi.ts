@@ -247,10 +247,32 @@ export interface AccountNode {
   accountName: string;
   accountType: string;
   normalBalance: 'DEBIT' | 'CREDIT';
+  category?: string | null;
   parentAccountId?: string | null;
+  description?: string | null;
+  taxLineMapping?: string | null;
   isActive: boolean;
+  allowManual?: boolean;
   balance?: number | string | null;
   children: AccountNode[];
+}
+
+export interface AccountTransactionLine {
+  id: string;
+  journalEntryId: string;
+  journalEntryNumber?: string | null;
+  postingDate: string;
+  description?: string | null;
+  memo?: string | null;
+  debit: number;
+  credit: number;
+  createdAt?: string;
+}
+
+export interface AccountBalanceResponse {
+  accountId: string;
+  asOfDate: string;
+  balance: number;
 }
 
 export interface PayrollPreviewLine {
@@ -855,8 +877,12 @@ export function upsertAccountRequest(payload: {
   accountName: string;
   accountType: string;
   normalBalance: 'DEBIT' | 'CREDIT';
+  category?: string | null;
   parentAccountId?: string | null;
+  description?: string | null;
+  taxLineMapping?: string | null;
   isActive?: boolean;
+  allowManual?: boolean;
 }) {
   const method = payload.id ? 'PUT' : 'POST';
   const path = payload.id ? `/api/accounting/gl-accounts/${payload.id}` : `/api/accounting/gl-accounts`;
@@ -865,6 +891,35 @@ export function upsertAccountRequest(payload: {
 
 export function deactivateAccountRequest(id: string) {
   return apiJson<{ data: AccountNode }>(`/api/accounting/gl-accounts/${id}`, { method: 'DELETE' }).then((res) => res.data);
+}
+
+export function importStandardCoaRequest() {
+  return apiJson<{ data: AccountNode[] }>(`/api/accounting/gl-accounts/import-standard`, { method: 'POST' }).then(
+    (res) => res.data,
+  );
+}
+
+export function fetchAccountTransactions(id: string) {
+  return apiJson<{ data: AccountTransactionLine[] }>(`/api/accounting/gl-accounts/${id}/transactions`).then(
+    (res) => res.data,
+  );
+}
+
+export function fetchAccountBalance(id: string, date?: string) {
+  const params = new URLSearchParams();
+  if (date) {
+    params.set('date', date);
+  }
+  const query = params.toString();
+  return apiJson<{ data: AccountBalanceResponse }>(
+    `/api/accounting/gl-accounts/${id}/balance${query ? `?${query}` : ''}`,
+  ).then((res) => res.data);
+}
+
+export function reorderAccountsRequest(payload: { parentAccountId?: string | null; orderedIds: string[] }) {
+  return apiJson<{ data: AccountNode[] }>(`/api/accounting/gl-accounts/reorder`, { method: 'POST', body: payload }).then(
+    (res) => res.data,
+  );
 }
 
 export function previewPayrollRequest(payload: {
