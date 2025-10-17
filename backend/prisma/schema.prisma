@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TenantPlan {
+  TRIAL
+  BASIC
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
+enum AppRole {
+  ADMIN
+  MANAGER
+  SALES
+  FINANCE
+  SERVICE
+  BDC
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Tenant {
+  id             String          @id @default(uuid())
+  name           String
+  plan           TenantPlan      @default(BASIC)
+  status         TenantStatus    @default(ACTIVE)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  users          User[]
+  systemSettings SystemSetting[]
+  auditLogs      AuditLog[]
+}
+
+model User {
+  id          String     @id @default(uuid())
+  tenantId    String
+  email       String
+  password    String
+  firstName   String
+  lastName    String
+  phone       String?
+  role        AppRole
+  status      UserStatus @default(ACTIVE)
+  permissions Json?
+  lastLoginAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  systemSettings SystemSetting[] @relation("UpdatedBy")
+  auditLogs   AuditLog[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+}
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  tenantId  String
+  key       String
+  value     Json
+  updatedBy String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User     @relation("UpdatedBy", fields: [updatedBy], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, key], name: "tenantId_key")
+  @@index([tenantId])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  tenantId  String
+  userId    String
+  action    String
+  resource  String
+  details   Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([createdAt])
+}

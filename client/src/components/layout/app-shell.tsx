@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import TopNavigation from '@/components/top-navigation';
 import { MobileFooterMenu } from '@/components/mobile-footer-menu';
+import MobileLayout from '@/components/layouts/MobileLayout';
 
 interface AppShellProps {
   children: ReactNode;
@@ -8,17 +9,16 @@ interface AppShellProps {
 
 export default function AppShell({ children }: AppShellProps) {
   return (
-    <div className="relative flex min-h-[100dvh] flex-col app-surface text-foreground overflow-x-hidden">
-      <div className="absolute inset-0 pointer-events-none grid-overlay opacity-70 dark:opacity-40" aria-hidden="true" />
-      <TopNavigation />
-      <main className="relative flex-1 w-full overflow-x-hidden">
-        <div className="w-full max-w-full">
-          <div className="relative z-10 mx-auto max-w-7xl px-3 pt-4 pb-mobile-footer sm:px-6 sm:pt-6 md:px-8 md:pt-8 lg:px-10 lg:pt-10">
-            {children}
-          </div>
-        </div>
-      </main>
-      <MobileFooterMenu />
-    </div>
+    <MobileLayout
+      header={<TopNavigation />}
+      bottomNav={<MobileFooterMenu />}
+      className="app-surface text-foreground"
+      contentClassName="relative z-0 w-full"
+    >
+      <div className="pointer-events-none" aria-hidden="true">
+        <div className="absolute inset-0 z-0 grid-overlay opacity-70 dark:opacity-40" />
+      </div>
+      <div className="relative z-10">{children}</div>
+    </MobileLayout>
   );
 }

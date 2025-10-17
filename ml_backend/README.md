@@ -7,7 +7,9 @@ A comprehensive Python-based system for autonomous vehicle price analysis using 
 ### Core Capabilities
 - **Autonomous Web Scraping**: Headless browser scraping with bot detection bypass
 - **Machine Learning**: XGBoost-based price prediction with feature engineering
-- **Real-time Predictions**: Fast price estimates with confidence intervals
+- **Deal Desk Intelligence**: Optimizes deal structures, finance reserve, and F&I profitability
+- **Lead Prioritization**: Behavioral scoring with churn risk and recommended cadences
+- **Inventory Optimization**: Automated hold/discount/wholesale recommendations for lot management
 - **Market Analysis**: Comprehensive market trend analysis and insights
 - **Data Deduplication**: Intelligent duplicate detection and removal
 - **Periodic Retraining**: Automated model updates with performance monitoring
@@ -25,7 +27,7 @@ A comprehensive Python-based system for autonomous vehicle price analysis using 
 
 ### Interfaces
 - **Streamlit Dashboard**: Interactive web interface for analysis and control
-- **Flask API**: RESTful API for integration with other systems
+- **Flask API**: RESTful API for pricing, deal optimization, lead scoring, and inventory insights
 - **Command Line**: Direct pipeline control and automation
 
 ## 📁 Project Structure
@@ -136,6 +138,21 @@ config = {
 - `mileage_max`: Maximum mileage
 - `make/model`: Specific vehicle filters
 
+## 📡 API Endpoints
+
+| Endpoint | Method | Description |
+| --- | --- | --- |
+| `/api/health` | GET | Service health check |
+| `/api/predict` | POST | Baseline price prediction using pipeline model |
+| `/api/predict/batch` | POST | Batch price predictions for multiple vehicles |
+| `/api/ml/predict-price` | POST | Enriched pricing analytics with market comparison and days-to-sell |
+| `/api/ml/optimize-deal` | POST | Deal structure optimization with F&I recommendations |
+| `/api/ml/score-lead` | POST | Lead scoring, conversion probability, and churn risk |
+| `/api/ml/optimize-inventory` | POST | Inventory pricing and disposition recommendations |
+| `/api/market-analysis` | GET | Market trend analysis and pricing benchmarks |
+| `/api/pipeline/status` | GET | Pipeline health and recency metrics |
+| `/api/retrain` | POST | Trigger model retraining |
+
 ## 📊 Dashboard Features
 
 ### Overview
@@ -201,6 +218,39 @@ POST /api/pipeline/run
 GET /api/pipeline/status
 ```
 
+### Deal Optimization
+```bash
+# Optimize a deal
+POST /api/ml/optimize-deal
+{
+    "vehicle_price": 28500,
+    "down_payment": 3500,
+    "customer_credit_score": 700,
+    "customer_income": 72000
+}
+```
+
+### Lead Scoring
+```bash
+# Score a lead
+POST /api/ml/score-lead
+{
+    "customer_id": "12345",
+    "page_views": 12,
+    "vehicles_viewed": 3,
+    "form_submissions": 1
+}
+```
+
+### Inventory Optimization
+```bash
+# Optimize current inventory
+POST /api/ml/optimize-inventory
+{
+    "current_inventory": [{"id": "VIN123", "days_in_stock": 65, "list_price": 24000, "cost": 20500}],
+    "market_conditions": {"demand_index": 1.1}
+}
+```
 ### Data Management
 ```bash
 # Get listings

@@ -40,7 +40,7 @@ import MonthlyClose from '@/pages/accounting/monthly-close';
 import FinancialReportsPage from '@/pages/accounting/reports';
 import PayrollPage from '@/pages/accounting/payroll';
 import TransactionsPage from '@/pages/accounting/transactions';
-import Settings from '@/pages/settings';
+// import Settings from '@/pages/settings'; // TODO: Convert from react-router-dom to wouter
 import SystemSettings from '@/pages/admin/system-settings';
 import UserManagement from '@/pages/admin/user-management';
 import ComprehensiveSettings from '@/pages/admin/comprehensive-settings';
@@ -134,7 +134,24 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/accounting/payroll', component: PayrollPage },
   { path: '/accounting/transactions', component: TransactionsPage },
   { path: '/accounting', component: AccountingDashboard },
-  { path: '/settings', component: Settings },
+  // TODO: Re-enable Settings once converted from react-router-dom to wouter
+  // {
+  //   path: '/settings',
+  //   component: Settings,
+  //   aliases: [
+  //     '/settings/dealership',
+  //     '/settings/users',
+  //     '/settings/pricing',
+  //     '/settings/forms',
+  //     '/settings/notifications',
+  //     '/settings/security',
+  //     '/settings/branding',
+  //     '/settings/integrations',
+  //     '/settings/data',
+  //     '/settings/analytics',
+  //     '/settings/developer',
+  //   ],
+  // },
   { path: '/admin/settings', component: SystemSettings },
   { path: '/admin/users', component: UserManagement, aliases: ['/users', '/users/staff', '/admin/user-management'] },
   { path: '/users/roles', component: RoleManagement },

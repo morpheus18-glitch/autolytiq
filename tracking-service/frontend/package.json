@@ -1,0 +1,13 @@
+{
+  "name": "tracking-frontend-sdk",
+  "version": "1.0.0",
+  "description": "Browser SDK for automotive customer tracking",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

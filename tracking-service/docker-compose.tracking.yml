@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # CLICKHOUSE - High-performance analytics database
+  # ============================================================================
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.8-alpine
+    container_name: automotive-clickhouse
+    hostname: clickhouse
+    ports:
+      - "8123:8123"  # HTTP interface
+      - "9000:9000"  # Native client
+    environment:
+      CLICKHOUSE_DB: automotive_tracking
+      CLICKHOUSE_USER: tracking_user
+      CLICKHOUSE_PASSWORD: tracking_password_change_me
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - clickhouse-logs:/var/log/clickhouse-server
+      - ./clickhouse/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./clickhouse/queries.sql:/docker-entrypoint-initdb.d/02-queries.sql:ro
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tracking-network
+    restart: unless-stopped
+
+  # ============================================================================
+  # REDIS - Caching and session storage
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: automotive-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass redis_password_change_me
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tracking-network
+    restart: unless-stopped
+
+  # ============================================================================
+  # TRACKING API - Node.js/Express backend
+  # ============================================================================
+  tracking-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: automotive-tracking-api
+    ports:
+      - "5001:5001"
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      
+      # ClickHouse
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_DATABASE: automotive_tracking
+      CLICKHOUSE_USER: tracking_user
+      CLICKHOUSE_PASSWORD: tracking_password_change_me
+      
+      # Redis
+      REDIS_URL: redis://:redis_password_change_me@redis:6379/0
+      
+      # CORS
+      CORS_ORIGINS: http://localhost:3000,http://localhost:5000
+      
+      # API Keys
+      API_KEY: your-api-key-change-in-production
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tracking-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # GRAFANA - Visualization and dashboards
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: automotive-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin_change_me
+      GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SERVER_ROOT_URL: http://localhost:3001
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - clickhouse
+    networks:
+      - tracking-network
+    restart: unless-stopped
+
+volumes:
+  clickhouse-data:
+    driver: local
+  clickhouse-logs:
+    driver: local
+  redis-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+networks:
+  tracking-network:
+    driver: bridge
