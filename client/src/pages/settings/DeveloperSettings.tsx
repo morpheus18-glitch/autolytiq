@@ -974,6 +974,9 @@ export function DeveloperSettings(): JSX.Element {
     return Array.from(services).sort();
   }, [logsQuery.data]);
 
+  const webhookLogs = webhookLogsQuery.data?.logs ?? [];
+  const integrationStatuses = webhookLogsQuery.data?.integrations ?? [];
+
   const filteredWebhookLogs = useMemo(() => {
     return webhookLogs
       .filter((log) => {
@@ -1014,8 +1017,6 @@ export function DeveloperSettings(): JSX.Element {
   const jobWorkers = jobQueueQuery.data?.workers ?? DEFAULT_JOB_QUEUE.workers;
   const jobQueues = jobQueueQuery.data?.queues ?? DEFAULT_JOB_QUEUE.queues;
   const featureFlags = featureFlagsQuery.data ?? [];
-  const webhookLogs = webhookLogsQuery.data?.logs ?? [];
-  const integrationStatuses = webhookLogsQuery.data?.integrations ?? [];
   const memorySamples = performanceMetrics.memory?.heapSamples ?? [];
   const leakWarnings = performanceMetrics.memory?.leakWarnings ?? [];
   const gcStats = performanceMetrics.memory?.gcStats ?? {};
