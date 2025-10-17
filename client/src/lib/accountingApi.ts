@@ -192,28 +192,46 @@ export interface AccountingDashboardResponse {
   }>;
 }
 
+export type JournalEntryStatus = 'DRAFT' | 'POSTED' | 'VOID';
+export type JournalEntryType =
+  | 'MANUAL'
+  | 'AUTO_DEAL'
+  | 'AUTO_PAYMENT'
+  | 'ADJUSTMENT'
+  | 'RECURRING'
+  | 'RECLASSIFICATION';
+
 export interface JournalEntryLineResponse {
   id: string;
-  glAccountId: string;
-  type: 'DEBIT' | 'CREDIT';
-  amount: number;
-  description?: string | null;
-  glAccount: {
-    id: string;
-    accountNumber: string;
-    accountName: string;
-    accountType: string;
-  };
+  accountId: string;
+  accountNumber: string;
+  accountName: string;
+  debit: number;
+  credit: number;
+  memo?: string | null;
 }
 
 export interface JournalEntryResponse {
   id: string;
-  entryNumber: string;
+  entryNumber?: string | null;
+  date: string;
+  description: string;
+  type: JournalEntryType;
+  status: JournalEntryStatus;
   memo?: string | null;
-  status: string;
-  postingDate: string;
-  deal?: { id: string; dealNumber: string | null } | null;
-  postedBy?: { id: string; firstName: string; lastName: string } | null;
+  totalDebit: number;
+  totalCredit: number;
+  createdBy: { id: string; name: string };
+  createdAt: string;
+  updatedAt: string;
+  dealId?: string | null;
+  voidedAt?: string | null;
+  voidedBy?: { id: string; name: string } | null;
+  voidedByEntryId?: string | null;
+  isRecurring: boolean;
+  recurringFrequency?: 'MONTHLY' | 'QUARTERLY' | 'YEARLY' | null;
+  recurringStartDate?: string | null;
+  recurringEndDate?: string | null;
   lines: JournalEntryLineResponse[];
 }
 
@@ -688,22 +706,30 @@ export function fetchCashFlow(params: { startDate?: string; endDate?: string; me
 }
 
 export function fetchJournalEntries(params: {
-  status?: string;
+  page?: number;
+  limit?: number;
+  search?: string;
+  type?: JournalEntryType | '';
+  status?: JournalEntryStatus | '';
+  accountId?: string;
   startDate?: string;
   endDate?: string;
-  skip?: number;
-  take?: number;
-  search?: string;
-  accountId?: string;
+  sort?: 'date' | 'entryNumber' | 'amount';
 }) {
   const search = new URLSearchParams();
+  const page = params.page ?? 1;
+  const limit = params.limit ?? 25;
+  search.set('page', String(page));
+  search.set('limit', String(limit));
+  search.set('skip', String((page - 1) * limit));
+  search.set('take', String(limit));
+  if (params.search) search.set('search', params.search);
+  if (params.type) search.set('type', params.type);
   if (params.status) search.set('status', params.status);
+  if (params.accountId) search.set('accountId', params.accountId);
   if (params.startDate) search.set('startDate', params.startDate);
   if (params.endDate) search.set('endDate', params.endDate);
-  if (params.skip !== undefined) search.set('skip', String(params.skip));
-  if (params.take !== undefined) search.set('take', String(params.take));
-  if (params.search) search.set('search', params.search);
-  if (params.accountId) search.set('accountId', params.accountId);
+  if (params.sort) search.set('sort', params.sort);
   return apiJson<{ data: PaginatedJournalEntries }>(`/api/accounting/journal-entries?${search.toString()}`).then((res) => res.data);
 }
 
@@ -711,16 +737,43 @@ export function fetchJournalEntry(id: string) {
   return apiJson<{ data: JournalEntryResponse }>(`/api/accounting/journal-entries/${id}`).then((res) => res.data);
 }
 
-export function createJournalEntryRequest(payload: {
-  memo?: string;
-  postingDate: string;
-  status?: string;
-  dealId?: string;
-  lines: Array<{ glAccountId: string; type: 'DEBIT' | 'CREDIT'; amount: number; description?: string }>;
-}) {
+export interface JournalEntryLinePayload {
+  accountId: string;
+  debit?: number | null;
+  credit?: number | null;
+  memo?: string | null;
+}
+
+export interface UpsertJournalEntryPayload {
+  date: string;
+  type: JournalEntryType;
+  description: string;
+  memo?: string | null;
+  isRecurring?: boolean;
+  recurringFrequency?: 'MONTHLY' | 'QUARTERLY' | 'YEARLY' | null;
+  recurringStartDate?: string | null;
+  recurringEndDate?: string | null;
+  dealId?: string | null;
+  status?: JournalEntryStatus;
+  lines: JournalEntryLinePayload[];
+}
+
+export function createJournalEntryRequest(payload: UpsertJournalEntryPayload) {
   return apiJson<{ data: JournalEntryResponse }>(`/api/accounting/journal-entries`, { method: 'POST', body: payload }).then(
     (res) => res.data,
   );
+}
+
+export function updateJournalEntryRequest(id: string, payload: UpsertJournalEntryPayload) {
+  return apiJson<{ data: JournalEntryResponse }>(`/api/accounting/journal-entries/${id}`, { method: 'PUT', body: payload }).then(
+    (res) => res.data,
+  );
+}
+
+export function deleteJournalEntryRequest(id: string) {
+  return apiJson<{ data: { success: boolean } }>(`/api/accounting/journal-entries/${id}`, {
+    method: 'DELETE',
+  }).then((res) => res.data);
 }
 
 export function postJournalEntryRequest(id: string) {
@@ -729,11 +782,67 @@ export function postJournalEntryRequest(id: string) {
   );
 }
 
+export function voidJournalEntryRequest(id: string, voidDate: string) {
+  return apiJson<{ data: JournalEntryResponse }>(`/api/accounting/journal-entries/${id}/void`, {
+    method: 'POST',
+    body: { voidDate },
+  }).then((res) => res.data);
+}
+
+export function duplicateJournalEntryRequest(id: string) {
+  return apiJson<{ data: JournalEntryResponse }>(`/api/accounting/journal-entries/${id}/duplicate`, {
+    method: 'POST',
+  }).then((res) => res.data);
+}
+
 export function autoGenerateJournalEntry(dealId: string) {
   return apiJson<{ data: JournalEntryResponse }>(`/api/accounting/journal-entries/auto-generate`, {
     method: 'POST',
     body: { dealId },
   }).then((res) => res.data);
+}
+
+async function ensureOk(res: Response) {
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || res.statusText);
+  }
+}
+
+export async function exportJournalEntriesRequest(params: {
+  search?: string;
+  type?: JournalEntryType | '';
+  status?: JournalEntryStatus | '';
+  accountId?: string;
+  startDate?: string;
+  endDate?: string;
+  sort?: 'date' | 'entryNumber' | 'amount';
+}) {
+  const search = new URLSearchParams();
+  if (params.search) search.set('search', params.search);
+  if (params.type) search.set('type', params.type);
+  if (params.status) search.set('status', params.status);
+  if (params.accountId) search.set('accountId', params.accountId);
+  if (params.startDate) search.set('startDate', params.startDate);
+  if (params.endDate) search.set('endDate', params.endDate);
+  if (params.sort) search.set('sort', params.sort);
+  const res = await fetch(`${API_BASE_URL}/api/accounting/journal-entries/export?${search.toString()}`, {
+    credentials: 'include',
+  });
+  await ensureOk(res);
+  return res.blob();
+}
+
+export async function importJournalEntriesRequest(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch(`${API_BASE_URL}/api/accounting/journal-entries/import`, {
+    method: 'POST',
+    body: formData,
+    credentials: 'include',
+  });
+  await ensureOk(res);
+  return (await res.json()) as { data: { imported: number; duplicates?: number } };
 }
 
 export function fetchAccounts() {
