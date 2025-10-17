@@ -35,6 +35,57 @@ export interface FinancialStatement {
   totals: Record<string, number>;
 }
 
+export type PLComparisonMode = 'NONE' | 'PREVIOUS_PERIOD' | 'SAME_PERIOD_LAST_YEAR' | 'BUDGET';
+
+export interface PLStatementTransaction {
+  id: string;
+  transactionId?: string;
+  date: string;
+  description: string;
+  reference?: string | null;
+  memo?: string | null;
+  amount: number;
+  debit?: number | null;
+  credit?: number | null;
+  department?: string | null;
+  salesperson?: string | null;
+  dealNumber?: string | null;
+}
+
+export interface PLStatementLineItem {
+  id: string;
+  key?: string;
+  label: string;
+  type?: 'SECTION' | 'GROUP' | 'LINE' | 'SUBTOTAL' | 'TOTAL';
+  currentAmount: number;
+  comparisonAmount?: number | null;
+  budgetAmount?: number | null;
+  varianceAmount?: number | null;
+  variancePercent?: number | null;
+  percentOfRevenue?: number | null;
+  children?: PLStatementLineItem[];
+  transactions?: PLStatementTransaction[];
+  drilldownEndpoint?: string | null;
+  metadata?: Record<string, unknown> | null;
+}
+
+export interface ProfitAndLossStatement {
+  dealershipName?: string | null;
+  generatedAt: string;
+  period: {
+    startDate: string;
+    endDate: string;
+  };
+  comparison?: {
+    mode: PLComparisonMode;
+    label?: string;
+    startDate?: string;
+    endDate?: string;
+  } | null;
+  totals?: Record<string, number>;
+  lines: PLStatementLineItem[];
+}
+
 export interface DashboardMetrics {
   period: { start: string; end: string };
   revenue: number;
@@ -216,6 +267,200 @@ export function fetchIncomeStatement(params: { startDate?: string; endDate?: str
   return apiJson<{ data: FinancialStatement }>(`/api/accounting/statements/pl?${search.toString()}`).then((res) => res.data);
 }
 
+function toNumber(value: unknown, fallback = 0): number {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  if (typeof value === 'bigint') {
+    return Number(value);
+  }
+  return fallback;
+}
+
+function toNullableNumber(value: unknown): number | null {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+  const parsed = toNumber(value, Number.NaN);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+function normalizeTransaction(row: any): PLStatementTransaction {
+  const debit = toNullableNumber(row?.debit ?? row?.debitAmount);
+  const credit = toNullableNumber(row?.credit ?? row?.creditAmount);
+  const amount = (() => {
+    const baseAmount = row?.amount ?? row?.netAmount ?? row?.total ?? row?.value;
+    if (baseAmount !== undefined && baseAmount !== null) {
+      const numeric = toNumber(baseAmount, Number.NaN);
+      if (!Number.isNaN(numeric)) {
+        return numeric;
+      }
+    }
+    if (debit !== null || credit !== null) {
+      return (debit ?? 0) - (credit ?? 0);
+    }
+    return 0;
+  })();
+
+  const transactionId =
+    row?.transactionId ??
+    row?.id ??
+    row?.journalEntryId ??
+    row?.entryId ??
+    row?.documentNumber ??
+    row?.reference ??
+    row?.externalId ??
+    row?.memo ??
+    `${row?.date ?? ''}-${row?.description ?? Math.random().toString(36).slice(2)}`;
+
+  return {
+    id: String(transactionId),
+    transactionId: row?.transactionId ? String(row.transactionId) : undefined,
+    date: String(
+      row?.date ??
+        row?.postingDate ??
+        row?.transactionDate ??
+        row?.occurredOn ??
+        row?.glDate ??
+        new Date().toISOString(),
+    ),
+    description: String(row?.description ?? row?.memo ?? row?.name ?? 'Transaction'),
+    reference:
+      row?.reference ??
+      row?.documentNumber ??
+      row?.entryNumber ??
+      row?.invoiceNumber ??
+      row?.dealNumber ??
+      null,
+    memo: row?.memo ?? row?.notes ?? null,
+    amount,
+    debit,
+    credit,
+    department: row?.department ?? row?.departmentName ?? row?.orgUnit ?? null,
+    salesperson: row?.salesperson ?? row?.employee ?? row?.associate ?? null,
+    dealNumber: row?.dealNumber ?? row?.dealId ?? null,
+  };
+}
+
+function normalizeLineItem(line: any): PLStatementLineItem {
+  const children = Array.isArray(line?.children) ? line.children.map((child: any) => normalizeLineItem(child)) : [];
+  const transactions = Array.isArray(line?.transactions)
+    ? line.transactions.map((transaction: any) => normalizeTransaction(transaction))
+    : undefined;
+  const type: PLStatementLineItem['type'] = line?.type ?? (children.length > 0 ? 'SECTION' : undefined);
+  const comparisonAmount =
+    toNullableNumber(
+      line?.comparisonAmount ??
+        line?.comparison ??
+        line?.previous ??
+        line?.prior ??
+        (line?.budgetAmount !== undefined ? line?.budgetAmount : undefined),
+    ) ?? undefined;
+
+  const generatedId =
+    line?.id ??
+    line?.key ??
+    line?.code ??
+    line?.label ??
+    line?.name ??
+    (typeof globalThis !== 'undefined' && globalThis.crypto?.randomUUID
+      ? globalThis.crypto.randomUUID()
+      : Math.random().toString(36).slice(2));
+
+  return {
+    id: String(generatedId),
+    key: line?.key ?? line?.code ?? line?.id ?? undefined,
+    label: String(line?.label ?? line?.name ?? line?.accountName ?? 'Line Item'),
+    type,
+    currentAmount: toNumber(line?.currentAmount ?? line?.current ?? line?.amount ?? line?.value ?? 0, 0),
+    comparisonAmount,
+    budgetAmount: toNullableNumber(line?.budgetAmount ?? line?.plan ?? undefined) ?? undefined,
+    varianceAmount:
+      toNullableNumber(line?.varianceAmount ?? line?.variance?.amount ?? line?.delta ?? line?.change ?? undefined) ?? undefined,
+    variancePercent:
+      toNullableNumber(
+        line?.variancePercent ??
+          line?.variance?.percent ??
+          line?.variancePct ??
+          line?.variancePercentage ??
+          line?.changePercent ??
+          line?.deltaPercent ??
+          undefined,
+      ) ?? undefined,
+    percentOfRevenue:
+      toNullableNumber(
+        line?.percentOfRevenue ??
+          line?.margin ??
+          line?.profitability ??
+          line?.grossMargin ??
+          line?.percent ??
+          line?.percentage ??
+          undefined,
+      ) ?? undefined,
+    children: children.length > 0 ? children : undefined,
+    transactions,
+    drilldownEndpoint:
+      typeof line?.drilldownEndpoint === 'string'
+        ? line?.drilldownEndpoint
+        : typeof line?.drilldownUrl === 'string'
+          ? line?.drilldownUrl
+          : typeof line?.transactionsEndpoint === 'string'
+            ? line?.transactionsEndpoint
+            : null,
+    metadata: typeof line?.metadata === 'object' && line?.metadata !== null ? { ...line.metadata } : null,
+  };
+}
+
+export function fetchProfitAndLossStatement(params: {
+  startDate: string;
+  endDate: string;
+  comparison?: PLComparisonMode;
+}) {
+  const search = new URLSearchParams({ startDate: params.startDate, endDate: params.endDate });
+  if (params.comparison && params.comparison !== 'NONE') {
+    search.set('comparison', params.comparison);
+  }
+
+  return apiJson<{ data: ProfitAndLossStatement }>(`/api/accounting/pl-statement?${search.toString()}`).then((res) => {
+    const payload = res.data;
+    const lines = Array.isArray(payload?.lines) ? payload.lines.map((line) => normalizeLineItem(line)) : [];
+    const result: ProfitAndLossStatement = {
+      dealershipName: payload?.dealershipName ?? null,
+      generatedAt: payload?.generatedAt ?? new Date().toISOString(),
+      period: payload?.period ?? { startDate: params.startDate, endDate: params.endDate },
+      comparison: payload?.comparison ?? (params.comparison ? { mode: params.comparison } : null),
+      totals: payload?.totals ?? {},
+      lines,
+    };
+    return result;
+  });
+}
+
+export function fetchPLStatementTransactions(params: {
+  lineId: string;
+  startDate: string;
+  endDate: string;
+  comparison?: PLComparisonMode;
+  endpoint?: string | null;
+}) {
+  const search = new URLSearchParams({ startDate: params.startDate, endDate: params.endDate });
+  if (params.comparison && params.comparison !== 'NONE') {
+    search.set('comparison', params.comparison);
+  }
+
+  const baseEndpoint = params.endpoint ?? `/api/accounting/pl-statement/${encodeURIComponent(params.lineId)}/transactions`;
+  const separator = baseEndpoint.includes('?') ? '&' : '?';
+  return apiJson<{ data: PLStatementTransaction[] }>(`${baseEndpoint}${separator}${search.toString()}`).then((res) =>
+    Array.isArray(res.data) ? res.data.map((item) => normalizeTransaction(item)) : [],
+  );
+}
+
 export function fetchBalanceSheet(params: { startDate?: string; endDate?: string }) {
   const search = new URLSearchParams();
   if (params.startDate) search.set('startDate', params.startDate);
@@ -387,12 +632,13 @@ export function scheduleDashboardReport(payload: {
 export async function exportStatementRequest(
   statement: 'pl' | 'balance-sheet' | 'cash-flow',
   format: 'pdf' | 'excel' | 'quickbooks',
-  params: { startDate?: string; endDate?: string },
+  params: { startDate?: string; endDate?: string; comparison?: string },
 ) {
   const url = new URL(`${API_BASE_URL}/api/accounting/statements/${statement}/export`);
   url.searchParams.set('format', format);
   if (params.startDate) url.searchParams.set('startDate', params.startDate);
   if (params.endDate) url.searchParams.set('endDate', params.endDate);
+  if (params.comparison) url.searchParams.set('comparison', params.comparison);
   const response = await fetch(url.toString(), {
     method: 'POST',
     credentials: 'include',
@@ -412,6 +658,9 @@ export function emailStatementRequest(payload: {
   recipients: string[];
   startDate?: string;
   endDate?: string;
+  comparison?: string;
+  subject?: string;
+  message?: string;
 }) {
   return apiJson(`/api/accounting/statements/email`, { method: 'POST', body: payload });
 }
