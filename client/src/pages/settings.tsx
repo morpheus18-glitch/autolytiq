@@ -1,4 +1,5 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useLocation, Redirect } from 'wouter';
 import SettingsLayout from '@/pages/settings/SettingsLayout';
 import DealershipSettings from '@/pages/settings/DealershipSettings';
 import UsersSettings from '@/pages/settings/UsersSettings';
@@ -13,25 +14,33 @@ import AnalyticsSettings from '@/pages/settings/AnalyticsSettings';
 import DeveloperSettings from '@/pages/settings/DeveloperSettings';
 
 export default function Settings(): JSX.Element {
+  const [location, setLocation] = useLocation();
+  
+  useEffect(() => {
+    if (location === '/settings' || location === '/settings/') {
+      setLocation('/settings/dealership');
+    }
+  }, [location, setLocation]);
+
+  const renderContent = () => {
+    if (location === '/settings/dealership') return <DealershipSettings />;
+    if (location === '/settings/users') return <UsersSettings />;
+    if (location === '/settings/pricing') return <PricingRulesSettings />;
+    if (location === '/settings/forms') return <FormsSettings />;
+    if (location === '/settings/notifications') return <NotificationsSettings />;
+    if (location === '/settings/security') return <SecuritySettings />;
+    if (location === '/settings/branding') return <BrandingSettings />;
+    if (location === '/settings/integrations') return <IntegrationsSettings />;
+    if (location === '/settings/data') return <DataSettings />;
+    if (location === '/settings/analytics') return <AnalyticsSettings />;
+    if (location === '/settings/developer') return <DeveloperSettings />;
+    
+    return <Redirect to="/settings/dealership" />;
+  };
+
   return (
-    <BrowserRouter basename="/settings">
-      <Routes>
-        <Route path="/" element={<SettingsLayout />}>
-          <Route index element={<Navigate to="dealership" replace />} />
-          <Route path="dealership" element={<DealershipSettings />} />
-          <Route path="users" element={<UsersSettings />} />
-          <Route path="pricing" element={<PricingRulesSettings />} />
-          <Route path="forms" element={<FormsSettings />} />
-          <Route path="notifications" element={<NotificationsSettings />} />
-          <Route path="security" element={<SecuritySettings />} />
-          <Route path="branding" element={<BrandingSettings />} />
-          <Route path="integrations" element={<IntegrationsSettings />} />
-          <Route path="data" element={<DataSettings />} />
-          <Route path="analytics" element={<AnalyticsSettings />} />
-          <Route path="developer" element={<DeveloperSettings />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/settings/dealership" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <SettingsLayout>
+      {renderContent()}
+    </SettingsLayout>
   );
 }
