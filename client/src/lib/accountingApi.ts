@@ -48,6 +48,37 @@ export interface DashboardMetrics {
   trailingNetIncome: number;
 }
 
+export interface AccountingDashboardKpi {
+  current: number;
+  previous: number;
+  change: number;
+  trend?: number[];
+  margin?: number;
+  percentOfRevenue?: number;
+}
+
+export interface AccountingDashboardResponse {
+  kpis: {
+    totalRevenue: AccountingDashboardKpi;
+    grossProfit: AccountingDashboardKpi;
+    netIncome: AccountingDashboardKpi;
+    operatingExpenses: AccountingDashboardKpi;
+  };
+  revenueChart: Array<{ date: string; revenue: number }>;
+  profitBreakdown: Array<{ name: string; value: number; percentage: number }>;
+  monthlyComparison: Array<{ month: string; revenue: number; expenses: number; profit: number }>;
+  departmentPerformance: Array<{ department: string; revenue: number; cost: number; margin: number }>;
+  recentTransactions: Array<{
+    id: string;
+    date: string;
+    number?: string;
+    description: string;
+    account: string;
+    debit: number;
+    credit: number;
+  }>;
+}
+
 export interface JournalEntryLineResponse {
   id: string;
   glAccountId: string;
@@ -159,6 +190,23 @@ async function apiJson<T>(url: string, options?: { method?: string; body?: any }
 
 export function fetchDashboardMetrics() {
   return apiJson<{ data: DashboardMetrics }>('/api/accounting/dashboard').then((res) => res.data);
+}
+
+export async function fetchAccountingDashboard(params: {
+  startDate: string;
+  endDate: string;
+  compareToLast?: boolean;
+}) {
+  const search = new URLSearchParams({ startDate: params.startDate, endDate: params.endDate });
+  if (params.compareToLast) {
+    search.set('compareToLast', 'true');
+  }
+  const response = await apiRequest(`/api/accounting/dashboard?${search.toString()}`);
+  const payload = await response.json();
+  if (payload && typeof payload === 'object' && 'data' in payload) {
+    return (payload as { data: AccountingDashboardResponse }).data;
+  }
+  return payload as AccountingDashboardResponse;
 }
 
 export function fetchIncomeStatement(params: { startDate?: string; endDate?: string }) {
@@ -309,6 +357,31 @@ export function createTaxReportRequest(payload: {
 
 export function fetchTaxReports(limit = 50) {
   return apiJson<{ data: TaxReportResponse[] }>(`/api/accounting/tax-reports?limit=${limit}`).then((res) => res.data);
+}
+
+export function emailDashboardReport(payload: {
+  recipients: string[];
+  subject: string;
+  message?: string;
+  formats: Array<'pdf' | 'excel'>;
+  startDate: string;
+  endDate: string;
+  compareToLast?: boolean;
+}) {
+  return apiJson(`/api/accounting/dashboard/email`, { method: 'POST', body: payload });
+}
+
+export function scheduleDashboardReport(payload: {
+  recipients: string[];
+  frequency: 'daily' | 'weekly' | 'monthly';
+  time: string;
+  dayOfWeek?: string;
+  formats: Array<'pdf' | 'excel'>;
+  startDate: string;
+  endDate: string;
+  compareToLast?: boolean;
+}) {
+  return apiJson(`/api/accounting/dashboard/schedule`, { method: 'POST', body: payload });
 }
 
 export async function exportStatementRequest(
