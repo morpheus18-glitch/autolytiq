@@ -182,7 +182,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      res.json(dbUser);
+      // Map role_id to role name for frontend
+      let roleName = undefined;
+      if (dbUser.roleId) {
+        const roleMapping: { [key: number]: string } = {
+          1: 'MANAGER',      // Sales Manager
+          2: 'SALES_REP',    // Sales Representative
+          3: 'MANAGER',      // Service Manager
+          4: 'TECHNICIAN',   // Technician
+          5: 'ACCOUNTANT',   // Accountant
+          6: 'ADMIN'         // System Administrator
+        };
+        roleName = roleMapping[dbUser.roleId];
+      }
+
+      res.json({
+        ...dbUser,
+        role: roleName
+      });
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
