@@ -57,33 +57,26 @@ export function MobileLayout({
   return (
     <div
       className={cn(
-        'relative flex w-full flex-1 flex-col overflow-hidden bg-surface-base text-neutral-900 transition-colors duration-base dark:bg-surface-dark dark:text-neutral-50',
+        'relative flex h-screen w-full flex-col bg-surface-base text-neutral-900 transition-colors duration-base dark:bg-surface-dark dark:text-neutral-50',
         className,
       )}
       style={containerStyle}
     >
       {header ? (
-        <header
-          className={cn(
-            'flex h-16 flex-none items-center border-b border-neutral-200/60 bg-surface-glass/95 px-4 backdrop-blur-xl transition-colors duration-base supports-[backdrop-filter]:bg-surface-glass/80 dark:border-neutral-700/60 dark:bg-surface-dark/75',
-            'z-sticky top-0 left-0 right-0',
-            headerClassName,
-          )}
-        >
+        <div className={cn('flex-shrink-0', headerClassName)}>
           {header}
-        </header>
+        </div>
       ) : null}
       <main
         className={cn(
-          'relative flex-1 overflow-y-auto overscroll-y-contain bg-transparent [-webkit-overflow-scrolling:touch]',
+          'relative flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain bg-transparent [-webkit-overflow-scrolling:touch]',
           hasBottomNav ? 'pb-24 md:pb-16' : 'pb-12',
           mainClassName,
         )}
       >
         <div
           className={cn(
-            'mx-auto min-h-full w-full max-w-7xl px-4 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-6 sm:px-6 md:px-8 lg:px-10',
-            hasBottomNav && 'pb-[calc(env(safe-area-inset-bottom)+6rem)]',
+            'mx-auto w-full max-w-7xl',
             contentClassName,
           )}
         >
