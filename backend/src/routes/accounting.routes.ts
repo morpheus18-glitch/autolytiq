@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.get('/dashboard', requireRole(['ADMIN', 'MANAGER', 'FINANCE']), wrapAsync(controller.getDashboard));
 
+router.get('/balance-sheet', requireRole(['ADMIN', 'MANAGER', 'FINANCE']), wrapAsync(controller.getBalanceSheetReportController));
 router.get('/statements/pl', requireRole(['ADMIN', 'MANAGER', 'FINANCE']), wrapAsync(controller.getIncomeStatementController));
 router.get('/statements/balance-sheet', requireRole(['ADMIN', 'MANAGER', 'FINANCE']), wrapAsync(controller.getBalanceSheetController));
 router.get('/statements/cash-flow', requireRole(['ADMIN', 'MANAGER', 'FINANCE']), wrapAsync(controller.getCashFlowController));

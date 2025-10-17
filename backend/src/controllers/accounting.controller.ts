@@ -22,6 +22,10 @@ import {
   exportStatement,
   emailStatement,
 } from '../services/accounting.service.js';
+import {
+  getBalanceSheetReport,
+  type BalanceSheetComparisonMode,
+} from '../services/balance-sheet-report.service.js';
 import { BadRequest } from '../lib/errors.js';
 
 function requireTenantId(req: Request): string {
@@ -81,6 +85,17 @@ export async function getBalanceSheetController(req: Request, res: Response) {
   const endDate = parseDate(req.query.endDate);
   const statement = await getBalanceSheet(tenantId, { startDate, endDate });
   res.json({ data: statement });
+}
+
+export async function getBalanceSheetReportController(req: Request, res: Response) {
+  const tenantId = requireTenantId(req);
+  const asOfDate = parseDate(req.query.date) ?? new Date();
+  const comparisonParam = String(req.query.comparison ?? 'NONE').toUpperCase();
+  const comparison: BalanceSheetComparisonMode =
+    comparisonParam === 'PREVIOUS_MONTH' || comparisonParam === 'PREVIOUS_YEAR' ? comparisonParam : 'NONE';
+
+  const report = await getBalanceSheetReport(tenantId, { asOfDate, comparison });
+  res.json({ data: report });
 }
 
 export async function getCashFlowController(req: Request, res: Response) {
