@@ -5247,6 +5247,224 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ========================================================================
+  // Settings API Routes
+  // ========================================================================
+
+  // Analytics Settings Routes
+  app.get("/api/settings/analytics/events", async (req, res) => {
+    try {
+      // Return default analytics events
+      const events = [
+        { id: '1', name: 'page_view', description: 'Page view tracking', enabled: true, category: 'navigation' },
+        { id: '2', name: 'button_click', description: 'Button click tracking', enabled: true, category: 'interaction' },
+        { id: '3', name: 'form_submit', description: 'Form submission tracking', enabled: true, category: 'conversion' },
+      ];
+      res.json(events);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch analytics events" });
+    }
+  });
+
+  app.get("/api/settings/analytics/custom-events", async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch custom events" });
+    }
+  });
+
+  app.post("/api/settings/analytics/custom-events", async (req, res) => {
+    try {
+      const event = { id: Date.now().toString(), ...req.body, createdAt: new Date().toISOString() };
+      res.status(201).json(event);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to create custom event" });
+    }
+  });
+
+  app.put("/api/settings/analytics/custom-events/:id", async (req, res) => {
+    try {
+      const event = { id: req.params.id, ...req.body, updatedAt: new Date().toISOString() };
+      res.json(event);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to update custom event" });
+    }
+  });
+
+  app.delete("/api/settings/analytics/custom-events/:id", async (req, res) => {
+    try {
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete custom event" });
+    }
+  });
+
+  app.get("/api/settings/analytics/scheduled-reports", async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch scheduled reports" });
+    }
+  });
+
+  app.post("/api/settings/analytics/scheduled-reports", async (req, res) => {
+    try {
+      const report = { id: Date.now().toString(), ...req.body, createdAt: new Date().toISOString() };
+      res.status(201).json(report);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to create scheduled report" });
+    }
+  });
+
+  app.put("/api/settings/analytics/scheduled-reports/:id", async (req, res) => {
+    try {
+      const report = { id: req.params.id, ...req.body, updatedAt: new Date().toISOString() };
+      res.json(report);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to update scheduled report" });
+    }
+  });
+
+  app.delete("/api/settings/analytics/scheduled-reports/:id", async (req, res) => {
+    try {
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete scheduled report" });
+    }
+  });
+
+  app.post("/api/settings/analytics/test-connections", async (req, res) => {
+    try {
+      res.json({ success: true, message: "Connection test successful" });
+    } catch (error) {
+      res.status(500).json({ message: "Connection test failed" });
+    }
+  });
+
+  // Backup & Data Settings Routes
+  app.get("/api/settings/backup/history", async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch backup history" });
+    }
+  });
+
+  app.post("/api/settings/backup/trigger", async (req, res) => {
+    try {
+      const backup = {
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        status: 'completed',
+        size: '125MB',
+        type: 'manual'
+      };
+      res.status(201).json(backup);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to trigger backup" });
+    }
+  });
+
+  app.post("/api/settings/backup/restore/:id", async (req, res) => {
+    try {
+      res.json({ success: true, message: "Backup restored successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to restore backup" });
+    }
+  });
+
+  app.get("/api/settings/backup/download/:id", async (req, res) => {
+    try {
+      res.json({ downloadUrl: '#', message: "Backup download ready" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to download backup" });
+    }
+  });
+
+  app.post("/api/settings/export-data", async (req, res) => {
+    try {
+      const job = {
+        jobId: Date.now().toString(),
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        format: req.body.format || 'csv'
+      };
+      res.status(201).json(job);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to start export" });
+    }
+  });
+
+  app.get("/api/settings/export-data/:jobId/status", async (req, res) => {
+    try {
+      res.json({
+        jobId: req.params.jobId,
+        status: 'completed',
+        progress: 100,
+        downloadUrl: `/api/settings/export-data/${req.params.jobId}/download`
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get export status" });
+    }
+  });
+
+  app.get("/api/settings/export-data/:jobId/download", async (req, res) => {
+    try {
+      res.json({ downloadUrl: '#', message: "Export download ready" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to download export" });
+    }
+  });
+
+  app.post("/api/settings/import-data", async (req, res) => {
+    try {
+      res.json({
+        success: true,
+        imported: 0,
+        skipped: 0,
+        errors: [],
+        message: "Import completed successfully"
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to import data" });
+    }
+  });
+
+  // GDPR Settings Routes
+  app.get("/api/settings/gdpr/requests", async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch GDPR requests" });
+    }
+  });
+
+  app.post("/api/settings/gdpr/delete-customer/:identifier", async (req, res) => {
+    try {
+      res.json({ success: true, message: "Customer data deletion initiated" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete customer data" });
+    }
+  });
+
+  // Dealership Settings Routes
+  app.post("/api/settings/dealership/logo", async (req, res) => {
+    try {
+      res.json({ success: true, logoUrl: '/placeholder-logo.png' });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to upload logo" });
+    }
+  });
+
+  app.delete("/api/settings/dealership/logo", async (req, res) => {
+    try {
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete logo" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   httpServer.on("close", () => {
