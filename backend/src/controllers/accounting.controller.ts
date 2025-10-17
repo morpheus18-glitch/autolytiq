@@ -1,15 +1,18 @@
 import type { Request, Response } from 'express';
+import { z } from 'zod';
 import { AccountType, JournalStatus, NormalBalance, TaxReportType } from '@prisma/client';
 import {
+  generatePLStatement,
+  generateBalanceSheet,
+  generateCashFlow,
+  autoGenerateJournalEntry,
+  calculatePayroll,
+  importStandardCOA,
   getDashboardMetrics,
-  getIncomeStatement,
-  getBalanceSheet,
-  getCashFlowStatement,
   listJournalEntries,
   getJournalEntryById,
   createJournalEntry,
   postJournalEntry,
-  generateDealJournalEntry,
   listGLAccounts,
   upsertGLAccount,
   deactivateGLAccount,
@@ -28,6 +31,14 @@ import {
 } from '../services/balance-sheet-report.service.js';
 import { BadRequest } from '../lib/errors.js';
 
+type ControllerContext = { req: Request; res: Response; tenantId: string };
+
+type StreamPayload = { filename: string; contentType: string; body: Buffer };
+
+type HandlerResult = { status?: number; body: unknown } | { status?: number; stream: StreamPayload };
+
+const lineTypeEnum = { DEBIT: 'DEBIT', CREDIT: 'CREDIT' } as const;
+
 function requireTenantId(req: Request): string {
   const tenantId = req.user?.tenantId;
   if (!tenantId) {
@@ -36,306 +47,364 @@ function requireTenantId(req: Request): string {
   return tenantId;
 }
 
-function parseDate(value: unknown): Date | undefined {
-  if (!value) {
-    return undefined;
-  }
-  const date = new Date(String(value));
-  if (Number.isNaN(date.getTime())) {
-    throw BadRequest('Invalid date value');
-  }
-  return date;
+function enumSchema<T extends Record<string, string>>(enumObject: T, label: string) {
+  return z
+    .union([z.nativeEnum(enumObject), z.string()])
+    .transform((value) => value.toString().trim().toUpperCase())
+    .refine((value) => (Object.values(enumObject) as string[]).includes(value), `${label} is invalid`)
+    .transform((value) => value as T[keyof T]);
 }
 
-function parseBoolean(value: unknown): boolean | undefined {
-  if (value === undefined) {
-    return undefined;
+const lineTypeSchema = z
+  .string()
+  .transform((value) => value.toString().trim().toUpperCase())
+  .refine((value) => (Object.values(lineTypeEnum) as string[]).includes(value), 'line type is invalid')
+  .transform((value) => value as (typeof lineTypeEnum)[keyof typeof lineTypeEnum]);
+
+function parseWith<T>(schema: z.ZodType<T>, data: unknown): T {
+  try {
+    return schema.parse(data);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw BadRequest('Invalid request parameters', error.flatten());
+    }
+    throw error;
   }
-  if (typeof value === 'boolean') {
-    return value;
-  }
-  return String(value).toLowerCase() === 'true';
 }
 
-function coerceNumber(value: unknown): number {
-  const result = Number(value);
-  if (!Number.isFinite(result)) {
-    throw BadRequest('Invalid numeric value');
-  }
-  return result;
-}
+const createHandler = (
+  handler: (context: ControllerContext) => Promise<HandlerResult>,
+) =>
+  async (req: Request, res: Response) => {
+    const tenantId = requireTenantId(req);
+    const result = await handler({ req, res, tenantId });
+    if ('stream' in result) {
+      res.setHeader('Content-Type', result.stream.contentType);
+      res.setHeader('Content-Disposition', `attachment; filename="${result.stream.filename}"`);
+      res.status(result.status ?? 200).send(result.stream.body);
+      return;
+    }
+    res.status(result.status ?? 200).json(result.body);
+  };
 
-export async function getDashboard(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
+const dateRangeQuerySchema = z.object({
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
+});
+
+const comparisonRangeSchema = z.object({
+  comparisonStartDate: z.coerce.date().optional(),
+  comparisonEndDate: z.coerce.date().optional(),
+});
+
+const balanceSheetQuerySchema = z.object({
+  date: z.coerce.date().optional(),
+  comparisonDate: z.coerce.date().optional(),
+});
+
+const balanceSheetReportQuerySchema = z.object({
+  date: z.coerce.date().optional(),
+  comparison: z.string().trim().optional(),
+});
+
+const cashFlowQuerySchema = dateRangeQuerySchema.extend({
+  method: z.string().trim().optional(),
+});
+
+const journalFiltersSchema = z.object({
+  status: enumSchema(JournalStatus, 'status').optional(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
+  skip: z.coerce.number().int().min(0).optional(),
+  take: z.coerce.number().int().min(1).max(200).optional(),
+  search: z.string().trim().optional(),
+  accountId: z.string().trim().optional(),
+});
+
+const amountSchema = z
+  .coerce
+  .number()
+  .refine((value) => Number.isFinite(value), 'amount must be a finite number')
+  .transform((value) => Math.round((value + Number.EPSILON) * 100) / 100);
+
+const journalLineSchema = z.object({
+  glAccountId: z.string().min(1, 'glAccountId is required'),
+  type: lineTypeSchema,
+  amount: amountSchema,
+  description: z.string().trim().optional(),
+});
+
+const journalEntrySchema = z.object({
+  memo: z.string().trim().optional(),
+  postingDate: z.coerce.date(),
+  status: enumSchema(JournalStatus, 'status').optional(),
+  dealId: z.string().trim().optional(),
+  lines: z.array(journalLineSchema).min(2, 'At least two lines are required'),
+});
+
+const upsertAccountSchema = z.object({
+  accountNumber: z.string().trim().min(1),
+  accountName: z.string().trim().min(1),
+  accountType: enumSchema(AccountType, 'accountType'),
+  normalBalance: enumSchema(NormalBalance, 'normalBalance'),
+  parentAccountId: z.union([z.string().trim().min(1), z.null()]).optional(),
+  isActive: z.coerce.boolean().optional(),
+});
+
+const payrollOptionsSchema = z.object({
+  periodStart: z.coerce.date(),
+  periodEnd: z.coerce.date(),
+  commissionTiers: z
+    .array(
+      z.object({ threshold: z.coerce.number(), rate: z.coerce.number() }),
+    )
+    .optional(),
+  deductionRates: z
+    .object({
+      federal: z.coerce.number(),
+      state: z.coerce.number(),
+      fica: z.coerce.number(),
+      other: z.coerce.number().optional(),
+    })
+    .optional(),
+  employerTaxRate: z.coerce.number().optional(),
+  basePay: z.record(z.coerce.number()).optional(),
+  adjustments: z.record(z.coerce.number()).optional(),
+  additionalDeductions: z.record(z.coerce.number()).optional(),
+});
+
+const finalizePayrollSchema = payrollOptionsSchema.extend({
+  approve: z.coerce.boolean().optional(),
+  cashAccountId: z.string().trim().optional(),
+});
+
+const taxReportSchema = z.object({
+  type: enumSchema(TaxReportType, 'type'),
+  periodStart: z.coerce.date(),
+  periodEnd: z.coerce.date(),
+  jurisdiction: z.string().trim().min(2),
+  recipients: z.array(z.string().trim().email()).optional(),
+});
+
+const statementTypeSchema = z.enum(['pl', 'balance-sheet', 'cash-flow']);
+
+const exportQuerySchema = dateRangeQuerySchema.extend({
+  format: z.enum(['pdf', 'excel', 'quickbooks']).optional(),
+});
+
+const emailStatementSchema = dateRangeQuerySchema.extend({
+  statement: statementTypeSchema.default('pl'),
+  recipients: z.array(z.string().trim().email()).min(1),
+});
+
+const idParamSchema = z.object({ id: z.string().trim().min(1) });
+
+export const getDashboard = createHandler(async ({ tenantId }) => {
   const metrics = await getDashboardMetrics(tenantId);
-  res.json({ data: metrics });
-}
+  return { body: { data: metrics } };
+});
 
-export async function getIncomeStatementController(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
-  const startDate = parseDate(req.query.startDate);
-  const endDate = parseDate(req.query.endDate);
-  const statement = await getIncomeStatement(tenantId, { startDate, endDate });
-  res.json({ data: statement });
-}
+export const getIncomeStatementController = createHandler(async ({ req, tenantId }) => {
+  const query = parseWith(dateRangeQuerySchema.merge(comparisonRangeSchema), req.query);
+  const comparison =
+    query.comparisonStartDate || query.comparisonEndDate
+      ? { startDate: query.comparisonStartDate, endDate: query.comparisonEndDate }
+      : undefined;
+  const statement = await generatePLStatement(tenantId, query.startDate, query.endDate, comparison);
+  return { body: { data: statement } };
+});
 
-export async function getBalanceSheetController(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
-  const startDate = parseDate(req.query.startDate);
-  const endDate = parseDate(req.query.endDate);
-  const statement = await getBalanceSheet(tenantId, { startDate, endDate });
-  res.json({ data: statement });
-}
+export const getBalanceSheetController = createHandler(async ({ req, tenantId }) => {
+  const query = parseWith(balanceSheetQuerySchema, req.query);
+  const sheet = await generateBalanceSheet(tenantId, query.date, query.comparisonDate);
+  return { body: { data: sheet } };
+});
 
-export async function getBalanceSheetReportController(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
-  const asOfDate = parseDate(req.query.date) ?? new Date();
-  const comparisonParam = String(req.query.comparison ?? 'NONE').toUpperCase();
+export const getBalanceSheetReportController = createHandler(async ({ req, tenantId }) => {
+  const query = parseWith(balanceSheetReportQuerySchema, req.query);
+  const comparisonValue = (query.comparison ?? 'NONE').toUpperCase();
   const comparison: BalanceSheetComparisonMode =
-    comparisonParam === 'PREVIOUS_MONTH' || comparisonParam === 'PREVIOUS_YEAR' ? comparisonParam : 'NONE';
+    comparisonValue === 'PREVIOUS_MONTH' || comparisonValue === 'PREVIOUS_YEAR' ? comparisonValue : 'NONE';
+  const report = await getBalanceSheetReport(tenantId, {
+    asOfDate: query.date ?? new Date(),
+    comparison,
+  });
+  return { body: { data: report } };
+});
 
-  const report = await getBalanceSheetReport(tenantId, { asOfDate, comparison });
-  res.json({ data: report });
-}
+export const getCashFlowController = createHandler(async ({ req, tenantId }) => {
+  const query = parseWith(cashFlowQuerySchema, req.query);
+  const method = (query.method ?? 'INDIRECT').toUpperCase() as 'INDIRECT' | 'DIRECT';
+  const statement = await generateCashFlow(tenantId, query.startDate, query.endDate, method);
+  return { body: { data: statement } };
+});
 
-export async function getCashFlowController(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
-  const startDate = parseDate(req.query.startDate);
-  const endDate = parseDate(req.query.endDate);
-  const statement = await getCashFlowStatement(tenantId, { startDate, endDate });
-  res.json({ data: statement });
-}
+export const getJournalEntries = createHandler(async ({ req, tenantId }) => {
+  const filters = parseWith(journalFiltersSchema, req.query);
+  const entries = await listJournalEntries(tenantId, filters);
+  return { body: { data: entries } };
+});
 
-export async function getJournalEntries(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
-  const status = req.query.status ? (String(req.query.status).toUpperCase() as JournalStatus) : undefined;
-  const startDate = parseDate(req.query.startDate);
-  const endDate = parseDate(req.query.endDate);
-  const skip = req.query.skip ? Number(req.query.skip) : undefined;
-  const take = req.query.take ? Number(req.query.take) : undefined;
-  const search = req.query.search ? String(req.query.search) : undefined;
-  const accountId = req.query.accountId ? String(req.query.accountId) : undefined;
-
-  const result = await listJournalEntries(tenantId, { status, startDate, endDate, skip, take, search, accountId });
-  res.json({ data: result });
-}
-
-export async function getJournalEntry(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
-  const { id } = req.params;
-  if (!id) {
-    throw BadRequest('Journal entry id is required');
-  }
+export const getJournalEntry = createHandler(async ({ req, tenantId }) => {
+  const { id } = parseWith(idParamSchema, req.params);
   const entry = await getJournalEntryById(tenantId, id);
-  res.json({ data: entry });
-}
+  return { body: { data: entry } };
+});
 
-export async function createJournalEntryController(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
+export const createJournalEntryController = createHandler(async ({ req, tenantId }) => {
+  const payload = parseWith(journalEntrySchema, req.body ?? {});
   const userId = req.user!.userId;
-  const { memo, postingDate, status, dealId, lines } = req.body ?? {};
-
-  if (!postingDate) {
-    throw BadRequest('postingDate is required');
-  }
-  if (!Array.isArray(lines) || lines.length < 2) {
-    throw BadRequest('Journal entry must include at least two lines');
-  }
-
-  const normalizedLines = lines.map((line: any) => ({
-    glAccountId: String(line.glAccountId),
-    type: String(line.type).toUpperCase() as 'DEBIT' | 'CREDIT',
-    amount: coerceNumber(line.amount),
-    description: line.description ? String(line.description) : undefined,
-  }));
-
   const entry = await createJournalEntry(tenantId, userId, {
-    memo,
-    postingDate: new Date(postingDate),
-    status: status ? (String(status).toUpperCase() as JournalStatus) : undefined,
-    dealId: dealId ? String(dealId) : undefined,
-    lines: normalizedLines,
+    memo: payload.memo,
+    postingDate: payload.postingDate,
+    status: payload.status,
+    dealId: payload.dealId,
+    lines: payload.lines.map((line) => ({
+      glAccountId: line.glAccountId,
+      type: line.type,
+      amount: line.amount,
+      description: line.description,
+    })),
   });
+  return { status: 201, body: { data: entry } };
+});
 
-  res.status(201).json({ data: entry });
-}
-
-export async function postJournalEntryController(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
+export const postJournalEntryController = createHandler(async ({ req, tenantId }) => {
+  const { id } = parseWith(idParamSchema, req.params);
   const userId = req.user!.userId;
-  const { id } = req.params;
-  if (!id) {
-    throw BadRequest('Journal entry id is required');
-  }
   const entry = await postJournalEntry(tenantId, userId, id);
-  res.json({ data: entry });
-}
+  return { body: { data: entry } };
+});
 
-export async function generateDealEntry(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
+export const generateDealEntry = createHandler(async ({ req, tenantId }) => {
+  const body = parseWith(z.object({ dealId: z.string().trim().min(1) }), req.body ?? {});
   const userId = req.user!.userId;
-  const { dealId } = req.body ?? {};
-  if (!dealId) {
-    throw BadRequest('dealId is required');
-  }
-  const entry = await generateDealJournalEntry(tenantId, userId, String(dealId));
-  res.status(201).json({ data: entry });
-}
+  const entry = await autoGenerateJournalEntry({ tenantId, dealId: body.dealId, userId });
+  return { status: 201, body: { data: entry } };
+});
 
-export async function listAccounts(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
+export const listAccounts = createHandler(async ({ tenantId }) => {
   const accounts = await listGLAccounts(tenantId);
-  res.json({ data: accounts });
-}
+  return { body: { data: accounts } };
+});
 
-export async function upsertAccount(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
+export const upsertAccount = createHandler(async ({ req, tenantId }) => {
+  const data = parseWith(upsertAccountSchema, req.body ?? {});
+  const { id } = req.params as { id?: string };
   const userId = req.user!.userId;
-  const { id } = req.params;
-  const { accountNumber, accountName, accountType, normalBalance, parentAccountId, isActive } = req.body ?? {};
-
-  if (!accountNumber || !accountName || !accountType || !normalBalance) {
-    throw BadRequest('accountNumber, accountName, accountType, and normalBalance are required');
-  }
-
   const account = await upsertGLAccount(tenantId, userId, {
-    id: id ? String(id) : undefined,
-    accountNumber: String(accountNumber),
-    accountName: String(accountName),
-    accountType: accountType as AccountType,
-    normalBalance: normalBalance as NormalBalance,
-    parentAccountId: parentAccountId ? String(parentAccountId) : null,
-    isActive: parseBoolean(isActive) ?? true,
+    id,
+    accountNumber: data.accountNumber,
+    accountName: data.accountName,
+    accountType: data.accountType,
+    normalBalance: data.normalBalance,
+    parentAccountId: data.parentAccountId ?? null,
+    isActive: data.isActive ?? true,
   });
+  return { status: id ? 200 : 201, body: { data: account } };
+});
 
-  res.status(id ? 200 : 201).json({ data: account });
-}
-
-export async function deactivateAccount(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
+export const deactivateAccount = createHandler(async ({ req, tenantId }) => {
+  const { id } = parseWith(idParamSchema, req.params);
   const userId = req.user!.userId;
-  const { id } = req.params;
-  if (!id) {
-    throw BadRequest('Account id is required');
-  }
   const account = await deactivateGLAccount(tenantId, userId, id);
-  res.json({ data: account });
-}
+  return { body: { data: account } };
+});
 
-export async function previewPayrollController(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
-  const periodStart = parseDate(req.body?.periodStart);
-  const periodEnd = parseDate(req.body?.periodEnd);
-  if (!periodStart || !periodEnd) {
-    throw BadRequest('periodStart and periodEnd are required');
-  }
+export const previewPayrollController = createHandler(async ({ req, tenantId }) => {
+  const options = parseWith(payrollOptionsSchema, req.body ?? {});
   const preview = await previewPayroll(tenantId, {
-    periodStart,
-    periodEnd,
-    commissionTiers: req.body?.commissionTiers,
-    deductionRates: req.body?.deductionRates,
-    employerTaxRate: req.body?.employerTaxRate,
-    basePay: req.body?.basePay,
-    adjustments: req.body?.adjustments,
-    additionalDeductions: req.body?.additionalDeductions,
+    periodStart: options.periodStart,
+    periodEnd: options.periodEnd,
+    commissionTiers: options.commissionTiers,
+    deductionRates: options.deductionRates,
+    employerTaxRate: options.employerTaxRate,
+    basePay: options.basePay,
+    adjustments: options.adjustments,
+    additionalDeductions: options.additionalDeductions,
   });
-  res.json({ data: preview });
-}
+  return { body: { data: preview } };
+});
 
-export async function finalizePayrollController(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
+export const finalizePayrollController = createHandler(async ({ req, tenantId }) => {
+  const options = parseWith(finalizePayrollSchema, req.body ?? {});
   const userId = req.user!.userId;
-  const periodStart = parseDate(req.body?.periodStart);
-  const periodEnd = parseDate(req.body?.periodEnd);
-  if (!periodStart || !periodEnd) {
-    throw BadRequest('periodStart and periodEnd are required');
-  }
   const payroll = await finalizePayroll(tenantId, userId, {
-    periodStart,
-    periodEnd,
-    commissionTiers: req.body?.commissionTiers,
-    deductionRates: req.body?.deductionRates,
-    employerTaxRate: req.body?.employerTaxRate,
-    basePay: req.body?.basePay,
-    adjustments: req.body?.adjustments,
-    additionalDeductions: req.body?.additionalDeductions,
-    approve: parseBoolean(req.body?.approve),
-    cashAccountId: req.body?.cashAccountId,
+    periodStart: options.periodStart,
+    periodEnd: options.periodEnd,
+    commissionTiers: options.commissionTiers,
+    deductionRates: options.deductionRates,
+    employerTaxRate: options.employerTaxRate,
+    basePay: options.basePay,
+    adjustments: options.adjustments,
+    additionalDeductions: options.additionalDeductions,
+    approve: options.approve,
+    cashAccountId: options.cashAccountId,
     tenantId,
   });
-  res.status(201).json({ data: payroll });
-}
+  return { status: 201, body: { data: payroll } };
+});
 
-export async function listPayrollsController(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
+export const calculatePayrollController = createHandler(async ({ req, tenantId }) => {
+  const range = parseWith(dateRangeQuerySchema, req.query);
+  if (!range.startDate || !range.endDate) {
+    throw BadRequest('startDate and endDate are required');
+  }
+  const result = await calculatePayroll(tenantId, range.startDate, range.endDate);
+  return { body: { data: result } };
+});
+
+export const listPayrollsController = createHandler(async ({ tenantId }) => {
   const payrolls = await listPayrolls(tenantId);
-  res.json({ data: payrolls });
-}
+  return { body: { data: payrolls } };
+});
 
-export async function getPayrollController(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
-  const { id } = req.params;
-  if (!id) {
-    throw BadRequest('Payroll id is required');
-  }
+export const getPayrollController = createHandler(async ({ req, tenantId }) => {
+  const { id } = parseWith(idParamSchema, req.params);
   const payroll = await getPayrollById(tenantId, id);
-  res.json({ data: payroll });
-}
+  return { body: { data: payroll } };
+});
 
-export async function generateTaxReportController(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
+export const generateTaxReportController = createHandler(async ({ req, tenantId }) => {
+  const payload = parseWith(taxReportSchema, req.body ?? {});
   const userId = req.user!.userId;
-  const type = req.body?.type ? (String(req.body.type).toUpperCase() as TaxReportType) : undefined;
-  if (!type) {
-    throw BadRequest('Tax report type is required');
-  }
-  const periodStart = parseDate(req.body?.periodStart);
-  const periodEnd = parseDate(req.body?.periodEnd);
-  const jurisdiction = req.body?.jurisdiction ? String(req.body.jurisdiction) : undefined;
-  if (!periodStart || !periodEnd || !jurisdiction) {
-    throw BadRequest('periodStart, periodEnd, and jurisdiction are required');
+  if (payload.periodEnd < payload.periodStart) {
+    throw BadRequest('periodEnd must be on or after periodStart');
   }
   const report = await generateTaxReport(tenantId, userId, {
-    type,
-    periodStart,
-    periodEnd,
-    jurisdiction,
-    recipients: Array.isArray(req.body?.recipients)
-      ? (req.body.recipients as string[]).map(String)
-      : undefined,
+    type: payload.type,
+    periodStart: payload.periodStart,
+    periodEnd: payload.periodEnd,
+    jurisdiction: payload.jurisdiction,
+    recipients: payload.recipients,
   });
-  res.status(201).json({ data: report });
-}
+  return { status: 201, body: { data: report } };
+});
 
-export async function listTaxReportsController(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
-  const limit = req.query.limit ? Number(req.query.limit) : 50;
-  const reports = await listTaxReports(tenantId, limit);
-  res.json({ data: reports });
-}
+export const listTaxReportsController = createHandler(async ({ req, tenantId }) => {
+  const query = parseWith(z.object({ limit: z.coerce.number().int().min(1).max(200).optional() }), req.query);
+  const reports = await listTaxReports(tenantId, query.limit ?? 50);
+  return { body: { data: reports } };
+});
 
-export async function exportStatementController(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
-  const statement = String(req.params.statement) as 'pl' | 'balance-sheet' | 'cash-flow';
-  const format = (req.query.format ?? 'pdf') as 'pdf' | 'excel' | 'quickbooks';
-  const startDate = parseDate(req.query.startDate);
-  const endDate = parseDate(req.query.endDate);
+export const exportStatementController = createHandler(async ({ req, tenantId }) => {
+  const statement = parseWith(statementTypeSchema, req.params.statement);
+  const query = parseWith(exportQuerySchema, req.query);
+  const range = { startDate: query.startDate, endDate: query.endDate };
+  const exportResult = await exportStatement(tenantId, statement, query.format ?? 'pdf', range);
+  return { stream: exportResult };
+});
 
-  const exportResult = await exportStatement(tenantId, statement, format, { startDate, endDate });
-  res.setHeader('Content-Type', exportResult.contentType);
-  res.setHeader('Content-Disposition', `attachment; filename="${exportResult.filename}"`);
-  res.send(exportResult.body);
-}
+export const emailStatementController = createHandler(async ({ req, tenantId }) => {
+  const payload = parseWith(emailStatementSchema, req.body ?? {});
+  await emailStatement(tenantId, payload.statement, payload.recipients, {
+    startDate: payload.startDate,
+    endDate: payload.endDate,
+  });
+  return { status: 202, body: { data: { ok: true } } };
+});
 
-export async function emailStatementController(req: Request, res: Response) {
-  const tenantId = requireTenantId(req);
-  const statement = String(req.body?.statement ?? 'pl') as 'pl' | 'balance-sheet' | 'cash-flow';
-  const recipients: string[] = Array.isArray(req.body?.recipients)
-    ? (req.body.recipients as string[]).map(String)
-    : [];
-  const startDate = parseDate(req.body?.startDate);
-  const endDate = parseDate(req.body?.endDate);
-
-  await emailStatement(tenantId, statement, recipients, { startDate, endDate });
-  res.status(202).json({ data: { ok: true } });
-}
+export const importStandardChartOfAccountsController = createHandler(async ({ tenantId }) => {
+  const result = await importStandardCOA(tenantId);
+  return { status: 201, body: { data: result } };
+});
