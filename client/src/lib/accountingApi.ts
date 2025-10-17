@@ -26,6 +26,7 @@ export interface FinancialStatementSection {
 }
 
 export interface FinancialStatement {
+  dealershipName?: string | null;
   generatedAt: string;
   period: {
     startDate: string;
@@ -33,6 +34,7 @@ export interface FinancialStatement {
   };
   sections: FinancialStatementSection[];
   totals: Record<string, number>;
+  method?: 'indirect' | 'direct' | null;
 }
 
 export type BalanceSheetComparisonMode = 'NONE' | 'PREVIOUS_MONTH' | 'PREVIOUS_YEAR';
@@ -351,6 +353,111 @@ function toNullableNumber(value: unknown): number | null {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
+function normalizeStatementAccount(account: any, fallbackId: string): StatementAccount {
+  const accountIdSource =
+    account?.accountId ??
+    account?.id ??
+    account?.glAccountId ??
+    account?.glAccountID ??
+    account?.accountNumber ??
+    account?.number ??
+    fallbackId;
+  const normalBalanceRaw = typeof account?.normalBalance === 'string' ? account.normalBalance.toUpperCase() : null;
+  const entries = Array.isArray(account?.entries)
+    ? account.entries.map((entry: any, entryIndex: number) => {
+        const entryIdSource =
+          entry?.journalEntryId ??
+          entry?.journal_entry_id ??
+          entry?.id ??
+          entry?.entryId ??
+          `${accountIdSource}-entry-${entryIndex}`;
+        const postingDateValue =
+          typeof entry?.postingDate === 'string'
+            ? entry.postingDate
+            : typeof entry?.date === 'string'
+              ? entry.date
+              : new Date().toISOString();
+        const memoValue =
+          entry?.memo !== undefined && entry?.memo !== null
+            ? String(entry.memo)
+            : entry?.description !== undefined && entry?.description !== null
+              ? String(entry.description)
+              : null;
+        return {
+          journalEntryId: String(entryIdSource),
+          entryNumber: String(
+            entry?.entryNumber ??
+              entry?.entry_number ??
+              entry?.reference ??
+              entry?.documentNumber ??
+              entry?.document_number ??
+              entryIdSource ??
+              entryIndex + 1,
+          ),
+          postingDate: postingDateValue,
+          memo: memoValue,
+          debit: toNumber(
+            entry?.debit ??
+              entry?.debitAmount ??
+              entry?.amountDebit ??
+              entry?.debit_value ??
+              entry?.debit_amount ??
+              0,
+            0,
+          ),
+          credit: toNumber(
+            entry?.credit ??
+              entry?.creditAmount ??
+              entry?.amountCredit ??
+              entry?.credit_value ??
+              entry?.credit_amount ??
+              0,
+            0,
+          ),
+        };
+      })
+    : [];
+
+  return {
+    accountId: String(accountIdSource),
+    accountNumber:
+      account?.accountNumber !== undefined && account?.accountNumber !== null
+        ? String(account.accountNumber)
+        : account?.number !== undefined && account?.number !== null
+          ? String(account.number)
+          : '',
+    accountName:
+      account?.accountName !== undefined && account?.accountName !== null
+        ? String(account.accountName)
+        : account?.name !== undefined && account?.name !== null
+          ? String(account.name)
+          : 'Account',
+    normalBalance: normalBalanceRaw === 'CREDIT' ? 'CREDIT' : 'DEBIT',
+    total: toNumber(account?.total ?? account?.amount ?? account?.balance ?? account?.value ?? 0, 0),
+    entries,
+  };
+}
+
+function normalizeStatementSection(section: any, index: number): FinancialStatementSection {
+  const labelValue =
+    section?.label !== undefined && section?.label !== null
+      ? String(section.label)
+      : section?.name !== undefined && section?.name !== null
+        ? String(section.name)
+        : `Section ${index + 1}`;
+  const accounts = Array.isArray(section?.accounts)
+    ? section.accounts.map((account: any, accountIndex: number) =>
+        normalizeStatementAccount(account, `${index}-${accountIndex}`),
+      )
+    : [];
+
+  return {
+    label: labelValue,
+    total: toNumber(section?.total ?? section?.amount ?? section?.value ?? 0, 0),
+    accounts,
+  };
+}
+
 function normalizeTransaction(row: any): PLStatementTransaction {
   const debit = toNullableNumber(row?.debit ?? row?.debitAmount);
   const credit = toNullableNumber(row?.credit ?? row?.creditAmount);
@@ -530,11 +637,54 @@ export function fetchBalanceSheet(params: { date: string; comparison?: BalanceSh
   return apiJson<{ data: BalanceSheetReport }>(`/api/accounting/balance-sheet?${search.toString()}`).then((res) => res.data);
 }
 
-export function fetchCashFlow(params: { startDate?: string; endDate?: string }) {
+export function fetchCashFlow(params: { startDate?: string; endDate?: string; method?: 'indirect' | 'direct' }) {
   const search = new URLSearchParams();
   if (params.startDate) search.set('startDate', params.startDate);
   if (params.endDate) search.set('endDate', params.endDate);
-  return apiJson<{ data: FinancialStatement }>(`/api/accounting/statements/cash-flow?${search.toString()}`).then((res) => res.data);
+  if (params.method) search.set('method', params.method);
+
+  return apiJson<{ data: any }>(`/api/accounting/cash-flow?${search.toString()}`).then((res) => {
+    const payload = res.data ?? {};
+    const sections = Array.isArray(payload?.sections)
+      ? payload.sections.map((section: any, index: number) => normalizeStatementSection(section, index))
+      : [];
+
+    const totals: Record<string, number> = {};
+    if (payload?.totals && typeof payload.totals === 'object') {
+      Object.entries(payload.totals as Record<string, unknown>).forEach(([key, value]) => {
+        totals[key] = toNumber(value, 0);
+      });
+    }
+
+    const periodPayload =
+      payload?.period && typeof payload.period === 'object' && payload.period !== null ? payload.period : null;
+    const defaultStart = params.startDate ?? new Date().toISOString();
+    const defaultEnd = params.endDate ?? new Date().toISOString();
+    const period = periodPayload
+      ? {
+          startDate: String(periodPayload.startDate ?? defaultStart),
+          endDate: String(periodPayload.endDate ?? defaultEnd),
+        }
+      : { startDate: defaultStart, endDate: defaultEnd };
+
+    const rawMethod = typeof payload?.method === 'string' ? payload.method.toLowerCase() : null;
+    const method: 'indirect' | 'direct' | null =
+      rawMethod === 'indirect' || rawMethod === 'direct' ? rawMethod : params.method ?? null;
+
+    const result: FinancialStatement = {
+      dealershipName:
+        typeof payload?.dealershipName === 'string' && payload.dealershipName.trim().length > 0
+          ? payload.dealershipName
+          : null,
+      generatedAt: typeof payload?.generatedAt === 'string' ? payload.generatedAt : new Date().toISOString(),
+      period,
+      sections,
+      totals,
+      method,
+    };
+
+    return result;
+  });
 }
 
 export function fetchJournalEntries(params: {
@@ -692,13 +842,14 @@ export function scheduleDashboardReport(payload: {
 export async function exportStatementRequest(
   statement: 'pl' | 'balance-sheet' | 'cash-flow',
   format: 'pdf' | 'excel' | 'quickbooks',
-  params: { startDate?: string; endDate?: string; comparison?: string },
+  params: { startDate?: string; endDate?: string; comparison?: string; method?: string },
 ) {
   const url = new URL(`${API_BASE_URL}/api/accounting/statements/${statement}/export`);
   url.searchParams.set('format', format);
   if (params.startDate) url.searchParams.set('startDate', params.startDate);
   if (params.endDate) url.searchParams.set('endDate', params.endDate);
   if (params.comparison) url.searchParams.set('comparison', params.comparison);
+  if (params.method) url.searchParams.set('method', params.method);
   const response = await fetch(url.toString(), {
     method: 'POST',
     credentials: 'include',
@@ -721,6 +872,7 @@ export function emailStatementRequest(payload: {
   comparison?: string;
   subject?: string;
   message?: string;
+  method?: string;
 }) {
   return apiJson(`/api/accounting/statements/email`, { method: 'POST', body: payload });
 }
