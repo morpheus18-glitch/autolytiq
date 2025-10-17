@@ -333,6 +333,121 @@ export interface TaxReportResponse {
   generatedAt: string;
 }
 
+export interface SalesTaxInvoice {
+  invoiceNumber: string;
+  invoiceDate: string;
+  customerName: string;
+  subtotal: number;
+  taxRate: number;
+  taxAmount: number;
+  total: number;
+  jurisdiction: string;
+}
+
+export interface SalesTaxJurisdictionSummary {
+  jurisdiction: string;
+  taxRate: number;
+  taxableSales: number;
+  taxCollected: number;
+}
+
+export interface SalesTaxReport {
+  invoices: SalesTaxInvoice[];
+  totals: {
+    taxableSales: number;
+    taxCollected: number;
+  };
+  jurisdictions: SalesTaxJurisdictionSummary[];
+  filedAt?: string | null;
+  generatedAt?: string | null;
+}
+
+export type PayrollQuarter = 'Q1' | 'Q2' | 'Q3' | 'Q4';
+
+export interface Payroll941LineItem {
+  key: string;
+  label: string;
+  amount: number;
+  description?: string | null;
+  format?: 'currency' | 'number' | 'percentage';
+}
+
+export interface Payroll941Report {
+  quarter: PayrollQuarter;
+  year: number;
+  lines: Payroll941LineItem[];
+  totals: {
+    taxableWages: number;
+    totalLiability: number;
+    totalDeposits: number;
+    balanceDue: number;
+  };
+  filedAt?: string | null;
+  computedAt?: string | null;
+}
+
+export interface Contractor1099Record {
+  id: string;
+  name: string;
+  taxId: string;
+  address: string;
+  totalPaid: number;
+  generatedAt?: string | null;
+  status?: 'pending' | 'generated' | 'filed';
+}
+
+export interface Contractors1099Response {
+  year: number;
+  contractors: Contractor1099Record[];
+  totals: {
+    contractorCount: number;
+    totalPaid: number;
+  };
+  filedAt?: string | null;
+  generatedAt?: string | null;
+}
+
+export interface YearEndCategorySummary {
+  label: string;
+  amount: number;
+  notes?: string | null;
+}
+
+export interface YearEndScheduleRow {
+  label: string;
+  amount: number;
+  priorYearAmount?: number | null;
+  date?: string | null;
+  notes?: string | null;
+}
+
+export interface YearEndSummary {
+  year: number;
+  revenueByCategory: YearEndCategorySummary[];
+  expenseByCategory: YearEndCategorySummary[];
+  depreciationSchedule: YearEndScheduleRow[];
+  assetPurchases: YearEndScheduleRow[];
+  debtPrincipal: YearEndScheduleRow[];
+  ownerDraws: YearEndScheduleRow[];
+  keyDeductions: YearEndCategorySummary[];
+  estimatedTaxLiability: number;
+  filedAt?: string | null;
+  generatedAt?: string | null;
+}
+
+export interface TaxReportFiledResponse {
+  type: string;
+  filedAt: string;
+  filedBy?: string | null;
+  context?: Record<string, unknown> | null;
+}
+
+export interface MarkTaxReportFiledPayload {
+  type: 'sales-tax' | '941' | '1099' | 'year-end';
+  filedAt?: string;
+  context?: Record<string, unknown>;
+}
+
 async function apiJson<T>(url: string, options?: { method?: string; body?: any }): Promise<T> {
   const res = await apiRequest(url, { method: options?.method ?? 'GET', body: options?.body });
   if (res.headers.get('content-length') === '0') {
@@ -976,6 +1091,104 @@ export function createTaxReportRequest(payload: {
 
 export function fetchTaxReports(limit = 50) {
   return apiJson<{ data: TaxReportResponse[] }>(`/api/accounting/tax-reports?limit=${limit}`).then((res) => res.data);
+}
+
+export function fetchSalesTaxReport(params: { startDate: string; endDate: string; jurisdictions?: string[] }) {
+  const search = new URLSearchParams({ startDate: params.startDate, endDate: params.endDate });
+  if (params.jurisdictions && params.jurisdictions.length > 0) {
+    search.set('jurisdiction', params.jurisdictions.join(','));
+  }
+  return apiJson<{ data: SalesTaxReport }>(`/api/accounting/tax-reports/sales-tax?${search.toString()}`).then((res) => res.data);
+}
+
+export function fetchPayroll941Report(params: { quarter: PayrollQuarter; year: number }) {
+  const search = new URLSearchParams({ quarter: params.quarter, year: params.year.toString() });
+  return apiJson<{ data: Payroll941Report }>(`/api/accounting/tax-reports/941?${search.toString()}`).then((res) => res.data);
+}
+
+export function fetchContractors1099(params: { year: number }) {
+  const search = new URLSearchParams({ year: params.year.toString() });
+  return apiJson<{ data: Contractors1099Response }>(`/api/accounting/tax-reports/1099?${search.toString()}`).then((res) => res.data);
+}
+
+export function fetchYearEndSummary(year: number) {
+  const search = new URLSearchParams({ year: year.toString() });
+  return apiJson<{ data: YearEndSummary }>(`/api/accounting/tax-reports/year-end?${search.toString()}`).then((res) => res.data);
+}
+
+type TaxReportExportFormat = 'pdf' | 'excel' | 'csv' | 'zip';
+
+async function exportTaxReportFile(
+  type: 'sales-tax' | '941' | '1099' | 'year-end',
+  format: TaxReportExportFormat,
+  params: Record<string, string>,
+) {
+  const url = new URL(`${API_BASE_URL}/api/accounting/tax-reports/${type}/export`);
+  url.searchParams.set('format', format);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      url.searchParams.set(key, value);
+    }
+  });
+
+  const response = await fetch(url.toString(), {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || response.statusText);
+  }
+
+  const blob = await response.blob();
+  const filename =
+    response.headers.get('content-disposition')?.split('filename="')[1]?.replace('"', '') ??
+    `tax-report-${type}.${format === 'excel' ? 'xlsx' : format === 'pdf' ? 'pdf' : format === 'csv' ? 'csv' : 'zip'}`;
+
+  return { blob, filename };
+}
+
+export function exportSalesTaxReport(
+  format: 'pdf' | 'excel',
+  params: { startDate: string; endDate: string; jurisdictions?: string[] },
+) {
+  const searchParams: Record<string, string> = { startDate: params.startDate, endDate: params.endDate };
+  if (params.jurisdictions && params.jurisdictions.length > 0) {
+    searchParams.jurisdiction = params.jurisdictions.join(',');
+  }
+  return exportTaxReportFile('sales-tax', format, searchParams);
+}
+
+export function exportPayroll941Report(params: { quarter: PayrollQuarter; year: number }) {
+  return exportTaxReportFile('941', 'pdf', {
+    quarter: params.quarter,
+    year: params.year.toString(),
+  });
+}
+
+export function exportContractor1099Report(params: { year: number; format: 'pdf' | 'csv' | 'zip'; contractorId?: string }) {
+  const searchParams: Record<string, string> = { year: params.year.toString() };
+  if (params.contractorId) {
+    searchParams.contractorId = params.contractorId;
+  }
+  return exportTaxReportFile('1099', params.format, searchParams);
+}
+
+export function exportYearEndPack(year: number) {
+  return exportTaxReportFile('year-end', 'zip', { year: year.toString() });
+}
+
+export function markTaxReportFiled(payload: MarkTaxReportFiledPayload) {
+  const { type, filedAt, context } = payload;
+  const body = {
+    filedAt: filedAt ?? new Date().toISOString(),
+    context: context ?? {},
+  };
+  return apiJson<{ data: TaxReportFiledResponse }>(`/api/accounting/tax-reports/${type}/mark-filed`, {
+    method: 'POST',
+    body,
+  }).then((res) => res.data);
 }
 
 export function emailDashboardReport(payload: {
