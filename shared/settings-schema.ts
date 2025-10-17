@@ -426,3 +426,287 @@ export const DAY_LABELS: Record<WeekDay, string> = {
   saturday: 'Saturday',
   sunday: 'Sunday',
 };
+
+// -----------------------------------------------------------------------------
+// Data & Backup Schemas
+// -----------------------------------------------------------------------------
+
+export const backupScheduleOptions = ['DAILY_2AM', 'EVERY_12H', 'WEEKLY', 'MONTHLY'] as const;
+
+export type BackupSchedule = (typeof backupScheduleOptions)[number];
+
+export const backupRetentionOptions = ['7', '14', '30', '60', '90'] as const;
+
+export type BackupRetentionWindow = (typeof backupRetentionOptions)[number];
+
+export const backupStorageSchema = z
+  .object({
+    bucket: z.string().min(1, 'Bucket name is required'),
+    region: z.string().min(1, 'Region is required'),
+    accessKey: z.string().min(1, 'Access key is required'),
+    secretKey: z.string().min(1, 'Secret key is required'),
+  })
+  .strict();
+
+export type BackupStorageSettings = z.infer<typeof backupStorageSchema>;
+
+export const backupSettingsSchema = z
+  .object({
+    autoBackupEnabled: z.boolean().default(true),
+    schedule: z.enum(backupScheduleOptions).default('DAILY_2AM'),
+    retentionDays: z.enum(backupRetentionOptions).default('30'),
+    storage: backupStorageSchema,
+  })
+  .strict();
+
+export type BackupSettings = z.infer<typeof backupSettingsSchema>;
+
+export const customerRetentionOptions = ['1Y', '2Y', '5Y', '7Y', 'INDEFINITE'] as const;
+export const leadRetentionOptions = ['6M', '1Y', '2Y'] as const;
+export const analyticsRetentionOptions = ['1Y', '2Y', '5Y'] as const;
+
+export type CustomerRetentionWindow = (typeof customerRetentionOptions)[number];
+export type LeadRetentionWindow = (typeof leadRetentionOptions)[number];
+export type AnalyticsRetentionWindow = (typeof analyticsRetentionOptions)[number];
+
+export const dataRetentionSettingsSchema = z
+  .object({
+    customer: z.enum(customerRetentionOptions).default('INDEFINITE'),
+    lead: z.enum(leadRetentionOptions).default('1Y'),
+    analytics: z.enum(analyticsRetentionOptions).default('2Y'),
+    autoPurgeEnabled: z.boolean().default(false),
+  })
+  .strict();
+
+export type DataRetentionSettings = z.infer<typeof dataRetentionSettingsSchema>;
+
+export const dataSettingsSchema = z
+  .object({
+    backup: backupSettingsSchema,
+    retention: dataRetentionSettingsSchema,
+  })
+  .strict();
+
+export type DataSettings = z.infer<typeof dataSettingsSchema>;
+
+export const defaultDataSettings: DataSettings = {
+  backup: {
+    autoBackupEnabled: true,
+    schedule: 'DAILY_2AM',
+    retentionDays: '30',
+    storage: {
+      bucket: '',
+      region: '',
+      accessKey: '',
+      secretKey: '',
+    },
+  },
+  retention: {
+    customer: 'INDEFINITE',
+    lead: '1Y',
+    analytics: '2Y',
+    autoPurgeEnabled: false,
+  },
+};
+
+export const dataExportFormats = ['CSV', 'JSON', 'EXCEL'] as const;
+
+export type DataExportFormat = (typeof dataExportFormats)[number];
+
+export const dataExportEntities = [
+  'CUSTOMERS',
+  'VEHICLES',
+  'DEALS',
+  'INVENTORY',
+  'JOURNAL_ENTRIES',
+  'LEADS',
+  'SERVICE_APPOINTMENTS',
+  'ANALYTICS_EVENTS',
+] as const;
+
+export type DataExportEntity = (typeof dataExportEntities)[number];
+
+// -----------------------------------------------------------------------------
+// Analytics & Tracking Schemas
+// -----------------------------------------------------------------------------
+
+export const analyticsDashboardRanges = ['LAST_7', 'LAST_30', 'LAST_90', 'YTD'] as const;
+export const analyticsRefreshIntervals = ['MANUAL', '5M', '15M', '1H'] as const;
+
+export type AnalyticsDashboardRange = (typeof analyticsDashboardRanges)[number];
+export type AnalyticsRefreshInterval = (typeof analyticsRefreshIntervals)[number];
+
+export const analyticsWidgetOptions = [
+  'REVENUE',
+  'LEAD_SOURCES',
+  'CONVERSION_FUNNEL',
+  'SALES_PERFORMANCE',
+  'INVENTORY_METRICS',
+  'TOP_SALESPEOPLE',
+] as const;
+
+export type AnalyticsWidget = (typeof analyticsWidgetOptions)[number];
+
+export const conversionGoalTriggerOptions = ['PAGE_VIEW', 'EVENT', 'CUSTOM'] as const;
+export const conversionGoalStatusOptions = ['ACTIVE', 'INACTIVE'] as const;
+
+export type ConversionGoalTrigger = (typeof conversionGoalTriggerOptions)[number];
+export type ConversionGoalStatus = (typeof conversionGoalStatusOptions)[number];
+
+export const conversionGoalSchema = z
+  .object({
+    id: z.string(),
+    name: z.string().min(1, 'Goal name is required'),
+    triggerType: z.enum(conversionGoalTriggerOptions),
+    triggerValue: z.string().min(1, 'Trigger value is required'),
+    value: z.number().min(0, 'Goal value must be zero or positive').default(0),
+    status: z.enum(conversionGoalStatusOptions).default('ACTIVE'),
+  })
+  .strict();
+
+export type ConversionGoal = z.infer<typeof conversionGoalSchema>;
+
+export const analyticsSettingsSchema = z
+  .object({
+    pixelTracking: z
+      .object({
+        enabled: z.boolean().default(true),
+        trackingDomain: z.string().optional().default(''),
+      })
+      .strict(),
+    external: z
+      .object({
+        googleAnalyticsId: z.string().optional().default(''),
+        facebookPixelId: z.string().optional().default(''),
+        tagManagerId: z.string().optional().default(''),
+      })
+      .strict(),
+    dashboard: z
+      .object({
+        defaultDateRange: z.enum(analyticsDashboardRanges).default('LAST_30'),
+        widgets: z.array(z.enum(analyticsWidgetOptions)).default([
+          'REVENUE',
+          'LEAD_SOURCES',
+          'CONVERSION_FUNNEL',
+        ]),
+        refreshInterval: z.enum(analyticsRefreshIntervals).default('15M'),
+      })
+      .strict(),
+    conversionGoals: z.array(conversionGoalSchema).default([]),
+  })
+  .strict();
+
+export type AnalyticsSettings = z.infer<typeof analyticsSettingsSchema>;
+
+export const defaultAnalyticsSettings: AnalyticsSettings = {
+  pixelTracking: {
+    enabled: true,
+    trackingDomain: '',
+  },
+  external: {
+    googleAnalyticsId: '',
+    facebookPixelId: '',
+    tagManagerId: '',
+  },
+  dashboard: {
+    defaultDateRange: 'LAST_30',
+    widgets: ['REVENUE', 'LEAD_SOURCES', 'CONVERSION_FUNNEL'],
+    refreshInterval: '15M',
+  },
+  conversionGoals: [
+    {
+      id: 'goal-lead-submitted',
+      name: 'Lead Submitted',
+      triggerType: 'EVENT',
+      triggerValue: 'lead_submitted',
+      value: 0,
+      status: 'ACTIVE',
+    },
+    {
+      id: 'goal-test-drive',
+      name: 'Test Drive Scheduled',
+      triggerType: 'EVENT',
+      triggerValue: 'test_drive_scheduled',
+      value: 0,
+      status: 'ACTIVE',
+    },
+    {
+      id: 'goal-deal-closed',
+      name: 'Deal Closed',
+      triggerType: 'CUSTOM',
+      triggerValue: 'deal_closed',
+      value: 500,
+      status: 'ACTIVE',
+    },
+  ],
+};
+
+export const analyticsEventStatusOptions = ['ACTIVE', 'PAUSED'] as const;
+
+export type AnalyticsEventStatus = (typeof analyticsEventStatusOptions)[number];
+
+export const analyticsEventMetricSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    countLast30Days: z.number().min(0).default(0),
+    status: z.enum(analyticsEventStatusOptions).default('ACTIVE'),
+  })
+  .strict();
+
+export type AnalyticsEventMetric = z.infer<typeof analyticsEventMetricSchema>;
+
+export const customEventParameterTypes = ['string', 'number', 'boolean', 'object', 'array'] as const;
+
+export type CustomEventParameterType = (typeof customEventParameterTypes)[number];
+
+export const customEventParameterSchema = z
+  .object({
+    name: z.string().min(1, 'Parameter name is required'),
+    type: z.enum(customEventParameterTypes).default('string'),
+    required: z.boolean().default(false),
+  })
+  .strict();
+
+export const customEventSchema = z
+  .object({
+    id: z.string(),
+    name: z.string().min(1, 'Event name is required'),
+    description: z.string().optional().default(''),
+    parameters: z.array(customEventParameterSchema).default([]),
+  })
+  .strict();
+
+export type CustomEventDefinition = z.infer<typeof customEventSchema>;
+
+export const customEventInputSchema = customEventSchema.omit({ id: true });
+
+export type CustomEventInput = z.infer<typeof customEventInputSchema>;
+
+export const reportFrequencyOptions = ['DAILY', 'WEEKLY', 'MONTHLY'] as const;
+export const reportFormatOptions = ['PDF', 'EXCEL', 'CSV'] as const;
+
+export type ReportFrequency = (typeof reportFrequencyOptions)[number];
+export type ReportFormat = (typeof reportFormatOptions)[number];
+
+export const scheduledReportSchema = z
+  .object({
+    id: z.string(),
+    name: z.string().min(1, 'Report name is required'),
+    reportType: z.string().min(1, 'Report type is required'),
+    frequency: z.enum(reportFrequencyOptions),
+    dayOfWeek: z.string().optional(),
+    dayOfMonth: z.number().int().min(1).max(31).optional(),
+    timeOfDay: z.string().min(1, 'Time of day is required'),
+    recipients: z.array(z.string().email('Enter a valid recipient email')).min(1, 'At least one recipient'),
+    format: z.enum(reportFormatOptions),
+    lastSentAt: z.string().datetime().nullable().optional(),
+    status: z.enum(['ACTIVE', 'PAUSED']).default('ACTIVE'),
+  })
+  .strict();
+
+export type ScheduledReportDefinition = z.infer<typeof scheduledReportSchema>;
+
+export const scheduledReportInputSchema = scheduledReportSchema.omit({ id: true, lastSentAt: true });
+
+export type ScheduledReportInput = z.infer<typeof scheduledReportInputSchema>;
