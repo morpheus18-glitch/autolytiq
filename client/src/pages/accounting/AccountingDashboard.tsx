@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Link } from 'wouter';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { DateRange } from 'react-day-picker';
@@ -17,7 +17,6 @@ import {
   startOfWeek,
   startOfYear,
 } from 'date-fns';
-import * as XLSX from 'xlsx';
 import {
   Area,
   AreaChart,
@@ -48,6 +47,7 @@ import {
   Calculator,
   ReceiptText,
   Download,
+  Archive,
   Mail,
   CalendarClock,
   ExternalLink,
@@ -56,6 +56,9 @@ import {
 import AccountingLayout from './AccountingLayout';
 import {
   emailDashboardReport,
+  emailAllReportsRequest,
+  exportAllReportsRequest,
+  exportDashboardRequest,
   fetchAccountingDashboard,
   scheduleDashboardReport,
   type AccountingDashboardResponse,
@@ -102,6 +105,20 @@ const percentFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 1,
 });
+
+function parseAddresses(value: string): string[] {
+  return value
+    .split(/[,;\n]+/)
+    .map((entry) => entry.trim())
+    .filter((entry, index, array) => entry.length > 0 && array.indexOf(entry) === index);
+}
+
+function parseAddresses(value: string): string[] {
+  return value
+    .split(/[,;\n]+/)
+    .map((entry) => entry.trim())
+    .filter((entry, index, array) => entry.length > 0 && array.indexOf(entry) === index);
+}
 
 type DatePreset =
   | 'today'
@@ -299,29 +316,40 @@ export default function AccountingDashboard() {
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [emailRecipients, setEmailRecipients] = useState('');
+  const [emailCc, setEmailCc] = useState('');
   const [emailSubject, setEmailSubject] = useState('Accounting Dashboard Report');
   const [emailMessage, setEmailMessage] = useState('Please find the attached accounting dashboard report.');
-  const [emailFormats, setEmailFormats] = useState<Array<'pdf' | 'excel'>>(['pdf']);
+  const [emailFormats, setEmailFormats] = useState<Set<'pdf' | 'excel'>>(new Set(['pdf']));
+  const [activeDashboardExport, setActiveDashboardExport] = useState<'pdf' | 'excel' | null>(null);
+  const [allReportsDialogOpen, setAllReportsDialogOpen] = useState(false);
+  const [allReportsFormats, setAllReportsFormats] = useState<Set<'pdf' | 'excel'>>(new Set(['pdf', 'excel']));
+  const [allReportsRecipients, setAllReportsRecipients] = useState('');
+  const [allReportsCc, setAllReportsCc] = useState('');
+  const [allReportsSubject, setAllReportsSubject] = useState('Financial Reports Package');
+  const [allReportsMessage, setAllReportsMessage] = useState(
+    'Please find the attached consolidated financial reports package.',
+  );
+  const [isEmailingAllReports, setIsEmailingAllReports] = useState(false);
+  const [isDownloadingAllReports, setIsDownloadingAllReports] = useState(false);
   const [scheduleRecipients, setScheduleRecipients] = useState('');
   const [scheduleFormats, setScheduleFormats] = useState<Array<'pdf' | 'excel'>>(['pdf']);
   const [scheduleFrequency, setScheduleFrequency] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
   const [scheduleDay, setScheduleDay] = useState('monday');
   const [scheduleTime, setScheduleTime] = useState('08:00');
-  const dashboardRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
   const [selectedTransaction, setSelectedTransaction] = useState<
     AccountingDashboardResponse['recentTransactions'][number] | null
   >(null);
 
-  const formattedStart = useMemo(() => format(range.startDate, 'yyyy-MM-dd'), [range.startDate]);
-  const formattedEnd = useMemo(() => format(range.endDate, 'yyyy-MM-dd'), [range.endDate]);
+  const isoStart = useMemo(() => range.startDate.toISOString(), [range.startDate]);
+  const isoEnd = useMemo(() => range.endDate.toISOString(), [range.endDate]);
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['accounting', 'dashboard', formattedStart, formattedEnd, compareToPrevious],
+    queryKey: ['accounting', 'dashboard', isoStart, isoEnd, compareToPrevious],
     queryFn: () =>
       fetchAccountingDashboard({
-        startDate: formattedStart,
-        endDate: formattedEnd,
+        startDate: isoStart,
+        endDate: isoEnd,
         compareToLast: compareToPrevious,
       }),
   });
@@ -332,6 +360,8 @@ export default function AccountingDashboard() {
       toast({ title: 'Report emailed', description: 'Dashboard report has been sent to the selected recipients.' });
       setEmailDialogOpen(false);
       setEmailRecipients('');
+      setEmailCc('');
+      setEmailFormats(new Set(['pdf']));
     },
     onError: (mutationError: unknown) => {
       toast({
@@ -396,156 +426,209 @@ export default function AccountingDashboard() {
   }, [dayDiff]);
 
   const profitBreakdownTotal = data?.profitBreakdown.reduce((total, entry) => total + entry.value, 0) ?? 0;
+  const rangeDisplay = useMemo(
+    () => formatRangeDisplay(range.startDate, range.endDate),
+    [range.endDate, range.startDate],
+  );
+
+  const handleDashboardExport = useCallback(
+    async (format: 'pdf' | 'excel') => {
+      if (activeDashboardExport) {
+        return;
+      }
+      setActiveDashboardExport(format);
+      try {
+        const result = await exportDashboardRequest(format, { startDate: isoStart, endDate: isoEnd });
+        const url = URL.createObjectURL(result.blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = result.filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+        toast({ title: 'Export ready', description: `Downloaded ${result.filename}` });
+      } catch (error) {
+        toast({
+          title: 'Export failed',
+          description: error instanceof Error ? error.message : 'Unable to export dashboard.',
+          variant: 'destructive',
+        });
+      } finally {
+        setActiveDashboardExport(null);
+      }
+    },
+    [activeDashboardExport, isoEnd, isoStart, toast],
+  );
 
   const handleExportPdf = useCallback(() => {
-    if (!dashboardRef.current) {
-      toast({
-        title: 'Unable to export dashboard',
-        description: 'Dashboard content is not available for export.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    const printWindow = window.open('', '_blank', 'noopener,noreferrer');
-    if (!printWindow) {
-      toast({
-        title: 'Popup blocked',
-        description: 'Allow popups to export the dashboard as PDF.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
-      .map((element) => element.outerHTML)
-      .join('\n');
-    const html = dashboardRef.current.outerHTML;
-    printWindow.document.write(`<!doctype html><html><head>${styles}</head><body>${html}</body></html>`);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-      toast({ title: 'Export started', description: 'Use your browser dialog to save the dashboard as PDF.' });
-    }, 400);
-  }, [toast]);
+    void handleDashboardExport('pdf');
+  }, [handleDashboardExport]);
 
   const handleExportExcel = useCallback(() => {
-    if (!data) {
-      toast({
-        title: 'Data unavailable',
-        description: 'Load dashboard data before exporting to Excel.',
-        variant: 'destructive',
-      });
+    void handleDashboardExport('excel');
+  }, [handleDashboardExport]);
+
+  const toggleEmailFormat = useCallback((format: 'pdf' | 'excel') => {
+    setEmailFormats((previous) => {
+      const next = new Set(previous);
+      if (next.has(format)) {
+        next.delete(format);
+      } else {
+        next.add(format);
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleAllReportsFormat = useCallback((format: 'pdf' | 'excel') => {
+    setAllReportsFormats((previous) => {
+      const next = new Set(previous);
+      if (next.has(format)) {
+        next.delete(format);
+      } else {
+        next.add(format);
+      }
+      return next;
+    });
+  }, []);
+
+  const openEmailDialog = useCallback(() => {
+    setEmailSubject(`Accounting Dashboard – ${rangeDisplay}`);
+    setEmailMessage(`Please find the accounting dashboard for ${rangeDisplay}.`);
+    setEmailCc('');
+    setEmailFormats(new Set(['pdf']));
+    setEmailDialogOpen(true);
+  }, [rangeDisplay]);
+
+  const openAllReportsDialog = useCallback(() => {
+    setAllReportsSubject(`Financial Reports Package – ${rangeDisplay}`);
+    setAllReportsMessage(`Please find the consolidated financial reports covering ${rangeDisplay}.`);
+    setAllReportsFormats(new Set(['pdf', 'excel']));
+    setAllReportsRecipients('');
+    setAllReportsCc('');
+    setAllReportsDialogOpen(true);
+  }, [rangeDisplay]);
+
+  const handleDownloadAllReports = useCallback(async () => {
+    if (allReportsFormats.size === 0) {
+      toast({ title: 'Select formats', description: 'Choose at least one attachment type.', variant: 'destructive' });
       return;
     }
-    const workbook = XLSX.utils.book_new();
+    setIsDownloadingAllReports(true);
+    try {
+      const result = await exportAllReportsRequest({
+        formats: Array.from(allReportsFormats),
+        startDate: isoStart,
+        endDate: isoEnd,
+      });
+      const url = URL.createObjectURL(result.blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = result.filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      toast({ title: 'Download ready', description: `Downloaded ${result.filename}` });
+    } catch (error) {
+      toast({
+        title: 'Export failed',
+        description: error instanceof Error ? error.message : 'Unable to export reports.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDownloadingAllReports(false);
+    }
+  }, [allReportsFormats, isoEnd, isoStart, toast]);
 
-    const kpiSheet = XLSX.utils.json_to_sheet([
-      {
-        Metric: 'Total Revenue',
-        Current: data.kpis.totalRevenue.current,
-        Previous: data.kpis.totalRevenue.previous,
-        ChangePercent: data.kpis.totalRevenue.change,
-      },
-      {
-        Metric: 'Gross Profit',
-        Current: data.kpis.grossProfit.current,
-        Previous: data.kpis.grossProfit.previous,
-        ChangePercent: data.kpis.grossProfit.change,
-        MarginPercent: data.kpis.grossProfit.margin,
-      },
-      {
-        Metric: 'Net Income',
-        Current: data.kpis.netIncome.current,
-        Previous: data.kpis.netIncome.previous,
-        ChangePercent: data.kpis.netIncome.change,
-        MarginPercent: data.kpis.netIncome.margin,
-      },
-      {
-        Metric: 'Operating Expenses',
-        Current: data.kpis.operatingExpenses.current,
-        Previous: data.kpis.operatingExpenses.previous,
-        ChangePercent: data.kpis.operatingExpenses.change,
-        PercentOfRevenue: data.kpis.operatingExpenses.percentOfRevenue,
-      },
-    ]);
-    XLSX.utils.book_append_sheet(workbook, kpiSheet, 'KPIs');
+  const handleEmailAllReports = useCallback(async () => {
+    const recipients = parseAddresses(allReportsRecipients);
+    if (recipients.length === 0) {
+      toast({ title: 'Add recipients', description: 'Provide at least one recipient email.', variant: 'destructive' });
+      return;
+    }
+    const cc = parseAddresses(allReportsCc);
+    const formats = allReportsFormats.size ? Array.from(allReportsFormats) : ['pdf'];
+    const subject = allReportsSubject.trim() || `Financial Reports Package – ${rangeDisplay}`;
+    const message = allReportsMessage.trim() || undefined;
+    setIsEmailingAllReports(true);
+    try {
+      await emailAllReportsRequest({
+        recipients,
+        cc: cc.length ? cc : undefined,
+        formats,
+        startDate: isoStart,
+        endDate: isoEnd,
+        subject,
+        message,
+      });
+      toast({ title: 'Reports emailed', description: 'Financial reports package is being delivered.' });
+      setAllReportsDialogOpen(false);
+      setAllReportsRecipients('');
+      setAllReportsCc('');
+    } catch (error) {
+      toast({
+        title: 'Email failed',
+        description: error instanceof Error ? error.message : 'Unable to email reports.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsEmailingAllReports(false);
+    }
+  }, [
+    allReportsCc,
+    allReportsFormats,
+    allReportsMessage,
+    allReportsRecipients,
+    allReportsSubject,
+    isoEnd,
+    isoStart,
+    rangeDisplay,
+    toast,
+  ]);
 
-    const revenueSheet = XLSX.utils.json_to_sheet(
-      data.revenueChart.map((point) => ({ Period: point.date, Revenue: point.revenue })),
-    );
-    XLSX.utils.book_append_sheet(workbook, revenueSheet, 'Revenue Trend');
-
-    const profitBreakdownSheet = XLSX.utils.json_to_sheet(
-      data.profitBreakdown.map((entry) => ({ Segment: entry.name, Amount: entry.value, Percentage: entry.percentage })),
-    );
-    XLSX.utils.book_append_sheet(workbook, profitBreakdownSheet, 'Profit Breakdown');
-
-    const monthlyComparisonSheet = XLSX.utils.json_to_sheet(data.monthlyComparison);
-    XLSX.utils.book_append_sheet(workbook, monthlyComparisonSheet, 'Monthly Comparison');
-
-    const departmentSheet = XLSX.utils.json_to_sheet(
-      data.departmentPerformance.map((entry) => ({
-        Department: entry.department,
-        Revenue: entry.revenue,
-        Cost: entry.cost,
-        MarginPercent: entry.margin,
-      })),
-    );
-    XLSX.utils.book_append_sheet(workbook, departmentSheet, 'Department Performance');
-
-    const transactionsSheet = XLSX.utils.json_to_sheet(
-      data.recentTransactions.map((transaction) => ({
-        Date: transaction.date,
-        EntryNumber: transaction.number ?? transaction.id,
-        Description: transaction.description,
-        Account: transaction.account,
-        Debit: transaction.debit,
-        Credit: transaction.credit,
-      })),
-    );
-    XLSX.utils.book_append_sheet(workbook, transactionsSheet, 'Recent Transactions');
-
-    const workbookArray = XLSX.write(workbook, { type: 'array', bookType: 'xlsx' });
-    const blob = new Blob([workbookArray], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `accounting-dashboard-${formattedStart}-to-${formattedEnd}.xlsx`;
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-    URL.revokeObjectURL(url);
-
-    toast({ title: 'Excel exported', description: 'Dashboard data has been downloaded as an Excel workbook.' });
-  }, [data, formattedEnd, formattedStart, toast]);
 
   const handleEmailSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      if (emailFormats.length === 0) {
+      if (emailFormats.size === 0) {
         toast({ title: 'Select a format', description: 'Choose at least one export format.', variant: 'destructive' });
         return;
       }
-      const recipients = emailRecipients
-        .split(',')
-        .map((value) => value.trim())
-        .filter(Boolean);
+      const recipients = parseAddresses(emailRecipients);
       if (recipients.length === 0) {
         toast({ title: 'Add recipients', description: 'Provide at least one recipient email.', variant: 'destructive' });
         return;
       }
+      const cc = parseAddresses(emailCc);
+      const formats = Array.from(emailFormats);
+      const subject = emailSubject.trim() || `Accounting Dashboard – ${rangeDisplay}`;
+      const message = emailMessage.trim() || undefined;
       await emailReportMutation.mutateAsync({
         recipients,
-        subject: emailSubject,
-        message: emailMessage,
-        formats: emailFormats,
-        startDate: formattedStart,
-        endDate: formattedEnd,
+        cc: cc.length ? cc : undefined,
+        subject,
+        message,
+        formats,
+        startDate: isoStart,
+        endDate: isoEnd,
         compareToLast: compareToPrevious,
       });
     },
-    [compareToPrevious, emailFormats, emailMessage, emailRecipients, emailReportMutation, emailSubject, formattedEnd, formattedStart, toast],
+    [
+      compareToPrevious,
+      emailCc,
+      emailFormats,
+      emailMessage,
+      emailRecipients,
+      emailReportMutation,
+      emailSubject,
+      rangeDisplay,
+      isoEnd,
+      isoStart,
+      toast,
+    ],
   );
 
   const handleScheduleSubmit = useCallback(
@@ -555,10 +638,7 @@ export default function AccountingDashboard() {
         toast({ title: 'Select a format', description: 'Choose at least one export format.', variant: 'destructive' });
         return;
       }
-      const recipients = scheduleRecipients
-        .split(',')
-        .map((value) => value.trim())
-        .filter(Boolean);
+      const recipients = parseAddresses(scheduleRecipients);
       if (recipients.length === 0) {
         toast({ title: 'Add recipients', description: 'Provide at least one recipient email.', variant: 'destructive' });
         return;
@@ -569,15 +649,15 @@ export default function AccountingDashboard() {
         time: scheduleTime,
         dayOfWeek: scheduleFrequency === 'weekly' ? scheduleDay : undefined,
         formats: scheduleFormats,
-        startDate: formattedStart,
-        endDate: formattedEnd,
+        startDate: isoStart,
+        endDate: isoEnd,
         compareToLast: compareToPrevious,
       });
     },
     [
       compareToPrevious,
-      formattedEnd,
-      formattedStart,
+      isoEnd,
+      isoStart,
       scheduleDay,
       scheduleFormats,
       scheduleFrequency,
@@ -627,7 +707,7 @@ export default function AccountingDashboard() {
 
   return (
     <AccountingLayout>
-      <div className="space-y-8" ref={dashboardRef}>
+      <div className="space-y-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
             <h1 className="text-3xl font-semibold">Accounting Dashboard</h1>
@@ -678,15 +758,37 @@ export default function AccountingDashboard() {
               </div>
             </div>
             <div className="flex flex-wrap items-center justify-end gap-2">
-              <Button variant="outline" className="gap-2" onClick={handleExportPdf}>
-                <Download className="h-4 w-4" />
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={handleExportPdf}
+                disabled={Boolean(activeDashboardExport)}
+              >
+                {activeDashboardExport === 'pdf' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
                 Export Dashboard (PDF)
               </Button>
-              <Button variant="outline" className="gap-2" onClick={handleExportExcel}>
-                <BarChart3 className="h-4 w-4" />
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={handleExportExcel}
+                disabled={Boolean(activeDashboardExport)}
+              >
+                {activeDashboardExport === 'excel' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <BarChart3 className="h-4 w-4" />
+                )}
                 Export to Excel
               </Button>
-              <Button variant="outline" className="gap-2" onClick={() => setEmailDialogOpen(true)}>
+              <Button variant="outline" className="gap-2" onClick={openAllReportsDialog}>
+                <Archive className="h-4 w-4" />
+                Export All Reports
+              </Button>
+              <Button variant="outline" className="gap-2" onClick={openEmailDialog}>
                 <Mail className="h-4 w-4" />
                 Email Report
               </Button>
@@ -1028,6 +1130,16 @@ export default function AccountingDashboard() {
                 value={emailRecipients}
                 onChange={(event) => setEmailRecipients(event.target.value)}
               />
+              <p className="text-xs text-muted-foreground">Separate multiple addresses with commas or new lines.</p>
+            </div>
+            <div className="space-y-2">
+              <FormLabel htmlFor="email-cc">CC (optional)</FormLabel>
+              <Input
+                id="email-cc"
+                placeholder="cfo@example.com"
+                value={emailCc}
+                onChange={(event) => setEmailCc(event.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <FormLabel htmlFor="email-subject">Subject</FormLabel>
@@ -1050,24 +1162,17 @@ export default function AccountingDashboard() {
               <FormLabel>Formats</FormLabel>
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2 text-sm">
-                  <Checkbox
-                    checked={emailFormats.includes('pdf')}
-                    onCheckedChange={(checked) =>
-                      setEmailFormats((prev) => updateFormats(prev, 'pdf', checked === true))
-                    }
-                  />
+                  <Checkbox checked={emailFormats.has('pdf')} onCheckedChange={() => toggleEmailFormat('pdf')} />
                   PDF
                 </label>
                 <label className="flex items-center gap-2 text-sm">
-                  <Checkbox
-                    checked={emailFormats.includes('excel')}
-                    onCheckedChange={(checked) =>
-                      setEmailFormats((prev) => updateFormats(prev, 'excel', checked === true))
-                    }
-                  />
+                  <Checkbox checked={emailFormats.has('excel')} onCheckedChange={() => toggleEmailFormat('excel')} />
                   Excel (XLSX)
                 </label>
               </div>
+              <p className="text-xs text-muted-foreground">
+                At least one format must be selected. PDF will be attached automatically if none are chosen.
+              </p>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setEmailDialogOpen(false)}>
@@ -1078,6 +1183,114 @@ export default function AccountingDashboard() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={allReportsDialogOpen} onOpenChange={setAllReportsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Export all financial reports</DialogTitle>
+            <DialogDescription>
+              Generate a consolidated package of P&amp;L, Balance Sheet, Cash Flow, and dashboard reports for {rangeDisplay}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <FormLabel htmlFor="all-reports-to">Recipients</FormLabel>
+              <Input
+                id="all-reports-to"
+                placeholder="finance@example.com, owner@example.com"
+                value={allReportsRecipients}
+                onChange={(event) => setAllReportsRecipients(event.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">Separate multiple addresses with commas or new lines.</p>
+            </div>
+            <div className="space-y-2">
+              <FormLabel htmlFor="all-reports-cc">CC (optional)</FormLabel>
+              <Input
+                id="all-reports-cc"
+                placeholder="auditor@example.com"
+                value={allReportsCc}
+                onChange={(event) => setAllReportsCc(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <FormLabel htmlFor="all-reports-subject">Subject</FormLabel>
+              <Input
+                id="all-reports-subject"
+                value={allReportsSubject}
+                onChange={(event) => setAllReportsSubject(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <FormLabel htmlFor="all-reports-message">Message</FormLabel>
+              <Textarea
+                id="all-reports-message"
+                rows={4}
+                value={allReportsMessage}
+                onChange={(event) => setAllReportsMessage(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <FormLabel>Attachments</FormLabel>
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={allReportsFormats.has('pdf')}
+                    onCheckedChange={() => toggleAllReportsFormat('pdf')}
+                  />
+                  PDF bundle
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={allReportsFormats.has('excel')}
+                    onCheckedChange={() => toggleAllReportsFormat('excel')}
+                  />
+                  Excel workbooks
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Select the formats to include in the download or email package. At least one option must remain selected.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="flex flex-wrap items-center justify-between gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setAllReportsDialogOpen(false)}
+              disabled={isDownloadingAllReports || isEmailingAllReports}
+            >
+              Close
+            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void handleDownloadAllReports()}
+                disabled={isDownloadingAllReports || isEmailingAllReports}
+              >
+                {isDownloadingAllReports ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Archive className="mr-2 h-4 w-4" />
+                )}
+                Download Package
+              </Button>
+              <Button
+                type="button"
+                onClick={() => void handleEmailAllReports()}
+                disabled={isDownloadingAllReports || isEmailingAllReports}
+              >
+                {isEmailingAllReports ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Mail className="mr-2 h-4 w-4" />
+                )}
+                Email Package
+              </Button>
+            </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
