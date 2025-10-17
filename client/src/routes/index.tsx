@@ -31,15 +31,24 @@ import RateSheets from '@/pages/finance/rates';
 import ComplianceManager from '@/pages/finance/compliance-manager';
 import FinanceReports from '@/pages/finance/finance-reports';
 import FiConfigurationPage from '@/pages/fi-configuration';
-import AccountingDashboard from '@/pages/accounting/accounting-dashboard';
+import AccountingDashboardPage from '@/pages/accounting/AccountingDashboard';
 import DealFinalization from '@/pages/accounting/deal-finalization';
 import ChartOfAccounts from '@/pages/accounting/chart-of-accounts';
 import VehicleProfit from '@/pages/accounting/vehicle-profit';
 import FinanceReserves from '@/pages/accounting/finance-reserves';
 import MonthlyClose from '@/pages/accounting/monthly-close';
 import FinancialReportsPage from '@/pages/accounting/reports';
-import PayrollPage from '@/pages/accounting/payroll';
 import TransactionsPage from '@/pages/accounting/transactions';
+import PLStatement from '@/pages/accounting/PLStatement';
+import BalanceSheet from '@/pages/accounting/BalanceSheet';
+import CashFlowStatement from '@/pages/accounting/CashFlowStatement';
+import JournalEntries from '@/pages/accounting/JournalEntries';
+import JournalEntryForm from '@/pages/accounting/JournalEntryForm';
+import GLAccounts from '@/pages/accounting/GLAccounts';
+import GLAccountForm from '@/pages/accounting/GLAccountForm';
+import Payroll from '@/pages/accounting/Payroll';
+import PayrollCalculation from '@/pages/accounting/PayrollCalculation';
+import TaxReports from '@/pages/accounting/TaxReports';
 import Settings from '@/pages/settings';
 import SystemSettings from '@/pages/admin/system-settings';
 import UserManagement from '@/pages/admin/user-management';
@@ -131,9 +140,20 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/accounting/reserves', component: FinanceReserves },
   { path: '/accounting/close', component: MonthlyClose },
   { path: '/accounting/reports', component: FinancialReportsPage },
-  { path: '/accounting/payroll', component: PayrollPage },
+  { path: '/accounting/journal-entries/new', component: JournalEntryForm },
+  { path: '/accounting/journal-entries/:id', component: JournalEntryForm },
+  { path: '/accounting/journal-entries', component: JournalEntries },
+  { path: '/accounting/gl-accounts/new', component: GLAccountForm },
+  { path: '/accounting/gl-accounts/:id/edit', component: GLAccountForm },
+  { path: '/accounting/gl-accounts', component: GLAccounts },
+  { path: '/accounting/pl-statement', component: PLStatement },
+  { path: '/accounting/balance-sheet', component: BalanceSheet },
+  { path: '/accounting/cash-flow', component: CashFlowStatement },
+  { path: '/accounting/tax-reports', component: TaxReports },
+  { path: '/accounting/payroll/calculate', component: PayrollCalculation },
+  { path: '/accounting/payroll', component: Payroll },
   { path: '/accounting/transactions', component: TransactionsPage },
-  { path: '/accounting', component: AccountingDashboard },
+  { path: '/accounting', component: AccountingDashboardPage },
   { path: '/settings/:tab?', component: Settings },
   { path: '/admin/settings', component: SystemSettings },
   { path: '/admin/users', component: UserManagement, aliases: ['/users', '/users/staff', '/admin/user-management'] },
