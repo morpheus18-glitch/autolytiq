@@ -1,0 +1,31 @@
+export interface CustomerEvent {
+  event_id?: string;
+  event_name: string;
+  event_timestamp: number;
+  session_id: string;
+  customer_id?: string;
+  anonymous_id: string;
+  tenant_id: string;
+  page_url: string;
+  page_title: string;
+  page_path: string;
+  referrer?: string;
+  user_agent: string;
+  device_type: string;
+  browser: string;
+  browser_version: string;
+  os: string;
+  os_version?: string;
+  screen_width: number;
+  screen_height: number;
+  properties: Record<string, any>;
+  time_on_page?: number;
+  scroll_depth?: number;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
+  ip_address?: string;
+  created_at?: Date;
+}
