@@ -44,6 +44,7 @@ import { registerContinuousMLRoutes } from "./continuous-ml";
 import { registerMLAdminRoutes } from "./ml-admin-routes";
 import { registerMLEnterpriseRoutes } from "./ml-enterprise-routes";
 import { registerMLHeatmapRoutes } from "./ml-heatmap-routes";
+import { registerSettingsRoutes } from "./settings-routes";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 import { EnterpriseWebSocketManager } from "./enterprise-websocket";
@@ -114,6 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerMLAdminRoutes(app);
   registerMLEnterpriseRoutes(app);
   registerMLHeatmapRoutes(app);
+  registerSettingsRoutes(app);
 
   await moduleRegistry.registerModule(app, crmModule);
   await moduleRegistry.registerModule(app, deskingModule);
