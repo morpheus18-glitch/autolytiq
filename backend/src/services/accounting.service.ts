@@ -131,7 +131,11 @@ function normalizeAmount(value: Prisma.Decimal | number | null | undefined): num
   return Math.round((value.toNumber() + Number.EPSILON) * 100) / 100;
 }
 
-function createStatementOptions(tenantId: string, range?: Partial<DateRange>, includeTransactions = true): StatementOptions {
+export function createStatementOptions(
+  tenantId: string,
+  range?: Partial<DateRange>,
+  includeTransactions = true,
+): StatementOptions {
   const { startDate, endDate } = resolveRange(range);
   return {
     tenantId,

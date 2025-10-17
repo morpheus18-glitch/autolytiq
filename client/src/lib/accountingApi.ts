@@ -35,6 +35,66 @@ export interface FinancialStatement {
   totals: Record<string, number>;
 }
 
+export type BalanceSheetComparisonMode = 'NONE' | 'PREVIOUS_MONTH' | 'PREVIOUS_YEAR';
+
+export interface BalanceSheetAccountBreakdown {
+  accountId: string;
+  accountNumber: string;
+  accountName: string;
+  amount: number;
+  comparisonAmount: number;
+  entries: StatementAccountEntry[];
+}
+
+export interface BalanceSheetLineItem {
+  key: string;
+  label: string;
+  type: 'GROUP' | 'LINE' | 'SUBTOTAL' | 'TOTAL';
+  amount: number;
+  comparisonAmount: number;
+  children?: BalanceSheetLineItem[];
+  accounts?: BalanceSheetAccountBreakdown[];
+}
+
+export interface BalanceSheetSection {
+  key: 'ASSETS' | 'LIABILITIES_EQUITY';
+  label: string;
+  total: number;
+  comparisonTotal: number;
+  children: BalanceSheetLineItem[];
+}
+
+export interface BalanceSheetRatios {
+  currentRatio: number | null;
+  quickRatio: number | null;
+  debtToEquity: number | null;
+  workingCapital: number;
+  inventoryTurnover: number | null;
+  daysSalesInInventory: number | null;
+}
+
+export interface BalanceSheetReport {
+  dealershipName?: string | null;
+  asOfDate: string;
+  generatedAt: string;
+  comparison?: {
+    mode: BalanceSheetComparisonMode;
+    asOfDate?: string | null;
+  } | null;
+  sections: BalanceSheetSection[];
+  totals: {
+    currentAssets: number;
+    totalAssets: number;
+    netFixedAssets: number;
+    totalFixedAssets: number;
+    currentLiabilities: number;
+    longTermLiabilities: number;
+    totalLiabilities: number;
+    totalEquity: number;
+  };
+  ratios: BalanceSheetRatios;
+}
+
 export type PLComparisonMode = 'NONE' | 'PREVIOUS_PERIOD' | 'SAME_PERIOD_LAST_YEAR' | 'BUDGET';
 
 export interface PLStatementTransaction {
@@ -461,13 +521,13 @@ export function fetchPLStatementTransactions(params: {
   );
 }
 
-export function fetchBalanceSheet(params: { startDate?: string; endDate?: string }) {
+export function fetchBalanceSheet(params: { date: string; comparison?: BalanceSheetComparisonMode }) {
   const search = new URLSearchParams();
-  if (params.startDate) search.set('startDate', params.startDate);
-  if (params.endDate) search.set('endDate', params.endDate);
-  return apiJson<{ data: FinancialStatement }>(`/api/accounting/statements/balance-sheet?${search.toString()}`).then(
-    (res) => res.data,
-  );
+  search.set('date', params.date);
+  if (params.comparison && params.comparison !== 'NONE') {
+    search.set('comparison', params.comparison);
+  }
+  return apiJson<{ data: BalanceSheetReport }>(`/api/accounting/balance-sheet?${search.toString()}`).then((res) => res.data);
 }
 
 export function fetchCashFlow(params: { startDate?: string; endDate?: string }) {
