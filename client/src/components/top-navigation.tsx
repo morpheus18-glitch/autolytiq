@@ -96,7 +96,7 @@ export default function TopNavigation() {
     <>
       <div
         ref={navRef}
-        className="sticky top-0 z-50 px-2 pt-2 pb-2 sm:px-4 sm:pt-3 sm:pb-3 lg:px-10 lg:pt-4 lg:pb-3"
+        className="z-50 px-2 pt-2 pb-2 sm:px-4 sm:pt-3 sm:pb-3 lg:px-10 lg:pt-4 lg:pb-3"
       >
         <div className="relative">
           <div className="absolute inset-x-0 -top-2 h-px gradient-divider opacity-70" aria-hidden="true" />
