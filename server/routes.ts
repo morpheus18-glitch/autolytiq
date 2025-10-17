@@ -184,6 +184,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Map role_id to role name for frontend
       let roleName = undefined;
+      let isDeveloper = false;
+      
       if (dbUser.roleId) {
         const roleMapping: { [key: number]: string } = {
           1: 'MANAGER',      // Sales Manager
@@ -194,11 +196,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           6: 'ADMIN'         // System Administrator
         };
         roleName = roleMapping[dbUser.roleId];
+        
+        // Grant developer access to ADMIN users (role_id 6)
+        isDeveloper = dbUser.roleId === 6;
       }
 
       res.json({
         ...dbUser,
-        role: roleName
+        role: roleName,
+        developer: isDeveloper
       });
     } catch (error) {
       console.error("Error fetching user:", error);
