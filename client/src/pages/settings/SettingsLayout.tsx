@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'wouter';
 import {
   BarChart3,
   Bell,
@@ -139,22 +139,20 @@ export function SettingsLayout(): JSX.Element {
           {items.map((item) => {
             const Icon = item.icon;
             return (
-              <NavLink
+              <Link
                 key={item.to}
-                to={`/${item.to}`}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                  )
-                }
+                href={`/${item.to}`}
+                className={cn(
+                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  location === `/${item.to}`
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                )}
                 onClick={() => setMobileOpen(false)}
               >
                 <Icon className="h-4 w-4" />
                 <span>{item.label}</span>
-              </NavLink>
+              </Link>
             );
           })}
         </nav>
@@ -177,7 +175,7 @@ export function SettingsLayout(): JSX.Element {
           </Button>
         </header>
         <main className="mx-auto w-full max-w-6xl px-4 py-6">
-          <Outlet />
+          {/* Content will be rendered by the parent route */}
         </main>
       </div>
     </div>
