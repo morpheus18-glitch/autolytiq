@@ -4,11 +4,15 @@ import { Forbidden } from '../lib/errors.js';
 export function requireDeveloperAccess(req: Request, _res: Response, next: NextFunction) {
   const permissions = req.user?.permissions ?? [];
   const isAdmin = req.user?.role === 'ADMIN';
-  if (!isAdmin) {
+  const isSuperAdmin = req.user?.isSuperAdmin ?? false;
+
+  if (!isAdmin && !isSuperAdmin) {
     throw Forbidden('Admin required');
   }
-  if (!permissions.includes('developer')) {
+
+  if (!isSuperAdmin && !permissions.includes('developer')) {
     throw Forbidden('Developer permission required');
   }
+
   next();
 }

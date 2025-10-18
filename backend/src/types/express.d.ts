@@ -10,6 +10,8 @@ declare module 'express-serve-static-core' {
       role: AppRole;
       permissions?: string[];
       ip?: string;
+      isSuperAdmin?: boolean;
+      impersonatedTenantId?: string;
     };
   }
 }

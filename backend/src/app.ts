@@ -1,11 +1,29 @@
+import compression from 'compression';
+import cors from 'cors';
 import express from 'express';
-import settingsRoutes from './routes/settings.routes.js';
-import { errorHandler } from './lib/errors.js';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import { registerApiRoutes } from './routes/index.js';
 
-const app = express();
+export async function createApp() {
+  const app = express();
 
-app.use(express.json({ limit: '2mb' }));
-app.use('/api/settings', settingsRoutes);
-app.use(errorHandler);
+  app.set('trust proxy', 1);
 
-export default app;
+  app.use(
+    cors({
+      origin: process.env.CORS_ORIGIN?.split(',') ?? ['http://localhost:5173'],
+      credentials: true,
+    }),
+  );
+
+  app.use(helmet());
+  app.use(compression());
+  app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+
+  await registerApiRoutes(app);
+
+  return app;
+}
+
+export default createApp;

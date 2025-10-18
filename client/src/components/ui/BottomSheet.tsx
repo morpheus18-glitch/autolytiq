@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { lockScroll, unlockScroll } from '../../../lib/scroll-lock';
+import { lockScroll, unlockScroll } from '@/lib/scroll-lock';
 import { cn } from '@/lib/utils';
 
 const DRAG_THRESHOLD = 120;

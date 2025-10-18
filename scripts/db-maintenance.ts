@@ -1,9 +1,9 @@
 import { differenceInCalendarDays } from 'date-fns';
-import { DealStatus, PrismaClient } from '@prisma/client';
-import prisma from '../lib/prisma.js';
-import { withTenantId } from '../lib/tenant-context.js';
+import { DealStatus } from '@prisma/client';
+import prisma from '../backend/src/lib/prisma.js';
+import { withTenantId } from '../backend/src/lib/tenant-context.js';
 
-const client = prisma as PrismaClient;
+const client = prisma;
 
 async function updateVehicleAging(tenantId: string) {
   const vehicles = await client.vehicle.findMany({

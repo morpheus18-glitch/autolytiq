@@ -1,4 +1,15 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient, QueryFunction } from '@tanstack/react-query';
+import { API_BASE_URL } from '@/config/api';
+
+function resolveUrl(path: string) {
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+  if (path.startsWith('/')) {
+    return `${API_BASE_URL}${path}`;
+  }
+  return `${API_BASE_URL}/${path}`;
+}
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -45,28 +56,32 @@ export async function apiRequest(
     body = urlOrOptions?.body;
   }
 
-  const res = await fetch(url, {
+  const res = await fetch(resolveUrl(url), {
     method,
-    headers: body ? { "Content-Type": "application/json" } : {},
+    headers: body ? { 'Content-Type': 'application/json' } : {},
     body: body ? JSON.stringify(body) : undefined,
-    credentials: "include",
+    credentials: 'include',
   });
 
   await throwIfResNotOk(res);
   return res;
 }
 
-type UnauthorizedBehavior = "returnNull" | "throw";
+type UnauthorizedBehavior = 'returnNull' | 'throw';
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
-      credentials: "include",
+    const requestUrl = Array.isArray(queryKey)
+      ? resolveUrl(['', ...queryKey.map(String)].join('/').replace(/\/+/g, '/'))
+      : resolveUrl(String(queryKey));
+
+    const res = await fetch(requestUrl, {
+      credentials: 'include',
     });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+    if (unauthorizedBehavior === 'returnNull' && res.status === 401) {
       return null;
     }
 
@@ -77,7 +92,7 @@ export const getQueryFn: <T>(options: {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
+      queryFn: getQueryFn({ on401: 'throw' }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,

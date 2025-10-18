@@ -36,12 +36,10 @@ npm install
 The project ships with helper scripts:
 
 ```bash
-npm run prisma:generate   # Generate Prisma client
+npm run prisma:gen        # Generate Prisma client
 npm run prisma:migrate    # Create and apply migrations
-npm run prisma:seed       # Seed database with demo data
+npm run seed              # Seed database with demo data
 ```
-
-The `package.json` contains a Prisma seed configuration that runs `tsx prisma/seed.ts`.
 
 ## Migrations
 
@@ -76,17 +74,19 @@ The Prisma middleware also injects `tenantId` filters into queries to ensure iso
 Populate the database with realistic demo data:
 
 ```bash
-npm run prisma:seed
+npm run seed
 ```
 
 The seed script creates:
 
-- 3 demo dealerships (tenants)
-- 10 users per tenant covering admin, management, sales, finance, and service roles
-- 50 customers per tenant with 100+ interactions and realistic lead states
-- 30 inventory vehicles with aging data and vehicle history
-- 20 deals per tenant covering pending, delivered, cancelled, and F&I heavy scenarios
-- Balanced journal entries, commissions, notifications, reports, audit logs, and system settings
+- A primary demo dealership tenant (`sunrise-motors`)
+- 6 staff members spanning admin, management, finance, sales, and BDC roles
+- 60 customers with lead intelligence, follow-up interactions, and credit profiles
+- 75 inventory vehicles complete with equipment, pricing, and history records
+- Two years of closed deals with F&I add-ons, journal entries, commissions, and ownership transfers
+- Notifications, reports, audit logs, and dealership system settings aligned with the generated activity
+
+> **Developer credentials:** The super-user account provisioned by the seed uses `developer@sunrisemotors.demo` with the password `DevAccess!2024`. Change this password immediately in non-demo environments.
 
 ## Common Queries
 
