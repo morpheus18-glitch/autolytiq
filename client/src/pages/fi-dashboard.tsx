@@ -1,5 +1,5 @@
-import FiDashboard from "@/components/fi/fi-dashboard";
+import FIManagerDashboard from '@/features/fi/pages/FIManagerDashboard';
 
 export default function FiDashboardPage() {
-  return <FiDashboard />;
+  return <FIManagerDashboard />;
 }
