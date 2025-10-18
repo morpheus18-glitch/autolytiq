@@ -20,6 +20,7 @@ import {
   Cog
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { isHomePath } from "@/lib/userHomePath";
 
 interface MobileResponsiveLayoutProps {
   children: ReactNode;
@@ -30,7 +31,7 @@ interface MobileResponsiveLayoutProps {
 }
 
 const navigationItems = [
-  { name: "Dashboard", href: "/", icon: Home },
+  { name: "Dashboard", href: "/dashboard", icon: Home },
   { name: "Sales & Leads", href: "/sales", icon: Users },
   { name: "Inventory", href: "/inventory", icon: Car },
   { name: "Deal Desk", href: "/professional-deal-desk", icon: Calculator },
@@ -84,7 +85,7 @@ export default function MobileResponsiveLayout({
                       {navigationItems.map((item) => (
                         <Link key={item.name} href={item.href}>
                           <Button
-                            variant={location === item.href ? "default" : "ghost"}
+                            variant={item.href === '/dashboard' ? (isHomePath(location) ? "default" : "ghost") : location === item.href || location.startsWith(`${item.href}/`) ? "default" : "ghost"}
                             className="w-full justify-start gap-2 sm:gap-3 h-10 sm:h-11 text-sm"
                           >
                             <item.icon className="w-4 h-4 flex-shrink-0" />
@@ -111,7 +112,9 @@ export default function MobileResponsiveLayout({
 
           {/* Center - Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1">
-            <Link href="/"><Button variant={location === "/" ? "default" : "ghost"} size="sm">Dashboard</Button></Link>
+            <Link href="/dashboard">
+              <Button variant={isHomePath(location) ? "default" : "ghost"} size="sm">Dashboard</Button>
+            </Link>
             <Link href="/sales"><Button variant={location === "/sales" ? "default" : "ghost"} size="sm">Sales</Button></Link>
             <Link href="/inventory"><Button variant={location === "/inventory" ? "default" : "ghost"} size="sm">Inventory</Button></Link>
             <Link href="/analytics"><Button variant={location === "/analytics" ? "default" : "ghost"} size="sm">Analytics</Button></Link>

@@ -2,6 +2,80 @@ import type { Express } from "express";
 import { storage } from "./storage";
 
 export function registerAccountingRoutes(app: Express) {
+  // Accounting home overview
+  app.get("/api/accounting/home", async (_req, res) => {
+    try {
+      const lastCloseDate = new Date("2024-05-31T22:15:00.000Z");
+      const nextCloseDate = new Date("2024-06-30T22:15:00.000Z");
+
+      const accountingHome = {
+        primaryRoute: "/accounting",
+        hero: {
+          title: "Accounting Control Center",
+          subtitle: "Monitor close readiness, compliance tasks, and ledger activity in one workspace.",
+        },
+        quickLinks: [
+          {
+            id: "accounting-dashboard",
+            label: "Accounting Dashboard",
+            description: "Track KPIs, cash positions, and profitability trends in real time.",
+            path: "/accounting",
+          },
+          {
+            id: "journal-entries",
+            label: "Journal Entries",
+            description: "Review drafts, post entries, and reconcile recent transactions.",
+            path: "/accounting/journal-entries",
+          },
+          {
+            id: "financial-reports",
+            label: "Financial Reports",
+            description: "Generate balance sheet, P&L, and cash flow statements for leadership.",
+            path: "/accounting/reports",
+          },
+          {
+            id: "payroll-center",
+            label: "Payroll Center",
+            description: "Validate payroll liabilities and confirm funding before submission.",
+            path: "/accounting/payroll",
+          },
+        ],
+        metrics: {
+          openTasks: 6,
+          pendingApprovals: 3,
+          unresolvedAlerts: 2,
+          lastCloseDate: lastCloseDate.toISOString(),
+          nextCloseDate: nextCloseDate.toISOString(),
+        },
+        upcoming: [
+          {
+            id: "state-sales-tax",
+            label: "State sales tax filing",
+            dueDate: new Date("2024-06-20T17:00:00.000Z").toISOString(),
+            status: "AT_RISK" as const,
+          },
+          {
+            id: "month-end-prep",
+            label: "June month-end close preparation",
+            dueDate: nextCloseDate.toISOString(),
+            status: "ON_TRACK" as const,
+          },
+          {
+            id: "quarterly-package",
+            label: "Q2 financial package for leadership",
+            dueDate: new Date("2024-07-05T17:00:00.000Z").toISOString(),
+            status: "PLANNING" as const,
+          },
+        ],
+      };
+
+      res.json({ data: accountingHome });
+    } catch (error) {
+      console.error("Accounting home error:", error);
+      res.status(500).json({ message: "Failed to fetch accounting home overview" });
+    }
+  });
+
   // Deal Finalization Endpoint
   app.post("/api/accounting/finalize-deal/:dealId", async (req, res) => {
     try {
@@ -49,54 +123,159 @@ export function registerAccountingRoutes(app: Express) {
   app.get("/api/accounting/dashboard", async (req, res) => {
     try {
       const dashboardData = {
-        monthlyRevenue: 2450000,
-        totalProfit: 485000,
-        activeDeals: 84,
-        pendingFinalization: 12,
-        monthlyMetrics: {
-          salesRevenue: 2450000,
-          costOfSales: 1965000,
-          grossProfit: 485000,
-          fiIncome: 147000,
-          totalProfit: 632000,
-          profitMargin: 25.8
+        kpis: {
+          totalRevenue: {
+            current: 2450000,
+            previous: 2285000,
+            change: 7.2,
+            trend: [2100000, 2185000, 2210000, 2330000, 2450000],
+          },
+          grossProfit: {
+            current: 485000,
+            previous: 462000,
+            change: 5,
+            trend: [410000, 425000, 438000, 462000, 485000],
+            margin: 19.8,
+          },
+          netIncome: {
+            current: 185000,
+            previous: 164000,
+            change: 12.8,
+            trend: [138000, 147000, 155000, 164000, 185000],
+            margin: 7.6,
+          },
+          operatingExpenses: {
+            current: 300000,
+            previous: 298000,
+            change: 0.7,
+            trend: [295000, 296000, 297000, 298000, 300000],
+            percentOfRevenue: 52.6,
+          },
         },
-        yearToDateMetrics: {
-          totalSales: 24750000,
-          totalProfit: 6385000,
-          avgDealProfit: 5247,
-          avgFiIncome: 1285,
-          unitsRetailed: 1247
-        },
+        revenueChart: [
+          { date: "2024-01", revenue: 2120000 },
+          { date: "2024-02", revenue: 2185000 },
+          { date: "2024-03", revenue: 2260000 },
+          { date: "2024-04", revenue: 2335000 },
+          { date: "2024-05", revenue: 2450000 },
+        ],
+        profitBreakdown: [
+          { name: "Vehicle Sales", value: 235000, percentage: 48 },
+          { name: "F&I Products", value: 110000, percentage: 22 },
+          { name: "Service & Parts", value: 82000, percentage: 17 },
+          { name: "Protection Plans", value: 38000, percentage: 8 },
+          { name: "Other", value: 20000, percentage: 5 },
+        ],
+        monthlyComparison: [
+          { month: "Jan", revenue: 2120000, expenses: 1860000, profit: 260000 },
+          { month: "Feb", revenue: 2185000, expenses: 1895000, profit: 290000 },
+          { month: "Mar", revenue: 2260000, expenses: 1940000, profit: 320000 },
+          { month: "Apr", revenue: 2335000, expenses: 1995000, profit: 340000 },
+          { month: "May", revenue: 2450000, expenses: 2035000, profit: 415000 },
+          { month: "Jun", revenue: 2485000, expenses: 2050000, profit: 435000 },
+        ],
+        departmentPerformance: [
+          { department: "Sales", revenue: 1480000, cost: 1035000, margin: 30.1 },
+          { department: "F&I", revenue: 245000, cost: 68000, margin: 45.7 },
+          { department: "Service", revenue: 315000, cost: 198000, margin: 23.0 },
+          { department: "Parts", revenue: 215000, cost: 126000, margin: 21.8 },
+          { department: "Body Shop", revenue: 150000, cost: 98000, margin: 18.0 },
+        ],
         recentTransactions: [
           {
-            id: "TXN-2024-8947",
-            date: "2024-01-23",
+            id: "JE-2024-1847",
+            number: "1847",
+            date: "2024-05-23",
             description: "Vehicle Sale - 2024 Toyota Camry",
-            amount: 34500,
-            type: "revenue",
-            dealId: "D-2024-1847"
+            account: "4100 · Vehicle Sales",
+            debit: 0,
+            credit: 34500,
           },
           {
-            id: "TXN-2024-8948", 
-            date: "2024-01-23",
-            description: "Cost of Goods Sold - Toyota Camry",
-            amount: -26000,
-            type: "expense",
-            dealId: "D-2024-1847"
+            id: "JE-2024-1848",
+            number: "1848",
+            date: "2024-05-23",
+            description: "COGS - Toyota Camry",
+            account: "5000 · Cost of Goods Sold",
+            debit: 26000,
+            credit: 0,
           },
           {
-            id: "TXN-2024-8949",
-            date: "2024-01-23", 
-            description: "F&I Commission - Extended Warranty",
-            amount: 850,
-            type: "revenue",
-            dealId: "D-2024-1847"
-          }
-        ]
+            id: "JE-2024-1850",
+            number: "1850",
+            date: "2024-05-24",
+            description: "F&I Reserve Funding - Ally",
+            account: "4200 · F&I Income",
+            debit: 0,
+            credit: 1250,
+          },
+          {
+            id: "JE-2024-1852",
+            number: "1852",
+            date: "2024-05-24",
+            description: "Payroll Accrual",
+            account: "6100 · Salaries & Wages",
+            debit: 148000,
+            credit: 0,
+          },
+          {
+            id: "JE-2024-1853",
+            number: "1853",
+            date: "2024-05-25",
+            description: "Payroll Clearing",
+            account: "2000 · Cash",
+            debit: 0,
+            credit: 148000,
+          },
+          {
+            id: "JE-2024-1854",
+            number: "1854",
+            date: "2024-05-25",
+            description: "Service Parts Usage",
+            account: "6300 · Parts Expense",
+            debit: 8200,
+            credit: 0,
+          },
+          {
+            id: "JE-2024-1855",
+            number: "1855",
+            date: "2024-05-26",
+            description: "Extended Warranty Claim",
+            account: "4300 · Warranty Income",
+            debit: 0,
+            credit: 980,
+          },
+          {
+            id: "JE-2024-1856",
+            number: "1856",
+            date: "2024-05-27",
+            description: "Insurance Expense",
+            account: "6500 · Insurance",
+            debit: 4500,
+            credit: 0,
+          },
+          {
+            id: "JE-2024-1857",
+            number: "1857",
+            date: "2024-05-27",
+            description: "Floorplan Interest",
+            account: "6200 · Floorplan Interest",
+            debit: 8200,
+            credit: 0,
+          },
+          {
+            id: "JE-2024-1858",
+            number: "1858",
+            date: "2024-05-28",
+            description: "Customer Payment",
+            account: "1200 · Accounts Receivable",
+            debit: 0,
+            credit: 18400,
+          },
+        ],
       };
 
-      res.json(dashboardData);
+      res.json({ data: dashboardData });
     } catch (error) {
       console.error("Dashboard data error:", error);
       res.status(500).json({ message: "Failed to fetch dashboard data" });

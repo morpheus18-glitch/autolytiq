@@ -192,6 +192,42 @@ export interface AccountingDashboardResponse {
   }>;
 }
 
+export type AccountingUpcomingStatus = 'ON_TRACK' | 'AT_RISK' | 'PLANNING';
+
+export interface AccountingHomeQuickLink {
+  id: string;
+  label: string;
+  description: string;
+  path: string;
+}
+
+export interface AccountingHomeMetrics {
+  openTasks: number;
+  pendingApprovals: number;
+  unresolvedAlerts: number;
+  lastCloseDate: string;
+  nextCloseDate: string;
+}
+
+export interface AccountingHomeUpcoming {
+  id: string;
+  label: string;
+  dueDate: string;
+  status: AccountingUpcomingStatus;
+  owner?: string | null;
+}
+
+export interface AccountingHomeOverview {
+  primaryRoute: string;
+  hero: {
+    title: string;
+    subtitle: string;
+  };
+  quickLinks: AccountingHomeQuickLink[];
+  metrics: AccountingHomeMetrics;
+  upcoming: AccountingHomeUpcoming[];
+}
+
 export type JournalEntryStatus = 'DRAFT' | 'POSTED' | 'VOID';
 export type JournalEntryType =
   | 'MANUAL'
@@ -458,6 +494,18 @@ async function apiJson<T>(url: string, options?: { method?: string; body?: any }
 
 export function fetchDashboardMetrics() {
   return apiJson<{ data: DashboardMetrics }>('/api/accounting/dashboard').then((res) => res.data);
+}
+
+export async function fetchAccountingHomeOverview(): Promise<AccountingHomeOverview> {
+  const payload = await apiJson<{ data: AccountingHomeOverview } | AccountingHomeOverview>(
+    '/api/accounting/home'
+  );
+
+  if (payload && typeof payload === 'object' && 'data' in payload) {
+    return (payload as { data: AccountingHomeOverview }).data;
+  }
+
+  return payload as AccountingHomeOverview;
 }
 
 export async function fetchAccountingDashboard(params: {

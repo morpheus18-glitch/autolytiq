@@ -21,9 +21,10 @@ import {
   X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { isHomePath } from "@/lib/userHomePath";
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: BarChart3 },
+  { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
   
   // Sales Department
   { 
@@ -59,10 +60,11 @@ const navigation = [
   },
   
   // Accounting Department
-  { 
-    name: "Accounting Department", 
+  {
+    name: "Accounting Department",
     isSection: true,
     children: [
+      { name: "Accounting Dashboard", href: "/accounting", icon: BarChart3 },
       { name: "Financial Reports", href: "/accounting/reports", icon: DollarSign },
       { name: "Payroll", href: "/accounting/payroll", icon: Users },
       { name: "Transactions", href: "/accounting/transactions", icon: BarChart3 },
@@ -193,7 +195,10 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
                 </div>
               );
             } else {
-              const isActive = location === item.href;
+              const isActive =
+                item.href === '/dashboard'
+                  ? isHomePath(location)
+                  : location === item.href;
               const Icon = item.icon;
               return (
                 <Link
