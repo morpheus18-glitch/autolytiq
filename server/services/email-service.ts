@@ -34,7 +34,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       from: params.from,
       subject: params.subject,
       text: params.text,
-      html: params.html,
+      html: params.html || params.text || '', // Provide fallback for optional html
     });
     console.log(`Email sent successfully to ${params.to}`);
     return true;
