@@ -426,6 +426,9 @@ model Lead {
   priority            LeadPriority @default(MEDIUM)
   rating              Int?
   score               Int?
+  smsOptOut           Boolean      @default(false)
+  emailOptOut         Boolean      @default(false)
+  callOptOut          Boolean      @default(false)
   isArchived          Boolean      @default(false)
   isConverted         Boolean      @default(false)
   lastActivityAt      DateTime?    @db.Timestamptz(6)
@@ -465,6 +468,9 @@ model Activity {
   subject     String?
   description String?
   outcome     String?
+  metadata   Json?
+  opened     Boolean      @default(false)
+  clicked    Boolean      @default(false)
   dueAt       DateTime?      @db.Timestamptz(6)
   startedAt   DateTime?      @db.Timestamptz(6)
   completedAt DateTime?      @db.Timestamptz(6)

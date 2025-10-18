@@ -1,0 +1,301 @@
+import {
+  ActivityStatus,
+  CommunicationDirection,
+  CommunicationStatus,
+  CommunicationType,
+  LeadPriority,
+  LeadSource,
+  LeadStatus,
+  Prisma,
+} from '@prisma/client';
+import { getTenantId, prisma } from '../lib/prisma.js';
+import { mapSendGridStatus, mapTwilioStatus } from './inbox.service.js';
+import { normalizePhoneNumber } from './twilio.service.js';
+import * as activityService from './activity.service.js';
+
+function deriveActivityStatus(status?: CommunicationStatus | null): ActivityStatus {
+  switch (status) {
+    case CommunicationStatus.DELIVERED:
+      return ActivityStatus.COMPLETED;
+    case CommunicationStatus.FAILED:
+    case CommunicationStatus.CANCELLED:
+      return ActivityStatus.CANCELED;
+    default:
+      return ActivityStatus.PENDING;
+  }
+}
+
+function requireTenantId(): string {
+  const tenantId = getTenantId();
+  if (!tenantId) {
+    throw new Error('Tenant context is required for webhook processing');
+  }
+  return tenantId;
+}
+
+function optionalRelation<T>(value?: string | null): T | undefined {
+  if (!value) {
+    return undefined;
+  }
+  return { connect: { id: value } } as T;
+}
+
+function mergeJson(
+  base: Record<string, unknown> | null | undefined,
+  extra: Record<string, unknown>,
+): Prisma.InputJsonValue {
+  return { ...(base ?? {}), ...extra } as Prisma.InputJsonValue;
+}
+
+async function upsertLeadByPhone(phone: string, source: LeadSource) {
+  const tenantId = requireTenantId();
+  const normalized = normalizePhoneNumber(phone);
+  if (!normalized) {
+    return { leadId: undefined, customerId: undefined } as const;
+  }
+
+  let lead = await prisma.lead.findFirst({
+    where: { phone: normalized },
+    select: { id: true, customerId: true },
+  });
+
+  if (!lead) {
+    lead = await prisma.lead.create({
+      data: {
+        tenant: { connect: { id: tenantId } },
+        phone: normalized,
+        source,
+        status: LeadStatus.NEW,
+        priority: LeadPriority.MEDIUM,
+        tags: ['AUTO_CREATED'],
+      },
+      select: { id: true, customerId: true },
+    });
+  }
+
+  return { leadId: lead.id, customerId: lead.customerId } as const;
+}
+
+async function updateActivityFromCommunication(
+  communicationId: string,
+  status: CommunicationStatus | undefined,
+  outcome?: string,
+) {
+  const communication = await prisma.communication.findUnique({
+    where: { id: communicationId },
+    select: { activityId: true, leadId: true },
+  });
+
+  if (!communication?.activityId) {
+    return;
+  }
+
+  const updates: Prisma.ActivityUpdateInput = {};
+  if (status) {
+    updates.status = deriveActivityStatus(status);
+  }
+  if (outcome) {
+    updates.outcome = outcome;
+  }
+  if (
+    status &&
+    (status === CommunicationStatus.DELIVERED ||
+      status === CommunicationStatus.FAILED ||
+      status === CommunicationStatus.CANCELLED)
+  ) {
+    updates.completedAt = new Date();
+  }
+
+  await prisma.activity.update({ where: { id: communication.activityId }, data: updates });
+}
+
+export async function handleTwilioWebhook(payload: Record<string, any>) {
+  const tenantId = requireTenantId();
+  const messageSid = payload.MessageSid ?? payload.SmsSid;
+  const callSid = payload.CallSid;
+
+  if (messageSid) {
+    const status = mapTwilioStatus(payload.MessageStatus ?? payload.SmsStatus);
+    const direction = (payload.Direction ?? payload.MessageDirection ?? '').toLowerCase();
+
+    if ((payload.SmsStatus ?? '').toLowerCase() === 'received' || direction === 'inbound') {
+      const from = normalizePhoneNumber(payload.From ?? '');
+      const to = normalizePhoneNumber(payload.To ?? '');
+      const body = payload.Body ?? '';
+      const { leadId, customerId } = await upsertLeadByPhone(from, LeadSource.PHONE);
+
+      const communication = await prisma.communication.create({
+        data: {
+          tenant: { connect: { id: tenantId } },
+          type: CommunicationType.SMS,
+          direction: CommunicationDirection.INBOUND,
+          to,
+          from,
+          body,
+          providerId: messageSid,
+          status: CommunicationStatus.DELIVERED,
+          metadata: { twilio: payload } as Prisma.InputJsonValue,
+          lead: optionalRelation<Prisma.LeadCreateNestedOneWithoutCommunicationsInput>(leadId),
+          customer: optionalRelation<Prisma.CustomerCreateNestedOneWithoutCommunicationsInput>(customerId),
+        },
+      });
+
+      const activity = await activityService.logSmsActivity({
+        leadId,
+        customerId: customerId ?? undefined,
+        body,
+        to,
+        from,
+        providerId: messageSid,
+      });
+
+      await prisma.communication.update({ where: { id: communication.id }, data: { activityId: activity.id } });
+      return;
+    }
+
+    const communication = await prisma.communication.findFirst({
+      where: { providerId: messageSid },
+      select: { id: true, metadata: true },
+    });
+
+    if (!communication) {
+      return;
+    }
+
+    const updated = await prisma.communication.update({
+      where: { id: communication.id },
+      data: {
+        status: status ?? undefined,
+        metadata: mergeJson(communication.metadata as Record<string, unknown> | null, {
+          lastEvent: payload,
+        }),
+      },
+    });
+
+    await updateActivityFromCommunication(updated.id, updated.status ?? undefined, payload.MessageStatus ?? payload.SmsStatus);
+    return;
+  }
+
+  if (callSid) {
+    const status = mapTwilioStatus(payload.CallStatus);
+    const direction = (payload.Direction ?? '').toLowerCase();
+    const existing = await prisma.communication.findFirst({ where: { providerId: callSid } });
+
+    if (!existing) {
+      const from = normalizePhoneNumber(payload.From ?? '');
+      const to = normalizePhoneNumber(payload.To ?? '');
+      const { leadId, customerId } = await upsertLeadByPhone(direction === 'inbound' ? from : to, LeadSource.PHONE);
+
+      const communication = await prisma.communication.create({
+        data: {
+          tenant: { connect: { id: tenantId } },
+          type: CommunicationType.CALL,
+          direction: direction === 'inbound' ? CommunicationDirection.INBOUND : CommunicationDirection.OUTBOUND,
+          to,
+          from,
+          providerId: callSid,
+          status: status ?? CommunicationStatus.SENT,
+          metadata: { twilio: payload } as Prisma.InputJsonValue,
+          lead: optionalRelation<Prisma.LeadCreateNestedOneWithoutCommunicationsInput>(leadId),
+          customer: optionalRelation<Prisma.CustomerCreateNestedOneWithoutCommunicationsInput>(customerId),
+        },
+      });
+
+      const activity = await activityService.logCallActivity({
+        leadId,
+        customerId: customerId ?? undefined,
+        startedAt: new Date(),
+        completedAt: status === CommunicationStatus.DELIVERED ? new Date() : undefined,
+        callSid,
+        recordingUrl: payload.RecordingUrl,
+        outcome: payload.CallStatus,
+        durationSeconds: payload.CallDuration ? Number(payload.CallDuration) : undefined,
+      });
+
+      await prisma.communication.update({ where: { id: communication.id }, data: { activityId: activity.id } });
+      return;
+    }
+
+    const updated = await prisma.communication.update({
+      where: { id: existing.id },
+      data: {
+        status: status ?? undefined,
+        metadata: mergeJson(existing.metadata as Record<string, unknown> | null, {
+          lastEvent: payload,
+          recordingUrl: payload.RecordingUrl ?? (existing.metadata as Record<string, unknown> | null)?.recordingUrl,
+        }),
+      },
+    });
+
+    await updateActivityFromCommunication(updated.id, updated.status ?? undefined, payload.CallStatus);
+  }
+}
+
+export async function handleSendGridWebhook(events: Array<Record<string, any>>) {
+  for (const event of events) {
+    const rawMessageId = event.sg_message_id ?? event['sg_message_id'];
+    if (!rawMessageId) {
+      continue;
+    }
+    const messageId = String(rawMessageId).split('.')[0];
+    const status = mapSendGridStatus(event.event);
+
+    const communication = await prisma.communication.findFirst({
+      where: {
+        OR: [
+          { providerId: messageId },
+          { metadata: { path: ['messageId'], equals: messageId } },
+        ],
+      },
+    });
+
+    if (!communication) {
+      continue;
+    }
+
+    const metadata = communication.metadata as Record<string, unknown> | null;
+    const existingEvents = Array.isArray(metadata?.events)
+      ? (metadata!.events as Prisma.JsonArray)
+      : ([] as Prisma.JsonArray);
+    const events: Prisma.JsonArray = [...existingEvents, { type: event.event, timestamp: event.timestamp }] as Prisma.JsonArray;
+
+    const updated = await prisma.communication.update({
+      where: { id: communication.id },
+      data: {
+        status: status ?? undefined,
+        metadata: {
+          ...metadata,
+          lastEvent: event,
+          events,
+          messageId,
+        },
+      },
+    });
+
+    if (updated.activityId) {
+      const activityUpdates: Prisma.ActivityUpdateInput = {};
+      if (status) {
+        activityUpdates.status = deriveActivityStatus(status);
+        if (status === CommunicationStatus.DELIVERED || status === CommunicationStatus.FAILED) {
+          activityUpdates.completedAt = new Date();
+        }
+      }
+
+      if (event.event === 'open') {
+        activityUpdates.opened = true;
+        activityUpdates.outcome = 'Email opened';
+      }
+
+      if (event.event === 'click') {
+        activityUpdates.clicked = true;
+        activityUpdates.outcome = 'Email clicked';
+      }
+
+      await prisma.activity.update({ where: { id: updated.activityId }, data: activityUpdates });
+    }
+
+    if (['bounce', 'spamreport', 'unsubscribe'].includes(event.event) && communication.leadId) {
+      await prisma.lead.update({ where: { id: communication.leadId }, data: { emailOptOut: true } });
+    }
+  }
+}

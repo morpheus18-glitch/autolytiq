@@ -3,6 +3,9 @@ import { Router } from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { tenantScope } from '../middleware/tenant.js';
 import { leadRouter } from './leads.js';
+import webhookRouter from './webhooks.routes.js';
+import { activityRouter } from './activity.routes.js';
+import { communicationRouter } from './communication.routes.js';
 
 export function registerRoutes(app: Express) {
   app.get('/health', ((req, res) => {
@@ -14,6 +17,9 @@ export function registerRoutes(app: Express) {
   apiRouter.use(tenantScope);
 
   apiRouter.use('/leads', leadRouter);
+  apiRouter.use('/activities', activityRouter);
+  apiRouter.use('/communications', communicationRouter);
 
+  app.use('/api', webhookRouter);
   app.use('/api', apiRouter);
 }
