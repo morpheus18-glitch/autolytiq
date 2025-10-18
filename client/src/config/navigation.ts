@@ -149,7 +149,7 @@ export const MOBILE_ALL_NAV_ITEMS: MobileNavItem[] = [
   { name: 'Analytics', href: '/analytics', icon: TrendingUp, color: 'text-pink-600', matchPaths: ['/analytics/customer-lifecycle', '/competitive-pricing', '/ml-model-comparison'] },
   { name: 'Reports', href: '/reports', icon: BarChart3, color: 'text-yellow-600', matchPaths: ['/reports/sales', '/reports/inventory', '/reports/service', '/reports/financial'] },
   { name: 'Settings', href: '/settings', icon: Settings, color: 'text-gray-600' },
-  { name: 'Admin', href: '/admin/settings', icon: Building, color: 'text-red-600', matchPaths: ['/admin/'] }
+  { name: 'Admin', href: '/settings/preferences', icon: Building, color: 'text-red-600', matchPaths: ['/settings', '/settings/'] }
 ];
 
 export const QUICK_ACTIONS: QuickAction[] = [

@@ -277,25 +277,25 @@ export default function TopNavigation() {
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator className="my-2" />
                       <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2 text-sm hover:bg-white/60 dark:hover:bg-white/10">
-                        <Link href="/admin/user-profile" className="flex items-center">
+                        <Link href="/settings/profile" className="flex items-center">
                           <User className="mr-2 h-4 w-4" />
                           Profile Settings
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2 text-sm hover:bg-white/60 dark:hover:bg-white/10">
-                        <Link href="/admin/security-center" className="flex items-center">
+                        <Link href="/settings/security" className="flex items-center">
                           <Shield className="mr-2 h-4 w-4" />
                           Security
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2 text-sm hover:bg-white/60 dark:hover:bg-white/10">
-                        <Link href="/admin/system-settings" className="flex items-center">
+                        <Link href="/settings/preferences" className="flex items-center">
                           <Settings className="mr-2 h-4 w-4" />
                           Preferences
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2 text-sm hover:bg-white/60 dark:hover:bg-white/10">
-                        <Link href="/admin/dealer-configuration" className="flex items-center">
+                        <Link href="/settings/dealer-config" className="flex items-center">
                           <Database className="mr-2 h-4 w-4" />
                           Dealer Config
                         </Link>
@@ -470,13 +470,13 @@ export default function TopNavigation() {
 
               <div className="mt-3 space-y-1">
                 <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-lg px-4 py-3 text-sm hover:bg-white/75 dark:hover:bg-white/10">
-                  <Link href="/admin/system-settings">
+                  <Link href="/settings/preferences">
                     <Settings className="h-5 w-5" />
                     Settings &amp; Preferences
                   </Link>
                 </Button>
                 <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-lg px-4 py-3 text-sm hover:bg-white/75 dark:hover:bg-white/10">
-                  <Link href="/admin/security-center">
+                  <Link href="/settings/security">
                     <Shield className="h-5 w-5" />
                     Security &amp; Privacy
                   </Link>

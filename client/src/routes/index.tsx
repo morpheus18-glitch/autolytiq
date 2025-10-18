@@ -50,17 +50,8 @@ import Payroll from '@/pages/accounting/Payroll';
 import PayrollCalculation from '@/pages/accounting/PayrollCalculation';
 import TaxReports from '@/pages/accounting/TaxReports';
 import Settings from '@/pages/settings';
-import SystemSettings from '@/pages/admin/system-settings';
 import UserManagement from '@/pages/admin/user-management';
-import ComprehensiveSettings from '@/pages/admin/comprehensive-settings';
-import DealerConfiguration from '@/pages/admin/dealer-configuration';
-import IntegrationSetup from '@/pages/admin/integration-setup';
-import SecurityCenter from '@/pages/admin/security-center';
 import SystemHealth from '@/pages/system-health';
-import LeadDistribution from '@/pages/admin/lead-distribution';
-import CommunicationSettings from '@/pages/admin/communication-settings';
-import SystemConfiguration from '@/pages/admin/system-configuration';
-import UserProfile from '@/pages/admin/user-profile';
 import RoleManagement from '@/pages/admin/role-management';
 import PerformanceTracking from '@/pages/admin/performance-tracking';
 import TrainingCenter from '@/pages/admin/training-center';
@@ -155,20 +146,25 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/accounting/transactions', component: TransactionsPage },
   { path: '/accounting', component: AccountingDashboardPage },
   { path: '/settings/:tab?', component: Settings },
-  { path: '/admin/settings', component: SystemSettings },
-  { path: '/admin/users', component: UserManagement, aliases: ['/users', '/users/staff', '/admin/user-management'] },
+  { path: '/admin/settings', component: Settings },
+  { path: '/admin/system-settings', component: Settings },
+  {
+    path: '/admin/users',
+    component: UserManagement,
+    aliases: ['/users', '/users/staff', '/admin/user-management']
+  },
   { path: '/users/roles', component: RoleManagement },
   { path: '/users/performance', component: PerformanceTracking },
   { path: '/users/training', component: TrainingCenter },
-  { path: '/admin/dealership', component: ComprehensiveSettings, aliases: ['/admin/comprehensive-settings'] },
-  { path: '/admin/dealer-configuration', component: DealerConfiguration },
-  { path: '/admin/integrations', component: IntegrationSetup },
-  { path: '/admin/security', component: SecurityCenter, aliases: ['/admin/security-center'] },
+  { path: '/admin/dealership', component: Settings, aliases: ['/admin/comprehensive-settings'] },
+  { path: '/admin/dealer-configuration', component: Settings },
+  { path: '/admin/integrations', component: Settings },
+  { path: '/admin/security', component: Settings, aliases: ['/admin/security-center'] },
   { path: '/admin/health', component: SystemHealth },
-  { path: '/admin/lead-distribution', component: LeadDistribution },
-  { path: '/admin/communication-settings', component: CommunicationSettings },
-  { path: '/admin/system-configuration', component: SystemConfiguration },
-  { path: '/admin/user-profile', component: UserProfile },
+  { path: '/admin/lead-distribution', component: Settings },
+  { path: '/admin/communication-settings', component: Settings },
+  { path: '/admin/system-configuration', component: Settings },
+  { path: '/admin/user-profile', component: Settings },
   { path: '/multi-store-management', component: MultiStoreManagement },
   { path: '/service/appointments', component: ServiceAppointmentsPage },
   { path: '/service/history', component: ServiceHistoryPage },

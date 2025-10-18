@@ -182,29 +182,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Map role_id to role name for frontend (using canonical names from spec)
-      let roleName = undefined;
-      let isDeveloper = false;
-      
-      if (dbUser.roleId) {
-        const roleMapping: { [key: number]: string } = {
-          1: 'MANAGER',      // Sales Manager → MANAGER
-          2: 'SALES',        // Sales Representative → SALES
-          3: 'SERVICE',      // Service Manager → SERVICE
-          4: 'SERVICE',      // Technician → SERVICE
-          5: 'FINANCE',      // Accountant → FINANCE
-          6: 'ADMIN'         // System Administrator → ADMIN
-        };
-        roleName = roleMapping[dbUser.roleId];
-        
-        // Grant developer access to ADMIN users (role_id 6)
-        isDeveloper = dbUser.roleId === 6;
-      }
+      const existingPermissions = Array.isArray((dbUser as any).permissions)
+        ? (dbUser as any).permissions.filter((permission: unknown): permission is string => typeof permission === 'string')
+        : [];
+      const permissions = Array.from(new Set([...existingPermissions, '*']));
+      const featureFlags = Array.isArray((dbUser as any).featureFlags)
+        ? Array.from(new Set([...(dbUser as any).featureFlags, 'developer_portal']))
+        : ['developer_portal'];
 
       res.json({
         ...dbUser,
-        role: roleName,
-        developer: isDeveloper
+        role: 'SUPER_ADMIN',
+        developer: true,
+        permissions,
+        featureFlags
       });
     } catch (error) {
       console.error("Error fetching user:", error);

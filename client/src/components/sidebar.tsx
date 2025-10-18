@@ -74,11 +74,11 @@ const navigation = [
     name: "Administration", 
     isSection: true,
     children: [
-      { name: "User Management", href: "/admin/user-management", icon: Users },
-      { name: "My Profile", href: "/admin/user-profile", icon: User },
-      { name: "System Configuration", href: "/admin/system-configuration", icon: Settings },
-      { name: "Lead Distribution", href: "/admin/lead-distribution", icon: Target },
-      { name: "Enterprise Config", href: "/admin/comprehensive-settings", icon: Settings },
+      { name: "User Management", href: "/settings/user-management", icon: Users },
+      { name: "My Profile", href: "/settings/profile", icon: User },
+      { name: "System Configuration", href: "/settings/system-configuration", icon: Settings },
+      { name: "Lead Distribution", href: "/settings/lead-distribution", icon: Target },
+      { name: "Enterprise Config", href: "/settings/enterprise", icon: Settings },
     ]
   },
 ];
