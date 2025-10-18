@@ -2,15 +2,20 @@ import { Router } from 'express';
 import multer from 'multer';
 import {
   deleteDocument,
+  getFiProductDetails,
   getCreditApplication,
   getCreditReport,
   getDeal,
+  listFiProducts,
   listDocuments,
   listLenderDecisions,
   listLenders,
   pullCreditReport,
   shareCreditReport,
   satisfySubmissionStipulation,
+  buildMenuConfiguration,
+  getMenuConfiguration,
+  selectMenuOption,
   selectLenderSubmission,
   updateDeal,
   uploadDocument,
@@ -30,6 +35,11 @@ const upload = multer({
 
 router.get('/deals/:id', getDeal);
 router.put('/deals/:id', updateDeal);
+router.get('/products', listFiProducts);
+router.post('/menu/build', buildMenuConfiguration);
+router.get('/menu/:dealId', getMenuConfiguration);
+router.post('/menu/:dealId/select-option', selectMenuOption);
+router.get('/product-details/:productId', getFiProductDetails);
 router.get('/deals/:id/documents', listDocuments);
 router.post('/deals/:id/documents/upload', upload.single('file'), uploadDocument);
 router.delete('/deals/:id/documents/:docId', deleteDocument);

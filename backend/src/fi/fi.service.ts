@@ -63,6 +63,34 @@ function parseDate(value?: string | null) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+function calculateMonthlyPayment(
+  amount: number,
+  apr?: number | null,
+  term?: number | null,
+): number | null {
+  if (!term || term <= 0) {
+    return null;
+  }
+
+  if (amount <= 0) {
+    return 0;
+  }
+
+  const rate = !apr ? 0 : apr / 100 / 12;
+
+  if (rate === 0) {
+    return amount / term;
+  }
+
+  const factor = (1 + rate) ** term;
+  const payment = (amount * rate * factor) / (factor - 1);
+  return Number.isFinite(payment) ? payment : null;
+}
+
+function roundToCurrency(value: number) {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
 function updateStipulations(stipulations: Stipulation[], stipulationId: string, note?: string) {
   return stipulations.map((stipulation) => {
     if (stipulation.id !== stipulationId) {
@@ -99,6 +127,98 @@ type DealWithFinance = Prisma.DealJacketGetPayload<{
   };
 }>;
 
+type FiProductDto = {
+  id: string;
+  tenantId: string;
+  name: string;
+  category: string;
+  provider: string;
+  description: string;
+  coverageDetails: Prisma.JsonValue | null;
+  cost: number;
+  retailPrice: number;
+  markup: number;
+  margin: number;
+  term: number | null;
+  termType: string | null;
+  deductible: number | null;
+  minVehicleAge: number | null;
+  maxVehicleAge: number | null;
+  minMileage: number | null;
+  maxMileage: number | null;
+  isActive: boolean;
+};
+
+type MenuOptionProductSnapshot = {
+  id: string;
+  name: string;
+  category: string;
+  provider: string;
+  description: string;
+  coverageDetails: Prisma.JsonValue | null;
+  cost: number;
+  retailPrice: number;
+  markup: number;
+  term: number | null;
+  termType: string | null;
+  deductible: number | null;
+  minVehicleAge: number | null;
+  maxVehicleAge: number | null;
+  minMileage: number | null;
+  maxMileage: number | null;
+};
+
+type MenuOptionSnapshot = {
+  code: 'A' | 'B' | 'C' | 'D';
+  label: string;
+  products: MenuOptionProductSnapshot[];
+  totalRetail: number;
+  totalCost: number;
+  totalMarkup: number;
+  paymentImpact: number | null;
+};
+
+interface MenuOptionInput {
+  code: 'A' | 'B' | 'C' | 'D';
+  label?: string | null;
+  productIds: string[];
+}
+
+interface BuildMenuPayload {
+  dealId: string;
+  options: MenuOptionInput[];
+}
+
+interface MenuAvailability {
+  product: FiProductDto;
+  eligible: boolean;
+  reasons: string[];
+}
+
+interface MenuConfigurationSummary {
+  id: string | null;
+  dealId: string;
+  options: MenuOptionSnapshot[];
+  selectedOption: string | null;
+  selectedProducts: MenuOptionSnapshot | null;
+  totalProductCost: number | null;
+  totalMarkup: number | null;
+  paymentImpact: number | null;
+  selectedAt: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+interface MenuPresentationResponse {
+  configuration: MenuConfigurationSummary;
+  availableProducts: MenuAvailability[];
+  baseAmountFinanced: number;
+  baseMonthlyPayment: number | null;
+  apr: number | null;
+  term: number | null;
+  vehicle: { year: number | null; mileage: number | null };
+}
+
 export class FiService {
   constructor(private readonly db = prisma) {}
 
@@ -130,6 +250,318 @@ export class FiService {
     }
 
     return deal;
+  }
+
+  private getVehicleAge(vehicle?: Prisma.Vehicle | null) {
+    if (!vehicle || !vehicle.year) {
+      return null;
+    }
+    const now = new Date();
+    const age = now.getFullYear() - vehicle.year;
+    return age < 0 ? 0 : age;
+  }
+
+  private formatFiProduct(product: Prisma.FIProductGetPayload<{}>): FiProductDto {
+    const cost = decimalToNumber(product.cost) ?? 0;
+    const retailPrice = decimalToNumber(product.retailPrice) ?? 0;
+    const markup = decimalToNumber(product.markup) ?? roundToCurrency(retailPrice - cost);
+    const deductible = decimalToNumber(product.deductible);
+
+    return {
+      id: product.id,
+      tenantId: product.tenantId,
+      name: product.name,
+      category: product.category,
+      provider: product.provider,
+      description: product.description,
+      coverageDetails: product.coverageDetails ?? null,
+      cost: roundToCurrency(cost),
+      retailPrice: roundToCurrency(retailPrice),
+      markup: roundToCurrency(markup),
+      margin: roundToCurrency(markup),
+      term: product.term ?? null,
+      termType: product.termType ?? null,
+      deductible: deductible === null ? null : roundToCurrency(deductible),
+      minVehicleAge: product.minVehicleAge ?? null,
+      maxVehicleAge: product.maxVehicleAge ?? null,
+      minMileage: product.minMileage ?? null,
+      maxMileage: product.maxMileage ?? null,
+      isActive: product.isActive,
+    } satisfies FiProductDto;
+  }
+
+  private createProductSnapshot(product: Prisma.FIProductGetPayload<{}>): MenuOptionProductSnapshot {
+    const formatted = this.formatFiProduct(product);
+    return {
+      id: formatted.id,
+      name: formatted.name,
+      category: formatted.category,
+      provider: formatted.provider,
+      description: formatted.description,
+      coverageDetails: formatted.coverageDetails,
+      cost: formatted.cost,
+      retailPrice: formatted.retailPrice,
+      markup: formatted.markup,
+      term: formatted.term,
+      termType: formatted.termType,
+      deductible: formatted.deductible,
+      minVehicleAge: formatted.minVehicleAge,
+      maxVehicleAge: formatted.maxVehicleAge,
+      minMileage: formatted.minMileage,
+      maxMileage: formatted.maxMileage,
+    } satisfies MenuOptionProductSnapshot;
+  }
+
+  private evaluateProductEligibility(
+    product: Prisma.FIProductGetPayload<{}>,
+    vehicleAge: number | null,
+    vehicleMileage: number | null,
+  ) {
+    const reasons: string[] = [];
+    const addReason = (reason: string) => {
+      if (!reasons.includes(reason)) {
+        reasons.push(reason);
+      }
+    };
+
+    if (product.minVehicleAge !== null && product.minVehicleAge !== undefined) {
+      if (vehicleAge === null) {
+        addReason('Vehicle age information is required');
+      } else if (vehicleAge < product.minVehicleAge) {
+        addReason(`Vehicle must be at least ${product.minVehicleAge} years old`);
+      }
+    }
+
+    if (product.maxVehicleAge !== null && product.maxVehicleAge !== undefined) {
+      if (vehicleAge === null) {
+        addReason('Vehicle age information is required');
+      } else if (vehicleAge > product.maxVehicleAge) {
+        addReason(`Vehicle must be no more than ${product.maxVehicleAge} years old`);
+      }
+    }
+
+    if (product.minMileage !== null && product.minMileage !== undefined) {
+      if (vehicleMileage === null) {
+        addReason('Vehicle mileage information is required');
+      } else if (vehicleMileage < product.minMileage) {
+        addReason(`Vehicle mileage must be at least ${product.minMileage}`);
+      }
+    }
+
+    if (product.maxMileage !== null && product.maxMileage !== undefined) {
+      if (vehicleMileage === null) {
+        addReason('Vehicle mileage information is required');
+      } else if (vehicleMileage > product.maxMileage) {
+        addReason(`Vehicle mileage must be no more than ${product.maxMileage}`);
+      }
+    }
+
+    return { eligible: reasons.length === 0, reasons };
+  }
+
+  private async buildAvailableProducts(tenantId: string, vehicle?: Prisma.Vehicle | null) {
+    const products = await this.db.fIProduct.findMany({
+      where: { tenantId, isActive: true },
+      orderBy: [{ category: 'asc' }, { name: 'asc' }],
+    });
+
+    const vehicleAge = this.getVehicleAge(vehicle);
+    const vehicleMileage = vehicle?.mileage ?? null;
+
+    return products.map((product) => {
+      const formatted = this.formatFiProduct(product);
+      const eligibility = this.evaluateProductEligibility(product, vehicleAge, vehicleMileage);
+      return {
+        product: formatted,
+        eligible: eligibility.eligible,
+        reasons: eligibility.eligible ? [] : eligibility.reasons,
+      } satisfies MenuAvailability;
+    });
+  }
+
+  private getBaseAmountFinanced(
+    deal: Prisma.DealJacket,
+    configuration: Prisma.MenuConfiguration | null,
+  ) {
+    const amountFinanced = decimalToNumber(deal.amountFinanced) ?? 0;
+    const currentMenuTotal = configuration
+      ? decimalToNumber(configuration.totalProductCost) ?? 0
+      : 0;
+    const baseAmount = amountFinanced - currentMenuTotal;
+    return baseAmount > 0 ? baseAmount : 0;
+  }
+
+  private buildOptionSnapshot(
+    code: 'A' | 'B' | 'C' | 'D',
+    label: string | null | undefined,
+    products: MenuOptionProductSnapshot[],
+    baseAmount: number,
+    apr: number | null,
+    term: number | null,
+    baseMonthly: number | null,
+  ): MenuOptionSnapshot {
+    const totalRetail = roundToCurrency(
+      products.reduce((sum, product) => sum + (product.retailPrice ?? 0), 0),
+    );
+    const totalCost = roundToCurrency(
+      products.reduce((sum, product) => sum + (product.cost ?? 0), 0),
+    );
+    const totalMarkup = roundToCurrency(
+      products.reduce((sum, product) => sum + (product.markup ?? 0), 0),
+    );
+    const newMonthly = calculateMonthlyPayment(baseAmount + totalRetail, apr, term);
+    const paymentImpact =
+      newMonthly !== null && baseMonthly !== null
+        ? roundToCurrency(newMonthly - baseMonthly)
+        : null;
+
+    return {
+      code,
+      label: label && label.trim().length > 0 ? label.trim() : `Option ${code}`,
+      products,
+      totalRetail,
+      totalCost,
+      totalMarkup,
+      paymentImpact,
+    } satisfies MenuOptionSnapshot;
+  }
+
+  private normalizeOptions(
+    rawOptions: Prisma.JsonValue | null | undefined,
+    baseAmount: number,
+    apr: number | null,
+    term: number | null,
+    baseMonthly: number | null,
+  ): MenuOptionSnapshot[] {
+    if (!Array.isArray(rawOptions)) {
+      return [];
+    }
+
+    return rawOptions
+      .map((entry) => {
+        if (!entry || typeof entry !== 'object') {
+          return null;
+        }
+        const option = entry as Record<string, unknown>;
+        const code = option.code;
+        if (code !== 'A' && code !== 'B' && code !== 'C' && code !== 'D') {
+          return null;
+        }
+        const label = typeof option.label === 'string' ? option.label : undefined;
+        const productsValue = option.products;
+        const products: MenuOptionProductSnapshot[] = Array.isArray(productsValue)
+          ? productsValue
+              .map((product) => {
+                if (!product || typeof product !== 'object') {
+                  return null;
+                }
+                const snapshot = product as Record<string, unknown>;
+                const id = typeof snapshot.id === 'string' ? snapshot.id : null;
+                const name = typeof snapshot.name === 'string' ? snapshot.name : '';
+                if (!id || !name) {
+                  return null;
+                }
+                return {
+                  id,
+                  name,
+                  category: typeof snapshot.category === 'string' ? snapshot.category : '',
+                  provider: typeof snapshot.provider === 'string' ? snapshot.provider : '',
+                  description:
+                    typeof snapshot.description === 'string' ? snapshot.description : '',
+                  coverageDetails: (snapshot.coverageDetails as Prisma.JsonValue) ?? null,
+                  cost: roundToCurrency(Number(snapshot.cost ?? 0)),
+                  retailPrice: roundToCurrency(Number(snapshot.retailPrice ?? 0)),
+                  markup: roundToCurrency(Number(snapshot.markup ?? 0)),
+                  term:
+                    typeof snapshot.term === 'number' && Number.isFinite(snapshot.term)
+                      ? (snapshot.term as number)
+                      : null,
+                  termType:
+                    typeof snapshot.termType === 'string' ? (snapshot.termType as string) : null,
+                  deductible:
+                    snapshot.deductible === null || snapshot.deductible === undefined
+                      ? null
+                      : roundToCurrency(Number(snapshot.deductible)),
+                  minVehicleAge:
+                    typeof snapshot.minVehicleAge === 'number'
+                      ? (snapshot.minVehicleAge as number)
+                      : null,
+                  maxVehicleAge:
+                    typeof snapshot.maxVehicleAge === 'number'
+                      ? (snapshot.maxVehicleAge as number)
+                      : null,
+                  minMileage:
+                    typeof snapshot.minMileage === 'number'
+                      ? (snapshot.minMileage as number)
+                      : null,
+                  maxMileage:
+                    typeof snapshot.maxMileage === 'number'
+                      ? (snapshot.maxMileage as number)
+                      : null,
+                } satisfies MenuOptionProductSnapshot;
+              })
+              .filter((value): value is MenuOptionProductSnapshot => value !== null)
+          : [];
+
+        return this.buildOptionSnapshot(code, label, products, baseAmount, apr, term, baseMonthly);
+      })
+      .filter((value): value is MenuOptionSnapshot => value !== null);
+  }
+
+  private formatMenuResponse(
+    deal: Prisma.DealJacket & { vehicle?: Prisma.Vehicle | null },
+    configuration: Prisma.MenuConfiguration | null,
+    options: MenuOptionSnapshot[],
+    availableProducts: MenuAvailability[],
+    baseAmount: number,
+    baseMonthly: number | null,
+    apr: number | null,
+    term: number | null,
+  ): MenuPresentationResponse {
+    const selectedOptionCode = configuration?.selectedOption ?? null;
+    const selectedOption = selectedOptionCode
+      ? options.find((option) => option.code === selectedOptionCode) ?? null
+      : null;
+
+    const fallbackCost =
+      configuration?.totalProductCost !== undefined && configuration?.totalProductCost !== null
+        ? roundToCurrency(decimalToNumber(configuration.totalProductCost) ?? 0)
+        : null;
+    const fallbackMarkup =
+      configuration?.totalMarkup !== undefined && configuration?.totalMarkup !== null
+        ? roundToCurrency(decimalToNumber(configuration.totalMarkup) ?? 0)
+        : null;
+    const fallbackImpact =
+      configuration?.paymentImpact !== undefined && configuration?.paymentImpact !== null
+        ? roundToCurrency(decimalToNumber(configuration.paymentImpact) ?? 0)
+        : null;
+
+    const summary: MenuConfigurationSummary = {
+      id: configuration?.id ?? null,
+      dealId: deal.id,
+      options,
+      selectedOption: selectedOptionCode,
+      selectedProducts: selectedOption ?? null,
+      totalProductCost: selectedOption?.totalRetail ?? fallbackCost,
+      totalMarkup: selectedOption?.totalMarkup ?? fallbackMarkup,
+      paymentImpact: selectedOption?.paymentImpact ?? fallbackImpact,
+      selectedAt: configuration?.selectedAt ? configuration.selectedAt.toISOString() : null,
+      createdAt: configuration?.createdAt ? configuration.createdAt.toISOString() : null,
+      updatedAt: configuration?.updatedAt ? configuration.updatedAt.toISOString() : null,
+    };
+
+    return {
+      configuration: summary,
+      availableProducts,
+      baseAmountFinanced: roundToCurrency(baseAmount),
+      baseMonthlyPayment: baseMonthly === null ? null : roundToCurrency(baseMonthly),
+      apr: apr === null ? null : Number(apr),
+      term: term ?? null,
+      vehicle: {
+        year: deal.vehicle?.year ?? null,
+        mileage: deal.vehicle?.mileage ?? null,
+      },
+    } satisfies MenuPresentationResponse;
   }
 
   async getDeal(user: AuthenticatedUser, tenantId: string, dealId: string) {
@@ -179,6 +611,320 @@ export class FiService {
     });
 
     return lenders;
+  }
+
+  async listFiProducts(user: AuthenticatedUser, tenantId: string) {
+    this.ensureReadAccess(user);
+
+    const products = await this.db.fIProduct.findMany({
+      where: { tenantId },
+      orderBy: [{ category: 'asc' }, { name: 'asc' }],
+    });
+
+    return products.map((product) => this.formatFiProduct(product));
+  }
+
+  async getMenuConfiguration(user: AuthenticatedUser, tenantId: string, dealId: string) {
+    this.ensureReadAccess(user);
+
+    const deal = await this.db.dealJacket.findFirst({
+      where: { id: dealId, tenantId },
+      include: { vehicle: true },
+    });
+
+    if (!deal) {
+      throw NotFound('Deal jacket not found');
+    }
+
+    const configuration = await this.db.menuConfiguration.findFirst({
+      where: { tenantId, dealId },
+    });
+
+    const baseAmount = this.getBaseAmountFinanced(deal, configuration ?? null);
+    const apr = decimalToNumber(deal.apr);
+    const term = deal.term ?? null;
+    const baseMonthly = calculateMonthlyPayment(baseAmount, apr, term);
+    const options = this.normalizeOptions(configuration?.options ?? null, baseAmount, apr, term, baseMonthly);
+    const availableProducts = await this.buildAvailableProducts(tenantId, deal.vehicle);
+
+    return this.formatMenuResponse(
+      deal,
+      configuration ?? null,
+      options,
+      availableProducts,
+      baseAmount,
+      baseMonthly,
+      apr,
+      term,
+    );
+  }
+
+  async buildMenuConfiguration(user: AuthenticatedUser, tenantId: string, payload: BuildMenuPayload) {
+    this.ensureWriteAccess(user);
+
+    const deal = await this.db.dealJacket.findFirst({
+      where: { id: payload.dealId, tenantId },
+      include: { vehicle: true },
+    });
+
+    if (!deal) {
+      throw NotFound('Deal jacket not found');
+    }
+
+    const existingConfiguration = await this.db.menuConfiguration.findFirst({
+      where: { tenantId, dealId: payload.dealId },
+    });
+
+    const baseAmount = this.getBaseAmountFinanced(deal, existingConfiguration ?? null);
+    const apr = decimalToNumber(deal.apr);
+    const term = deal.term ?? null;
+    const baseMonthly = calculateMonthlyPayment(baseAmount, apr, term);
+
+    const activeProducts = await this.db.fIProduct.findMany({
+      where: { tenantId, isActive: true },
+    });
+    const productMap = new Map(activeProducts.map((product) => [product.id, product]));
+
+    const vehicleAge = this.getVehicleAge(deal.vehicle);
+    const vehicleMileage = deal.vehicle?.mileage ?? null;
+
+    const seenCodes = new Set<MenuOptionInput['code']>();
+
+    const optionSnapshots = payload.options.map((option) => {
+      if (seenCodes.has(option.code)) {
+        throw BadRequest(`Duplicate menu option code: ${option.code}`);
+      }
+      seenCodes.add(option.code);
+
+      const uniqueProductIds = Array.from(new Set(option.productIds));
+      const products = uniqueProductIds.map((productId) => {
+        const product = productMap.get(productId);
+        if (!product) {
+          throw BadRequest('F&I product is not available for menu configuration', { productId });
+        }
+
+        const eligibility = this.evaluateProductEligibility(product, vehicleAge, vehicleMileage);
+        if (!eligibility.eligible) {
+          throw BadRequest('F&I product is not eligible for this vehicle', {
+            productId,
+            reasons: eligibility.reasons,
+          });
+        }
+
+        return this.createProductSnapshot(product);
+      });
+
+      return this.buildOptionSnapshot(option.code, option.label ?? null, products, baseAmount, apr, term, baseMonthly);
+    });
+
+    const existingSelectedCode = existingConfiguration?.selectedOption ?? null;
+    const preservedSelection = existingSelectedCode
+      ? optionSnapshots.find((option) => option.code === existingSelectedCode) ?? null
+      : null;
+    const newMonthly = preservedSelection
+      ? calculateMonthlyPayment(baseAmount + preservedSelection.totalRetail, apr, term)
+      : null;
+    const paymentImpact =
+      preservedSelection && newMonthly !== null && baseMonthly !== null
+        ? roundToCurrency(newMonthly - baseMonthly)
+        : null;
+
+    const { upsertedConfig, updatedDealRecord } = await this.db.$transaction(async (tx) => {
+      const upsertedConfig = await tx.menuConfiguration.upsert({
+        where: { dealId: payload.dealId },
+        update: {
+          options: optionSnapshots,
+          ...(preservedSelection
+            ? {
+                selectedOption: existingSelectedCode,
+                selectedProducts: preservedSelection,
+                totalProductCost: toDecimal(preservedSelection.totalRetail, 2),
+                totalMarkup: toDecimal(preservedSelection.totalMarkup, 2),
+                paymentImpact: paymentImpact !== null ? toDecimal(paymentImpact, 2) : null,
+              }
+            : {
+                selectedOption: null,
+                selectedProducts: null,
+                totalProductCost: null,
+                totalMarkup: null,
+                paymentImpact: null,
+                selectedAt: null,
+              }),
+        },
+        create: {
+          dealId: payload.dealId,
+          tenantId,
+          createdBy: user.userId,
+          options: optionSnapshots,
+          selectedOption: preservedSelection ? existingSelectedCode : null,
+          selectedProducts: preservedSelection ?? null,
+          totalProductCost: preservedSelection ? toDecimal(preservedSelection.totalRetail, 2) : null,
+          totalMarkup: preservedSelection ? toDecimal(preservedSelection.totalMarkup, 2) : null,
+          paymentImpact: paymentImpact !== null ? toDecimal(paymentImpact, 2) : null,
+        },
+      });
+
+      const amountFinancedValue = preservedSelection
+        ? baseAmount + preservedSelection.totalRetail
+        : baseAmount;
+      const monthlyValue = preservedSelection
+        ? newMonthly
+        : baseMonthly;
+
+      const updatedDealRecord = await tx.dealJacket.update({
+        where: { id: deal.id },
+        data: {
+          fiProducts: preservedSelection ? preservedSelection.products : [],
+          totalFiGross: preservedSelection ? toDecimal(preservedSelection.totalMarkup, 2) : null,
+          amountFinanced: toDecimal(amountFinancedValue, 2),
+          monthlyPayment: monthlyValue !== null ? toDecimal(monthlyValue, 2) : null,
+        },
+        include: { vehicle: true },
+      });
+
+      return { upsertedConfig, updatedDealRecord };
+    });
+
+    const menuConfig = upsertedConfig;
+    const refreshedDeal = updatedDealRecord;
+
+    const latestBaseAmount = this.getBaseAmountFinanced(refreshedDeal, menuConfig);
+    const latestApr = decimalToNumber(refreshedDeal.apr);
+    const latestTerm = refreshedDeal.term ?? null;
+    const latestBaseMonthly = calculateMonthlyPayment(latestBaseAmount, latestApr, latestTerm);
+    const normalizedOptions = this.normalizeOptions(
+      menuConfig.options,
+      latestBaseAmount,
+      latestApr,
+      latestTerm,
+      latestBaseMonthly,
+    );
+    const availableProducts = await this.buildAvailableProducts(tenantId, refreshedDeal.vehicle);
+
+    return this.formatMenuResponse(
+      refreshedDeal,
+      menuConfig,
+      normalizedOptions,
+      availableProducts,
+      latestBaseAmount,
+      latestBaseMonthly,
+      latestApr,
+      latestTerm,
+    );
+  }
+
+  async selectMenuOption(
+    user: AuthenticatedUser,
+    tenantId: string,
+    dealId: string,
+    optionCode: string | null,
+  ) {
+    this.ensureWriteAccess(user);
+
+    const deal = await this.db.dealJacket.findFirst({
+      where: { id: dealId, tenantId },
+      include: { vehicle: true },
+    });
+
+    if (!deal) {
+      throw NotFound('Deal jacket not found');
+    }
+
+    const configuration = await this.db.menuConfiguration.findFirst({
+      where: { tenantId, dealId },
+    });
+
+    if (!configuration) {
+      throw NotFound('Menu configuration not found for this deal');
+    }
+
+    const baseAmount = this.getBaseAmountFinanced(deal, configuration);
+    const apr = decimalToNumber(deal.apr);
+    const term = deal.term ?? null;
+    const baseMonthly = calculateMonthlyPayment(baseAmount, apr, term);
+    const options = this.normalizeOptions(configuration.options, baseAmount, apr, term, baseMonthly);
+
+    const selectedOption = optionCode ? options.find((option) => option.code === optionCode) ?? null : null;
+    if (optionCode && !selectedOption) {
+      throw NotFound('Menu option not found for selection');
+    }
+
+    const newMonthly = selectedOption
+      ? calculateMonthlyPayment(baseAmount + selectedOption.totalRetail, apr, term)
+      : baseMonthly;
+    const paymentImpact =
+      selectedOption && newMonthly !== null && baseMonthly !== null
+        ? roundToCurrency(newMonthly - baseMonthly)
+        : null;
+
+    const { updatedConfig, updatedDeal } = await this.db.$transaction(async (tx) => {
+      const nextConfig = await tx.menuConfiguration.update({
+        where: { dealId },
+        data: {
+          selectedOption: selectedOption ? selectedOption.code : null,
+          selectedProducts: selectedOption ?? null,
+          selectedAt: selectedOption ? new Date() : null,
+          totalProductCost: selectedOption ? toDecimal(selectedOption.totalRetail, 2) : null,
+          totalMarkup: selectedOption ? toDecimal(selectedOption.totalMarkup, 2) : null,
+          paymentImpact: paymentImpact !== null ? toDecimal(paymentImpact, 2) : null,
+        },
+      });
+
+      const amountFinancedValue = selectedOption
+        ? baseAmount + selectedOption.totalRetail
+        : baseAmount;
+
+      const updatedDealRecord = await tx.dealJacket.update({
+        where: { id: deal.id },
+        data: {
+          fiProducts: selectedOption ? selectedOption.products : [],
+          totalFiGross: selectedOption ? toDecimal(selectedOption.totalMarkup, 2) : null,
+          amountFinanced: toDecimal(amountFinancedValue, 2),
+          monthlyPayment: newMonthly !== null ? toDecimal(newMonthly, 2) : null,
+        },
+        include: { vehicle: true },
+      });
+
+      return { updatedConfig: nextConfig, updatedDeal: updatedDealRecord };
+    });
+
+    const refreshedBaseAmount = this.getBaseAmountFinanced(updatedDeal, updatedConfig);
+    const refreshedApr = decimalToNumber(updatedDeal.apr);
+    const refreshedTerm = updatedDeal.term ?? null;
+    const refreshedBaseMonthly = calculateMonthlyPayment(refreshedBaseAmount, refreshedApr, refreshedTerm);
+    const normalizedOptions = this.normalizeOptions(
+      updatedConfig.options,
+      refreshedBaseAmount,
+      refreshedApr,
+      refreshedTerm,
+      refreshedBaseMonthly,
+    );
+    const availableProducts = await this.buildAvailableProducts(tenantId, updatedDeal.vehicle);
+
+    return this.formatMenuResponse(
+      updatedDeal,
+      updatedConfig,
+      normalizedOptions,
+      availableProducts,
+      refreshedBaseAmount,
+      refreshedBaseMonthly,
+      refreshedApr,
+      refreshedTerm,
+    );
+  }
+
+  async getFiProductDetails(user: AuthenticatedUser, tenantId: string, productId: string) {
+    this.ensureReadAccess(user);
+
+    const product = await this.db.fIProduct.findFirst({
+      where: { id: productId, tenantId },
+    });
+
+    if (!product) {
+      throw NotFound('F&I product not found');
+    }
+
+    return this.formatFiProduct(product);
   }
 
   private buildSubmissionPayload(deal: DealWithFinance, desiredTerm?: number | null): RouteOneSubmission {
