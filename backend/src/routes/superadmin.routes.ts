@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma.js';
 import { getTenantContext } from '../lib/tenant-context.js';
 import { BadRequest } from '../lib/errors.js';
+import { env } from '../config/env.js';
 
 const router = express.Router();
 
@@ -59,11 +60,6 @@ router.post('/impersonate/:tenantId', async (req, res) => {
     return res.status(404).json({ error: 'Tenant not found' });
   }
 
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error('JWT_SECRET must be configured');
-  }
-
   const token = jwt.sign(
     {
       userId: context.userId,
@@ -71,8 +67,13 @@ router.post('/impersonate/:tenantId', async (req, res) => {
       isSuperAdmin: true,
       impersonatedTenantId: tenant.id,
     },
-    secret,
-    { expiresIn: '30m' },
+    env.JWT_PRIVATE_KEY,
+    {
+      algorithm: 'RS256',
+      expiresIn: '30m',
+      audience: env.JWT_AUDIENCE,
+      issuer: env.JWT_ISSUER,
+    },
   );
 
   res.json({

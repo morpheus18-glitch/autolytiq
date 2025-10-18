@@ -1,823 +1,1050 @@
+import bcrypt from 'bcrypt';
 import {
+  AccountType,
+  CommissionStatus,
+  CommissionType,
+  CustomerVehicleStatus,
+  DealDocumentType,
+  DealStatus,
+  DealType,
+  ActivityStatus,
+  ActivityType,
+  AppointmentStatus,
+  AppointmentType,
+  CommunicationDirection,
+  CommunicationStatus,
+  CommunicationType,
+  FuelType,
+  InteractionDirection,
+  InteractionType,
+  JournalStatus,
+  LeadSource,
+  LeadStatus,
+  LeadPriority,
+  LineType,
+  NormalBalance,
+  NotificationType,
+  PreferredContactMethod,
   PrismaClient,
+  ReportType,
   TenantPlan,
   TenantStatus,
   UserRole,
-  LeadStatus,
-  LeadSource,
-  PreferredContactMethod,
+  UserStatus,
+  VehicleHistoryType,
   VehicleStatus,
   VehicleType,
-  FuelType,
-  InteractionType,
-  InteractionDirection,
-  CustomerVehicleStatus,
-  VehicleHistoryType,
-  DealStatus,
-  DealType,
-  DealDocumentType,
-  CommissionStatus,
-  ReportType,
-  NotificationType,
-  AuditAction,
 } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/library';
-import bcrypt from 'bcrypt';
 import { faker } from '@faker-js/faker';
+import { addMonths, eachMonthOfInterval, endOfMonth, startOfMonth, subYears } from 'date-fns';
 
 const prisma = new PrismaClient();
-const DEFAULT_PASSWORD = 'DealerPass123!';
-const SALT_ROUNDS = 10;
 
-faker.seed(42);
+const DEALERSHIP_SUBDOMAIN = 'sunrise-motors';
+const DEVELOPER_EMAIL = 'developer@sunrisemotors.demo';
+const DEVELOPER_PASSWORD = 'DevAccess!2024';
 
-const manufacturerCatalog = [
-  { make: 'Toyota', models: ['Camry', 'RAV4', 'Highlander', 'Corolla'] },
-  { make: 'Ford', models: ['F-150', 'Explorer', 'Mustang', 'Escape'] },
-  { make: 'Chevrolet', models: ['Silverado', 'Tahoe', 'Equinox', 'Malibu'] },
-  { make: 'Honda', models: ['Civic', 'CR-V', 'Pilot', 'Accord'] },
-  { make: 'BMW', models: ['X5', '3 Series', '5 Series', 'X3'] },
-  { make: 'Mercedes-Benz', models: ['C-Class', 'E-Class', 'GLC', 'GLE'] },
+const glAccounts = [
+  {
+    accountNumber: '1000',
+    accountName: 'Operating Cash',
+    accountType: AccountType.ASSET,
+    normalBalance: NormalBalance.DEBIT,
+  },
+  {
+    accountNumber: '1100',
+    accountName: 'Accounts Receivable',
+    accountType: AccountType.ASSET,
+    normalBalance: NormalBalance.DEBIT,
+  },
+  {
+    accountNumber: '1200',
+    accountName: 'Vehicle Inventory',
+    accountType: AccountType.ASSET,
+    normalBalance: NormalBalance.DEBIT,
+  },
+  {
+    accountNumber: '2000',
+    accountName: 'Floor Plan Payable',
+    accountType: AccountType.LIABILITY,
+    normalBalance: NormalBalance.CREDIT,
+  },
+  {
+    accountNumber: '3000',
+    accountName: 'Retained Earnings',
+    accountType: AccountType.EQUITY,
+    normalBalance: NormalBalance.CREDIT,
+  },
+  {
+    accountNumber: '4000',
+    accountName: 'Vehicle Sales Revenue',
+    accountType: AccountType.REVENUE,
+    normalBalance: NormalBalance.CREDIT,
+  },
+  {
+    accountNumber: '4100',
+    accountName: 'Finance and Insurance Revenue',
+    accountType: AccountType.REVENUE,
+    normalBalance: NormalBalance.CREDIT,
+  },
+  {
+    accountNumber: '5000',
+    accountName: 'Cost of Goods Sold',
+    accountType: AccountType.EXPENSE,
+    normalBalance: NormalBalance.DEBIT,
+  },
 ];
 
-const tenantSeeds = [
-  {
-    name: 'Northwind Auto Group',
-    subdomain: 'northwind',
-    plan: TenantPlan.ENTERPRISE,
-    status: TenantStatus.ACTIVE,
-    billingEmail: 'finance@northwind-auto.com',
-  },
-  {
-    name: 'Velocity Motors',
-    subdomain: 'velocity',
-    plan: TenantPlan.PROFESSIONAL,
-    status: TenantStatus.ACTIVE,
-    billingEmail: 'billing@velocitymotors.com',
-  },
-  {
-    name: 'Sunrise Luxury Auto',
-    subdomain: 'sunrise',
-    plan: TenantPlan.BASIC,
-    status: TenantStatus.ACTIVE,
-    billingEmail: 'accounting@sunriseauto.com',
-  },
-];
-
-async function cleanupDatabase() {
-  await prisma.systemSetting.deleteMany({});
-  await prisma.auditLog.deleteMany({});
-  await prisma.notification.deleteMany({});
-  await prisma.report.deleteMany({});
-  await prisma.commission.deleteMany({});
-  await prisma.journalEntryLine.deleteMany({});
-  await prisma.journalEntry.deleteMany({});
-  await prisma.dealDocument.deleteMany({});
-  await prisma.deal.deleteMany({});
-  await prisma.vehicleHistory.deleteMany({});
-  await prisma.vehicle.deleteMany({});
-  await prisma.customerInteraction.deleteMany({});
-  await prisma.customerVehicle.deleteMany({});
-  await prisma.customer.deleteMany({});
-  await prisma.user.deleteMany({});
-  await prisma.tenant.deleteMany({});
+async function resetTenantData(tenantId: string) {
+  await prisma.communication.deleteMany({ where: { tenantId } });
+  await prisma.appointment.deleteMany({ where: { tenantId } });
+  await prisma.activity.deleteMany({ where: { tenantId } });
+  await prisma.leadScore.deleteMany({ where: { tenantId } });
+  await prisma.lead.deleteMany({ where: { tenantId } });
+  await prisma.emailTemplate.deleteMany({ where: { tenantId } });
+  await prisma.sMSTemplate.deleteMany({ where: { tenantId } });
+  await prisma.automation.deleteMany({ where: { tenantId } });
+  await prisma.notification.deleteMany({ where: { tenantId } });
+  await prisma.report.deleteMany({ where: { tenantId } });
+  await prisma.commission.deleteMany({ where: { tenantId } });
+  await prisma.journalEntryLine.deleteMany({ where: { tenantId } });
+  await prisma.journalEntry.deleteMany({ where: { tenantId } });
+  await prisma.dealDocument.deleteMany({ where: { tenantId } });
+  await prisma.deal.deleteMany({ where: { tenantId } });
+  await prisma.vehicleHistory.deleteMany({ where: { tenantId } });
+  await prisma.vehicle.deleteMany({ where: { tenantId } });
+  await prisma.customerVehicle.deleteMany({ where: { tenantId } });
+  await prisma.customerInteraction.deleteMany({ where: { tenantId } });
+  await prisma.customer.deleteMany({ where: { tenantId } });
+  await prisma.gLAccount.deleteMany({ where: { tenantId } });
+  await prisma.auditLog.deleteMany({ where: { tenantId } });
+  await prisma.systemSetting.deleteMany({ where: { tenantId } });
+  await prisma.user.deleteMany({ where: { tenantId } });
+  await prisma.tenant.delete({ where: { id: tenantId } });
 }
 
-function randomFrom<T>(values: T[]): T {
-  return values[Math.floor(Math.random() * values.length)];
+function createMonthlyPeriods() {
+  const end = endOfMonth(new Date());
+  const start = startOfMonth(subYears(end, 2));
+  return eachMonthOfInterval({ start, end });
 }
 
-function generateVin(): string {
-  const transliteration: Record<string, number> = {
-    A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8,
-    J: 1, K: 2, L: 3, M: 4, N: 5, P: 7, R: 9,
-    S: 2, T: 3, U: 4, V: 5, W: 6, X: 7, Y: 8, Z: 9,
-    '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '0': 0,
+function buildVehiclePrice() {
+  const msrp = faker.number.float({ min: 18000, max: 75000, fractionDigits: 2 });
+  const invoiceMultiplier = faker.number.float({ min: 0.88, max: 0.95, fractionDigits: 4 });
+  const listMultiplier = faker.number.float({ min: 0.92, max: 1.02, fractionDigits: 4 });
+  const invoice = msrp * invoiceMultiplier;
+  const listPrice = msrp * listMultiplier;
+  return {
+    msrp: msrp.toFixed(2),
+    invoiceCost: invoice.toFixed(2),
+    listPrice: listPrice.toFixed(2),
   };
-
-  const weights = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2];
-  const allowed = 'ABCDEFGHJKLMNPRSTUVWXYZ1234567890';
-  const chars: string[] = [];
-
-  for (let i = 0; i < 17; i++) {
-    chars[i] = allowed[Math.floor(Math.random() * allowed.length)];
-  }
-
-  let sum = 0;
-  for (let i = 0; i < chars.length; i++) {
-    sum += (transliteration[chars[i]] ?? 0) * weights[i];
-  }
-
-  const checkDigitValue = sum % 11;
-  chars[8] = checkDigitValue === 10 ? 'X' : checkDigitValue.toString();
-  return chars.join('');
 }
 
-async function seedUsers(tenantId: string, passwordHash: string) {
-  const roleDistribution: UserRole[] = [
-    UserRole.ADMIN,
-    UserRole.MANAGER,
-    UserRole.MANAGER,
-    UserRole.SALES,
-    UserRole.SALES,
-    UserRole.SALES,
-    UserRole.SALES,
-    UserRole.FINANCE,
-    UserRole.FINANCE,
-    UserRole.SERVICE,
+async function main() {
+  const existingTenant = await prisma.tenant.findUnique({ where: { subdomain: DEALERSHIP_SUBDOMAIN } });
+  if (existingTenant) {
+    console.info('Existing tenant found – refreshing demo data.');
+    await resetTenantData(existingTenant.id);
+  }
+
+  const tenant = await prisma.tenant.create({
+    data: {
+      name: 'Sunrise Motors',
+      subdomain: DEALERSHIP_SUBDOMAIN,
+      plan: TenantPlan.PROFESSIONAL,
+      status: TenantStatus.ACTIVE,
+      billingEmail: 'billing@sunrisemotors.demo',
+      settings: {
+        timezone: 'America/Chicago',
+        currency: 'USD',
+        inventoryAgingThreshold: 90,
+        defaultDocFee: 489,
+      },
+    },
+  });
+
+  const passwordHash = await bcrypt.hash(DEVELOPER_PASSWORD, 12);
+
+  const userSeed = [
+    {
+      email: DEVELOPER_EMAIL,
+      firstName: 'Dana',
+      lastName: 'Reeves',
+      role: UserRole.ADMIN,
+      isSuperAdmin: true,
+      phone: faker.helpers.replaceSymbols('+1-###-###-####'),
+    },
+    {
+      email: 'sales.manager@sunrisemotors.demo',
+      firstName: 'Jordan',
+      lastName: 'Parker',
+      role: UserRole.MANAGER,
+      phone: faker.helpers.replaceSymbols('+1-###-###-####'),
+    },
+    {
+      email: 'finance.manager@sunrisemotors.demo',
+      firstName: 'Avery',
+      lastName: 'Nguyen',
+      role: UserRole.FINANCE,
+      phone: faker.helpers.replaceSymbols('+1-###-###-####'),
+    },
+    {
+      email: 'sales1@sunrisemotors.demo',
+      firstName: 'Taylor',
+      lastName: 'Stone',
+      role: UserRole.SALES,
+      phone: faker.helpers.replaceSymbols('+1-###-###-####'),
+    },
+    {
+      email: 'sales2@sunrisemotors.demo',
+      firstName: 'Morgan',
+      lastName: 'Lee',
+      role: UserRole.SALES,
+      phone: faker.helpers.replaceSymbols('+1-###-###-####'),
+    },
+    {
+      email: 'bdc@sunrisemotors.demo',
+      firstName: 'Reese',
+      lastName: 'Howard',
+      role: UserRole.BDC,
+      phone: faker.helpers.replaceSymbols('+1-###-###-####'),
+    },
   ];
 
-  const users = [];
+  const users = await Promise.all(
+    userSeed.map((user) =>
+      prisma.user.create({
+        data: {
+          tenantId: tenant.id,
+          email: user.email,
+          password: passwordHash,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phone: user.phone,
+          role: user.role,
+          permissions: user.role === UserRole.ADMIN ? ['*'] : ['deals:read', 'customers:read'],
+          status: UserStatus.ACTIVE,
+          isSuperAdmin: user.isSuperAdmin ?? false,
+        },
+      })
+    )
+  );
 
-  for (let i = 0; i < roleDistribution.length; i++) {
-    const role = roleDistribution[i];
-    const firstName = faker.person.firstName();
-    const lastName = faker.person.lastName();
+  const usersByRole = users.reduce<Record<UserRole, typeof users>>((acc, user) => {
+    if (!acc[user.role]) {
+      acc[user.role] = [];
+    }
+    acc[user.role].push(user);
+    return acc;
+  }, {} as Record<UserRole, typeof users>);
 
-    const user = await prisma.user.create({
+  const glAccountRecords = await Promise.all(
+    glAccounts.map((account) =>
+      prisma.gLAccount.create({
+        data: {
+          tenantId: tenant.id,
+          accountNumber: account.accountNumber,
+          accountName: account.accountName,
+          accountType: account.accountType,
+          normalBalance: account.normalBalance,
+          balance: '0',
+        },
+      })
+    )
+  );
+
+  const glAccountMap = glAccountRecords.reduce<Record<string, string>>((map, account) => {
+    map[account.accountNumber] = account.id;
+    return map;
+  }, {});
+
+  const salesTeam = usersByRole[UserRole.SALES] ?? [];
+  const financeManagers = usersByRole[UserRole.FINANCE] ?? [];
+  const adminUser = users.find((user) => user.email === DEVELOPER_EMAIL) ?? users[0];
+
+  const customers = [] as Awaited<ReturnType<typeof prisma.customer.create>>[];
+  for (let i = 0; i < 60; i += 1) {
+    const created = await prisma.customer.create({
       data: {
-        tenant: { connect: { id: tenantId } },
-        email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-        passwordHash,
-        firstName,
-        lastName,
-        role,
-        permissions: [],
-        isActive: true,
-        lastLoginAt: faker.date.recent({ days: 15 }),
-      },
-    });
-
-    users.push(user);
-  }
-
-  return users;
-}
-
-async function seedCustomers(tenantId: string, salesUsers: string[]) {
-  const customers = [];
-
-  for (let i = 0; i < 50; i++) {
-    const firstName = faker.person.firstName();
-    const lastName = faker.person.lastName();
-    const leadStatus = randomFrom(Object.values(LeadStatus));
-    const assignedTo = randomFrom(salesUsers);
-
-    const customer = await prisma.customer.create({
-      data: {
-        tenant: { connect: { id: tenantId } },
-        firstName,
-        lastName,
-        email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-        phone: faker.phone.number('###-###-####'),
-        mobile: faker.phone.number('###-###-####'),
-        dateOfBirth: faker.date.birthdate({ min: 1955, max: 2005, mode: 'year' }),
-        driversLicenseNumber: faker.string.alphanumeric({ length: 12 }).toUpperCase(),
-        driversLicenseState: faker.location.state({ abbreviated: true }),
-        ssn: faker.string.numeric(9),
+        tenantId: tenant.id,
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        email: faker.internet.email({ provider: 'example.com' }),
+        phone: faker.helpers.replaceSymbols('+1-###-###-####'),
+        mobile: faker.helpers.replaceSymbols('+1-###-###-####'),
+        dateOfBirth: faker.date.birthdate({ min: 1955, max: 2002, mode: 'year' }),
         addressStreet: faker.location.streetAddress(),
         addressCity: faker.location.city(),
         addressState: faker.location.state({ abbreviated: true }),
         addressZip: faker.location.zipCode('#####'),
         addressCountry: 'USA',
-        preferredContactMethod: randomFrom(Object.values(PreferredContactMethod)),
-        leadSource: randomFrom(Object.values(LeadSource)),
-        leadStatus,
-        leadScore: faker.number.int({ min: 10, max: 100 }),
-        creditScore: faker.number.int({ min: 550, max: 820 }),
-        assignedToUser: { connect: { id: assignedTo } },
-        tags: faker.helpers.arrayElements(['EV', 'Luxury', 'SUV', 'Truck', 'Finance', 'Cash'], { min: 1, max: 3 }),
-        notes: faker.lorem.sentences({ min: 2, max: 4 }),
-        lifetimeValue: new Decimal(0),
-      },
-    });
-
-    customers.push(customer);
-  }
-
-  // Ensure specific scenarios
-  await prisma.customer.update({
-    where: { id: customers[0].id },
-    data: {
-      leadStatus: LeadStatus.HOT,
-      leadScore: 98,
-      interactions: {
-        create: {
-          tenantId,
-          userId: salesUsers[0],
-          type: 'CALL',
-          direction: 'OUTBOUND',
-          subject: 'Initial Qualification Call',
-          notes: 'Customer interested in luxury SUV. Scheduled test drive.',
-          scheduledAt: faker.date.soon({ days: 3 }),
-        },
-      },
-    },
-  });
-
-  return customers;
-}
-
-async function seedCustomerVehicles(tenantId: string, customers: { id: string }[]) {
-  const customerVehicles = [];
-
-  for (const customer of customers) {
-    if (Math.random() > 0.6) {
-      continue;
-    }
-
-    const ownedVehicleCount = faker.number.int({ min: 1, max: 2 });
-    for (let i = 0; i < ownedVehicleCount; i++) {
-      const catalogEntry = randomFrom(manufacturerCatalog);
-      const model = randomFrom(catalogEntry.models);
-
-      const vehicle = await prisma.customerVehicle.create({
-        data: {
-          tenant: { connect: { id: tenantId } },
-          customer: { connect: { id: customer.id } },
-          vin: generateVin(),
-          year: faker.number.int({ min: 2008, max: 2023 }),
-          make: catalogEntry.make,
-          model,
-          trim: faker.vehicle.model(),
-          purchaseDate: faker.date.past({ years: 5 }),
-          purchasePrice: new Decimal(faker.number.int({ min: 6000, max: 45000 })),
-          currentMileage: faker.number.int({ min: 20000, max: 120000 }),
-          status: randomFrom(Object.values(CustomerVehicleStatus)),
-          notes: faker.lorem.sentence(),
-        },
-      });
-
-      customerVehicles.push(vehicle);
-    }
-  }
-
-  return customerVehicles;
-}
-
-async function seedInventory(tenantId: string) {
-  const vehicles = [];
-
-  for (let i = 0; i < 30; i++) {
-    const catalogEntry = randomFrom(manufacturerCatalog);
-    const model = randomFrom(catalogEntry.models);
-    const year = faker.number.int({ min: 2019, max: 2024 });
-    const received = faker.date.past({ years: 1 });
-    const daysInStock = Math.max(0, Math.floor((Date.now() - received.getTime()) / (1000 * 60 * 60 * 24)));
-
-    const status = i < 5 ? VehicleStatus.SOLD : randomFrom(Object.values(VehicleStatus));
-
-    const vehicle = await prisma.vehicle.create({
-      data: {
-        tenant: { connect: { id: tenantId } },
-        stockNumber: `${faker.string.alpha({ length: 3, casing: 'upper' })}-${faker.number.int({ min: 1000, max: 9999 })}`,
-        vin: generateVin(),
-        type: randomFrom(Object.values(VehicleType)),
-        year,
-        make: catalogEntry.make,
-        model,
-        trim: faker.vehicle.model(),
-        exteriorColor: faker.vehicle.color(),
-        interiorColor: faker.vehicle.color(),
-        mileage: status === VehicleStatus.NEW ? 0 : faker.number.int({ min: 500, max: 75000 }),
-        engineType: faker.vehicle.type(),
-        transmission: faker.helpers.arrayElement(['Automatic', 'Manual', 'CVT']),
-        drivetrain: faker.helpers.arrayElement(['AWD', 'FWD', 'RWD', '4WD']),
-        fuelType: randomFrom(Object.values(FuelType)),
-        msrp: new Decimal(faker.number.int({ min: 25000, max: 85000 })),
-        invoiceCost: new Decimal(faker.number.int({ min: 20000, max: 70000 })),
-        listPrice: new Decimal(faker.number.int({ min: 22000, max: 90000 })),
-        specialPrice: Math.random() > 0.5 ? new Decimal(faker.number.int({ min: 20000, max: 88000 })) : null,
-        status,
-        location: `Lot ${faker.helpers.arrayElement(['A', 'B', 'C'])}-${faker.number.int({ min: 1, max: 40 })}`,
-        dateReceived: received,
-        dateSold: status === VehicleStatus.SOLD ? faker.date.recent({ days: 60 }) : null,
-        daysInStock,
-        images: Array.from({ length: faker.number.int({ min: 2, max: 5 }) }, () => faker.image.urlLoremFlickr({ category: 'car' })),
-        features: faker.helpers.arrayElements(['Leather Seats', 'Navigation', 'Bluetooth', 'Backup Camera', 'Heated Seats'], { min: 2, max: 5 }),
-        certificationNumber: Math.random() > 0.7 ? faker.string.alphanumeric({ length: 10 }).toUpperCase() : null,
-        floorPlanId: faker.string.alphanumeric({ length: 12 }).toUpperCase(),
-        floorPlanDate: faker.date.past({ years: 1 }),
-        floorPlanInterestRate: new Decimal(faker.number.float({ min: 2.5, max: 8, fractionDigits: 2 })),
-        notes: faker.lorem.sentences({ min: 1, max: 3 }),
-      },
-    });
-
-    vehicles.push(vehicle);
-  }
-
-  // Guarantee aged inventory scenario
-  await prisma.vehicle.updateMany({
-    where: { tenantId, status: VehicleStatus.AVAILABLE },
-    data: { daysInStock: 65 },
-  });
-
-  return vehicles;
-}
-
-async function seedVehicleHistories(tenantId: string, vehicles: { id: string }[]) {
-  for (const vehicle of vehicles.slice(0, 10)) {
-    await prisma.vehicleHistory.create({
-      data: {
-        tenant: { connect: { id: tenantId } },
-        vehicle: { connect: { id: vehicle.id } },
-        type: randomFrom([
-          VehicleHistoryType.SERVICE,
-          VehicleHistoryType.INSPECTION,
-          VehicleHistoryType.OWNERSHIP,
+        preferredContactMethod: faker.helpers.arrayElement([
+          PreferredContactMethod.EMAIL,
+          PreferredContactMethod.PHONE,
+          PreferredContactMethod.SMS,
         ]),
-        date: faker.date.past({ years: 2 }),
-        description: faker.lorem.sentences({ min: 1, max: 2 }),
-        documentUrl: faker.internet.url(),
-      },
-    });
-  }
-}
-
-async function seedDeals(
-  tenantId: string,
-  customers: { id: string; assignedToUserId: string | null }[],
-  vehicles: { id: string }[],
-  users: { id: string; role: UserRole }[],
-  customerVehicles: { id: string; tenantId: string }[],
-) {
-  const deals = [];
-
-  for (let i = 0; i < 20; i++) {
-    const customer = randomFrom(customers);
-    const salesPerson = randomFrom(users.filter((user) => user.role === UserRole.SALES || user.role === UserRole.MANAGER));
-    const financeManager = randomFrom(users.filter((user) => user.role === UserRole.FINANCE));
-    const vehicle = vehicles[i % vehicles.length];
-
-    const vehiclePrice = new Decimal(faker.number.int({ min: 20000, max: 90000 }));
-    const discount = new Decimal(faker.number.int({ min: 0, max: 5000 }));
-    const netVehiclePrice = vehiclePrice.minus(discount);
-    const tradeIn = Math.random() > 0.5 ? randomFrom(customerVehicles) : null;
-    const tradeAllowance = tradeIn ? new Decimal(faker.number.int({ min: 2000, max: 25000 })) : null;
-    const tradePayoff = tradeIn ? new Decimal(faker.number.int({ min: 1000, max: 20000 })) : null;
-    const tradeEquity = tradeAllowance && tradePayoff ? tradeAllowance.minus(tradePayoff) : null;
-    const downPayment = new Decimal(faker.number.int({ min: 2000, max: 10000 }));
-    const financedBeforeSanity = netVehiclePrice.minus(downPayment).minus(tradeEquity ?? new Decimal(0));
-    const amountFinanced = financedBeforeSanity.greaterThan(0) ? financedBeforeSanity : new Decimal(0);
-    const apr = new Decimal(faker.number.float({ min: 2.9, max: 8.5, fractionDigits: 2 }));
-    const term = faker.number.int({ min: 24, max: 84 });
-    const monthlyPayment = amountFinanced.greaterThan(0)
-      ? amountFinanced.dividedBy(term)
-      : new Decimal(0);
-    const frontEndGross = netVehiclePrice.minus(new Decimal(faker.number.int({ min: 15000, max: 50000 })));
-    const backEndGross = new Decimal(faker.number.int({ min: 500, max: 2500 }));
-    const totalGross = frontEndGross.plus(backEndGross);
-
-    const deal = await prisma.deal.create({
-      data: {
-        tenant: { connect: { id: tenantId } },
-        dealNumber: `D-${faker.number.int({ min: 1000, max: 9999 })}`,
-        customer: { connect: { id: customer.id } },
-        vehicle: { connect: { id: vehicle.id } },
-        salesPerson: { connect: { id: salesPerson.id } },
-        financeManager: { connect: { id: financeManager.id } },
-        dealType: randomFrom(Object.values(DealType)),
-        status: randomFrom(Object.values(DealStatus)),
-        vehiclePrice,
-        discount,
-        netVehiclePrice,
-        tradeVehicle: tradeIn ? { connect: { id: tradeIn.id } } : undefined,
-        tradeAllowance,
-        tradePayoff,
-        tradeEquity,
-        downPayment,
-        amountFinanced,
-        apr,
-        term,
-        monthlyPayment,
-        lenderName: faker.company.name(),
-        lenderRate: new Decimal(faker.number.float({ min: 2.5, max: 12, fractionDigits: 2 })),
-        dealerReserve: new Decimal(faker.number.int({ min: 200, max: 2500 })),
-        docFee: new Decimal(595),
-        registrationFee: new Decimal(faker.number.int({ min: 100, max: 500 })),
-        salesTax: new Decimal(faker.number.int({ min: 500, max: 5000 })),
-        otherFees: { acquisition: faker.number.int({ min: 100, max: 450 }) },
-        warrantyProduct: faker.helpers.arrayElement(['Platinum Coverage', 'Extended Warranty', null]),
-        warrantyCost: new Decimal(faker.number.int({ min: 500, max: 3000 })),
-        gapInsurance: Math.random() > 0.5,
-        gapCost: new Decimal(faker.number.int({ min: 300, max: 1200 })),
-        maintenancePlan: Math.random() > 0.5,
-        maintenanceCost: new Decimal(faker.number.int({ min: 400, max: 1500 })),
-        otherProducts: { tireProtection: faker.number.int({ min: 150, max: 500 }) },
-        frontEndGross,
-        backEndGross,
-        totalGross,
-        packAmount: new Decimal(faker.number.int({ min: 0, max: 1200 })),
-        dealDate: faker.date.recent({ days: 120 }),
-        fundedDate: Math.random() > 0.5 ? faker.date.recent({ days: 60 }) : null,
-        deliveryDate: faker.date.recent({ days: 90 }),
-        notes: faker.lorem.paragraph(),
-      },
-      include: {
-        commissions: true,
+        leadSource: faker.helpers.arrayElement([
+          LeadSource.WEBSITE,
+          LeadSource.REFERRAL,
+          LeadSource.WALKIN,
+          LeadSource.WALK_IN,
+          LeadSource.SOCIAL_MEDIA,
+          LeadSource.PHONE,
+        ]),
+        leadStatus: faker.helpers.arrayElement([
+          LeadStatus.HOT,
+          LeadStatus.WARM,
+          LeadStatus.COLD,
+          LeadStatus.CUSTOMER,
+          LeadStatus.QUALIFIED,
+          LeadStatus.SCHEDULED,
+          LeadStatus.NEGOTIATION,
+        ]),
+        leadScore: faker.number.int({ min: 20, max: 95 }),
+        creditScore: faker.number.int({ min: 580, max: 830 }),
+        assignedToUserId: faker.helpers.arrayElement(salesTeam).id,
+        tags: faker.helpers.arrayElements(['internet', 'trade-in', 'finance', 'lease', 'repeat'], { min: 1, max: 3 }),
+        notes: faker.lorem.sentences({ min: 1, max: 2 }),
+        lifetimeValue: '0',
       },
     });
 
-    deals.push(deal);
-
-    await prisma.dealDocument.create({
-      data: {
-        tenant: { connect: { id: tenantId } },
-        deal: { connect: { id: deal.id } },
-        type: randomFrom(Object.values(DealDocumentType)),
-        name: `${deal.dealNumber}-contract.pdf`,
-        fileUrl: faker.internet.url(),
-        signedAt: Math.random() > 0.4 ? faker.date.recent({ days: 20 }) : null,
-        uploadedBy: salesPerson.id,
-      },
-    });
-  }
-
-  // Specific scenario adjustments
-  const pendingDeal = deals[0];
-  await prisma.deal.update({
-    where: { id: pendingDeal.id },
-    data: { status: DealStatus.PENDING, totalGross: new Decimal(6000) },
-  });
-
-  const fullProductsDeal = deals[1];
-  await prisma.deal.update({
-    where: { id: fullProductsDeal.id },
-    data: {
-      status: DealStatus.DELIVERED,
-      gapInsurance: true,
-      maintenancePlan: true,
-      warrantyProduct: 'Elite Protection',
-      warrantyCost: new Decimal(2500),
-      otherProducts: { tireProtection: 299, dingShield: 199 },
-    },
-  });
-
-  const negativeEquityDeal = deals[2];
-  await prisma.deal.update({
-    where: { id: negativeEquityDeal.id },
-    data: {
-      tradeEquity: new Decimal(-1500),
-      tradeAllowance: new Decimal(8000),
-      tradePayoff: new Decimal(9500),
-    },
-  });
-
-  const voidedDeal = deals[3];
-  await prisma.deal.update({
-    where: { id: voidedDeal.id },
-    data: { status: DealStatus.CANCELLED },
-  });
-
-  return deals;
-}
-
-async function seedInteractions(tenantId: string, customers: { id: string; assignedToUserId: string | null }[]) {
-  for (const customer of customers) {
-    const interactionCount = faker.number.int({ min: 2, max: 4 });
-    for (let i = 0; i < interactionCount; i++) {
+    const interactionCount = faker.number.int({ min: 1, max: 3 });
+    for (let j = 0; j < interactionCount; j += 1) {
       await prisma.customerInteraction.create({
         data: {
-          tenant: { connect: { id: tenantId } },
-          customer: { connect: { id: customer.id } },
-          user: { connect: { id: customer.assignedToUserId! } },
-          type: randomFrom(Object.values(InteractionType)),
-          direction: randomFrom(Object.values(InteractionDirection)),
-          subject: faker.lorem.words({ min: 3, max: 6 }),
-          notes: faker.lorem.paragraph(),
-          duration: faker.number.int({ min: 5, max: 40 }),
-          scheduledAt: Math.random() > 0.6 ? faker.date.soon({ days: 14 }) : null,
-          completedAt: Math.random() > 0.3 ? faker.date.recent({ days: 30 }) : null,
+          tenantId: tenant.id,
+          customerId: created.id,
+          userId: faker.helpers.arrayElement(salesTeam).id,
+          type: faker.helpers.arrayElement(Object.values(InteractionType)),
+          direction: faker.helpers.arrayElement(Object.values(InteractionDirection)),
+          subject: faker.company.catchPhrase(),
+          notes: faker.lorem.sentences({ min: 1, max: 2 }),
+          scheduledAt: faker.date.recent({ days: 180 }),
+          completedAt: faker.date.recent({ days: 90 }),
         },
       });
     }
+
+    customers.push(created);
   }
-}
 
-async function seedChartOfAccounts(tenantId: string) {
-  const accounts = [
-    {
-      accountNumber: '1000',
-      accountName: 'Assets',
-      accountType: 'ASSET',
-      normalBalance: 'DEBIT',
-      children: [
-        { accountNumber: '1010', accountName: 'Cash', accountType: 'ASSET', normalBalance: 'DEBIT' },
-        { accountNumber: '1020', accountName: 'Inventory', accountType: 'ASSET', normalBalance: 'DEBIT' },
-        { accountNumber: '1030', accountName: 'Accounts Receivable', accountType: 'ASSET', normalBalance: 'DEBIT' },
-      ],
-    },
-    {
-      accountNumber: '2000',
-      accountName: 'Liabilities',
-      accountType: 'LIABILITY',
-      normalBalance: 'CREDIT',
-      children: [
-        { accountNumber: '2010', accountName: 'Floor Plan Payable', accountType: 'LIABILITY', normalBalance: 'CREDIT' },
-        { accountNumber: '2020', accountName: 'Accounts Payable', accountType: 'LIABILITY', normalBalance: 'CREDIT' },
-      ],
-    },
-    {
-      accountNumber: '3000',
-      accountName: 'Equity',
-      accountType: 'EQUITY',
-      normalBalance: 'CREDIT',
-      children: [
-        { accountNumber: '3010', accountName: 'Owner Equity', accountType: 'EQUITY', normalBalance: 'CREDIT' },
-      ],
-    },
-    {
-      accountNumber: '4000',
-      accountName: 'Revenue',
-      accountType: 'REVENUE',
-      normalBalance: 'CREDIT',
-      children: [
-        { accountNumber: '4010', accountName: 'Vehicle Sales', accountType: 'REVENUE', normalBalance: 'CREDIT' },
-        { accountNumber: '4020', accountName: 'F&I Income', accountType: 'REVENUE', normalBalance: 'CREDIT' },
-      ],
-    },
-    {
-      accountNumber: '5000',
-      accountName: 'Expenses',
-      accountType: 'EXPENSE',
-      normalBalance: 'DEBIT',
-      children: [
-        { accountNumber: '5010', accountName: 'Cost of Goods Sold', accountType: 'EXPENSE', normalBalance: 'DEBIT' },
-        { accountNumber: '5020', accountName: 'Advertising Expense', accountType: 'EXPENSE', normalBalance: 'DEBIT' },
-      ],
-    },
-  ];
+  const leadStatusOptions = [
+    LeadStatus.NEW,
+    LeadStatus.CONTACTED,
+    LeadStatus.QUALIFIED,
+    LeadStatus.SCHEDULED,
+    LeadStatus.NEGOTIATION,
+    LeadStatus.HOT,
+    LeadStatus.WARM,
+    LeadStatus.COLD,
+    LeadStatus.WON,
+    LeadStatus.LOST,
+    LeadStatus.ARCHIVED,
+  ] as LeadStatus[];
 
-  const parentIds: Record<string, string> = {};
+  const leadPriorityOptions = [
+    LeadPriority.LOW,
+    LeadPriority.MEDIUM,
+    LeadPriority.HIGH,
+    LeadPriority.URGENT,
+  ] as LeadPriority[];
 
-  for (const account of accounts) {
-    const parent = await prisma.gLAccount.create({
-      data: {
-        tenant: { connect: { id: tenantId } },
-        accountNumber: account.accountNumber,
-        accountName: account.accountName,
-        accountType: account.accountType as any,
-        normalBalance: account.normalBalance as any,
-        isActive: true,
-      },
-    });
+  const selectSalesUser = () => (salesTeam.length ? faker.helpers.arrayElement(salesTeam) : adminUser);
 
-    parentIds[account.accountNumber] = parent.id;
+  const leads = await Promise.all(
+    Array.from({ length: 30 }).map(async () => {
+      const customer = faker.helpers.arrayElement(customers);
+      const assignedTo = selectSalesUser();
+      const owner = faker.helpers.arrayElement(users);
+      const status = faker.helpers.arrayElement(leadStatusOptions);
+      const createdAt = faker.date.recent({ days: 160 });
+      const lastActivityAt = faker.helpers.maybe(
+        () => faker.date.between({ from: createdAt, to: new Date() }),
+        { probability: 0.7 },
+      );
+      const lastCommunicationAt = faker.helpers.maybe(
+        () => faker.date.between({ from: createdAt, to: new Date() }),
+        { probability: 0.7 },
+      );
+      const nextActionAt = faker.helpers.maybe(
+        () =>
+          faker.date.soon({
+            days: 21,
+            refDate: lastActivityAt ?? createdAt,
+          }),
+        { probability: 0.6 },
+      );
+      const convertedAt =
+        status === LeadStatus.WON || status === LeadStatus.CUSTOMER
+          ? faker.date.between({ from: createdAt, to: new Date() })
+          : undefined;
+      const tags = faker.helpers.arrayElements(
+        ['internet', 'showroom', 'trade-in', 'finance', 'lease', 'vip', 'service'],
+        { min: 1, max: 3 },
+      );
 
-    for (const child of account.children) {
-      const childAccount = await prisma.gLAccount.create({
+      return prisma.lead.create({
         data: {
-          tenant: { connect: { id: tenantId } },
-          accountNumber: child.accountNumber,
-          accountName: child.accountName,
-          accountType: child.accountType as any,
-          normalBalance: child.normalBalance as any,
-          parentAccount: { connect: { id: parent.id } },
-          isActive: true,
+          tenantId: tenant.id,
+          customerId: customer.id,
+          assignedToId: assignedTo.id,
+          ownerId: owner.id,
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          email: customer.email ?? faker.internet.email({ provider: 'example.com' }),
+          phone: customer.phone ?? faker.helpers.replaceSymbols('+1-###-###-####'),
+          status,
+          source: faker.helpers.arrayElement([
+            LeadSource.WEBSITE,
+            LeadSource.REFERRAL,
+            LeadSource.PHONE,
+            LeadSource.EMAIL,
+            LeadSource.SOCIAL_MEDIA,
+            LeadSource.THIRD_PARTY,
+          ]),
+          priority: faker.helpers.arrayElement(leadPriorityOptions),
+          rating: faker.number.int({ min: 1, max: 5 }),
+          score: faker.number.int({ min: 35, max: 95 }),
+          isArchived: status === LeadStatus.ARCHIVED,
+          isConverted: status === LeadStatus.WON || status === LeadStatus.CUSTOMER,
+          lastActivityAt: lastActivityAt ?? undefined,
+          lastCommunicationAt: lastCommunicationAt ?? undefined,
+          nextActionAt: nextActionAt ?? undefined,
+          convertedAt: convertedAt ?? undefined,
+          description: faker.lorem.sentences({ min: 1, max: 2 }),
+          tags,
+          createdAt,
         },
       });
+    }),
+  );
 
-      parentIds[child.accountNumber] = childAccount.id;
-    }
-  }
-
-  return parentIds;
-}
-
-async function seedJournalEntries(tenantId: string, deals: { id: string; totalGross: Decimal }[], accounts: Record<string, string>, users: { id: string }[]) {
-  const poster = users.find((user) => true)!;
-
-  for (const deal of deals.slice(0, 10)) {
-    const entry = await prisma.journalEntry.create({
-      data: {
-        tenant: { connect: { id: tenantId } },
-        entryNumber: `JE-${faker.number.int({ min: 1000, max: 9999 })}`,
-        deal: { connect: { id: deal.id } },
-        entryDate: faker.date.recent({ days: 60 }),
-        description: 'Sales recognition entry',
-        status: Math.random() > 0.2 ? 'POSTED' : 'DRAFT',
-        postedBy: { connect: { id: poster.id } },
-        postedAt: faker.date.recent({ days: 30 }),
+  await prisma.leadScore.createMany({
+    data: leads.map((lead) => ({
+      tenantId: tenant.id,
+      leadId: lead.id,
+      modelKey: 'engagement.v1',
+      score: lead.score ?? faker.number.int({ min: 40, max: 95 }),
+      scoreDelta: faker.number.int({ min: -10, max: 18 }),
+      reason: faker.helpers.arrayElement([
+        'High website engagement',
+        'Recent appointment completed',
+        'Missed follow-up deadline',
+      ]),
+      metadata: {
+        priority: lead.priority,
+        status: lead.status,
+        tags: lead.tags,
       },
-    });
-
-    const grossAmount = deal.totalGross ?? new Decimal(0);
-    const debitAmount = grossAmount.abs().plus(new Decimal(500));
-
-    await prisma.journalEntryLine.create({
-      data: {
-        tenant: { connect: { id: tenantId } },
-        journalEntry: { connect: { id: entry.id } },
-        glAccount: { connect: { id: accounts['1010'] } },
-        type: 'DEBIT',
-        amount: debitAmount,
-        description: 'Cash received from sale',
-      },
-    });
-
-    await prisma.journalEntryLine.create({
-      data: {
-        tenant: { connect: { id: tenantId } },
-        journalEntry: { connect: { id: entry.id } },
-        glAccount: { connect: { id: accounts['4010'] } },
-        type: 'CREDIT',
-        amount: debitAmount,
-        description: 'Recognize vehicle sales revenue',
-      },
-    });
-  }
-}
-
-async function seedCommissions(tenantId: string, deals: { id: string; salesPersonId: string }[], users: { id: string }[]) {
-  for (const deal of deals.slice(0, 15)) {
-    const commissionAmount = new Decimal(faker.number.int({ min: 250, max: 2500 }));
-
-    await prisma.commission.create({
-      data: {
-        tenant: { connect: { id: tenantId } },
-        deal: { connect: { id: deal.id } },
-        user: { connect: { id: deal.salesPersonId } },
-        commissionType: randomFrom(['FRONT', 'BACK', 'BONUS', 'SPIFF'] as const),
-        amount: commissionAmount,
-        rate: new Decimal(faker.number.float({ min: 0.01, max: 0.12, fractionDigits: 2 })),
-        status: randomFrom(Object.values(CommissionStatus)),
-        paidDate: Math.random() > 0.5 ? faker.date.recent({ days: 30 }) : null,
-        notes: faker.lorem.sentence(),
-      },
-    });
-  }
-
-  // Commission scenarios
-  const paidDeal = deals[0];
-  await prisma.commission.updateMany({
-    where: { tenantId, dealId: paidDeal.id },
-    data: { status: CommissionStatus.PAID, paidDate: faker.date.recent({ days: 5 }) },
+      createdAt: faker.date.recent({ days: 45 }),
+    })),
   });
 
-  const chargebackDeal = deals[3];
-  await prisma.commission.create({
-    data: {
-      tenant: { connect: { id: tenantId } },
-      deal: { connect: { id: chargebackDeal.id } },
-      user: { connect: { id: chargebackDeal.salesPersonId } },
-      commissionType: 'FRONT',
-      amount: new Decimal(750),
-      rate: new Decimal(0.04),
-      status: CommissionStatus.CHARGEBACK,
-      notes: 'Voided deal chargeback.',
-    },
-  });
-}
+  const activities = [] as Awaited<ReturnType<typeof prisma.activity.create>>[];
+  for (let i = 0; i < 50; i += 1) {
+    const lead = faker.helpers.arrayElement(leads);
+    const assignedUser = selectSalesUser();
+    const startedAt = faker.helpers.maybe(() => faker.date.recent({ days: 20 }), { probability: 0.6 });
+    const completedAt =
+      startedAt && faker.datatype.boolean({ probability: 0.7 })
+        ? faker.date.between({ from: startedAt, to: new Date() })
+        : undefined;
+    const status =
+      completedAt !== undefined
+        ? ActivityStatus.COMPLETED
+        : faker.helpers.arrayElement([
+            ActivityStatus.PENDING,
+            ActivityStatus.CANCELED,
+            ActivityStatus.SKIPPED,
+          ] as ActivityStatus[]);
+    const dueAt =
+      status === ActivityStatus.PENDING
+        ? faker.helpers.maybe(() => faker.date.soon({ days: 14 }), { probability: 0.7 })
+        : undefined;
 
-async function seedReportsAndNotifications(tenantId: string, users: { id: string }[]) {
-  const admin = users[0];
+    const activity = await prisma.activity.create({
+      data: {
+        tenantId: tenant.id,
+        leadId: lead.id,
+        customerId: lead.customerId,
+        userId: assignedUser.id,
+        type: faker.helpers.arrayElement(Object.values(ActivityType) as ActivityType[]),
+        status,
+        subject: faker.company.buzzPhrase(),
+        description: faker.lorem.sentences({ min: 1, max: 2 }),
+        outcome: completedAt ? faker.lorem.sentences({ min: 1, max: 2 }) : null,
+        dueAt: dueAt ?? undefined,
+        startedAt: startedAt ?? undefined,
+        completedAt: completedAt ?? undefined,
+      },
+    });
 
-  await prisma.report.createMany({
+    activities.push(activity);
+  }
+
+  const appointments = [] as Awaited<ReturnType<typeof prisma.appointment.create>>[];
+  for (let i = 0; i < 8; i += 1) {
+    const lead = faker.helpers.arrayElement(leads);
+    const assignedUser = selectSalesUser();
+    const startAt = faker.date.soon({ days: 30 });
+    const status = faker.helpers.arrayElement(
+      [
+        AppointmentStatus.SCHEDULED,
+        AppointmentStatus.COMPLETED,
+        AppointmentStatus.CANCELLED,
+        AppointmentStatus.NO_SHOW,
+        AppointmentStatus.RESCHEDULED,
+      ] as AppointmentStatus[],
+    );
+
+    const appointment = await prisma.appointment.create({
+      data: {
+        tenantId: tenant.id,
+        leadId: lead.id,
+        customerId: lead.customerId,
+        userId: assignedUser.id,
+        title: `${faker.company.catchPhrase()} with ${lead.firstName ?? lead.lastName ?? 'prospect'}`,
+        notes: faker.lorem.sentences({ min: 1, max: 2 }),
+        type: faker.helpers.arrayElement(Object.values(AppointmentType) as AppointmentType[]),
+        status,
+        location: faker.helpers.arrayElement([
+          'Showroom A',
+          'Showroom B',
+          'Virtual Appointment',
+          'Service Bay 1',
+        ]),
+        startAt,
+        endAt: new Date(startAt.getTime() + faker.number.int({ min: 30, max: 90 }) * 60000),
+      },
+    });
+
+    appointments.push(appointment);
+  }
+
+  const communications = [] as Awaited<ReturnType<typeof prisma.communication.create>>[];
+  for (let i = 0; i < 50; i += 1) {
+    const lead = faker.helpers.arrayElement(leads);
+    const customer = customers.find((entry) => entry.id === lead.customerId) ?? faker.helpers.arrayElement(customers);
+    const activity = faker.helpers.maybe(() => faker.helpers.arrayElement(activities), { probability: 0.4 });
+    const type = faker.helpers.arrayElement(Object.values(CommunicationType) as CommunicationType[]);
+    const direction = faker.helpers.arrayElement(Object.values(CommunicationDirection) as CommunicationDirection[]);
+    const status = faker.helpers.arrayElement(Object.values(CommunicationStatus) as CommunicationStatus[]);
+    const toContact =
+      type === CommunicationType.EMAIL
+        ? customer.email ?? faker.internet.email({ provider: 'example.com' })
+        : faker.helpers.replaceSymbols('+1-###-###-####');
+    const fromContact =
+      type === CommunicationType.EMAIL ? 'sales@sunrisemotors.demo' : '+13125550000';
+
+    const communication = await prisma.communication.create({
+      data: {
+        tenantId: tenant.id,
+        type,
+        direction,
+        to: toContact,
+        from: fromContact,
+        subject: type === CommunicationType.EMAIL ? faker.company.catchPhrase() : null,
+        body: type === CommunicationType.CALL
+          ? faker.lorem.sentences({ min: 1, max: 2 })
+          : faker.lorem.sentences({ min: 2, max: 4 }),
+        providerId: type === CommunicationType.SMS ? faker.string.uuid() : null,
+        status,
+        metadata: {
+          channel: type,
+          direction,
+          sentiment: faker.helpers.arrayElement(['positive', 'neutral', 'negative']),
+        },
+        leadId: lead.id,
+        customerId: customer.id,
+        activityId: activity?.id,
+        userId: lead.assignedToId ?? selectSalesUser().id,
+        createdAt: faker.date.recent({ days: 45 }),
+      },
+    });
+
+    communications.push(communication);
+  }
+
+  await prisma.emailTemplate.createMany({
     data: [
       {
-        tenantId,
-        name: 'Monthly Sales Performance',
-        type: ReportType.SALES,
-        parameters: { interval: 'monthly' },
-        schedule: '0 7 1 * *',
-        lastRunAt: faker.date.recent({ days: 1 }),
-        createdById: admin.id,
+        tenantId: tenant.id,
+        name: 'Welcome Lead',
+        subject: 'Thanks for contacting Sunrise Motors',
+        html: '<p>Hi {{firstName}},</p><p>Thanks for reaching out to Sunrise Motors. Our team will follow up shortly.</p>',
+        text: 'Thanks for reaching out to Sunrise Motors. Our team will follow up shortly.',
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
-        tenantId,
-        name: 'Inventory Aging',
-        type: ReportType.INVENTORY,
-        parameters: { minDays: 30 },
-        schedule: '0 6 * * 1',
-        lastRunAt: faker.date.recent({ days: 2 }),
-        createdById: admin.id,
+        tenantId: tenant.id,
+        name: 'Appointment Reminder',
+        subject: 'Reminder: Upcoming appointment at Sunrise Motors',
+        html: '<p>We look forward to seeing you at your scheduled appointment.</p>',
+        text: 'Reminder: your appointment at Sunrise Motors is coming up soon.',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        tenantId: tenant.id,
+        name: 'Post-Visit Follow-up',
+        subject: 'We appreciate your visit',
+        html: '<p>Thank you for stopping by Sunrise Motors. Let us know if you have any questions.</p>',
+        text: 'Thank you for visiting Sunrise Motors. We are here to help with any questions.',
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     ],
   });
 
+  await prisma.sMSTemplate.createMany({
+    data: [
+      {
+        tenantId: tenant.id,
+        name: 'Lead Intro',
+        body: 'Thanks for contacting Sunrise Motors! Reply YES to schedule a visit.',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        tenantId: tenant.id,
+        name: 'Appointment Reminder SMS',
+        body: 'Reminder: You have an appointment with Sunrise Motors tomorrow. Reply 1 to confirm.',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        tenantId: tenant.id,
+        name: 'Post-Visit SMS',
+        body: 'Thanks for visiting Sunrise Motors! Text us with any questions.',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ],
+  });
+
+  await prisma.automation.createMany({
+    data: [
+      {
+        tenantId: tenant.id,
+        name: 'New Lead Nurture',
+        trigger: { type: 'lead.status.changed', status: 'NEW' },
+        actions: [
+          { type: 'EMAIL', template: 'Welcome Lead' },
+          { type: 'TASK', assignee: 'BDC', dueInHours: 24 },
+        ],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        tenantId: tenant.id,
+        name: 'Appointment Reminder Flow',
+        trigger: { type: 'appointment.upcoming', hoursBefore: 24 },
+        actions: [
+          { type: 'SMS', template: 'Appointment Reminder SMS' },
+          { type: 'EMAIL', template: 'Appointment Reminder' },
+        ],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        tenantId: tenant.id,
+        name: 'Lead Re-Engagement',
+        trigger: { type: 'lead.inactive', days: 7 },
+        actions: [
+          { type: 'EMAIL', template: 'Post-Visit Follow-up' },
+          { type: 'TASK', assignee: 'SALES', dueInHours: 12 },
+        ],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ],
+  });
+
+  await Promise.all(
+    leads.map(async (lead) => {
+      const leadActivities = activities.filter((activity) => activity.leadId === lead.id);
+      const latestActivity = leadActivities.reduce<Date | undefined>((latest, activity) => {
+        const activityTimestamp = activity.completedAt ?? activity.startedAt ?? activity.dueAt ?? activity.createdAt;
+        if (!latest || activityTimestamp > latest) {
+          return activityTimestamp ?? undefined;
+        }
+        return latest;
+      }, lead.lastActivityAt ?? undefined);
+
+      const leadCommunications = communications.filter((communication) => communication.leadId === lead.id);
+      const latestCommunication = leadCommunications.reduce<Date | undefined>((latest, communication) => {
+        if (!latest || communication.createdAt > latest) {
+          return communication.createdAt;
+        }
+        return latest;
+      }, lead.lastCommunicationAt ?? undefined);
+
+      const nextAction = leadActivities
+        .filter((activity) => activity.status === ActivityStatus.PENDING && activity.dueAt)
+        .map((activity) => activity.dueAt as Date)
+        .sort((a, b) => a.getTime() - b.getTime())[0];
+
+      await prisma.lead.update({
+        where: { id: lead.id },
+        data: {
+          lastActivityAt: latestActivity ?? undefined,
+          lastCommunicationAt: latestCommunication ?? undefined,
+          nextActionAt: nextAction ?? undefined,
+        },
+      });
+    }),
+  );
+
+  const inventoryVehicles = [] as Awaited<ReturnType<typeof prisma.vehicle.create>>[];
+  for (let i = 0; i < 75; i += 1) {
+    const { msrp, invoiceCost, listPrice } = buildVehiclePrice();
+    const received = faker.date.between({
+      from: subYears(new Date(), 2),
+      to: new Date(),
+    });
+
+    const vehicle = await prisma.vehicle.create({
+      data: {
+        tenantId: tenant.id,
+        stockNumber: `SM-${faker.string.alphanumeric({ length: 6, casing: 'upper' })}`,
+        vin: faker.vehicle.vin(),
+        type: faker.helpers.arrayElement([VehicleType.NEW, VehicleType.USED, VehicleType.CERTIFIED]),
+        year: faker.number.int({ min: 2018, max: 2024 }),
+        make: faker.vehicle.manufacturer(),
+        model: faker.vehicle.model(),
+        trim: faker.vehicle.model(),
+        exteriorColor: faker.vehicle.color(),
+        interiorColor: faker.color.human(),
+        mileage: faker.number.int({ min: 0, max: 85000 }),
+        engineType: faker.vehicle.type(),
+        transmission: faker.helpers.arrayElement(['Automatic', 'Manual']),
+        drivetrain: faker.helpers.arrayElement(['FWD', 'RWD', 'AWD', '4WD']),
+        fuelType: faker.helpers.arrayElement([
+          FuelType.GASOLINE,
+          FuelType.DIESEL,
+          FuelType.HYBRID,
+          FuelType.ELECTRIC,
+        ]),
+        msrp,
+        invoiceCost,
+        listPrice,
+        status: VehicleStatus.AVAILABLE,
+        location: faker.location.city(),
+        dateReceived: received,
+        images: faker.helpers.arrayElements(
+          [
+            'https://images.example.com/vehicle-exterior.jpg',
+            'https://images.example.com/vehicle-interior.jpg',
+            'https://images.example.com/vehicle-dashboard.jpg',
+          ],
+          { min: 1, max: 3 }
+        ),
+        features: faker.helpers.arrayElements(
+          ['Heated Seats', 'Bluetooth', 'Navigation', 'Backup Camera', 'Sunroof', 'Alloy Wheels'],
+          { min: 2, max: 5 }
+        ),
+        notes: faker.vehicle.vrm(),
+      },
+    });
+
+    inventoryVehicles.push(vehicle);
+  }
+
+  const months = createMonthlyPeriods();
+  let dealCounter = 1;
+  const deals = [] as Awaited<ReturnType<typeof prisma.deal.create>>[];
+
+  for (const month of months) {
+    const dealsThisMonth = faker.number.int({ min: 3, max: 8 });
+    for (let i = 0; i < dealsThisMonth; i += 1) {
+      const vehicle = inventoryVehicles.shift();
+      if (!vehicle) {
+        break;
+      }
+
+      const customer = faker.helpers.arrayElement(customers);
+      const salesPerson = faker.helpers.arrayElement(salesTeam);
+      const financeManager = financeManagers.length
+        ? faker.helpers.arrayElement(financeManagers)
+        : adminUser;
+
+      const dealDate = faker.date.between({
+        from: startOfMonth(month),
+        to: endOfMonth(month),
+      });
+
+      const basePrice = Number(vehicle.listPrice ?? vehicle.msrp ?? '25000');
+      const discount = Number(faker.number.float({ min: 500, max: 2500, fractionDigits: 2 }).toFixed(2));
+      const netVehiclePrice = basePrice - discount;
+      const downPayment = Number(faker.number.float({ min: 500, max: 5000, fractionDigits: 2 }).toFixed(2));
+      const amountFinanced = Math.max(netVehiclePrice - downPayment, 0);
+      const monthlyPayment = amountFinanced > 0
+        ? Number((amountFinanced / faker.number.int({ min: 24, max: 72 })).toFixed(2))
+        : null;
+      const apr = amountFinanced > 0 ? Number(faker.number.float({ min: 1.9, max: 6.5, fractionDigits: 2 }).toFixed(2)) : null;
+      const docFee = 489;
+      const salesTax = Number((netVehiclePrice * 0.0825).toFixed(2));
+      const costOfGoods = Number(vehicle.invoiceCost ?? '0');
+      const frontGross = Number((netVehiclePrice - costOfGoods).toFixed(2));
+      const backEndGross = Number(faker.number.int({ min: 300, max: 1800 }));
+      const totalDealGross = Number((frontGross + backEndGross).toFixed(2));
+
+      const deal = await prisma.deal.create({
+        data: {
+          tenantId: tenant.id,
+          dealNumber: `SM-${dealDate.getFullYear()}-${String(dealCounter).padStart(4, '0')}`,
+          customerId: customer.id,
+          vehicleId: vehicle.id,
+          salesPersonId: salesPerson.id,
+          financeManagerId: financeManager.id,
+          dealType: faker.helpers.arrayElement([DealType.CASH, DealType.FINANCE, DealType.LEASE]),
+          status: DealStatus.DELIVERED,
+          vehiclePrice: netVehiclePrice.toFixed(2),
+          discount: discount.toFixed(2),
+          netVehiclePrice: netVehiclePrice.toFixed(2),
+          downPayment: downPayment.toFixed(2),
+          amountFinanced: amountFinanced ? amountFinanced.toFixed(2) : null,
+          apr: apr ? apr.toFixed(2) : null,
+          term: amountFinanced ? faker.number.int({ min: 24, max: 72 }) : null,
+          monthlyPayment: monthlyPayment ? monthlyPayment.toFixed(2) : null,
+          lenderName: amountFinanced ? faker.company.name() : null,
+          lenderRate: apr ? apr.toFixed(2) : null,
+          dealerReserve: amountFinanced ? (amountFinanced * 0.02).toFixed(2) : '0.00',
+          docFee: docFee.toFixed(2),
+          registrationFee: faker.number.int({ min: 150, max: 400 }).toFixed(2),
+          salesTax: salesTax.toFixed(2),
+          otherFees: {
+            serviceContract: faker.number.int({ min: 0, max: 1800 }),
+            gap: faker.datatype.boolean() ? faker.number.int({ min: 0, max: 900 }) : 0,
+          },
+          warrantyProduct: faker.helpers.maybe(() => faker.commerce.productName(), { probability: 0.4 }),
+          warrantyCost: faker.number.int({ min: 0, max: 1500 }).toFixed(2),
+          gapInsurance: faker.datatype.boolean(),
+          gapCost: faker.number.int({ min: 0, max: 700 }).toFixed(2),
+          maintenancePlan: faker.datatype.boolean(),
+          maintenanceCost: faker.number.int({ min: 0, max: 1200 }).toFixed(2),
+          frontEndGross: frontGross.toFixed(2),
+          backEndGross: backEndGross.toFixed(2),
+          totalGross: totalDealGross.toFixed(2),
+          packAmount: faker.number.int({ min: 200, max: 400 }).toFixed(2),
+          dealDate,
+          fundedDate: amountFinanced ? addMonths(dealDate, 1) : dealDate,
+          deliveryDate: dealDate,
+          notes: faker.lorem.sentences({ min: 1, max: 2 }),
+        },
+      });
+
+      await prisma.vehicle.update({
+        where: { id: vehicle.id },
+        data: {
+          status: VehicleStatus.SOLD,
+          dateSold: dealDate,
+        },
+      });
+
+      const ownership = await prisma.customerVehicle.create({
+        data: {
+          tenantId: tenant.id,
+          customerId: customer.id,
+          vin: vehicle.vin,
+          year: vehicle.year,
+          make: vehicle.make,
+          model: vehicle.model,
+          trim: vehicle.trim,
+          purchaseDate: dealDate,
+          purchasePrice: netVehiclePrice.toFixed(2),
+          status: CustomerVehicleStatus.OWNED,
+          notes: `Purchased via deal ${deal.dealNumber}`,
+        },
+      });
+
+      await prisma.vehicleHistory.create({
+        data: {
+          tenantId: tenant.id,
+          vehicleId: vehicle.id,
+        type: VehicleHistoryType.OWNERSHIP,
+          date: dealDate,
+          description: `Ownership transferred to ${customer.firstName} ${customer.lastName}`,
+          documentUrl: `https://docs.example.com/titles/${ownership.id}.pdf`,
+        },
+      });
+
+      await prisma.dealDocument.create({
+        data: {
+          tenantId: tenant.id,
+          dealId: deal.id,
+          type: DealDocumentType.CONTRACT,
+          name: 'Retail Installment Contract',
+          fileUrl: `https://docs.example.com/deals/${deal.id}/contract.pdf`,
+          signedAt: dealDate,
+          uploadedBy: adminUser.id,
+        },
+      });
+
+      const entryNumber = `JE-${dealDate.getFullYear()}${String(dealDate.getMonth() + 1).padStart(2, '0')}-${String(
+        dealCounter
+      ).padStart(4, '0')}`;
+
+      const journalEntry = await prisma.journalEntry.create({
+        data: {
+          tenantId: tenant.id,
+          entryNumber,
+          memo: `Vehicle sale for deal ${deal.dealNumber}`,
+          status: JournalStatus.POSTED,
+          postingDate: dealDate,
+          dealId: deal.id,
+          postedById: adminUser.id,
+          postedAt: new Date(),
+        },
+      });
+
+      const receivableAmount = (netVehiclePrice - downPayment).toFixed(2);
+      const financeRevenue = Number(Math.max(backEndGross * 0.4, 200).toFixed(2));
+
+      await prisma.journalEntryLine.createMany({
+        data: [
+          {
+            tenantId: tenant.id,
+            journalEntryId: journalEntry.id,
+            glAccountId: glAccountMap['1000'],
+            type: LineType.DEBIT,
+            amount: downPayment.toFixed(2),
+            description: 'Customer cash down payment',
+          },
+          {
+            tenantId: tenant.id,
+            journalEntryId: journalEntry.id,
+            glAccountId: glAccountMap['1100'],
+            type: LineType.DEBIT,
+            amount: receivableAmount,
+            description: 'Amount financed by lender',
+          },
+          {
+            tenantId: tenant.id,
+            journalEntryId: journalEntry.id,
+            glAccountId: glAccountMap['4000'],
+            type: LineType.CREDIT,
+            amount: netVehiclePrice.toFixed(2),
+            description: 'Vehicle sales revenue',
+          },
+          {
+            tenantId: tenant.id,
+            journalEntryId: journalEntry.id,
+            glAccountId: glAccountMap['4100'],
+            type: LineType.CREDIT,
+            amount: financeRevenue.toFixed(2),
+            description: 'F&I product revenue',
+          },
+          {
+            tenantId: tenant.id,
+            journalEntryId: journalEntry.id,
+            glAccountId: glAccountMap['5000'],
+            type: LineType.DEBIT,
+            amount: costOfGoods.toFixed(2),
+            description: 'Cost of vehicle sold',
+          },
+          {
+            tenantId: tenant.id,
+            journalEntryId: journalEntry.id,
+            glAccountId: glAccountMap['1200'],
+            type: LineType.CREDIT,
+            amount: costOfGoods.toFixed(2),
+            description: 'Reduce vehicle inventory',
+          },
+        ],
+      });
+
+      await prisma.commission.create({
+        data: {
+          tenantId: tenant.id,
+          dealId: deal.id,
+          userId: salesPerson.id,
+          commissionType: CommissionType.FRONT,
+          amount: Number((totalDealGross * 0.25).toFixed(2)).toString(),
+          rate: '0.25',
+          status: CommissionStatus.PAID,
+          paidDate: addMonths(dealDate, 1),
+          notes: 'Automatically generated demo commission',
+        },
+      });
+
+      deals.push(deal);
+      dealCounter += 1;
+    }
+  }
+
   await prisma.notification.createMany({
-    data: users.slice(0, 5).map((user, index) => ({
-      tenantId,
-      userId: user.id,
-      type: index % 2 === 0 ? NotificationType.DEAL_APPROVAL : NotificationType.FOLLOW_UP,
-      title: index % 2 === 0 ? 'Pending Deal Approval' : 'Follow-up Reminder',
-      message: faker.lorem.sentence(),
-      actionUrl: '/dashboard',
-      isRead: index % 3 === 0,
-      readAt: index % 3 === 0 ? faker.date.recent({ days: 1 }) : null,
+    data: deals.slice(-5).map((deal) => ({
+      tenantId: tenant.id,
+      userId: adminUser.id,
+      type: NotificationType.DEAL_APPROVAL,
+      title: `Deal ${deal.dealNumber} funded`,
+      message: `Financing has been finalized for deal ${deal.dealNumber}.`,
+      actionUrl: `/deals/${deal.id}`,
+      isRead: false,
     })),
   });
-}
 
-async function seedAuditLogsAndSettings(tenantId: string, users: { id: string }[]) {
-  await prisma.auditLog.create({
+  await prisma.report.create({
     data: {
-      tenant: { connect: { id: tenantId } },
-      user: { connect: { id: users[0].id } },
-      entityType: 'Customer',
-      entityId: 'seed-initial',
-      action: AuditAction.CREATE,
-      changes: { message: 'Initial tenant seed data created.' },
-      ipAddress: faker.internet.ip(),
-      userAgent: faker.internet.userAgent(),
+      tenantId: tenant.id,
+      name: 'Monthly Sales Performance',
+      type: ReportType.SALES,
+      parameters: {
+        comparisonPeriod: 'monthly',
+        trailingMonths: 12,
+      },
+      schedule: '0 7 1 * *',
+      createdById: adminUser.id,
     },
   });
 
   await prisma.systemSetting.createMany({
     data: [
       {
-        tenantId,
-        key: 'sales_tax_rate',
-        value: { rate: 0.0825 },
-        updatedById: users[0].id,
+        tenantId: tenant.id,
+        key: 'docFee',
+        value: { amount: 489, currency: 'USD' },
+        updatedById: adminUser.id,
       },
       {
-        tenantId,
-        key: 'default_timezone',
-        value: { timezone: 'America/Chicago' },
-        updatedById: users[0].id,
+        tenantId: tenant.id,
+        key: 'defaultLender',
+        value: { name: 'Sunrise Credit Union', contact: 'lenders@sunrisemotors.demo' },
+        updatedById: adminUser.id,
       },
     ],
   });
-}
 
-async function updateCustomerLifetimeValue(tenantId: string) {
-  const aggregates = await prisma.deal.groupBy({
-    by: ['customerId'],
-    where: { tenantId, status: { in: [DealStatus.APPROVED, DealStatus.DELIVERED, DealStatus.FUNDED] } },
-    _sum: { netVehiclePrice: true },
+  await prisma.auditLog.create({
+    data: {
+      tenantId: tenant.id,
+      userId: adminUser.id,
+      action: 'SEED',
+      resource: 'demo-dataset',
+      details: {
+        description: 'Generated demo dealership data for analytics and testing',
+        customers: customers.length,
+        deals: deals.length,
+      },
+      ipAddress: '127.0.0.1',
+      userAgent: 'seed-script',
+    },
   });
 
-  for (const aggregate of aggregates) {
-    await prisma.customer.updateMany({
-      where: { id: aggregate.customerId, tenantId },
-      data: { lifetimeValue: aggregate._sum.netVehiclePrice ?? new Decimal(0) },
-    });
-  }
-}
-
-async function seedTenant(tenantId: string) {
-  const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, SALT_ROUNDS);
-  const users = await seedUsers(tenantId, passwordHash);
-  const salesUsers = users.filter((user) => user.role === UserRole.SALES || user.role === UserRole.MANAGER).map((user) => user.id);
-  const customers = await seedCustomers(tenantId, salesUsers);
-  const customerVehicles = await seedCustomerVehicles(tenantId, customers);
-  const vehicles = await seedInventory(tenantId);
-  await seedVehicleHistories(tenantId, vehicles);
-  const deals = await seedDeals(tenantId, customers, vehicles, users, customerVehicles);
-  await seedInteractions(tenantId, customers);
-  const accounts = await seedChartOfAccounts(tenantId);
-  await seedJournalEntries(tenantId, deals, accounts, users);
-  await seedCommissions(tenantId, deals, users);
-  await seedReportsAndNotifications(tenantId, users);
-  await seedAuditLogsAndSettings(tenantId, users);
-  await updateCustomerLifetimeValue(tenantId);
-}
-
-async function main() {
-  await cleanupDatabase();
-
-  const tenants = await Promise.all(
-    tenantSeeds.map((tenant) =>
-      prisma.tenant.create({
-        data: {
-          name: tenant.name,
-          subdomain: tenant.subdomain,
-          plan: tenant.plan,
-          status: tenant.status,
-          settings: {
-            branding: {
-              primaryColor: faker.color.rgb(),
-              secondaryColor: faker.color.rgb(),
-            },
-            features: {
-              crm: true,
-              desking: true,
-              accounting: true,
-            },
-            limits: {
-              users: 50,
-              storageGb: 100,
-            },
-          },
-          billingEmail: tenant.billingEmail,
-          subscriptionEndsAt: faker.date.soon({ days: 180 }),
-        },
-      })
-    )
-  );
-
-  for (const tenant of tenants) {
-    await seedTenant(tenant.id);
-  }
+  console.info('Seed complete.');
+  console.info(`Developer login: ${DEVELOPER_EMAIL} / ${DEVELOPER_PASSWORD}`);
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (error) => {
-    console.error('Seeding error:', error);
-    await prisma.$disconnect();
+  .catch((error) => {
+    console.error('Failed to seed database', error);
     process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
   });

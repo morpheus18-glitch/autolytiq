@@ -57,6 +57,10 @@ export function getUserId(): string | null {
   return tenantStorage.getStore()?.userId ?? null;
 }
 
+export function isTenantScoped(): boolean {
+  return Boolean(getEffectiveTenantId());
+}
+
 export function withTenant<T>(
   context: TenantContextValue,
   callback: () => T | Promise<T>,

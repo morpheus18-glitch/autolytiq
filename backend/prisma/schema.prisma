@@ -45,6 +45,7 @@ enum LeadSource {
   WEBSITE
   REFERRAL
   WALKIN
+  WALK_IN
   PHONE
   EMAIL
   SOCIAL_MEDIA
@@ -56,11 +57,76 @@ enum LeadStatus {
   NEW
   CONTACTED
   QUALIFIED
+  SCHEDULED
+  NEGOTIATION
+  WON
   HOT
   WARM
   COLD
   LOST
   CUSTOMER
+  ARCHIVED
+}
+
+enum LeadPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ActivityType {
+  NOTE
+  CALL
+  EMAIL
+  SMS
+  TASK
+  MEETING
+  VISIT
+  TEST_DRIVE
+  FOLLOW_UP
+}
+
+enum ActivityStatus {
+  PENDING
+  COMPLETED
+  CANCELED
+  SKIPPED
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+  RESCHEDULED
+}
+
+enum AppointmentType {
+  SHOWROOM
+  TEST_DRIVE
+  DELIVERY
+  SERVICE
+  VIRTUAL
+}
+
+enum CommunicationType {
+  CALL
+  SMS
+  EMAIL
+}
+
+enum CommunicationDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum CommunicationStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+  CANCELLED
 }
 
 enum InteractionType {
@@ -197,21 +263,29 @@ enum AuditAction {
 }
 
 model Tenant {
-  id                 String             @id @default(cuid())
+  id                 String       @id @default(cuid())
   name               String
-  subdomain          String             @unique
-  plan               TenantPlan         @default(BASIC)
-  status             TenantStatus       @default(ACTIVE)
-  settings           Json               @default(dbgenerated("'{}'::jsonb"))
+  subdomain          String       @unique
+  plan               TenantPlan   @default(BASIC)
+  status             TenantStatus @default(ACTIVE)
+  settings           Json         @default(dbgenerated("'{}'::jsonb"))
   billingEmail       String
-  subscriptionEndsAt DateTime?          @db.Timestamptz(6)
-  createdAt          DateTime           @default(now()) @db.Timestamptz(6)
-  updatedAt          DateTime           @updatedAt @db.Timestamptz(6)
+  subscriptionEndsAt DateTime?    @db.Timestamptz(6)
+  createdAt          DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime     @updatedAt @db.Timestamptz(6)
 
   users                User[]
   customers            Customer[]
   customerInteractions CustomerInteraction[]
   customerVehicles     CustomerVehicle[]
+  leads                Lead[]
+  activities           Activity[]
+  appointments         Appointment[]
+  leadScores           LeadScore[]
+  communications       Communication[]
+  emailTemplates       EmailTemplate[]
+  smsTemplates         SMSTemplate[]
+  automations          Automation[]
   vehicles             Vehicle[]
   vehicleHistories     VehicleHistory[]
   deals                Deal[]
@@ -227,34 +301,39 @@ model Tenant {
 }
 
 model User {
-  id           String    @id @default(cuid())
+  id           String     @id @default(cuid())
   tenantId     String
   email        String
   password     String
   firstName    String
   lastName     String
   phone        String?
-  role         UserRole  @default(SALES)
-  permissions  Json      @default(dbgenerated("jsonb_build_array()"))
+  role         UserRole   @default(SALES)
+  permissions  Json       @default(dbgenerated("jsonb_build_array()"))
   status       UserStatus @default(ACTIVE)
-  isSuperAdmin Boolean   @default(false)
-  lastLoginAt  DateTime? @db.Timestamptz(6)
-  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt    DateTime  @updatedAt @db.Timestamptz(6)
-  deletedAt    DateTime? @db.Timestamptz(6)
+  isSuperAdmin Boolean    @default(false)
+  lastLoginAt  DateTime?  @db.Timestamptz(6)
+  createdAt    DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime   @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime?  @db.Timestamptz(6)
 
-  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  customers      Customer[]  @relation("CustomerAssignedTo")
-  interactions   CustomerInteraction[]
-  dealsAsSales   Deal[]      @relation("SalesPersonDeals")
-  dealsAsFinance Deal[]      @relation("FinanceManagerDeals")
-  journalEntries       JournalEntry[]
-  commissions          Commission[]
-  reports              Report[]    @relation("ReportCreatedBy")
-  notifications        Notification[]
-  auditLogs            AuditLog[]
-  systemSettings       SystemSetting[]
-  uploadedDealDocuments DealDocument[] @relation("DealDocumentUploader")
+  tenant                Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customers             Customer[]            @relation("CustomerAssignedTo")
+  interactions          CustomerInteraction[]
+  leadsAssigned         Lead[]                @relation("LeadAssignedTo")
+  leadsOwned            Lead[]                @relation("LeadOwner")
+  activities            Activity[]
+  appointments          Appointment[]
+  communications        Communication[]
+  dealsAsSales          Deal[]                @relation("SalesPersonDeals")
+  dealsAsFinance        Deal[]                @relation("FinanceManagerDeals")
+  journalEntries        JournalEntry[]
+  commissions           Commission[]
+  reports               Report[]              @relation("ReportCreatedBy")
+  notifications         Notification[]
+  auditLogs             AuditLog[]
+  systemSettings        SystemSetting[]
+  uploadedDealDocuments DealDocument[]        @relation("DealDocumentUploader")
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -262,14 +341,14 @@ model User {
 }
 
 model Customer {
-  id                     String        @id @default(cuid())
+  id                     String                   @id @default(cuid())
   tenantId               String
   firstName              String
   lastName               String
   email                  String?
   phone                  String?
   mobile                 String?
-  dateOfBirth            DateTime?     @db.Date
+  dateOfBirth            DateTime?                @db.Date
   driversLicenseNumber   String?
   driversLicenseState    String?
   ssn                    String?
@@ -278,23 +357,27 @@ model Customer {
   addressState           String?
   addressZip             String?
   addressCountry         String?
-  preferredContactMethod PreferredContactMethod @default(EMAIL)
-  leadSource             LeadSource     @default(WEBSITE)
-  leadStatus             LeadStatus     @default(NEW)
-  leadScore              Int            @default(0)
+  preferredContactMethod PreferredContactMethod   @default(EMAIL)
+  leadSource             LeadSource               @default(WEBSITE)
+  leadStatus             LeadStatus               @default(NEW)
+  leadScore              Int                      @default(0)
   creditScore            Int?
   assignedToUserId       String?
-  tags                   String[]       @default([])
+  tags                   String[]                 @default([])
   notes                  String?
-  lifetimeValue          Decimal        @db.Decimal(18, 2) @default(0)
-  createdAt              DateTime       @default(now()) @db.Timestamptz(6)
-  updatedAt              DateTime       @updatedAt @db.Timestamptz(6)
-  deletedAt              DateTime?      @db.Timestamptz(6)
+  lifetimeValue          Decimal                  @default(0) @db.Decimal(18, 2)
+  createdAt              DateTime                 @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime                 @updatedAt @db.Timestamptz(6)
+  deletedAt              DateTime?                @db.Timestamptz(6)
   searchVector           Unsupported("tsvector")? @default(dbgenerated("to_tsvector('english', coalesce(\"firstName\",'') || ' ' || coalesce(\"lastName\",'') || ' ' || coalesce(\"email\",'') || ' ' || coalesce(\"phone\",''))")) @map("search_vector")
 
-  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  assignedToUser User?   @relation("CustomerAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  tenant         Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignedToUser User?                 @relation("CustomerAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
   interactions   CustomerInteraction[]
+  leads          Lead[]
+  activities     Activity[]
+  appointments   Appointment[]
+  communications Communication[]
   vehicles       CustomerVehicle[]
   deals          Deal[]
 
@@ -305,7 +388,7 @@ model Customer {
 }
 
 model CustomerInteraction {
-  id          String              @id @default(cuid())
+  id          String               @id @default(cuid())
   tenantId    String
   customerId  String
   userId      String
@@ -314,11 +397,11 @@ model CustomerInteraction {
   subject     String?
   notes       String?
   duration    Int?
-  scheduledAt DateTime?           @db.Timestamptz(6)
-  completedAt DateTime?           @db.Timestamptz(6)
-  createdAt   DateTime            @default(now()) @db.Timestamptz(6)
-  updatedAt   DateTime            @updatedAt @db.Timestamptz(6)
-  deletedAt   DateTime?           @db.Timestamptz(6)
+  scheduledAt DateTime?            @db.Timestamptz(6)
+  completedAt DateTime?            @db.Timestamptz(6)
+  createdAt   DateTime             @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime             @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime?            @db.Timestamptz(6)
 
   tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -326,6 +409,197 @@ model CustomerInteraction {
 
   @@index([tenantId, customerId])
   @@index([tenantId, scheduledAt])
+}
+
+model Lead {
+  id                  String       @id @default(cuid())
+  tenantId            String
+  customerId          String?
+  assignedToId        String?
+  ownerId             String?
+  firstName           String?
+  lastName            String?
+  email               String?
+  phone               String?
+  status              LeadStatus   @default(NEW)
+  source              LeadSource   @default(WEBSITE)
+  priority            LeadPriority @default(MEDIUM)
+  rating              Int?
+  score               Int?
+  isArchived          Boolean      @default(false)
+  isConverted         Boolean      @default(false)
+  lastActivityAt      DateTime?    @db.Timestamptz(6)
+  lastCommunicationAt DateTime?    @db.Timestamptz(6)
+  nextActionAt        DateTime?    @db.Timestamptz(6)
+  convertedAt         DateTime?    @db.Timestamptz(6)
+  description         String?
+  tags                String[]     @default([])
+  createdAt           DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt           DateTime     @updatedAt @db.Timestamptz(6)
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer       Customer?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  assignedTo     User?           @relation("LeadAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  owner          User?           @relation("LeadOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  activities     Activity[]
+  appointments   Appointment[]
+  communications Communication[]
+  scores         LeadScore[]
+
+  @@index([tenantId, status])
+  @@index([tenantId, assignedToId])
+  @@index([tenantId, ownerId])
+  @@index([tenantId, source])
+  @@index([tenantId, isArchived, status])
+  @@index([tenantId, createdAt])
+}
+
+model Activity {
+  id          String         @id @default(cuid())
+  tenantId    String
+  leadId      String?
+  customerId  String?
+  userId      String?
+  type        ActivityType
+  status      ActivityStatus @default(PENDING)
+  subject     String?
+  description String?
+  outcome     String?
+  dueAt       DateTime?      @db.Timestamptz(6)
+  startedAt   DateTime?      @db.Timestamptz(6)
+  completedAt DateTime?      @db.Timestamptz(6)
+  createdAt   DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime       @updatedAt @db.Timestamptz(6)
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lead           Lead?           @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  customer       Customer?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  communications Communication[]
+
+  @@index([tenantId, leadId])
+  @@index([tenantId, userId])
+  @@index([tenantId, dueAt])
+  @@index([tenantId, status])
+}
+
+model Appointment {
+  id         String            @id @default(cuid())
+  tenantId   String
+  leadId     String?
+  customerId String?
+  userId     String?
+  title      String
+  notes      String?
+  type       AppointmentType
+  status     AppointmentStatus @default(SCHEDULED)
+  location   String?
+  startAt    DateTime          @db.Timestamptz(6)
+  endAt      DateTime?         @db.Timestamptz(6)
+  createdAt  DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime          @updatedAt @db.Timestamptz(6)
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lead     Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  user     User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, startAt])
+  @@index([tenantId, status])
+  @@index([tenantId, leadId])
+}
+
+model LeadScore {
+  id         String   @id @default(cuid())
+  tenantId   String
+  leadId     String
+  modelKey   String
+  score      Int
+  scoreDelta Int?
+  reason     String?
+  metadata   Json?
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, leadId])
+  @@index([tenantId, createdAt])
+}
+
+model Communication {
+  id         String                 @id @default(cuid())
+  tenantId   String
+  type       CommunicationType
+  direction  CommunicationDirection
+  to         String
+  from       String
+  subject    String?
+  body       String?
+  providerId String?
+  status     CommunicationStatus?
+  metadata   Json?
+  leadId     String?
+  customerId String?
+  activityId String?
+  userId     String?
+  createdAt  DateTime               @default(now()) @db.Timestamptz(6)
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lead     Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  activity Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  user     User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, type])
+  @@index([tenantId, leadId])
+  @@index([tenantId, createdAt])
+}
+
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  subject   String
+  html      String
+  text      String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, name])
+  @@index([tenantId, updatedAt])
+}
+
+model SMSTemplate {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  body      String
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, name])
+  @@index([tenantId, updatedAt])
+}
+
+model Automation {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  trigger   Json
+  actions   Json
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, name])
+  @@index([tenantId, isActive])
 }
 
 model CustomerVehicle {
@@ -346,16 +620,16 @@ model CustomerVehicle {
   createdAt      DateTime              @default(now()) @db.Timestamptz(6)
   updatedAt      DateTime              @updatedAt @db.Timestamptz(6)
 
-  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  customer   Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  tradeDeals Deal[]          @relation("TradeVehicleDeal")
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tradeDeals Deal[]   @relation("TradeVehicleDeal")
 
-  @@index([tenantId, customerId])
   @@unique([tenantId, vin])
+  @@index([tenantId, customerId])
 }
 
 model Vehicle {
-  id                    String        @id @default(cuid())
+  id                    String                   @id @default(cuid())
   tenantId              String
   stockNumber           String
   vin                   String
@@ -371,28 +645,28 @@ model Vehicle {
   transmission          String?
   drivetrain            String?
   fuelType              FuelType
-  msrp                  Decimal?      @db.Decimal(18, 2)
-  invoiceCost           Decimal?      @db.Decimal(18, 2)
-  listPrice             Decimal?      @db.Decimal(18, 2)
-  specialPrice          Decimal?      @db.Decimal(18, 2)
-  status                VehicleStatus @default(AVAILABLE)
+  msrp                  Decimal?                 @db.Decimal(18, 2)
+  invoiceCost           Decimal?                 @db.Decimal(18, 2)
+  listPrice             Decimal?                 @db.Decimal(18, 2)
+  specialPrice          Decimal?                 @db.Decimal(18, 2)
+  status                VehicleStatus            @default(AVAILABLE)
   location              String?
-  dateReceived          DateTime?     @db.Timestamptz(6)
-  dateSold              DateTime?     @db.Timestamptz(6)
-  daysInStock           Int?          @default(0)
-  images                String[]      @default([])
-  features              String[]      @default([])
+  dateReceived          DateTime?                @db.Timestamptz(6)
+  dateSold              DateTime?                @db.Timestamptz(6)
+  daysInStock           Int?                     @default(0)
+  images                String[]                 @default([])
+  features              String[]                 @default([])
   certificationNumber   String?
   floorPlanId           String?
-  floorPlanDate         DateTime?     @db.Timestamptz(6)
-  floorPlanInterestRate Decimal?      @db.Decimal(5, 2)
+  floorPlanDate         DateTime?                @db.Timestamptz(6)
+  floorPlanInterestRate Decimal?                 @db.Decimal(5, 2)
   notes                 String?
-  createdAt             DateTime      @default(now()) @db.Timestamptz(6)
-  updatedAt             DateTime      @updatedAt @db.Timestamptz(6)
-  deletedAt             DateTime?     @db.Timestamptz(6)
+  createdAt             DateTime                 @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime                 @updatedAt @db.Timestamptz(6)
+  deletedAt             DateTime?                @db.Timestamptz(6)
   searchVector          Unsupported("tsvector")? @default(dbgenerated("to_tsvector('english', coalesce(\"vin\",'') || ' ' || coalesce(\"make\",'') || ' ' || coalesce(\"model\",''))")) @map("search_vector")
 
-  tenant    Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   deals     Deal[]
   histories VehicleHistory[]
 
@@ -404,24 +678,24 @@ model Vehicle {
 }
 
 model VehicleHistory {
-  id        String            @id @default(cuid())
-  tenantId  String
-  vehicleId String
-  type      VehicleHistoryType
-  date      DateTime          @db.Timestamptz(6)
+  id          String             @id @default(cuid())
+  tenantId    String
+  vehicleId   String
+  type        VehicleHistoryType
+  date        DateTime           @db.Timestamptz(6)
   description String
   documentUrl String?
-  createdAt DateTime          @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime          @updatedAt @db.Timestamptz(6)
+  createdAt   DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime           @updatedAt @db.Timestamptz(6)
 
-  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, vehicleId])
 }
 
 model Deal {
-  id               String   @id @default(cuid())
+  id               String     @id @default(cuid())
   tenantId         String
   dealNumber       String
   customerId       String
@@ -429,50 +703,50 @@ model Deal {
   salesPersonId    String
   financeManagerId String?
   dealType         DealType
-  status           DealStatus   @default(DRAFT)
-  vehiclePrice     Decimal      @db.Decimal(18, 2)
-  discount         Decimal      @db.Decimal(18, 2) @default(0)
-  netVehiclePrice  Decimal      @db.Decimal(18, 2)
+  status           DealStatus @default(DRAFT)
+  vehiclePrice     Decimal    @db.Decimal(18, 2)
+  discount         Decimal    @default(0) @db.Decimal(18, 2)
+  netVehiclePrice  Decimal    @db.Decimal(18, 2)
   tradeVehicleId   String?
-  tradeAllowance   Decimal?     @db.Decimal(18, 2)
-  tradePayoff      Decimal?     @db.Decimal(18, 2)
-  tradeEquity      Decimal?     @db.Decimal(18, 2)
-  downPayment      Decimal?     @db.Decimal(18, 2)
-  amountFinanced   Decimal?     @db.Decimal(18, 2)
-  apr              Decimal?     @db.Decimal(5, 2)
+  tradeAllowance   Decimal?   @db.Decimal(18, 2)
+  tradePayoff      Decimal?   @db.Decimal(18, 2)
+  tradeEquity      Decimal?   @db.Decimal(18, 2)
+  downPayment      Decimal?   @db.Decimal(18, 2)
+  amountFinanced   Decimal?   @db.Decimal(18, 2)
+  apr              Decimal?   @db.Decimal(5, 2)
   term             Int?
-  monthlyPayment   Decimal?     @db.Decimal(18, 2)
+  monthlyPayment   Decimal?   @db.Decimal(18, 2)
   lenderName       String?
-  lenderRate       Decimal?     @db.Decimal(5, 2)
-  dealerReserve    Decimal?     @db.Decimal(18, 2)
-  docFee           Decimal?     @db.Decimal(18, 2)
-  registrationFee  Decimal?     @db.Decimal(18, 2)
-  salesTax         Decimal?     @db.Decimal(18, 2)
+  lenderRate       Decimal?   @db.Decimal(5, 2)
+  dealerReserve    Decimal?   @db.Decimal(18, 2)
+  docFee           Decimal?   @db.Decimal(18, 2)
+  registrationFee  Decimal?   @db.Decimal(18, 2)
+  salesTax         Decimal?   @db.Decimal(18, 2)
   otherFees        Json?
   warrantyProduct  String?
-  warrantyCost     Decimal?     @db.Decimal(18, 2)
-  gapInsurance     Boolean      @default(false)
-  gapCost          Decimal?     @db.Decimal(18, 2)
-  maintenancePlan  Boolean      @default(false)
-  maintenanceCost  Decimal?     @db.Decimal(18, 2)
+  warrantyCost     Decimal?   @db.Decimal(18, 2)
+  gapInsurance     Boolean    @default(false)
+  gapCost          Decimal?   @db.Decimal(18, 2)
+  maintenancePlan  Boolean    @default(false)
+  maintenanceCost  Decimal?   @db.Decimal(18, 2)
   otherProducts    Json?
-  frontEndGross    Decimal?     @db.Decimal(18, 2)
-  backEndGross     Decimal?     @db.Decimal(18, 2)
-  totalGross       Decimal?     @db.Decimal(18, 2)
-  packAmount       Decimal?     @db.Decimal(18, 2)
-  dealDate         DateTime     @db.Timestamptz(6)
-  fundedDate       DateTime?    @db.Timestamptz(6)
-  deliveryDate     DateTime?    @db.Timestamptz(6)
+  frontEndGross    Decimal?   @db.Decimal(18, 2)
+  backEndGross     Decimal?   @db.Decimal(18, 2)
+  totalGross       Decimal?   @db.Decimal(18, 2)
+  packAmount       Decimal?   @db.Decimal(18, 2)
+  dealDate         DateTime   @db.Timestamptz(6)
+  fundedDate       DateTime?  @db.Timestamptz(6)
+  deliveryDate     DateTime?  @db.Timestamptz(6)
   notes            String?
-  createdAt        DateTime     @default(now()) @db.Timestamptz(6)
-  updatedAt        DateTime     @updatedAt @db.Timestamptz(6)
-  deletedAt        DateTime?    @db.Timestamptz(6)
+  createdAt        DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime   @updatedAt @db.Timestamptz(6)
+  deletedAt        DateTime?  @db.Timestamptz(6)
 
-  tenant         Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  customer       Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  vehicle        Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
-  salesPerson    User     @relation("SalesPersonDeals", fields: [salesPersonId], references: [id], onDelete: Restrict)
-  financeManager User?    @relation("FinanceManagerDeals", fields: [financeManagerId], references: [id], onDelete: SetNull)
+  tenant         Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer       Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  vehicle        Vehicle          @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  salesPerson    User             @relation("SalesPersonDeals", fields: [salesPersonId], references: [id], onDelete: Restrict)
+  financeManager User?            @relation("FinanceManagerDeals", fields: [financeManagerId], references: [id], onDelete: SetNull)
   tradeVehicle   CustomerVehicle? @relation("TradeVehicleDeal", fields: [tradeVehicleId], references: [id], onDelete: SetNull)
   documents      DealDocument[]
   journalEntries JournalEntry[]
@@ -485,16 +759,16 @@ model Deal {
 }
 
 model DealDocument {
-  id        String          @id @default(cuid())
-  tenantId  String
-  dealId    String
-  type      DealDocumentType
-  name      String
-  fileUrl   String
-  signedAt  DateTime?       @db.Timestamptz(6)
+  id         String           @id @default(cuid())
+  tenantId   String
+  dealId     String
+  type       DealDocumentType
+  name       String
+  fileUrl    String
+  signedAt   DateTime?        @db.Timestamptz(6)
   uploadedBy String
-  createdAt DateTime        @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime        @updatedAt @db.Timestamptz(6)
+  createdAt  DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime         @updatedAt @db.Timestamptz(6)
 
   tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   deal     Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
@@ -504,21 +778,21 @@ model DealDocument {
 }
 
 model GLAccount {
-  id            String     @id @default(cuid())
-  tenantId      String
-  accountNumber String
-  accountName   String
-  accountType   AccountType
-  normalBalance NormalBalance
+  id              String        @id @default(cuid())
+  tenantId        String
+  accountNumber   String
+  accountName     String
+  accountType     AccountType
+  normalBalance   NormalBalance
   parentAccountId String?
-  isActive      Boolean    @default(true)
-  balance       Decimal?   @db.Decimal(18, 2)
-  createdAt     DateTime   @default(now()) @db.Timestamptz(6)
-  updatedAt     DateTime   @updatedAt @db.Timestamptz(6)
+  isActive        Boolean       @default(true)
+  balance         Decimal?      @db.Decimal(18, 2)
+  createdAt       DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime      @updatedAt @db.Timestamptz(6)
 
-  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  parentAccount GLAccount?  @relation("GLAccountHierarchy", fields: [parentAccountId], references: [id], onDelete: SetNull)
-  subAccounts   GLAccount[] @relation("GLAccountHierarchy")
+  tenant        Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  parentAccount GLAccount?         @relation("GLAccountHierarchy", fields: [parentAccountId], references: [id], onDelete: SetNull)
+  subAccounts   GLAccount[]        @relation("GLAccountHierarchy")
   journalLines  JournalEntryLine[]
 
   @@unique([tenantId, accountNumber])
@@ -526,37 +800,37 @@ model GLAccount {
 }
 
 model JournalEntry {
-  id          String     @id @default(cuid())
+  id          String        @id @default(cuid())
   tenantId    String
   entryNumber String
   memo        String?
   status      JournalStatus @default(DRAFT)
-  postingDate DateTime    @db.Timestamptz(6)
+  postingDate DateTime      @db.Timestamptz(6)
   dealId      String?
   postedById  String
-  postedAt    DateTime?   @db.Timestamptz(6)
-  createdAt   DateTime    @default(now()) @db.Timestamptz(6)
-  updatedAt   DateTime    @updatedAt @db.Timestamptz(6)
+  postedAt    DateTime?     @db.Timestamptz(6)
+  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime      @updatedAt @db.Timestamptz(6)
 
-  tenant    Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  deal      Deal?       @relation(fields: [dealId], references: [id], onDelete: SetNull)
-  postedBy  User        @relation(fields: [postedById], references: [id], onDelete: Restrict)
-  lines     JournalEntryLine[]
+  tenant   Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal     Deal?              @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  postedBy User               @relation(fields: [postedById], references: [id], onDelete: Restrict)
+  lines    JournalEntryLine[]
 
   @@unique([tenantId, entryNumber])
   @@index([tenantId, dealId])
 }
 
 model JournalEntryLine {
-  id             String     @id @default(cuid())
+  id             String   @id @default(cuid())
   tenantId       String
   journalEntryId String
   glAccountId    String
   type           LineType
-  amount         Decimal    @db.Decimal(18, 2)
+  amount         Decimal  @db.Decimal(18, 2)
   description    String?
-  createdAt      DateTime   @default(now()) @db.Timestamptz(6)
-  updatedAt      DateTime   @updatedAt @db.Timestamptz(6)
+  createdAt      DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @db.Timestamptz(6)
 
   tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   journalEntry JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
@@ -589,16 +863,16 @@ model Commission {
 }
 
 model Report {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   tenantId    String
   name        String
   type        ReportType
   parameters  Json?
   schedule    String?
-  lastRunAt   DateTime? @db.Timestamptz(6)
+  lastRunAt   DateTime?  @db.Timestamptz(6)
   createdById String
-  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  createdAt   DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime   @updatedAt @db.Timestamptz(6)
 
   tenant    Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdBy User   @relation("ReportCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
@@ -626,15 +900,15 @@ model Notification {
 }
 
 model AuditLog {
-  id         String   @id @default(cuid())
-  tenantId   String
-  userId     String?
-  action     String
-  resource   String
-  details    Json?
-  ipAddress  String?
-  userAgent  String?
-  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String?
+  action    String
+  resource  String
+  details   Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -644,12 +918,12 @@ model AuditLog {
 }
 
 model SystemSetting {
-  id         String   @id @default(cuid())
-  tenantId   String
-  key        String
-  value      Json
+  id          String   @id @default(cuid())
+  tenantId    String
+  key         String
+  value       Json
   updatedById String
-  updatedAt  DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @db.Timestamptz(6)
 
   tenant    Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   updatedBy User   @relation(fields: [updatedById], references: [id], onDelete: Restrict)
