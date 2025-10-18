@@ -224,7 +224,7 @@ export default function ProductionSuite() {
         "API management",
         "Audit logging"
       ],
-      href: "/admin/system-settings"
+      href: "/settings/preferences"
     },
     {
       title: "Mobile Deal Desk",
@@ -417,7 +417,7 @@ export default function ProductionSuite() {
                 <span className="text-xs">Dashboard</span>
               </Button>
             </Link>
-            <Link href="/admin/system-settings">
+            <Link href="/settings/preferences">
               <Button variant="outline" className="w-full h-16 flex-col">
                 <Settings className="w-5 h-5 mb-1" />
                 <span className="text-xs">Admin</span>

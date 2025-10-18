@@ -38,9 +38,21 @@ export function usePermissions(): UsePermissionsResult {
 
   const roleValue = useMemo(() => normalizedUser?.role?.toUpperCase() ?? '', [normalizedUser?.role]);
 
+  const isSuperUser = useMemo(() => {
+    if (!normalizedUser) {
+      return false;
+    }
+
+    if (roleValue === 'SUPER_ADMIN' || roleValue === 'SUPERUSER') {
+      return true;
+    }
+
+    return permissionSet.has('*');
+  }, [normalizedUser, permissionSet, roleValue]);
+
   const hasRole = useCallback(
-    (role: string) => roleValue === role.toUpperCase(),
-    [roleValue],
+    (role: string) => isSuperUser || roleValue === role.toUpperCase(),
+    [isSuperUser, roleValue],
   );
 
   const hasAnyRole = useCallback(
@@ -49,8 +61,8 @@ export function usePermissions(): UsePermissionsResult {
   );
 
   const hasPermission = useCallback(
-    (permission: string) => permissionSet.has(permission.toLowerCase()),
-    [permissionSet],
+    (permission: string) => isSuperUser || permissionSet.has(permission.toLowerCase()),
+    [isSuperUser, permissionSet],
   );
 
   const hasAnyPermission = useCallback(
@@ -63,6 +75,10 @@ export function usePermissions(): UsePermissionsResult {
       return false;
     }
 
+    if (isSuperUser) {
+      return true;
+    }
+
     if (normalizedUser.developer === true) {
       return true;
     }
@@ -72,7 +88,7 @@ export function usePermissions(): UsePermissionsResult {
     }
 
     return normalizedUser.featureFlags?.includes('developer_portal') ?? false;
-  }, [hasPermission, normalizedUser]);
+  }, [hasPermission, isSuperUser, normalizedUser]);
 
   return {
     user: normalizedUser,
