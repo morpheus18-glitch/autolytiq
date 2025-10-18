@@ -400,3 +400,110 @@ export async function createPayrollJournalEntry(
     JournalStatus.POSTED,
   );
 }
+
+export type DealJournalEntryLine = {
+  accountNumber: string;
+  debit: number;
+  credit: number;
+  memo: string;
+};
+
+export type DealJournalEntryPayload = {
+  date: Date;
+  description: string;
+  type: 'AUTO_DEAL';
+  dealId: string;
+  lines: DealJournalEntryLine[];
+};
+
+export type Deal = {
+  id: string;
+  dealNumber: string;
+  closedDate: Date | string;
+  sellingPrice?: number | null;
+  cashDown?: number | null;
+  amountFinanced?: number | null;
+  vehicleCost?: number | null;
+  tradeInValue?: number | null;
+  fiProducts?: number | null;
+  salespersonName?: string | null;
+};
+
+const toNumber = (value: number | string | null | undefined): number => {
+  if (value == null) {
+    return 0;
+  }
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : 0;
+};
+
+const calculateCommission = (deal: Deal) => {
+  const frontGross = toNumber(deal.sellingPrice) - toNumber(deal.vehicleCost);
+  const backGross = toNumber(deal.fiProducts) * 0.5; // assume 50% margin
+
+  let frontCommission = 0;
+  if (frontGross <= 1000) frontCommission = frontGross * 0.03;
+  else if (frontGross <= 2000) frontCommission = 30 + (frontGross - 1000) * 0.04;
+  else frontCommission = 30 + 40 + (frontGross - 2000) * 0.05;
+
+  const backCommission = backGross * 0.05;
+  return frontCommission + backCommission;
+};
+
+export const generateDealJournalEntry = async (deal: Deal): Promise<DealJournalEntryPayload> => {
+  const lines: DealJournalEntryLine[] = [];
+
+  const cashDown = toNumber(deal.cashDown);
+  const amountFinanced = toNumber(deal.amountFinanced);
+  const sellingPrice = toNumber(deal.sellingPrice);
+  const vehicleCost = toNumber(deal.vehicleCost);
+  const tradeInValue = toNumber(deal.tradeInValue);
+  const fiProducts = toNumber(deal.fiProducts);
+
+  if (cashDown > 0) {
+    lines.push({ accountNumber: '1110', debit: cashDown, credit: 0, memo: 'Cash down payment' });
+  }
+  if (amountFinanced > 0) {
+    lines.push({ accountNumber: '1120', debit: amountFinanced, credit: 0, memo: 'Financed amount' });
+  }
+  if (sellingPrice > 0) {
+    lines.push({ accountNumber: '4110', debit: 0, credit: sellingPrice, memo: 'Vehicle sale' });
+  }
+
+  if (vehicleCost > 0) {
+    lines.push({ accountNumber: '5100', debit: vehicleCost, credit: 0, memo: 'Cost of vehicle sold' });
+    lines.push({ accountNumber: '1140', debit: 0, credit: vehicleCost, memo: 'Remove from inventory' });
+  }
+
+  if (tradeInValue > 0) {
+    lines.push({ accountNumber: '1140', debit: tradeInValue, credit: 0, memo: 'Trade-in vehicle' });
+    lines.push({ accountNumber: '2160', debit: 0, credit: tradeInValue, memo: 'Trade-in credit' });
+  }
+
+  if (fiProducts > 0) {
+    lines.push({ accountNumber: '1110', debit: fiProducts, credit: 0, memo: 'F&I products' });
+    lines.push({ accountNumber: '4200', debit: 0, credit: fiProducts, memo: 'F&I products sold' });
+  }
+
+  const commission = calculateCommission(deal);
+  if (commission > 0) {
+    lines.push({
+      accountNumber: '6200',
+      debit: commission,
+      credit: 0,
+      memo: `Commission - ${deal.salespersonName ?? 'Salesperson'}`,
+    });
+    lines.push({ accountNumber: '2150', debit: 0, credit: commission, memo: 'Commission payable' });
+  }
+
+  const date = deal.closedDate instanceof Date ? deal.closedDate : new Date(deal.closedDate);
+
+  return {
+    date,
+    description: `Vehicle Sale - Deal #${deal.dealNumber}`,
+    type: 'AUTO_DEAL',
+    dealId: deal.id,
+    lines,
+  };
+};
+
