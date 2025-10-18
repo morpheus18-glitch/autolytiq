@@ -6,6 +6,7 @@ import { leadRouter } from './leads.js';
 import webhookRouter from './webhooks.routes.js';
 import { activityRouter } from './activity.routes.js';
 import { communicationRouter } from './communication.routes.js';
+import { appointmentRouter } from './appointment.routes.js';
 
 export function registerRoutes(app: Express) {
   app.get('/health', ((req, res) => {
@@ -19,6 +20,7 @@ export function registerRoutes(app: Express) {
   apiRouter.use('/leads', leadRouter);
   apiRouter.use('/activities', activityRouter);
   apiRouter.use('/communications', communicationRouter);
+  apiRouter.use('/appointments', appointmentRouter);
 
   app.use('/api', webhookRouter);
   app.use('/api', apiRouter);

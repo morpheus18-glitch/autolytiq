@@ -493,10 +493,11 @@ async function main() {
     const status = faker.helpers.arrayElement(
       [
         AppointmentStatus.SCHEDULED,
+        AppointmentStatus.CONFIRMED,
+        AppointmentStatus.IN_PROGRESS,
         AppointmentStatus.COMPLETED,
-        AppointmentStatus.CANCELLED,
         AppointmentStatus.NO_SHOW,
-        AppointmentStatus.RESCHEDULED,
+        AppointmentStatus.CANCELLED,
       ] as AppointmentStatus[],
     );
 
@@ -505,7 +506,7 @@ async function main() {
         tenantId: tenant.id,
         leadId: lead.id,
         customerId: lead.customerId,
-        userId: assignedUser.id,
+        assignedToId: assignedUser.id,
         title: `${faker.company.catchPhrase()} with ${lead.firstName ?? lead.lastName ?? 'prospect'}`,
         notes: faker.lorem.sentences({ min: 1, max: 2 }),
         type: faker.helpers.arrayElement(Object.values(AppointmentType) as AppointmentType[]),
@@ -516,8 +517,19 @@ async function main() {
           'Virtual Appointment',
           'Service Bay 1',
         ]),
+        timeZone: faker.helpers.arrayElement(['America/Chicago', 'America/Los_Angeles', 'America/New_York']),
         startAt,
         endAt: new Date(startAt.getTime() + faker.number.int({ min: 30, max: 90 }) * 60000),
+        checkedInAt:
+          status === AppointmentStatus.IN_PROGRESS || status === AppointmentStatus.COMPLETED
+            ? faker.date.between({ from: startAt, to: new Date(startAt.getTime() + 30 * 60000) })
+            : undefined,
+        completedAt:
+          status === AppointmentStatus.COMPLETED
+            ? faker.date.between({ from: startAt, to: new Date(startAt.getTime() + 90 * 60000) })
+            : undefined,
+        cancelledAt: status === AppointmentStatus.CANCELLED ? faker.date.recent({ days: 10 }) : undefined,
+        noShowAt: status === AppointmentStatus.NO_SHOW ? faker.date.recent({ days: 5 }) : undefined,
       },
     });
 
