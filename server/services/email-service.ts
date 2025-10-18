@@ -3,15 +3,12 @@ import { MailService } from '@sendgrid/mail';
 // Initialize SendGrid
 const mailService = new MailService();
 
-// Check for SendGrid API key in environment or use provided key for testing
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || "SK46b6ded796e32b7ce8d635af8797355a";
+// Check for SendGrid API key in environment
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 
-if (SENDGRID_API_KEY && SENDGRID_API_KEY !== "SK46b6ded796e32b7ce8d635af8797355a") {
+if (SENDGRID_API_KEY) {
   mailService.setApiKey(SENDGRID_API_KEY);
-  console.log('✅ SendGrid API key configured from environment');
-} else if (SENDGRID_API_KEY === "SK46b6ded796e32b7ce8d635af8797355a") {
-  mailService.setApiKey(SENDGRID_API_KEY);
-  console.log('✅ SendGrid API key configured for testing');
+  console.log('✅ SendGrid API key configured');
 } else {
   console.warn('⚠️ SENDGRID_API_KEY not found. Email functionality will be disabled.');
 }
@@ -26,8 +23,7 @@ interface EmailParams {
 
 // Send email using SendGrid
 export async function sendEmail(params: EmailParams): Promise<boolean> {
-  const apiKey = process.env.SENDGRID_API_KEY || "SK46b6ded796e32b7ce8d635af8797355a";
-  if (!apiKey) {
+  if (!process.env.SENDGRID_API_KEY) {
     console.warn('SendGrid API key not configured. Email not sent.');
     return false;
   }
