@@ -19,6 +19,10 @@ const envSchema = z
     SOCKET_IO_CORS_ORIGIN: z.string().min(1, 'SOCKET_IO_CORS_ORIGIN is required'),
     APP_URL: z.string().min(1, 'APP_URL is required'),
     API_URL: z.string().min(1, 'API_URL is required'),
+    REDIS_URL: z
+      .string()
+      .url('REDIS_URL must be a valid redis connection string')
+      .optional(),
     PORT: z
       .string()
       .default('4000')

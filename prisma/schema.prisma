@@ -96,18 +96,19 @@ enum ActivityStatus {
 
 enum AppointmentStatus {
   SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
   COMPLETED
-  CANCELLED
   NO_SHOW
-  RESCHEDULED
+  CANCELLED
 }
 
 enum AppointmentType {
-  SHOWROOM
   TEST_DRIVE
   DELIVERY
+  FINANCE
   SERVICE
-  VIRTUAL
+  OTHER
 }
 
 enum CommunicationType {
@@ -323,7 +324,7 @@ model User {
   leadsAssigned         Lead[]                @relation("LeadAssignedTo")
   leadsOwned            Lead[]                @relation("LeadOwner")
   activities            Activity[]
-  appointments          Appointment[]
+  appointments          Appointment[]        @relation("AppointmentAssignedTo")
   communications        Communication[]
   dealsAsSales          Deal[]                @relation("SalesPersonDeals")
   dealsAsFinance        Deal[]                @relation("FinanceManagerDeals")
@@ -482,6 +483,7 @@ model Activity {
   customer       Customer?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
   user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
   communications Communication[]
+  followUpForAppointment Appointment? @relation("AppointmentFollowUpTask")
 
   @@index([tenantId, leadId])
   @@index([tenantId, userId])
@@ -490,29 +492,41 @@ model Activity {
 }
 
 model Appointment {
-  id         String            @id @default(cuid())
-  tenantId   String
-  leadId     String?
-  customerId String?
-  userId     String?
-  title      String
-  notes      String?
-  type       AppointmentType
-  status     AppointmentStatus @default(SCHEDULED)
-  location   String?
-  startAt    DateTime          @db.Timestamptz(6)
-  endAt      DateTime?         @db.Timestamptz(6)
-  createdAt  DateTime          @default(now()) @db.Timestamptz(6)
-  updatedAt  DateTime          @updatedAt @db.Timestamptz(6)
+  id            String            @id @default(cuid())
+  tenantId      String
+  leadId        String?
+  customerId    String?
+  assignedToId  String?
+  vehicleId     String?
+  title         String
+  notes         String?
+  type          AppointmentType
+  status        AppointmentStatus @default(SCHEDULED)
+  location      String?
+  timeZone      String?           @default("UTC")
+  startAt       DateTime          @db.Timestamptz(6)
+  endAt         DateTime?         @db.Timestamptz(6)
+  checkedInAt   DateTime?         @db.Timestamptz(6)
+  completedAt   DateTime?         @db.Timestamptz(6)
+  cancelledAt   DateTime?         @db.Timestamptz(6)
+  noShowAt      DateTime?         @db.Timestamptz(6)
+  outcome       String?
+  followUpTaskId String? @unique
+  createdAt     DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime          @updatedAt @db.Timestamptz(6)
 
-  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  lead     Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
-  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  user     User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lead       Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  assignedTo User?     @relation("AppointmentAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  vehicle    Vehicle?  @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  followUpTask Activity? @relation("AppointmentFollowUpTask", fields: [followUpTaskId], references: [id], onDelete: SetNull)
 
   @@index([tenantId, startAt])
   @@index([tenantId, status])
   @@index([tenantId, leadId])
+  @@index([tenantId, assignedToId])
+  @@index([tenantId, vehicleId])
 }
 
 model LeadScore {
@@ -675,6 +689,7 @@ model Vehicle {
   tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   deals     Deal[]
   histories VehicleHistory[]
+  appointments Appointment[]
 
   @@unique([tenantId, stockNumber])
   @@unique([vin])

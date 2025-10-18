@@ -3,6 +3,8 @@ import { Server as SocketIOServer, type Socket } from 'socket.io';
 import { createApp } from './server.js';
 import { env } from './config/env.js';
 import { prisma } from './lib/prisma.js';
+import { getTenantRoom, registerSocket } from './lib/socket.js';
+import { initializeQueues, shutdownQueues } from './queues/index.js';
 
 const app = createApp();
 const httpServer = createServer(app);
@@ -48,10 +50,10 @@ const io = new SocketIOServer<
   },
 });
 
-const TENANT_ROOM_PREFIX = 'tenant:';
+registerSocket(io);
 
 async function joinTenantRoom(socket: TenantSocket, tenantId: string) {
-  await socket.join(`${TENANT_ROOM_PREFIX}${tenantId}`);
+  await socket.join(getTenantRoom(tenantId));
   socket.data.tenantId = tenantId;
 }
 
@@ -60,7 +62,7 @@ async function leaveTenantRoom(socket: TenantSocket, tenantId?: string) {
     return;
   }
 
-  await socket.leave(`${TENANT_ROOM_PREFIX}${tenantId}`);
+  await socket.leave(getTenantRoom(tenantId));
   delete socket.data.tenantId;
 }
 
@@ -109,6 +111,8 @@ io.on('connection', (socket) => {
 
 const port = env.PORT;
 
+initializeQueues();
+
 httpServer.listen(port, () => {
   // eslint-disable-next-line no-console
   console.log(`API listening on port ${port}`);
@@ -117,6 +121,7 @@ httpServer.listen(port, () => {
 const shutdown = async () => {
   await io.close();
   await prisma.$disconnect();
+  await shutdownQueues();
   httpServer.close(() => process.exit(0));
 };
 
