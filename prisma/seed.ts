@@ -4,7 +4,6 @@ import {
   CommissionStatus,
   CommissionType,
   CustomerVehicleStatus,
-  DealDocumentType,
   DealStatus,
   DealType,
   ActivityStatus,
@@ -110,7 +109,12 @@ async function resetTenantData(tenantId: string) {
   await prisma.commission.deleteMany({ where: { tenantId } });
   await prisma.journalEntryLine.deleteMany({ where: { tenantId } });
   await prisma.journalEntry.deleteMany({ where: { tenantId } });
-  await prisma.dealDocument.deleteMany({ where: { tenantId } });
+  await prisma.dealDocument.deleteMany({ where: { deal: { tenantId } } });
+  await prisma.contract.deleteMany({ where: { tenantId } });
+  await prisma.lenderSubmission.deleteMany({ where: { tenantId } });
+  await prisma.creditApplication.deleteMany({ where: { tenantId } });
+  await prisma.fundingChecklist.deleteMany({ where: { tenantId } });
+  await prisma.dealJacket.deleteMany({ where: { tenantId } });
   await prisma.deal.deleteMany({ where: { tenantId } });
   await prisma.vehicleHistory.deleteMany({ where: { tenantId } });
   await prisma.vehicle.deleteMany({ where: { tenantId } });
@@ -886,18 +890,6 @@ async function main() {
         },
       });
 
-      await prisma.dealDocument.create({
-        data: {
-          tenantId: tenant.id,
-          dealId: deal.id,
-          type: DealDocumentType.CONTRACT,
-          name: 'Retail Installment Contract',
-          fileUrl: `https://docs.example.com/deals/${deal.id}/contract.pdf`,
-          signedAt: dealDate,
-          uploadedBy: adminUser.id,
-        },
-      });
-
       const entryNumber = `JE-${dealDate.getFullYear()}${String(dealDate.getMonth() + 1).padStart(2, '0')}-${String(
         dealCounter
       ).padStart(4, '0')}`;
@@ -1032,6 +1024,97 @@ async function main() {
       },
     ],
   });
+
+  if (deals.length > 0) {
+    const sampleDeal = deals[0];
+    const fiManagerId = sampleDeal.financeManagerId ?? adminUser.id;
+    const sellingPrice = sampleDeal.vehiclePrice ?? '0';
+    const tradeValue = sampleDeal.tradeAllowance ?? '0';
+    const tradePayoff = sampleDeal.tradePayoff ?? '0';
+    const netTrade = tradeValue && tradePayoff ? (Number(tradeValue) - Number(tradePayoff)).toFixed(2) : null;
+    const cashDown = sampleDeal.downPayment ?? '0';
+    const amountFinanced = sampleDeal.amountFinanced ?? '0';
+    const monthlyPayment = sampleDeal.monthlyPayment ?? '0';
+    const apr = sampleDeal.apr ?? '0';
+    const totalFiGross = sampleDeal.backEndGross ?? '0';
+
+    const dealJacket = await prisma.dealJacket.create({
+      data: {
+        tenantId: tenant.id,
+        dealNumber: `${sampleDeal.dealNumber}-FI`,
+        customerId: sampleDeal.customerId,
+        vehicleId: sampleDeal.vehicleId,
+        salespersonId: sampleDeal.salesPersonId,
+        fiManagerId,
+        sellingPrice,
+        tradeValue: tradeValue ?? undefined,
+        tradePayoff: tradePayoff ?? undefined,
+        netTrade: netTrade ?? undefined,
+        cashDown,
+        amountFinanced,
+        lenderId: 'sunrise-credit-union',
+        apr: apr ?? undefined,
+        term: sampleDeal.term ?? 72,
+        monthlyPayment: monthlyPayment ?? undefined,
+        fiProducts: [
+          {
+            name: 'Vehicle Service Contract',
+            price: 1599,
+            cost: 899,
+            termMonths: 72,
+          },
+          {
+            name: 'GAP Insurance',
+            price: 799,
+            cost: 299,
+          },
+        ],
+        totalFiGross: totalFiGross ?? undefined,
+        status: 'Contracted',
+        dealDate: sampleDeal.dealDate,
+        contractDate: sampleDeal.contractDate ?? sampleDeal.dealDate,
+        fundedDate: sampleDeal.fundedDate ?? sampleDeal.dealDate,
+        deliveredDate: sampleDeal.deliveryDate ?? sampleDeal.dealDate,
+      },
+    });
+
+    const documentBase = (process.env.S3_CLOUDFRONT_URL ?? '').replace(/\/$/, '');
+    const sampleDocuments = [
+      {
+        type: 'contract',
+        category: 'Contracts',
+        name: 'Retail Installment Contract',
+        path: '/seed/retail-installment-contract.pdf',
+        size: 358_120,
+      },
+      {
+        type: 'credit',
+        category: 'Credit',
+        name: 'Credit Application',
+        path: '/seed/credit-application.pdf',
+        size: 287_950,
+      },
+    ];
+
+    for (const doc of sampleDocuments) {
+      const url = documentBase
+        ? `${documentBase}${doc.path}`
+        : `https://files.autolytiq.dev${doc.path}`;
+      await prisma.dealDocument.create({
+        data: {
+          dealId: dealJacket.id,
+          type: doc.type,
+          category: doc.category,
+          name: doc.name,
+          fileName: doc.name.replace(/\s+/g, '-').toLowerCase(),
+          fileUrl: url,
+          mimeType: 'application/pdf',
+          fileSize: doc.size,
+          uploadedBy: adminUser.id,
+        },
+      });
+    }
+  }
 
   await prisma.auditLog.create({
     data: {

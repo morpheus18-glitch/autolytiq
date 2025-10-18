@@ -9,6 +9,7 @@ import { errorHandler } from '../lib/errors.js';
 import { getTenantContext } from '../lib/tenant-context.js';
 import crmRoutes from './crm.routes.js';
 import leadRoutes from './lead.routes.js';
+import fiRoutes from '../fi/fi.routes.js';
 
 async function loadOptionalRoutes(): Promise<express.Router[]> {
   const optionalImports = [
@@ -73,6 +74,7 @@ export async function registerApiRoutes(app: express.Application) {
   api.use('/settings', settingsRoutes);
   api.use('/leads', leadRoutes);
   api.use('/crm', crmRoutes);
+  api.use('/fi', fiRoutes);
 
   const optionalRouters = await loadOptionalRoutes();
   for (const router of optionalRouters) {
