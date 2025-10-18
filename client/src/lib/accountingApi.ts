@@ -1253,3 +1253,71 @@ export function emailStatementRequest(payload: {
 }) {
   return apiJson(`/api/accounting/statements/email`, { method: 'POST', body: payload });
 }
+
+export async function exportDashboardRequest(
+  format: 'pdf' | 'excel',
+  params: { startDate: string; endDate: string; compareToLast?: boolean },
+) {
+  const url = new URL(`${API_BASE_URL}/api/accounting/dashboard/export`);
+  url.searchParams.set('format', format);
+  url.searchParams.set('startDate', params.startDate);
+  url.searchParams.set('endDate', params.endDate);
+  if (params.compareToLast) {
+    url.searchParams.set('compareToLast', 'true');
+  }
+
+  const response = await fetch(url.toString(), {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || response.statusText);
+  }
+
+  const blob = await response.blob();
+  const filename =
+    response.headers.get('content-disposition')?.split('filename="')[1]?.replace('"', '') ??
+    `accounting-dashboard.${format === 'excel' ? 'xlsx' : 'pdf'}`;
+
+  return { blob, filename };
+}
+
+export async function exportAllReportsRequest(
+  format: 'pdf' | 'excel' | 'zip',
+  params: { startDate: string; endDate: string },
+) {
+  const url = new URL(`${API_BASE_URL}/api/accounting/export-all`);
+  url.searchParams.set('format', format);
+  url.searchParams.set('startDate', params.startDate);
+  url.searchParams.set('endDate', params.endDate);
+
+  const response = await fetch(url.toString(), {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || response.statusText);
+  }
+
+  const blob = await response.blob();
+  const filename =
+    response.headers.get('content-disposition')?.split('filename="')[1]?.replace('"', '') ??
+    `all-reports.${format === 'excel' ? 'xlsx' : format === 'pdf' ? 'pdf' : 'zip'}`;
+
+  return { blob, filename };
+}
+
+export function emailAllReportsRequest(payload: {
+  recipients: string[];
+  subject: string;
+  message?: string;
+  formats: Array<'pdf' | 'excel'>;
+  startDate: string;
+  endDate: string;
+}) {
+  return apiJson(`/api/accounting/email-all`, { method: 'POST', body: payload });
+}
