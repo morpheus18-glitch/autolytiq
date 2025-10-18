@@ -28,6 +28,13 @@ const envSchema = z
       .string()
       .url('REDIS_URL must be a valid redis connection string')
       .optional(),
+    AWS_REGION: z.string().min(1).optional(),
+    AWS_ACCESS_KEY_ID: z.string().min(1).optional(),
+    AWS_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+    S3_BUCKET: z.string().min(1).optional(),
+    S3_CLOUDFRONT_URL: z.string().url().optional(),
+    CLAMAV_HOST: z.string().optional(),
+    CLAMAV_PORT: z.coerce.number().int().positive().optional(),
     PORT: z
       .string()
       .default('4000')

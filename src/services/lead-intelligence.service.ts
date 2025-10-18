@@ -1,4 +1,4 @@
-import { AppointmentStatus, ActivityType, CommunicationDirection, CommunicationType } from '@prisma/client';
+import { Prisma, AppointmentStatus, ActivityType, CommunicationDirection, CommunicationType } from '@prisma/client';
 import { subDays } from 'date-fns';
 import { prisma } from '../lib/prisma.js';
 import type {
@@ -10,7 +10,12 @@ import type {
 } from '../types/ml.js';
 
 const MS_IN_DAY = 1000 * 60 * 60 * 24;
-type LoadedLead = NonNullable<Awaited<ReturnType<typeof prisma.lead.findFirst>>>;
+type LoadedLead = Prisma.LeadGetPayload<{
+  include: {
+    appointments: { select: { startAt: true; status: true } };
+    scores: { select: { score: true; createdAt: true } };
+  };
+}>;
 
 class LeadNotFoundError extends Error {
   status = 404;
