@@ -148,6 +148,82 @@ export interface MenuPresentationDto {
   vehicle: { year: number | null; mileage: number | null };
 }
 
+export interface FiDashboardMetricDto {
+  value: number;
+  previous: number;
+  delta: number;
+  percentChange: number | null;
+}
+
+export interface FiDashboardKpisDto {
+  range: { start: string; end: string };
+  dealsContracted: FiDashboardMetricDto;
+  productsPerDeal: FiDashboardMetricDto;
+  productPenetration: FiDashboardMetricDto;
+  backGross: FiDashboardMetricDto;
+}
+
+export interface FiDashboardActiveDealDto {
+  id: string;
+  dealNumber: string;
+  status: string;
+  dealDate: string | null;
+  contractDate: string | null;
+  updatedAt: string | null;
+  amountFinanced: number;
+  totalFiGross: number;
+  lenderId: string | null;
+  lenderName: string | null;
+  customerName: string;
+  vehicle: { year: number | null; make: string | null; model: string | null } | null;
+  salesperson: { id: string; name: string } | null;
+  fiManager: { id: string; name: string } | null;
+}
+
+export interface FiDashboardProductPerformanceDto {
+  productName: string;
+  category: string | null;
+  provider: string | null;
+  soldCount: number;
+  penetrationRate: number;
+  averagePrice: number;
+  totalRevenue: number;
+  averageMarkup: number;
+}
+
+export interface FiDashboardLenderPerformanceDto {
+  lenderId: string;
+  lenderName: string;
+  submitted: number;
+  approved: number;
+  approvalRate: number;
+  averageApr: number;
+}
+
+export interface FiDashboardCommissionDto {
+  dealsClosed: number;
+  totalBackGross: number;
+  rate: number;
+  baseCommission: number;
+  bonuses: {
+    volumeTarget?: number;
+    volumeBonus: number;
+    volumeAchieved: boolean;
+    grossTarget?: number;
+    grossBonus: number;
+    grossAchieved: boolean;
+    totalBonus: number;
+  };
+  totalCompensation: number;
+}
+
+export interface FiDashboardFilters {
+  startDate?: string;
+  endDate?: string;
+  lenderId?: string;
+  salespersonId?: string;
+}
+
 export interface MenuBuilderOptionInput {
   code: 'A' | 'B' | 'C' | 'D';
   label?: string;
@@ -646,6 +722,52 @@ export interface SatisfyStipulationPayload {
   submissionId: string;
   stipulationId: string;
   note?: string | null;
+}
+
+function buildDashboardQuery(filters?: FiDashboardFilters) {
+  if (!filters) {
+    return '';
+  }
+  const params = new URLSearchParams();
+  if (filters.startDate) {
+    params.set('startDate', filters.startDate);
+  }
+  if (filters.endDate) {
+    params.set('endDate', filters.endDate);
+  }
+  if (filters.lenderId) {
+    params.set('lenderId', filters.lenderId);
+  }
+  if (filters.salespersonId) {
+    params.set('salespersonId', filters.salespersonId);
+  }
+  const query = params.toString();
+  return query ? `?${query}` : '';
+}
+
+export async function fetchFiDashboardKpis(filters?: FiDashboardFilters) {
+  const res = await apiRequest(`/fi/dashboard/kpis${buildDashboardQuery(filters)}`);
+  return res.json() as Promise<FiDashboardKpisDto>;
+}
+
+export async function fetchFiDashboardActiveDeals(filters?: FiDashboardFilters) {
+  const res = await apiRequest(`/fi/dashboard/active-deals${buildDashboardQuery(filters)}`);
+  return res.json() as Promise<FiDashboardActiveDealDto[]>;
+}
+
+export async function fetchFiDashboardProductPerformance(filters?: FiDashboardFilters) {
+  const res = await apiRequest(`/fi/dashboard/product-performance${buildDashboardQuery(filters)}`);
+  return res.json() as Promise<FiDashboardProductPerformanceDto[]>;
+}
+
+export async function fetchFiDashboardLenderPerformance(filters?: FiDashboardFilters) {
+  const res = await apiRequest(`/fi/dashboard/lender-performance${buildDashboardQuery(filters)}`);
+  return res.json() as Promise<FiDashboardLenderPerformanceDto[]>;
+}
+
+export async function fetchFiDashboardCommission(filters?: FiDashboardFilters) {
+  const res = await apiRequest(`/fi/dashboard/commission${buildDashboardQuery(filters)}`);
+  return res.json() as Promise<FiDashboardCommissionDto>;
 }
 
 export async function fetchDealJacket(dealId: string) {
