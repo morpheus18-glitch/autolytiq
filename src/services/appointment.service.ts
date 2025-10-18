@@ -18,12 +18,35 @@ import {
   cancelAppointmentJobs,
   scheduleAppointmentJobs,
 } from '../queues/index.js';
+import { triggerAutomations } from './automation.service.js';
+import type { AutomationTriggerType } from './automation.service.js';
 
 const ACTIVE_CONFLICT_STATUSES = [
   AppointmentStatus.SCHEDULED,
   AppointmentStatus.CONFIRMED,
   AppointmentStatus.IN_PROGRESS,
 ];
+
+async function dispatchAppointmentAutomation(
+  trigger: AutomationTriggerType,
+  appointment: AppointmentWithRelations,
+  occurredAt?: Date | null,
+): Promise<void> {
+  const leadId = appointment.lead?.id ?? appointment.leadId ?? undefined;
+  const customerId = appointment.customer?.id ?? appointment.customerId ?? undefined;
+  const eventTime = occurredAt ?? appointment.startAt ?? new Date();
+
+  try {
+    await triggerAutomations(trigger, {
+      appointmentId: appointment.id,
+      leadId: leadId ?? undefined,
+      customerId: customerId ?? undefined,
+      occurredAt: eventTime,
+    });
+  } catch (error) {
+    console.error(`Failed to trigger ${trigger} automations`, error);
+  }
+}
 
 function requireTenantId(): string {
   const tenantId = getTenantId();
@@ -229,6 +252,7 @@ export async function createAppointment(input: AppointmentCreateInput): Promise<
 
   await scheduleAppointmentJobs(appointment);
   emitTenantEvent(tenantId, 'appointment:created', { appointment });
+  await dispatchAppointmentAutomation('APPOINTMENT_CREATED', appointment, appointment.startAt);
 
   return appointment;
 }
@@ -321,6 +345,21 @@ export async function updateAppointment(
   }
 
   emitTenantEvent(tenantId, 'appointment:updated', { appointment });
+  if (input.status && input.status !== existing.status) {
+    if (appointment.status === AppointmentStatus.COMPLETED) {
+      await dispatchAppointmentAutomation(
+        'APPOINTMENT_COMPLETED',
+        appointment,
+        appointment.completedAt ?? new Date(),
+      );
+    } else if (appointment.status === AppointmentStatus.NO_SHOW) {
+      await dispatchAppointmentAutomation(
+        'APPOINTMENT_NO_SHOW',
+        appointment,
+        appointment.noShowAt ?? new Date(),
+      );
+    }
+  }
   return appointment;
 }
 
@@ -410,6 +449,7 @@ export async function completeAppointment(
   }
 
   emitTenantEvent(tenantId, 'appointment:status', { appointment: updated });
+  await dispatchAppointmentAutomation('APPOINTMENT_COMPLETED', updated, updated.completedAt ?? completedAt);
   return updated;
 }
 
@@ -441,5 +481,6 @@ export async function markAppointmentNoShow(
   await scheduleAppointmentJobs(updated, { reminders: false, followUp: true });
 
   emitTenantEvent(tenantId, 'appointment:status', { appointment: updated });
+  await dispatchAppointmentAutomation('APPOINTMENT_NO_SHOW', updated, updated.noShowAt ?? new Date());
   return updated;
 }

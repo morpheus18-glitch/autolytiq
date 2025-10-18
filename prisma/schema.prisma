@@ -256,6 +256,12 @@ enum NotificationType {
   SYSTEM
 }
 
+enum AutomationExecutionStatus {
+  SUCCESS
+  FAILED
+  SKIPPED
+}
+
 enum AuditAction {
   CREATE
   UPDATE
@@ -287,6 +293,7 @@ model Tenant {
   emailTemplates       EmailTemplate[]
   smsTemplates         SMSTemplate[]
   automations          Automation[]
+  automationExecutions AutomationExecution[]
   vehicles             Vehicle[]
   vehicleHistories     VehicleHistory[]
   deals                Deal[]
@@ -617,9 +624,29 @@ model Automation {
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  executions AutomationExecution[]
 
   @@unique([tenantId, name])
   @@index([tenantId, isActive])
+}
+
+model AutomationExecution {
+  id           String                     @id @default(cuid())
+  tenantId     String
+  automationId String?
+  triggerType  String
+  status       AutomationExecutionStatus @default(SUCCESS)
+  context      Json?
+  result       Json?
+  error        String?
+  startedAt    DateTime                   @default(now()) @db.Timestamptz(6)
+  completedAt  DateTime?                  @db.Timestamptz(6)
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  automation Automation? @relation(fields: [automationId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, triggerType])
+  @@index([tenantId, automationId])
 }
 
 model CustomerVehicle {
