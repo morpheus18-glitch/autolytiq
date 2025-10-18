@@ -298,6 +298,7 @@ model Tenant {
   lenderSubmissions    LenderSubmission[]
   contracts            Contract[]
   fundingChecklists    FundingChecklist[]
+  complianceChecklists ComplianceChecklist[]
   glAccounts           GLAccount[]
   journalEntries       JournalEntry[]
   journalEntryLines    JournalEntryLine[]
@@ -847,6 +848,7 @@ model DealJacket {
   documents         DealDocument[]
   contracts         Contract[]
   fundingChecklist  FundingChecklist?
+  complianceChecklist ComplianceChecklist?
   menuConfiguration MenuConfiguration?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -875,6 +877,7 @@ model Contract {
   generatedBy        String
   createdAt          DateTime    @default(now()) @db.Timestamptz(6)
   updatedAt          DateTime    @updatedAt @db.Timestamptz(6)
+  tenant             Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   deal               DealJacket  @relation(fields: [dealId], references: [id], onDelete: Cascade)
   signatures         Signature[]
 
@@ -959,6 +962,30 @@ model DealDocument {
 
   @@index([dealId])
   @@index([type])
+}
+
+model ComplianceChecklist {
+  id              String   @id @default(uuid())
+  dealId          String   @unique
+  tenantId        String
+  state           String
+  federalItems    Json
+  stateItems      Json
+  lenderItems     Json
+  internalItems   Json
+  completedItems  Int
+  totalItems      Int
+  percentComplete Decimal @db.Decimal(5, 2)
+  isComplete      Boolean @default(false)
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal   DealJacket @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([dealId])
 }
 
 model CreditApplication {
@@ -1101,25 +1128,6 @@ model LenderSubmission {
   @@index([tenantId])
   @@index([dealId])
   @@index([status])
-}
-
-model Contract {
-  id             String   @id @default(uuid())
-  tenantId       String
-  dealId         String
-  contractNumber String
-  status         String
-  documentUrl    String?
-  executedAt     DateTime?
-  metadata       Json?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  deal           DealJacket @relation(fields: [dealId], references: [id], onDelete: Cascade)
-
-  @@index([tenantId])
-  @@index([dealId])
-  @@unique([dealId, contractNumber])
 }
 
 model FundingChecklist {

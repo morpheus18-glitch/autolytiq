@@ -19,6 +19,7 @@ const tenantScopedModels = new Set<Prisma.ModelName>([
   Prisma.ModelName.SMSTemplate,
   Prisma.ModelName.Automation,
   Prisma.ModelName.AutomationExecution,
+  Prisma.ModelName.ComplianceChecklist,
 ]);
 
 function withTenantGuard<T extends Prisma.MiddlewareParams>(params: T) {
@@ -130,4 +131,8 @@ export function getTenantId(): string | undefined {
 
 export function isTenantScoped(): boolean {
   return Boolean(getTenantId());
+}
+
+export function toInputJson<T>(value: T): Prisma.InputJsonValue {
+  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 }

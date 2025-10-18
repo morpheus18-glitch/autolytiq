@@ -30,7 +30,7 @@ import MLModelComparison from '@/pages/ml-model-comparison';
 import FiDashboardPage from '@/pages/fi-dashboard';
 import LenderManagement from '@/pages/finance/lenders';
 import RateSheets from '@/pages/finance/rates';
-import ComplianceManager from '@/pages/finance/compliance-manager';
+import ComplianceEngine from '@/features/fi/pages/ComplianceEngine';
 import FinanceReports from '@/pages/finance/finance-reports';
 import FiConfigurationPage from '@/pages/fi-configuration';
 import AccountingDashboardPage from '@/pages/accounting/AccountingDashboard';
@@ -136,7 +136,7 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/ml-model-comparison', component: MLModelComparison },
   { path: '/finance/lenders', component: LenderManagement },
   { path: '/finance/rates', component: RateSheets },
-  { path: '/finance/compliance', component: ComplianceManager },
+  { path: '/finance/compliance', component: ComplianceEngine },
   { path: '/finance/reports', component: FinanceReports },
   { path: '/finance', component: FiDashboardPage, aliases: ['/fi-dashboard'] },
   { path: '/fi-configuration', component: FiConfigurationPage },

@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma.js';
+import { prisma, toInputJson } from '../lib/prisma.js';
 import { emitTenantEvent } from '../lib/socket.js';
 import type { LeadInsightsPayload, LeadScoreResponsePayload } from '../types/ml.js';
 import { buildLeadInsights, LeadNotFoundError } from './lead-intelligence.service.js';
@@ -22,7 +22,13 @@ interface LeadScoreResult {
 
 export async function calculateLeadScore(leadId: string, requestId?: string): Promise<LeadScoreResult> {
   const insights = await buildLeadInsights(leadId);
-  const scoreResponse = await mlService.scoreLead({ ...insights, requestId, tenantId: insights.tenantId });
+  const tenantId = insights.tenantId;
+
+  if (!tenantId) {
+    throw new Error('Lead insights missing tenant context for scoring.');
+  }
+
+  const scoreResponse = await mlService.scoreLead({ ...insights, requestId, tenantId });
 
   const previousScore = insights.metadata.latestScore ?? null;
   const scoreDelta = previousScore !== null ? scoreResponse.score - previousScore : null;
@@ -31,11 +37,12 @@ export async function calculateLeadScore(leadId: string, requestId?: string): Pr
     const leadScore = await tx.leadScore.create({
       data: {
         leadId,
+        tenantId,
         modelKey: MODEL_KEY,
         score: scoreResponse.score,
         scoreDelta,
         reason: scoreResponse.factors[0]?.reason?.slice(0, 255) ?? null,
-        metadata: scoreResponse,
+        metadata: toInputJson(scoreResponse),
       },
     });
 
