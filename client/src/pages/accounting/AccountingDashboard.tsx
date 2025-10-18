@@ -71,6 +71,7 @@ import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
+import { parseEmailAddresses } from '@/lib/email';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label as FormLabel } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -105,20 +106,6 @@ const percentFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 1,
 });
-
-function parseAddresses(value: string): string[] {
-  return value
-    .split(/[,;\n]+/)
-    .map((entry) => entry.trim())
-    .filter((entry, index, array) => entry.length > 0 && array.indexOf(entry) === index);
-}
-
-function parseAddresses(value: string): string[] {
-  return value
-    .split(/[,;\n]+/)
-    .map((entry) => entry.trim())
-    .filter((entry, index, array) => entry.length > 0 && array.indexOf(entry) === index);
-}
 
 type DatePreset =
   | 'today'
@@ -543,12 +530,12 @@ export default function AccountingDashboard() {
   }, [allReportsFormats, isoEnd, isoStart, toast]);
 
   const handleEmailAllReports = useCallback(async () => {
-    const recipients = parseAddresses(allReportsRecipients);
+    const recipients = parseEmailAddresses(allReportsRecipients);
     if (recipients.length === 0) {
       toast({ title: 'Add recipients', description: 'Provide at least one recipient email.', variant: 'destructive' });
       return;
     }
-    const cc = parseAddresses(allReportsCc);
+    const cc = parseEmailAddresses(allReportsCc);
     const formats = allReportsFormats.size ? Array.from(allReportsFormats) : ['pdf'];
     const subject = allReportsSubject.trim() || `Financial Reports Package – ${rangeDisplay}`;
     const message = allReportsMessage.trim() || undefined;
@@ -596,12 +583,12 @@ export default function AccountingDashboard() {
         toast({ title: 'Select a format', description: 'Choose at least one export format.', variant: 'destructive' });
         return;
       }
-      const recipients = parseAddresses(emailRecipients);
+      const recipients = parseEmailAddresses(emailRecipients);
       if (recipients.length === 0) {
         toast({ title: 'Add recipients', description: 'Provide at least one recipient email.', variant: 'destructive' });
         return;
       }
-      const cc = parseAddresses(emailCc);
+      const cc = parseEmailAddresses(emailCc);
       const formats = Array.from(emailFormats);
       const subject = emailSubject.trim() || `Accounting Dashboard – ${rangeDisplay}`;
       const message = emailMessage.trim() || undefined;
@@ -638,7 +625,7 @@ export default function AccountingDashboard() {
         toast({ title: 'Select a format', description: 'Choose at least one export format.', variant: 'destructive' });
         return;
       }
-      const recipients = parseAddresses(scheduleRecipients);
+      const recipients = parseEmailAddresses(scheduleRecipients);
       if (recipients.length === 0) {
         toast({ title: 'Add recipients', description: 'Provide at least one recipient email.', variant: 'destructive' });
         return;

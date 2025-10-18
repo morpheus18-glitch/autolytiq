@@ -38,6 +38,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { parseEmailAddresses } from '@/lib/email';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import {
@@ -382,10 +383,7 @@ export default function PLStatement(): JSX.Element {
   }, [fromLabel, rangeLabel, toLabel]);
 
   const handleSendEmail = useCallback(async () => {
-    const recipients = emailRecipients
-      .split(',')
-      .map((recipient) => recipient.trim())
-      .filter(Boolean);
+    const recipients = parseEmailAddresses(emailRecipients);
     if (recipients.length === 0) {
       toast({
         title: 'Recipients required',
