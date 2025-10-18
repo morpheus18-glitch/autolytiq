@@ -16,6 +16,8 @@ import {
   Building,
   FileText,
   Megaphone,
+  Shield,
+  ShieldCheck,
   Menu as MenuIcon
 } from 'lucide-react';
 
@@ -94,6 +96,39 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
     ]
   },
   {
+    id: 'finance',
+    label: 'Finance & Insurance',
+    icon: Shield,
+    path: '/finance',
+    subItems: [
+      {
+        label: 'F&I Command Center',
+        path: '/finance',
+        icon: Shield,
+        matchPaths: ['/fi-dashboard', '/fi/deal-jackets', '/fi/deals'],
+      },
+      {
+        label: 'Lender Network',
+        path: '/finance/lenders',
+        icon: Handshake,
+        matchPaths: ['/fi/deals', '/fi/deals/:id/lenders'],
+      },
+      { label: 'Rate Sheets', path: '/finance/rates', icon: DollarSign },
+      {
+        label: 'Compliance Engine',
+        path: '/finance/compliance',
+        icon: ShieldCheck,
+      },
+      { label: 'Finance Reports', path: '/finance/reports', icon: BarChart3 },
+      {
+        label: 'F&I Configuration',
+        path: '/fi-configuration',
+        icon: Settings,
+        matchPaths: ['/fi-configuration'],
+      },
+    ],
+  },
+  {
     id: 'service',
     label: 'Service',
     icon: Wrench,
@@ -155,6 +190,13 @@ export const MOBILE_ALL_NAV_ITEMS: MobileNavItem[] = [
   { name: 'Sales & Leads', href: '/sales', icon: Handshake, color: 'text-indigo-600', matchPaths: ['/leads'] },
   { name: 'Customers', href: '/customers', icon: Users, color: 'text-green-600' },
   { name: 'Inventory', href: '/inventory', icon: Car, color: 'text-purple-600' },
+  {
+    name: 'Finance & Insurance',
+    href: '/finance',
+    icon: Shield,
+    color: 'text-emerald-600',
+    matchPaths: ['/finance', '/fi-dashboard', '/fi/deals', '/finance/lenders', '/finance/rates', '/finance/compliance'],
+  },
   { name: 'Accounting', href: '/accounting', icon: DollarSign, color: 'text-emerald-600', matchPaths: ['/accounting/'] },
   { name: 'Deals', href: '/deals', icon: Calculator, color: 'text-orange-600', matchPaths: ['/deals', '/deal-log', '/deal-pipeline', '/deals-list'] },
   { name: 'Deal Desk', href: '/professional-deal-desk', icon: Calculator, color: 'text-rose-600', matchPaths: ['/professional-deal-desk', '/deal-desk', '/deal-working', '/deals-finance', '/finance/structuring'] },
@@ -196,6 +238,6 @@ export const MOBILE_QUICK_ACTIONS = [
   { label: 'Add Customer', href: '/customers', icon: Users },
   { label: 'Add Vehicle', href: '/inventory', icon: Car },
   { label: 'New Deal', href: '/deals', icon: Calculator },
-  { label: 'Open Deal Desk', href: '/professional-deal-desk', icon: Calculator },
+  { label: 'Open F&I Dashboard', href: '/finance', icon: Shield },
   { label: 'Track Visit', href: '/showroom', icon: Timer }
 ] as const;

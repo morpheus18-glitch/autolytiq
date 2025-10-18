@@ -44,6 +44,13 @@ import {
 } from '../api';
 import { updateDealJacket } from '../api';
 
+export interface DealFundingWorkspaceProps {
+  dealId: string;
+  showBackButton?: boolean;
+  padded?: boolean;
+  onNavigateBack?: () => void;
+}
+
 const fundingMethods = [
   { label: 'ACH', value: 'ACH' },
   { label: 'Wire', value: 'WIRE' },
@@ -116,6 +123,14 @@ function ChecklistItem({
   );
 }
 
+export function DealFundingWorkspace(props: DealFundingWorkspaceProps) {
+  return <DealFundingView {...props} />;
+}
+
+export default function DealFundingPage() {
+  return <DealFundingView />;
+}
+
 interface SubmissionFormState {
   fundingMethod: 'ACH' | 'WIRE' | 'CHECK';
   submissionType: 'INTEGRATION' | 'MANUAL';
@@ -132,8 +147,14 @@ interface FundedFormState {
   notes: string;
 }
 
-export default function DealFundingPage() {
-  const { id: dealId } = useParams<{ id: string }>();
+function DealFundingView({
+  dealId: providedDealId,
+  showBackButton = true,
+  padded = true,
+  onNavigateBack,
+}: Partial<DealFundingWorkspaceProps>) {
+  const { id: routeDealId } = useParams<{ id: string }>();
+  const dealId = providedDealId ?? routeDealId;
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -154,11 +175,40 @@ export default function DealFundingPage() {
     notes: '',
   });
 
+  const horizontalPadding = padded ? 'px-6' : '';
+  const containerClass = cn('space-y-6', horizontalPadding, padded ? 'py-8' : 'py-6');
+  const sectionPaddingClass = cn(horizontalPadding, padded ? 'py-8' : 'py-6');
+
+  const handleBack = () => {
+    if (onNavigateBack) {
+      onNavigateBack();
+      return;
+    }
+
+    if (dealId) {
+      setLocation(`/fi/deal-jackets/${dealId}`);
+    } else {
+      setLocation('/finance');
+    }
+  };
+
   const fundingQuery = useQuery<FundingStatusDto>({
     queryKey: ['fi', 'funding', dealId],
     queryFn: () => fetchFundingStatus(dealId!),
     enabled: Boolean(dealId),
   });
+
+  if (!dealId) {
+    return (
+      <div className={sectionPaddingClass}>
+        <Card>
+          <CardContent className="py-12 text-center text-sm text-muted-foreground">
+            Deal identifier is required to manage funding.
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (!fundingQuery.data) {
@@ -352,7 +402,7 @@ export default function DealFundingPage() {
 
   if (fundingQuery.isLoading || !fundingStatus) {
     return (
-      <div className="space-y-6 px-6 py-8">
+      <div className={containerClass}>
         <Skeleton className="h-10 w-48" />
         <div className="grid gap-4 lg:grid-cols-3">
           <Skeleton className="h-64 lg:col-span-2" />
@@ -365,7 +415,7 @@ export default function DealFundingPage() {
   if (fundingQuery.isError) {
     const error = fundingQuery.error as Error;
     return (
-      <div className="px-6 py-8">
+      <div className={sectionPaddingClass}>
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Unable to load funding status</AlertTitle>
@@ -376,12 +426,14 @@ export default function DealFundingPage() {
   }
 
   return (
-    <div className="space-y-6 px-6 py-8">
+    <div className={containerClass}>
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
-          <Button variant="ghost" className="w-fit px-0" onClick={() => setLocation(`/fi/deal-jackets/${dealId}`)}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Deal Jacket
-          </Button>
+          {showBackButton ? (
+            <Button variant="ghost" className="w-fit px-0" onClick={handleBack}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Deal Jacket
+            </Button>
+          ) : null}
           <div>
             <h1 className="text-2xl font-semibold">Funding &amp; Delivery</h1>
             <p className="text-sm text-muted-foreground">

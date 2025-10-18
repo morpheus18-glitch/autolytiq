@@ -36,6 +36,13 @@ import {
   selectMenuOption,
 } from '../api';
 
+export interface MenuPresentationWorkspaceProps {
+  dealId: string;
+  showBackButton?: boolean;
+  padded?: boolean;
+  onNavigateBack?: () => void;
+}
+
 type MenuOptionCode = 'A' | 'B' | 'C' | 'D';
 
 const optionCodes: MenuOptionCode[] = ['A', 'B', 'C', 'D'];
@@ -86,8 +93,14 @@ interface ProductModalState {
   snapshot: MenuOptionProductDto;
 }
 
-export default function MenuPresentationPage() {
-  const { id: dealId } = useParams<{ id: string }>();
+function MenuPresentationView({
+  dealId: providedDealId,
+  showBackButton = true,
+  padded = true,
+  onNavigateBack,
+}: Partial<MenuPresentationWorkspaceProps>) {
+  const { id: routeDealId } = useParams<{ id: string }>();
+  const dealId = providedDealId ?? routeDealId;
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -99,6 +112,23 @@ export default function MenuPresentationPage() {
     D: [],
   });
   const [productModal, setProductModal] = useState<ProductModalState | null>(null);
+
+  const horizontalPadding = padded ? 'px-6' : '';
+  const containerClass = cn('space-y-6', horizontalPadding, padded ? 'py-8' : 'py-6');
+  const sectionPaddingClass = cn(horizontalPadding, padded ? 'py-8' : 'py-6');
+
+  const handleBack = () => {
+    if (onNavigateBack) {
+      onNavigateBack();
+      return;
+    }
+
+    if (dealId) {
+      setLocation(`/fi/deal-jackets/${dealId}`);
+    } else {
+      setLocation('/finance');
+    }
+  };
 
   const menuQuery = useQuery<MenuPresentationDto>({
     queryKey: ['fi', 'menu', dealId],
@@ -116,6 +146,18 @@ export default function MenuPresentationPage() {
     },
     enabled: Boolean(productModal?.productId),
   });
+
+  if (!dealId) {
+    return (
+      <div className={sectionPaddingClass}>
+        <Card>
+          <CardContent className="py-12 text-center text-sm text-muted-foreground">
+            Deal identifier is required to present the finance menu.
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (!menuQuery.data) {
@@ -522,24 +564,14 @@ export default function MenuPresentationPage() {
     );
   }, [baseMonthly, menu, selectOptionMutation.isPending]);
 
-  if (!dealId) {
-    return (
-      <div className="px-6 py-10">
-        <Card>
-          <CardContent className="py-12 text-center text-sm text-muted-foreground">
-            Deal identifier is required to present the finance menu.
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6 px-6 py-8">
+    <div className={containerClass}>
       <div className="flex items-center justify-between">
-        <Button variant="ghost" size="sm" onClick={() => setLocation(`/fi/deal-jackets/${dealId}`)}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Deal Jacket
-        </Button>
+        {showBackButton ? (
+          <Button variant="ghost" size="sm" onClick={handleBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Deal Jacket
+          </Button>
+        ) : <div />}
         <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'manager' | 'customer')}>
           <TabsList>
             <TabsTrigger value="manager">Manager View</TabsTrigger>
@@ -653,4 +685,12 @@ export default function MenuPresentationPage() {
       </Dialog>
     </div>
   );
+}
+
+export function MenuPresentationWorkspace(props: MenuPresentationWorkspaceProps) {
+  return <MenuPresentationView {...props} />;
+}
+
+export default function MenuPresentationPage() {
+  return <MenuPresentationView />;
 }

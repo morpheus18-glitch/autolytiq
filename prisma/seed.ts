@@ -35,7 +35,7 @@ import {
   VehicleType,
 } from '@prisma/client';
 import { faker } from '@faker-js/faker';
-import { addMonths, eachMonthOfInterval, endOfMonth, startOfMonth, subYears } from 'date-fns';
+import { addDays, addMonths, eachMonthOfInterval, endOfMonth, startOfMonth, subDays, subYears } from 'date-fns';
 
 const prisma = new PrismaClient();
 
@@ -1038,6 +1038,20 @@ async function main() {
     const apr = sampleDeal.apr ?? '0';
     const totalFiGross = sampleDeal.backEndGross ?? '0';
 
+    const baseFiProducts = [
+      {
+        name: 'Vehicle Service Contract',
+        price: 1599,
+        cost: 899,
+        termMonths: 72,
+      },
+      {
+        name: 'GAP Insurance',
+        price: 799,
+        cost: 299,
+      },
+    ];
+
     const dealJacket = await prisma.dealJacket.create({
       data: {
         tenantId: tenant.id,
@@ -1056,19 +1070,7 @@ async function main() {
         apr: apr ?? undefined,
         term: sampleDeal.term ?? 72,
         monthlyPayment: monthlyPayment ?? undefined,
-        fiProducts: [
-          {
-            name: 'Vehicle Service Contract',
-            price: 1599,
-            cost: 899,
-            termMonths: 72,
-          },
-          {
-            name: 'GAP Insurance',
-            price: 799,
-            cost: 299,
-          },
-        ],
+        fiProducts: baseFiProducts,
         totalFiGross: totalFiGross ?? undefined,
         status: 'Contracted',
         dealDate: sampleDeal.dealDate,
@@ -1111,6 +1113,89 @@ async function main() {
           mimeType: 'application/pdf',
           fileSize: doc.size,
           uploadedBy: adminUser.id,
+        },
+      });
+    }
+
+    const statusScenarios: Array<{
+      status: DealStatus;
+      contractOffsetDays?: number;
+      fundedOffsetDays?: number;
+      deliveredOffsetDays?: number;
+    }> = [
+      { status: DealStatus.DRAFT },
+      { status: DealStatus.PENDING },
+      { status: DealStatus.SUBMITTED },
+      { status: DealStatus.APPROVED, contractOffsetDays: 2 },
+      { status: DealStatus.FUNDED, contractOffsetDays: 2, fundedOffsetDays: 6 },
+      { status: DealStatus.DELIVERED, contractOffsetDays: 2, fundedOffsetDays: 6, deliveredOffsetDays: 9 },
+    ];
+
+    const scenarioBaseDate = new Date();
+
+    for (const [index, scenario] of statusScenarios.entries()) {
+      const dealDate = subDays(scenarioBaseDate, (statusScenarios.length - index) * 3);
+      const contractDate =
+        scenario.contractOffsetDays !== undefined ? addDays(dealDate, scenario.contractOffsetDays) : null;
+      const fundedDate =
+        scenario.fundedOffsetDays !== undefined ? addDays(dealDate, scenario.fundedOffsetDays) : null;
+      const deliveredDate =
+        scenario.deliveredOffsetDays !== undefined ? addDays(dealDate, scenario.deliveredOffsetDays) : null;
+
+      const scenarioFiProducts =
+        scenario.status === DealStatus.DRAFT || scenario.status === DealStatus.PENDING ? [] : baseFiProducts;
+
+      const displayStatus = `${scenario.status.charAt(0)}${scenario.status.slice(1).toLowerCase()}`;
+
+      await prisma.dealJacket.upsert({
+        where: { dealNumber: `DEMO-${scenario.status}` },
+        update: {
+          sellingPrice,
+          tradeValue: tradeValue ?? undefined,
+          tradePayoff: tradePayoff ?? undefined,
+          netTrade: netTrade ?? undefined,
+          cashDown,
+          amountFinanced,
+          lenderId: scenario.status === DealStatus.DRAFT ? null : 'sunrise-credit-union',
+          apr: apr ?? undefined,
+          term: sampleDeal.term ?? 72,
+          monthlyPayment: monthlyPayment ?? undefined,
+          fiProducts: scenarioFiProducts,
+          totalFiGross: scenarioFiProducts.length ? totalFiGross ?? undefined : '0',
+          status: displayStatus,
+          dealDate,
+          contractDate: contractDate ?? undefined,
+          fundedDate: fundedDate ?? undefined,
+          deliveredDate: deliveredDate ?? undefined,
+          salespersonId: sampleDeal.salesPersonId,
+          fiManagerId,
+          customerId: sampleDeal.customerId,
+          vehicleId: sampleDeal.vehicleId,
+        },
+        create: {
+          tenantId: tenant.id,
+          dealNumber: `DEMO-${scenario.status}`,
+          customerId: sampleDeal.customerId,
+          vehicleId: sampleDeal.vehicleId,
+          salespersonId: sampleDeal.salesPersonId,
+          fiManagerId,
+          sellingPrice,
+          tradeValue: tradeValue ?? undefined,
+          tradePayoff: tradePayoff ?? undefined,
+          netTrade: netTrade ?? undefined,
+          cashDown,
+          amountFinanced,
+          lenderId: scenario.status === DealStatus.DRAFT ? null : 'sunrise-credit-union',
+          apr: apr ?? undefined,
+          term: sampleDeal.term ?? 72,
+          monthlyPayment: monthlyPayment ?? undefined,
+          fiProducts: scenarioFiProducts,
+          totalFiGross: scenarioFiProducts.length ? totalFiGross ?? undefined : '0',
+          status: displayStatus,
+          dealDate,
+          contractDate: contractDate ?? undefined,
+          fundedDate: fundedDate ?? undefined,
+          deliveredDate: deliveredDate ?? undefined,
         },
       });
     }
