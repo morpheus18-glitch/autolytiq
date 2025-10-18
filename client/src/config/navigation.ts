@@ -127,22 +127,35 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
       { label: 'Service Reports', path: '/reports/service', icon: Wrench },
       { label: 'Financial Reports', path: '/reports/financial', icon: BarChart3 }
     ]
+  },
+  {
+    id: 'accounting',
+    label: 'Accounting',
+    icon: Calculator,
+    path: '/accounting',
+    subItems: [
+      { label: 'Accounting Dashboard', path: '/accounting', icon: BarChart3 },
+      { label: 'Transactions', path: '/accounting/transactions', icon: FileText },
+      { label: 'Financial Reports', path: '/accounting/reports', icon: DollarSign },
+      { label: 'Payroll', path: '/accounting/payroll', icon: Users }
+    ]
   }
 ];
 
 export const MOBILE_PRIMARY_NAV_ITEMS: MobileNavItem[] = [
-  { name: 'Dashboard', href: '/', icon: Home, color: 'text-blue-600' },
+  { name: 'Dashboard', href: '/dashboard', icon: Home, color: 'text-blue-600', matchPaths: ['/', '/dashboard'] },
   { name: 'Customers', href: '/customers', icon: Users, color: 'text-green-600', matchPaths: ['/customers/'] },
   { name: 'Inventory', href: '/inventory', icon: Car, color: 'text-purple-600', matchPaths: ['/inventory/'] },
   { name: 'More', href: '#', icon: MenuIcon, color: 'text-gray-600', isMenu: true }
 ];
 
 export const MOBILE_ALL_NAV_ITEMS: MobileNavItem[] = [
-  { name: 'Dashboard', href: '/', icon: Home, color: 'text-blue-600' },
+  { name: 'Dashboard', href: '/dashboard', icon: Home, color: 'text-blue-600', matchPaths: ['/', '/dashboard'] },
   { name: 'CRM & Leads', href: '/crm', icon: Users, color: 'text-sky-600', matchPaths: ['/crm'] },
   { name: 'Sales & Leads', href: '/sales', icon: Handshake, color: 'text-indigo-600', matchPaths: ['/leads'] },
   { name: 'Customers', href: '/customers', icon: Users, color: 'text-green-600' },
   { name: 'Inventory', href: '/inventory', icon: Car, color: 'text-purple-600' },
+  { name: 'Accounting', href: '/accounting', icon: DollarSign, color: 'text-emerald-600', matchPaths: ['/accounting/'] },
   { name: 'Deals', href: '/deals', icon: Calculator, color: 'text-orange-600', matchPaths: ['/deals', '/deal-log', '/deal-pipeline', '/deals-list'] },
   { name: 'Deal Desk', href: '/professional-deal-desk', icon: Calculator, color: 'text-rose-600', matchPaths: ['/professional-deal-desk', '/deal-desk', '/deal-working', '/deals-finance', '/finance/structuring'] },
   { name: 'Showroom', href: '/showroom', icon: Timer, color: 'text-cyan-600', matchPaths: ['/showroom-manager'] },

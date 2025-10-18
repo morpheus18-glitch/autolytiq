@@ -61,8 +61,11 @@ import {
   exportAllReportsRequest,
   exportDashboardRequest,
   fetchAccountingDashboard,
+  fetchAccountingHomeOverview,
   scheduleDashboardReport,
   type AccountingDashboardResponse,
+  type AccountingHomeOverview,
+  type AccountingUpcomingStatus,
 } from '@/lib/accountingApi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -107,6 +110,18 @@ const percentFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 1,
 });
+
+const upcomingStatusLabels: Record<AccountingUpcomingStatus, string> = {
+  ON_TRACK: 'On track',
+  AT_RISK: 'At risk',
+  PLANNING: 'Planning',
+};
+
+const upcomingStatusClasses: Record<AccountingUpcomingStatus, string> = {
+  ON_TRACK: 'text-emerald-600',
+  AT_RISK: 'text-destructive',
+  PLANNING: 'text-amber-600',
+};
 
 type DatePreset =
   | 'today'
@@ -331,6 +346,11 @@ export default function AccountingDashboard() {
 
   const isoStart = useMemo(() => range.startDate.toISOString(), [range.startDate]);
   const isoEnd = useMemo(() => range.endDate.toISOString(), [range.endDate]);
+
+  const { data: homeOverview } = useQuery<AccountingHomeOverview>({
+    queryKey: ['accounting', 'home-overview'],
+    queryFn: fetchAccountingHomeOverview,
+  });
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['accounting', 'dashboard', isoStart, isoEnd, compareToPrevious],
@@ -664,6 +684,23 @@ export default function AccountingDashboard() {
     return formats.filter((formatValue) => formatValue !== value);
   }, []);
 
+  const formatHomeDate = useCallback((value: string | null | undefined) => {
+    if (!value) {
+      return '—';
+    }
+    try {
+      return format(parseISO(value), 'MMM d, yyyy');
+    } catch (dateError) {
+      console.error('Failed to format accounting home date', dateError);
+      return '—';
+    }
+  }, []);
+
+  const heroTitle = homeOverview?.hero.title ?? 'Accounting Dashboard';
+  const heroSubtitle =
+    homeOverview?.hero.subtitle ??
+    'Explore dealership financial performance, profitability trends, and departmental contributions.';
+
   if (isLoading) {
     return (
       <AccountingLayout>
@@ -698,10 +735,8 @@ export default function AccountingDashboard() {
       <div className="space-y-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
-            <h1 className="text-3xl font-semibold">Accounting Dashboard</h1>
-            <p className="text-muted-foreground">
-              Explore dealership financial performance, profitability trends, and departmental contributions.
-            </p>
+            <h1 className="text-3xl font-semibold">{heroTitle}</h1>
+            <p className="text-muted-foreground">{heroSubtitle}</p>
           </div>
           <div className="flex flex-col gap-4 lg:items-end">
             <div className="flex flex-wrap items-center gap-3">
@@ -787,6 +822,97 @@ export default function AccountingDashboard() {
             </div>
           </div>
         </div>
+
+        {homeOverview ? (
+          <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+            <Card className="border border-dashed border-primary/20 bg-card/40">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-semibold text-foreground">
+                  Quick accounting navigation
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Access the ledgers, reports, and payroll workflows you manage most.
+                </p>
+              </CardHeader>
+              <CardContent className="grid gap-3 sm:grid-cols-2">
+                {homeOverview.quickLinks.map((link) => (
+                  <Link
+                    key={link.path}
+                    href={link.path}
+                    className="group block rounded-lg border border-border/60 bg-background/60 p-4 transition-all hover:border-primary/60 hover:bg-background/80"
+                  >
+                    <div className="text-sm font-semibold text-foreground group-hover:text-primary">{link.label}</div>
+                    <p className="mt-1 text-xs text-muted-foreground leading-snug">{link.description}</p>
+                  </Link>
+                ))}
+              </CardContent>
+            </Card>
+            <Card className="border border-dashed border-primary/20 bg-card/40">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-semibold text-foreground">Close readiness</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Key tasks, approvals, and deadlines across the accounting team.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm text-foreground">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Open tasks</span>
+                    <span className="font-semibold">{homeOverview.metrics.openTasks}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Pending approvals</span>
+                    <span className="font-semibold">{homeOverview.metrics.pendingApprovals}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Unresolved alerts</span>
+                    <span
+                      className={cn(
+                        'font-semibold',
+                        homeOverview.metrics.unresolvedAlerts > 0 ? 'text-destructive' : 'text-foreground',
+                      )}
+                    >
+                      {homeOverview.metrics.unresolvedAlerts}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Last close completed</span>
+                    <span className="font-semibold">{formatHomeDate(homeOverview.metrics.lastCloseDate)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Next close target</span>
+                    <span className="font-semibold">{formatHomeDate(homeOverview.metrics.nextCloseDate)}</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {homeOverview.upcoming.length > 0 ? (
+                    homeOverview.upcoming.map((item) => (
+                      <div
+                        key={item.id}
+                        className="rounded-lg border border-border/60 bg-background/60 p-3"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-medium text-foreground">{item.label}</span>
+                          <span className="text-xs text-muted-foreground">{formatHomeDate(item.dueDate)}</span>
+                        </div>
+                        <span
+                          className={cn(
+                            'mt-1 inline-flex text-[11px] font-semibold uppercase tracking-wide',
+                            upcomingStatusClasses[item.status] ?? 'text-muted-foreground',
+                          )}
+                        >
+                          {upcomingStatusLabels[item.status] ?? item.status}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-muted-foreground">No upcoming deadlines scheduled.</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : null}
 
         {isError ? (
           <Alert variant="destructive">
