@@ -205,6 +205,26 @@ const satisfyStipulationSchema = z.object({
   note: z.string().max(2000).optional().nullable(),
 });
 
+const menuOptionInputSchema = z.object({
+  code: z.enum(['A', 'B', 'C', 'D']),
+  label: z.string().trim().min(1).max(100).optional(),
+  productIds: z.array(z.string().uuid()).max(20),
+});
+
+const buildMenuSchema = z.object({
+  dealId: z.string().uuid(),
+  options: z.array(menuOptionInputSchema).min(1).max(4),
+});
+
+const selectMenuOptionSchema = z.object({
+  optionCode: z
+    .string()
+    .trim()
+    .regex(/^[A-D]$/)
+    .optional()
+    .nullable(),
+});
+
 function parseOrBadRequest<T>(schema: z.ZodSchema<T>, payload: unknown, message: string) {
   try {
     return schema.parse(payload);
@@ -366,6 +386,47 @@ export const submitCounterOffer = wrapAsync(async (req: Request, res: Response) 
     message: payload.message,
   });
   res.json(updated);
+});
+
+export const listFiProducts = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const products = await fiService.listFiProducts(req.user!, tenantId);
+  res.json(products);
+});
+
+export const buildMenuConfiguration = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const payload = parseOrBadRequest(buildMenuSchema, req.body, 'Invalid menu build payload');
+  const menu = await fiService.buildMenuConfiguration(req.user!, tenantId, payload);
+  res.json(menu);
+});
+
+export const getMenuConfiguration = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const menu = await fiService.getMenuConfiguration(req.user!, tenantId, req.params.dealId);
+  res.json(menu);
+});
+
+export const selectMenuOption = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const payload = parseOrBadRequest(
+    selectMenuOptionSchema,
+    req.body,
+    'Invalid menu selection payload',
+  );
+  const menu = await fiService.selectMenuOption(
+    req.user!,
+    tenantId,
+    req.params.dealId,
+    payload.optionCode ?? null,
+  );
+  res.json(menu);
+});
+
+export const getFiProductDetails = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const product = await fiService.getFiProductDetails(req.user!, tenantId, req.params.productId);
+  res.json(product);
 });
 
 export const satisfySubmissionStipulation = wrapAsync(async (req: Request, res: Response) => {

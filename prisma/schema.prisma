@@ -306,6 +306,8 @@ model Tenant {
   notifications        Notification[]
   auditLogs            AuditLog[]
   systemSettings       SystemSetting[]
+  fiProducts           FIProduct[]
+  menuConfigurations   MenuConfiguration[]
 }
 
 model User {
@@ -845,12 +847,59 @@ model DealJacket {
   documents         DealDocument[]
   contracts         Contract[]
   fundingChecklist  FundingChecklist?
+  menuConfiguration MenuConfiguration?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   @@index([tenantId])
   @@index([customerId])
   @@index([status])
+}
+
+model FIProduct {
+  id              String   @id @default(uuid())
+  tenantId        String
+  name            String
+  category        String
+  provider        String
+  description     String
+  coverageDetails Json
+  cost            Decimal  @db.Decimal(18, 2)
+  retailPrice     Decimal  @db.Decimal(18, 2)
+  markup          Decimal  @db.Decimal(18, 2)
+  term            Int?
+  termType        String?
+  deductible      Decimal? @db.Decimal(18, 2)
+  minVehicleAge   Int?
+  maxVehicleAge   Int?
+  minMileage      Int?
+  maxMileage      Int?
+  isActive        Boolean  @default(true)
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([category])
+}
+
+model MenuConfiguration {
+  id               String   @id @default(uuid())
+  dealId           String   @unique
+  tenantId         String
+  options          Json
+  selectedOption   String?
+  selectedAt       DateTime?
+  selectedProducts Json?
+  totalProductCost Decimal? @db.Decimal(18, 2)
+  totalMarkup      Decimal? @db.Decimal(18, 2)
+  paymentImpact    Decimal? @db.Decimal(18, 2)
+  createdBy        String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  tenant           Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal             DealJacket  @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([dealId])
 }
 
 model DealDocument {

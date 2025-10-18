@@ -398,8 +398,15 @@ export default function DealJacketPage() {
             <TabsContent value="lenders" className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
               Lender submissions and decisions will appear here.
             </TabsContent>
-            <TabsContent value="menu" className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-              Build out menu presentations for customers.
+            <TabsContent value="menu" className="space-y-4 rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
+              <p>Build and present F&amp;I menu options tailored to this deal.</p>
+              <Button
+                variant="default"
+                onClick={() => setLocation(`/fi/deals/${deal.id}/menu`)}
+                className="w-full sm:w-auto"
+              >
+                Launch Menu Presentation
+              </Button>
             </TabsContent>
             <TabsContent value="contracts" className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
               Digital contracting integrations will live here.

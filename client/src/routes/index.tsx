@@ -79,6 +79,7 @@ import CRMAnalytics from '@/pages/CRMAnalytics';
 import RoleLanding from '@/pages/role-landing';
 import DealJacketPage from '@/features/fi/pages/DealJacket';
 import LenderSubmissionPage from '@/features/fi/pages/LenderSubmission';
+import MenuPresentationPage from '@/features/fi/pages/MenuPresentation';
 
 interface RouteDefinition {
   path: string;
@@ -141,6 +142,7 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/fi-configuration', component: FiConfigurationPage },
   { path: '/fi/deal-jackets/:id', component: DealJacketPage, aliases: ['/fi/deals/:id'] },
   { path: '/fi/deals/:id/lenders', component: LenderSubmissionPage },
+  { path: '/fi/deals/:id/menu', component: MenuPresentationPage },
   { path: '/accounting/deals', component: DealFinalization },
   { path: '/accounting/chart', component: ChartOfAccounts },
   { path: '/accounting/profit', component: VehicleProfit },

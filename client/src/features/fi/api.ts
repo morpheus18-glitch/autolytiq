@@ -67,6 +67,102 @@ export interface LenderSubmissionDto {
   lender: LenderDto;
 }
 
+export interface FIProductDto {
+  id: string;
+  tenantId: string;
+  name: string;
+  category: string;
+  provider: string;
+  description: string;
+  coverageDetails: unknown;
+  cost: number;
+  retailPrice: number;
+  markup: number;
+  margin: number;
+  term?: number | null;
+  termType?: string | null;
+  deductible?: number | null;
+  minVehicleAge?: number | null;
+  maxVehicleAge?: number | null;
+  minMileage?: number | null;
+  maxMileage?: number | null;
+  isActive: boolean;
+}
+
+export interface MenuOptionProductDto {
+  id: string;
+  name: string;
+  category: string;
+  provider: string;
+  description: string;
+  coverageDetails: unknown;
+  cost: number;
+  retailPrice: number;
+  markup: number;
+  term?: number | null;
+  termType?: string | null;
+  deductible?: number | null;
+  minVehicleAge?: number | null;
+  maxVehicleAge?: number | null;
+  minMileage?: number | null;
+  maxMileage?: number | null;
+}
+
+export interface MenuOptionDto {
+  code: 'A' | 'B' | 'C' | 'D';
+  label: string;
+  products: MenuOptionProductDto[];
+  totalRetail: number;
+  totalCost: number;
+  totalMarkup: number;
+  paymentImpact: number | null;
+}
+
+export interface MenuAvailabilityDto {
+  product: FIProductDto;
+  eligible: boolean;
+  reasons: string[];
+}
+
+export interface MenuConfigurationDto {
+  id: string | null;
+  dealId: string;
+  options: MenuOptionDto[];
+  selectedOption: string | null;
+  selectedProducts: MenuOptionDto | null;
+  totalProductCost: number | null;
+  totalMarkup: number | null;
+  paymentImpact: number | null;
+  selectedAt: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface MenuPresentationDto {
+  configuration: MenuConfigurationDto;
+  availableProducts: MenuAvailabilityDto[];
+  baseAmountFinanced: number;
+  baseMonthlyPayment: number | null;
+  apr: number | null;
+  term: number | null;
+  vehicle: { year: number | null; mileage: number | null };
+}
+
+export interface MenuBuilderOptionInput {
+  code: 'A' | 'B' | 'C' | 'D';
+  label?: string;
+  productIds: string[];
+}
+
+export interface MenuBuildPayload {
+  dealId: string;
+  options: MenuBuilderOptionInput[];
+}
+
+export interface MenuSelectionPayload {
+  optionCode?: string | null;
+}
+
 export interface DealJacketDto {
   id: string;
   tenantId: string;
@@ -394,4 +490,32 @@ export async function fetchCreditReport(dealId: string) {
 export async function shareCreditReport(payload: ShareCreditReportPayload) {
   const res = await apiRequest('POST', '/fi/credit/share', payload);
   return res.json() as Promise<{ status: string; recipients: string[]; sentAt: string; pdfUrl?: string | null }>;
+}
+
+export async function listFiProducts(): Promise<FIProductDto[]> {
+  const res = await apiRequest('/fi/products');
+  return res.json();
+}
+
+export async function fetchMenuConfiguration(dealId: string): Promise<MenuPresentationDto> {
+  const res = await apiRequest(`/fi/menu/${dealId}`);
+  return res.json();
+}
+
+export async function buildMenuConfiguration(payload: MenuBuildPayload): Promise<MenuPresentationDto> {
+  const res = await apiRequest('POST', '/fi/menu/build', payload);
+  return res.json();
+}
+
+export async function selectMenuOption(
+  dealId: string,
+  payload: MenuSelectionPayload,
+): Promise<MenuPresentationDto> {
+  const res = await apiRequest('POST', `/fi/menu/${dealId}/select-option`, payload);
+  return res.json();
+}
+
+export async function fetchFiProductDetails(productId: string): Promise<FIProductDto> {
+  const res = await apiRequest(`/fi/product-details/${productId}`);
+  return res.json();
 }
