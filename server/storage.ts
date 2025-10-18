@@ -1336,6 +1336,20 @@ export class MemStorage implements IStorage {
 
   async createVehicle(insertVehicle: InsertVehicle): Promise<Vehicle> {
     try {
+      // Check if VIN already exists
+      if (insertVehicle.vin) {
+        const existing = await db.select()
+          .from(vehicles)
+          .where(eq(vehicles.vin, insertVehicle.vin))
+          .limit(1);
+        
+        if (existing.length > 0) {
+          const vehicle = this.normalizeVehicleRow(existing[0]);
+          this.vehicles.set(vehicle.id, vehicle);
+          return vehicle;
+        }
+      }
+
       const now = new Date();
       const [created] = await db
         .insert(vehicles)
@@ -1562,6 +1576,20 @@ export class MemStorage implements IStorage {
 
   async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
     try {
+      // Check if email already exists
+      if (insertCustomer.email) {
+        const existing = await db.select()
+          .from(customers)
+          .where(eq(customers.email, insertCustomer.email))
+          .limit(1);
+        
+        if (existing.length > 0) {
+          const customer = this.normalizeCustomerRow(existing[0]);
+          this.customers.set(customer.id, customer);
+          return customer;
+        }
+      }
+
       const now = new Date();
       const [created] = await db
         .insert(customers)

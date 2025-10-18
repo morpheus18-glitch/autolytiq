@@ -110,7 +110,7 @@ app.use((req, res, next) => {
   await seedDefaultData();
   
   // Initialize comprehensive sample data
-  initializeComprehensiveSampleData(storage as any);
+  await initializeComprehensiveSampleData(storage as any);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
