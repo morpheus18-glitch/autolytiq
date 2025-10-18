@@ -24,6 +24,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import DealStatusBadge from '../components/DealStatusBadge';
 import DocumentViewer from '../components/DocumentViewer';
+import CreditApplication from './CreditApplication';
+import CreditBureau from './CreditBureau';
 import {
   DealDocumentDto,
   DealJacketDto,
@@ -81,6 +83,7 @@ export default function DealJacketPage() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [activeTab, setActiveTab] = useState('documents');
+  const [creditStep, setCreditStep] = useState<'application' | 'bureau'>('application');
   const [viewerDocument, setViewerDocument] = useState<DealDocumentDto | null>(null);
   const [pendingDelete, setPendingDelete] = useState<DealDocumentDto | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -375,8 +378,14 @@ export default function DealJacketPage() {
               <TabsTrigger value="documents">Documents</TabsTrigger>
               <TabsTrigger value="funding">Funding</TabsTrigger>
             </TabsList>
-            <TabsContent value="credit" className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-              Credit workflows coming soon.
+            <TabsContent value="credit" className="space-y-6">
+              <CreditApplication
+                deal={deal}
+                active={creditStep === 'application'}
+                onApplicationSaved={() => setCreditStep('application')}
+                onProceedToBureau={() => setCreditStep('bureau')}
+              />
+              <CreditBureau deal={deal} active={creditStep === 'bureau'} />
             </TabsContent>
             <TabsContent value="lenders" className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
               Lender submissions and decisions will appear here.

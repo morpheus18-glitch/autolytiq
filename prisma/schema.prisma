@@ -868,19 +868,91 @@ model DealDocument {
 }
 
 model CreditApplication {
-  id         String   @id @default(uuid())
-  tenantId   String
-  dealId     String   @unique
-  status     String   @default("pending")
-  details    Json?
-  decision   Json?
-  submittedAt DateTime?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  deal       DealJacket @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  id                String   @id @default(uuid())
+  tenantId          String
+  dealId            String   @unique
+  firstName         String
+  middleName        String?
+  lastName          String
+  ssn               String
+  dateOfBirth       DateTime
+  phone             String
+  email             String
+  currentStreet     String
+  currentCity       String
+  currentState      String
+  currentZip        String
+  yearsAtAddress    Int
+  monthsAtAddress   Int
+  residenceType     String
+  monthlyPayment    Decimal? @db.Decimal(18, 2)
+  previousStreet    String?
+  previousCity      String?
+  previousState     String?
+  previousZip       String?
+  employer          String
+  jobTitle          String
+  yearsEmployed     Int
+  monthsEmployed    Int
+  monthlyIncome     Decimal  @db.Decimal(18, 2)
+  employerPhone     String
+  otherIncomeSource String?
+  otherIncomeAmount Decimal? @db.Decimal(18, 2)
+  coApplicant       Json?
+  references        Json
+  authorizeCredit   Boolean
+  certifyAccuracy   Boolean
+  privacyConsent    Boolean
+  signature         String?
+  signedAt          DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal              DealJacket @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  creditReport      CreditReport?
 
   @@index([tenantId])
+  @@index([dealId])
+}
+
+model CreditReport {
+  id                     String   @id @default(uuid())
+  tenantId               String
+  creditApplicationId    String   @unique
+  bureau                 String
+  pullType               String
+  experianScore          Int?
+  transUnionScore        Int?
+  equifaxScore           Int?
+  mergedScore            Int?
+  scoreRange             String?
+  totalAccounts          Int
+  openAccounts           Int
+  totalRevolvingCredit   Decimal  @db.Decimal(18, 2)
+  totalRevolvingBalance  Decimal  @db.Decimal(18, 2)
+  utilizationPercent     Decimal  @db.Decimal(5, 2)
+  totalInstallmentDebt   Decimal  @db.Decimal(18, 2)
+  monthlyDebtObligations Decimal  @db.Decimal(18, 2)
+  onTimePaymentPercent   Decimal  @db.Decimal(5, 2)
+  late30Days             Int
+  late60Days             Int
+  late90PlusDays         Int
+  collections            Int
+  chargeOffs             Int
+  bankruptcies           Int
+  foreclosures           Int
+  hardInquiries          Int
+  softInquiries          Int
+  tradeLines             Json
+  rawResponse            Json
+  pdfUrl                 String?
+  pulledBy               String
+  pulledAt               DateTime @default(now())
+  creditApplication      CreditApplication @relation(fields: [creditApplicationId], references: [id], onDelete: Cascade)
+  tenant                 Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([creditApplicationId])
 }
 
 model LenderSubmission {
