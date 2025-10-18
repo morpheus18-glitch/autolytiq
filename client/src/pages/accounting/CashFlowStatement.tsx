@@ -44,6 +44,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
+import { parseEmailAddresses } from '@/lib/email';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -61,13 +62,6 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 });
-
-function parseAddresses(value: string): string[] {
-  return value
-    .split(/[,;\n]+/)
-    .map((entry) => entry.trim())
-    .filter((entry, index, array) => entry.length > 0 && array.indexOf(entry) === index);
-}
 
 type CashFlowMethod = 'indirect' | 'direct';
 type GroupKey = 'operating' | 'investing' | 'financing' | 'summary' | 'other';
@@ -551,7 +545,7 @@ export default function CashFlowStatement() {
   }, [emailMessageFallback, emailSubjectFallback]);
 
   const handleSendEmail = useCallback(async () => {
-    const recipients = parseAddresses(emailRecipients);
+    const recipients = parseEmailAddresses(emailRecipients);
     if (recipients.length === 0) {
       toast({
         title: 'Recipients required',
@@ -560,7 +554,7 @@ export default function CashFlowStatement() {
       });
       return;
     }
-    const cc = parseAddresses(emailCc);
+    const cc = parseEmailAddresses(emailCc);
     const formats = emailFormats.size ? Array.from(emailFormats) : ['pdf'];
     setSendingEmail(true);
     try {

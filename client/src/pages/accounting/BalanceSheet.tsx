@@ -22,6 +22,7 @@ import {
 } from '@/lib/accountingApi';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { parseEmailAddresses } from '@/lib/email';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -61,13 +62,6 @@ const numberFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
-
-function parseAddresses(value: string): string[] {
-  return value
-    .split(/[,;\n]+/)
-    .map((item) => item.trim())
-    .filter((item, index, array) => item.length > 0 && array.indexOf(item) === index);
-}
 
 const comparisonOptions: Array<{ value: BalanceSheetComparisonMode; label: string }> = [
   { value: 'NONE', label: 'None' },
@@ -289,12 +283,12 @@ export default function BalanceSheet() {
 
   const handleEmail = useCallback(async () => {
     if (!statement) return;
-    const recipients = parseAddresses(emailRecipients);
+    const recipients = parseEmailAddresses(emailRecipients);
     if (!recipients.length) {
       toast({ title: 'Add recipients', description: 'Enter at least one email address.', variant: 'destructive' });
       return;
     }
-    const cc = parseAddresses(emailCc);
+    const cc = parseEmailAddresses(emailCc);
     const formats = emailFormats.size ? Array.from(emailFormats) : ['pdf'];
     setSendingEmail(true);
     try {
