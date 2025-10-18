@@ -1,8 +1,8 @@
-import type { DealStatus, PrismaClient } from '@prisma/client';
+import type { PrismaClient, RetailDealStatus } from '@prisma/client';
 import prismaClient from '../prisma.js';
 
 export interface DealFilters {
-  status?: DealStatus;
+  status?: RetailDealStatus;
   salespersonId?: string;
   customerId?: string;
   minGrossProfit?: number;
@@ -84,7 +84,7 @@ export class DealRepository {
     return this.prisma.deal.findMany({
       where: {
         tenantId,
-        status: DealStatus.PENDING,
+        status: RetailDealStatus.PENDING,
         totalGross: { gte: minProfit },
       },
       include: {

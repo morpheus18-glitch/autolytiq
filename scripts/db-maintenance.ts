@@ -1,5 +1,5 @@
 import { differenceInCalendarDays } from 'date-fns';
-import { DealStatus } from '@prisma/client';
+import { RetailDealStatus } from '@prisma/client';
 import prisma from '../backend/src/lib/prisma.js';
 import { withTenantId } from '../backend/src/lib/tenant-context.js';
 
@@ -29,7 +29,7 @@ async function updateCustomerLifetimeValue(tenantId: string) {
     by: ['customerId'],
     where: {
       tenantId,
-      status: { in: [DealStatus.APPROVED, DealStatus.FUNDED, DealStatus.DELIVERED] },
+      status: { in: [RetailDealStatus.APPROVED, RetailDealStatus.FUNDED, RetailDealStatus.DELIVERED] },
     },
     _sum: { netVehiclePrice: true },
   });
