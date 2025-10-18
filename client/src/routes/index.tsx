@@ -5,6 +5,8 @@ import InventoryPricing from '@/pages/inventory-pricing';
 import LotManagement from '@/pages/lot-management';
 import InventoryDetail from '@/pages/inventory-detail';
 import Sales from '@/pages/sales';
+import LeadsDashboard from '@/pages/leads/LeadsDashboard';
+import LeadDetail from '@/pages/leads/LeadDetail';
 import Customers from '@/pages/customers';
 import CustomerDetail from '@/pages/customer-detail';
 import TextingPortal from '@/pages/customers/texting-portal';
@@ -28,7 +30,7 @@ import MLModelComparison from '@/pages/ml-model-comparison';
 import FiDashboardPage from '@/pages/fi-dashboard';
 import LenderManagement from '@/pages/finance/lenders';
 import RateSheets from '@/pages/finance/rates';
-import ComplianceManager from '@/pages/finance/compliance-manager';
+import ComplianceEngine from '@/features/fi/pages/ComplianceEngine';
 import FinanceReports from '@/pages/finance/finance-reports';
 import FiConfigurationPage from '@/pages/fi-configuration';
 import AccountingDashboardPage from '@/pages/accounting/AccountingDashboard';
@@ -50,17 +52,8 @@ import Payroll from '@/pages/accounting/Payroll';
 import PayrollCalculation from '@/pages/accounting/PayrollCalculation';
 import TaxReports from '@/pages/accounting/TaxReports';
 import Settings from '@/pages/settings';
-import SystemSettings from '@/pages/admin/system-settings';
 import UserManagement from '@/pages/admin/user-management';
-import ComprehensiveSettings from '@/pages/admin/comprehensive-settings';
-import DealerConfiguration from '@/pages/admin/dealer-configuration';
-import IntegrationSetup from '@/pages/admin/integration-setup';
-import SecurityCenter from '@/pages/admin/security-center';
 import SystemHealth from '@/pages/system-health';
-import LeadDistribution from '@/pages/admin/lead-distribution';
-import CommunicationSettings from '@/pages/admin/communication-settings';
-import SystemConfiguration from '@/pages/admin/system-configuration';
-import UserProfile from '@/pages/admin/user-profile';
 import RoleManagement from '@/pages/admin/role-management';
 import PerformanceTracking from '@/pages/admin/performance-tracking';
 import TrainingCenter from '@/pages/admin/training-center';
@@ -76,6 +69,18 @@ import MLDeveloperAdmin from '@/pages/ml-developer-admin';
 import AISmartSearch from '@/pages/ai-smart-search';
 import WorkflowAssistant from '@/pages/workflow-assistant';
 import CommunicationDemo from '@/pages/communication-demo';
+import CommunicationCenter from '@/pages/CommunicationCenter';
+import CallCenter from '@/pages/CallCenter';
+import SMSInbox from '@/pages/SMSInbox';
+import EmailComposer from '@/pages/EmailComposer';
+import AppointmentCalendar from '@/pages/AppointmentCalendar';
+import CustomerProfile from '@/pages/CustomerProfile';
+import CRMAnalytics from '@/pages/CRMAnalytics';
+import RoleLanding from '@/pages/role-landing';
+import DealJacketPage from '@/features/fi/pages/DealJacket';
+import LenderSubmissionPage from '@/features/fi/pages/LenderSubmission';
+import MenuPresentationPage from '@/features/fi/pages/MenuPresentation';
+import DealFundingPage from '@/features/fi/pages/DealFunding';
 
 interface RouteDefinition {
   path: string;
@@ -90,13 +95,15 @@ export interface ResolvedRoute {
 }
 
 const routeDefinitions: RouteDefinition[] = [
-  { path: '/', component: Dashboard },
+  { path: '/', component: RoleLanding },
+  { path: '/dashboard', component: Dashboard },
   { path: '/inventory/pricing', component: InventoryPricing },
   { path: '/inventory/lot-management', component: LotManagement },
   { path: '/inventory/:id', component: InventoryDetail },
   { path: '/inventory', component: Inventory },
   { path: '/crm', component: CRMLeadManagement },
-  { path: '/leads', component: Sales },
+  { path: '/leads', component: LeadsDashboard },
+  { path: '/leads/:id', component: LeadDetail },
   { path: '/sales', component: Sales },
   { path: '/sales-mobile', component: Sales },
   { path: '/customers/:id/texting', component: TextingPortal },
@@ -130,10 +137,14 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/ml-model-comparison', component: MLModelComparison },
   { path: '/finance/lenders', component: LenderManagement },
   { path: '/finance/rates', component: RateSheets },
-  { path: '/finance/compliance', component: ComplianceManager },
+  { path: '/finance/compliance', component: ComplianceEngine },
   { path: '/finance/reports', component: FinanceReports },
   { path: '/finance', component: FiDashboardPage, aliases: ['/fi-dashboard'] },
   { path: '/fi-configuration', component: FiConfigurationPage },
+  { path: '/fi/deal-jackets/:id', component: DealJacketPage, aliases: ['/fi/deals/:id'] },
+  { path: '/fi/deals/:id/lenders', component: LenderSubmissionPage },
+  { path: '/fi/deals/:id/menu', component: MenuPresentationPage },
+  { path: '/fi/deals/:id/funding', component: DealFundingPage },
   { path: '/accounting/deals', component: DealFinalization },
   { path: '/accounting/chart', component: ChartOfAccounts },
   { path: '/accounting/profit', component: VehicleProfit },
@@ -155,20 +166,25 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/accounting/transactions', component: TransactionsPage },
   { path: '/accounting', component: AccountingDashboardPage },
   { path: '/settings/:tab?', component: Settings },
-  { path: '/admin/settings', component: SystemSettings },
-  { path: '/admin/users', component: UserManagement, aliases: ['/users', '/users/staff', '/admin/user-management'] },
+  { path: '/admin/settings', component: Settings },
+  { path: '/admin/system-settings', component: Settings },
+  {
+    path: '/admin/users',
+    component: UserManagement,
+    aliases: ['/users', '/users/staff', '/admin/user-management']
+  },
   { path: '/users/roles', component: RoleManagement },
   { path: '/users/performance', component: PerformanceTracking },
   { path: '/users/training', component: TrainingCenter },
-  { path: '/admin/dealership', component: ComprehensiveSettings, aliases: ['/admin/comprehensive-settings'] },
-  { path: '/admin/dealer-configuration', component: DealerConfiguration },
-  { path: '/admin/integrations', component: IntegrationSetup },
-  { path: '/admin/security', component: SecurityCenter, aliases: ['/admin/security-center'] },
+  { path: '/admin/dealership', component: Settings, aliases: ['/admin/comprehensive-settings'] },
+  { path: '/admin/dealer-configuration', component: Settings },
+  { path: '/admin/integrations', component: Settings },
+  { path: '/admin/security', component: Settings, aliases: ['/admin/security-center'] },
   { path: '/admin/health', component: SystemHealth },
-  { path: '/admin/lead-distribution', component: LeadDistribution },
-  { path: '/admin/communication-settings', component: CommunicationSettings },
-  { path: '/admin/system-configuration', component: SystemConfiguration },
-  { path: '/admin/user-profile', component: UserProfile },
+  { path: '/admin/lead-distribution', component: Settings },
+  { path: '/admin/communication-settings', component: Settings },
+  { path: '/admin/system-configuration', component: Settings },
+  { path: '/admin/user-profile', component: Settings },
   { path: '/multi-store-management', component: MultiStoreManagement },
   { path: '/service/appointments', component: ServiceAppointmentsPage },
   { path: '/service/history', component: ServiceHistoryPage },
@@ -180,7 +196,14 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/ml-developer-admin', component: MLDeveloperAdmin },
   { path: '/ai-smart-search', component: AISmartSearch },
   { path: '/workflow-assistant', component: WorkflowAssistant },
-  { path: '/communication-demo', component: CommunicationDemo }
+  { path: '/communication-demo', component: CommunicationDemo },
+  { path: '/communication-center', component: CommunicationCenter },
+  { path: '/call-center', component: CallCenter },
+  { path: '/sms-inbox', component: SMSInbox },
+  { path: '/email-composer', component: EmailComposer },
+  { path: '/appointment-calendar', component: AppointmentCalendar },
+  { path: '/customer-profile', component: CustomerProfile },
+  { path: '/crm-analytics', component: CRMAnalytics }
 ];
 
 export const appRoutes: ResolvedRoute[] = routeDefinitions.flatMap((route) => {

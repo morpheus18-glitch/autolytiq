@@ -21,9 +21,10 @@ import {
   X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { isHomePath } from "@/lib/userHomePath";
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: BarChart3 },
+  { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
   
   // Sales Department
   { 
@@ -31,7 +32,7 @@ const navigation = [
     isSection: true,
     children: [
       { name: "Inventory", href: "/inventory", icon: Car },
-      { name: "Sales & Leads", href: "/sales", icon: Handshake },
+      { name: "Lead Workspace", href: "/leads", icon: Handshake },
       { name: "Mobile Sales", href: "/sales-mobile", icon: Handshake },
       { name: "Customers", href: "/customers", icon: Users },
       { name: "Deal Desk", href: "/professional-deal-desk", icon: Calculator },
@@ -59,10 +60,11 @@ const navigation = [
   },
   
   // Accounting Department
-  { 
-    name: "Accounting Department", 
+  {
+    name: "Accounting Department",
     isSection: true,
     children: [
+      { name: "Accounting Dashboard", href: "/accounting", icon: BarChart3 },
       { name: "Financial Reports", href: "/accounting/reports", icon: DollarSign },
       { name: "Payroll", href: "/accounting/payroll", icon: Users },
       { name: "Transactions", href: "/accounting/transactions", icon: BarChart3 },
@@ -74,11 +76,11 @@ const navigation = [
     name: "Administration", 
     isSection: true,
     children: [
-      { name: "User Management", href: "/admin/user-management", icon: Users },
-      { name: "My Profile", href: "/admin/user-profile", icon: User },
-      { name: "System Configuration", href: "/admin/system-configuration", icon: Settings },
-      { name: "Lead Distribution", href: "/admin/lead-distribution", icon: Target },
-      { name: "Enterprise Config", href: "/admin/comprehensive-settings", icon: Settings },
+      { name: "User Management", href: "/settings/user-management", icon: Users },
+      { name: "My Profile", href: "/settings/profile", icon: User },
+      { name: "System Configuration", href: "/settings/system-configuration", icon: Settings },
+      { name: "Lead Distribution", href: "/settings/lead-distribution", icon: Target },
+      { name: "Enterprise Config", href: "/settings/enterprise", icon: Settings },
     ]
   },
 ];
@@ -193,7 +195,10 @@ export default function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
                 </div>
               );
             } else {
-              const isActive = location === item.href;
+              const isActive =
+                item.href === '/dashboard'
+                  ? isHomePath(location)
+                  : location === item.href;
               const Icon = item.icon;
               return (
                 <Link

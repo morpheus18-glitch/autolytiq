@@ -1,6 +1,12 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import pino from 'pino';
-import { getEffectiveTenantId, getTenantContext, isSuperAdmin, requireTenantId } from './tenant-context.js';
+import {
+  getEffectiveTenantId,
+  getTenantContext,
+  isSuperAdmin,
+  isTenantScoped as contextIsTenantScoped,
+  requireTenantId,
+} from './tenant-context.js';
 
 const logger = pino({ name: 'prisma' });
 
@@ -9,10 +15,26 @@ const TENANT_SCOPED_MODELS: Prisma.ModelName[] = [
   'Customer',
   'CustomerInteraction',
   'CustomerVehicle',
+  'Lead',
+  'Activity',
+  'Appointment',
+  'LeadScore',
+  'Communication',
+  'EmailTemplate',
+  'SMSTemplate',
+  'Automation',
   'Vehicle',
   'VehicleHistory',
   'Deal',
-  'DealDocument',
+  'DealJacket',
+  'CreditApplication',
+  'Lender',
+  'LenderSubmission',
+  'Contract',
+  'FundingChecklist',
+  'FundingRequest',
+  'FIProduct',
+  'MenuConfiguration',
   'GLAccount',
   'JournalEntry',
   'JournalEntryLine',
@@ -131,5 +153,7 @@ export function assertTenantScope() {
     requireTenantId();
   }
 }
+
+export const isTenantScoped = contextIsTenantScoped;
 
 export default prisma;

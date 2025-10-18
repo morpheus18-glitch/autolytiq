@@ -1,30 +1,38 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { 
-  Menu, 
-  Home, 
-  Users, 
-  Car, 
-  Calculator, 
-  BarChart3, 
+import {
+  Menu,
+  Home,
+  Users,
+  Car,
+  Calculator,
+  BarChart3,
   Settings,
   ChevronRight
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { isHomePath } from "@/lib/userHomePath";
 
 const navigationItems = [
-  { name: "Dashboard", href: "/", icon: Home },
+  { name: "Dashboard", href: "/dashboard", icon: Home },
   { name: "Sales & Leads", href: "/sales", icon: Users },
   { name: "Inventory", href: "/inventory", icon: Car },
   { name: "Deal Desk", href: "/professional-deal-desk", icon: Calculator },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Settings", href: "/settings", icon: Settings },
-];
+] as const;
 
 export default function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
   const [location] = useLocation();
+
+  const isActive = (href: string) => {
+    if (href === '/dashboard') {
+      return isHomePath(location);
+    }
+    return location === href || location.startsWith(`${href}/`);
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -33,7 +41,7 @@ export default function MobileNav() {
           <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
         </Button>
       </SheetTrigger>
-      
+
       <SheetContent side="left" className="w-80 sm:w-72 p-0 overflow-y-auto">
         <div className="flex flex-col h-full">
           {/* Header - Mobile Optimized */}
@@ -52,7 +60,7 @@ export default function MobileNav() {
               {navigationItems.map((item) => (
                 <Link key={item.name} href={item.href}>
                   <Button
-                    variant={location === item.href ? "default" : "ghost"}
+                    variant={isActive(item.href) ? "default" : "ghost"}
                     className="w-full justify-start gap-2 sm:gap-3 h-10 sm:h-11 text-sm"
                     onClick={() => setIsOpen(false)}
                   >

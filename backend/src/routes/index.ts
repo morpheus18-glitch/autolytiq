@@ -3,9 +3,13 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 import settingsRoutes from './settings.routes.js';
 import superAdminRoutes from './superadmin.routes.js';
 import { authenticate } from '../middleware/auth.middleware.js';
-import { attachTenantContext } from '../middleware/tenant.middleware.js';
+import { tenantScope } from '../middleware/tenant.middleware.js';
 import { requireSuperAdmin } from '../middleware/superadmin.middleware.js';
 import { errorHandler } from '../lib/errors.js';
+import { getTenantContext } from '../lib/tenant-context.js';
+import crmRoutes from './crm.routes.js';
+import leadRoutes from './lead.routes.js';
+import fiRoutes from '../fi/fi.routes.js';
 
 async function loadOptionalRoutes(): Promise<express.Router[]> {
   const optionalImports = [
@@ -43,11 +47,13 @@ export async function registerApiRoutes(app: express.Application) {
   api.use(express.json({ limit: '4mb' }));
   api.use(express.urlencoded({ extended: true }));
 
-  api.get('/health', (_req, res) => {
+  api.get('/health', (req, res) => {
+    const tenantContext = getTenantContext();
     res.json({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
+      ok: true,
       service: 'autolytiq-backend',
+      timestamp: new Date().toISOString(),
+      tenant: tenantContext?.tenantId ?? req.header('x-tenant-id') ?? null,
     });
   });
 
@@ -63,9 +69,12 @@ export async function registerApiRoutes(app: express.Application) {
 
   api.use('/superadmin', requireSuperAdmin, superAdminRoutes);
 
-  api.use(attachTenantContext);
+  api.use(tenantScope);
 
   api.use('/settings', settingsRoutes);
+  api.use('/leads', leadRoutes);
+  api.use('/crm', crmRoutes);
+  api.use('/fi', fiRoutes);
 
   const optionalRouters = await loadOptionalRoutes();
   for (const router of optionalRouters) {
