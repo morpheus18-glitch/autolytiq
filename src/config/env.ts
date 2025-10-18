@@ -19,6 +19,11 @@ const envSchema = z
     SOCKET_IO_CORS_ORIGIN: z.string().min(1, 'SOCKET_IO_CORS_ORIGIN is required'),
     APP_URL: z.string().min(1, 'APP_URL is required'),
     API_URL: z.string().min(1, 'API_URL is required'),
+    ML_SERVICE_URL: z
+      .string()
+      .url('ML_SERVICE_URL must be a valid URL')
+      .default('http://localhost:8000'),
+    ML_SERVICE_TOKEN: z.string().min(1, 'ML_SERVICE_TOKEN is required').default('dev-ml-token'),
     REDIS_URL: z
       .string()
       .url('REDIS_URL must be a valid redis connection string')

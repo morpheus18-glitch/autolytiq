@@ -10,6 +10,7 @@ import { activityRouter } from './activity.routes.js';
 import { communicationRouter } from './communication.routes.js';
 import { appointmentRouter } from './appointment.routes.js';
 import { automationRouter } from './automation.routes.js';
+import { mlRouter } from './ml.routes.js';
 import { simulateLeadRouting } from '../services/lead-routing.service.js';
 
 export function registerRoutes(app: Express) {
@@ -26,6 +27,7 @@ export function registerRoutes(app: Express) {
   apiRouter.use('/communications', communicationRouter);
   apiRouter.use('/appointments', appointmentRouter);
   apiRouter.use('/automations', automationRouter);
+  apiRouter.use('/ml', mlRouter);
 
   const leadRoutingRoles: Role[] = ['ADMIN', 'BDC', 'SALES'];
   apiRouter.post(
