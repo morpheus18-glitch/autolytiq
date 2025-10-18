@@ -3,11 +3,13 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import { Unauthorized } from '../lib/errors.js';
 import { runWithTenantContext } from '../lib/tenant-context.js';
 import type { AppRole } from '../types/express.js';
+import { env } from '../config/env.js';
 
 type TokenPayload = JwtPayload & {
   userId: string;
   tenantId?: string;
-  role: AppRole;
+  role?: AppRole;
+  roles?: AppRole[];
   permissions?: string[];
   isSuperAdmin?: boolean;
 };
@@ -29,19 +31,19 @@ export function authenticate(req: Request, _res: Response, next: NextFunction) {
     throw Unauthorized('Authentication required');
   }
 
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error('JWT_SECRET not configured');
-  }
-
   let payload: TokenPayload;
   try {
-    payload = jwt.verify(token, secret) as TokenPayload;
+    payload = jwt.verify(token, env.JWT_PUBLIC_KEY, {
+      algorithms: ['RS256'],
+      audience: env.JWT_AUDIENCE,
+      issuer: env.JWT_ISSUER,
+    }) as TokenPayload;
   } catch {
     throw Unauthorized('Invalid token');
   }
 
-  if (!payload.userId || !payload.role) {
+  const role = payload.role ?? payload.roles?.[0];
+  if (!payload.userId || !role) {
     throw Unauthorized('Invalid token payload');
   }
 
@@ -53,7 +55,7 @@ export function authenticate(req: Request, _res: Response, next: NextFunction) {
   req.user = {
     userId: payload.userId,
     tenantId: initialTenantId ?? '',
-    role: payload.role,
+    role,
     permissions: payload.permissions ?? [],
     ip: req.ip,
     isSuperAdmin: Boolean(payload.isSuperAdmin),
