@@ -18,6 +18,7 @@ const tenantScopedModels = new Set<Prisma.ModelName>([
   Prisma.ModelName.EmailTemplate,
   Prisma.ModelName.SMSTemplate,
   Prisma.ModelName.Automation,
+  Prisma.ModelName.AutomationExecution,
 ]);
 
 function withTenantGuard<T extends Prisma.MiddlewareParams>(params: T) {

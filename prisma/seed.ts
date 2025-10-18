@@ -103,6 +103,7 @@ async function resetTenantData(tenantId: string) {
   await prisma.lead.deleteMany({ where: { tenantId } });
   await prisma.emailTemplate.deleteMany({ where: { tenantId } });
   await prisma.sMSTemplate.deleteMany({ where: { tenantId } });
+  await prisma.automationExecution.deleteMany({ where: { tenantId } });
   await prisma.automation.deleteMany({ where: { tenantId } });
   await prisma.notification.deleteMany({ where: { tenantId } });
   await prisma.report.deleteMany({ where: { tenantId } });

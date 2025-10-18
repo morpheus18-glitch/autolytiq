@@ -1,5 +1,6 @@
 import { createServer } from 'node:http';
-import { Server as SocketIOServer, type Socket } from 'socket.io';
+import { Server as SocketIOServer } from 'socket.io';
+import type { Socket as IOSocket } from 'socket.io';
 import { createApp } from './server.js';
 import { env } from './config/env.js';
 import { prisma } from './lib/prisma.js';
@@ -31,19 +32,9 @@ interface TenantSocketData {
   tenantId?: string;
 }
 
-type TenantSocket = Socket<
-  ClientToServerEvents,
-  ServerToClientEvents,
-  InterServerEvents,
-  TenantSocketData
->;
+type TenantSocket = IOSocket & { data: TenantSocketData };
 
-const io = new SocketIOServer<
-  ClientToServerEvents,
-  ServerToClientEvents,
-  InterServerEvents,
-  TenantSocketData
->(httpServer, {
+const io = new SocketIOServer(httpServer, {
   cors: {
     origin: env.SOCKET_IO_CORS_ORIGIN,
     methods: ['GET', 'POST'],
@@ -51,6 +42,8 @@ const io = new SocketIOServer<
 });
 
 registerSocket(io);
+
+type TenantAcknowledge = (response: { ok: boolean; message?: string }) => void;
 
 async function joinTenantRoom(socket: TenantSocket, tenantId: string) {
   await socket.join(getTenantRoom(tenantId));
@@ -66,10 +59,10 @@ async function leaveTenantRoom(socket: TenantSocket, tenantId?: string) {
   delete socket.data.tenantId;
 }
 
-io.on('connection', (socket) => {
+io.on('connection', (socket: TenantSocket) => {
   socket.emit('ready', { socketId: socket.id });
 
-  socket.on('tenant:subscribe', async (tenantId, ack) => {
+  socket.on('tenant:subscribe', async (tenantId: string, ack?: TenantAcknowledge) => {
     if (!tenantId) {
       ack?.({ ok: false, message: 'tenantId is required' });
       socket.emit('error', { message: 'Unable to subscribe without a tenantId.' });
@@ -86,7 +79,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('tenant:unsubscribe', async (tenantId, ack) => {
+  socket.on('tenant:unsubscribe', async (tenantId: string | undefined, ack?: TenantAcknowledge) => {
     const targetTenantId = tenantId || socket.data.tenantId;
 
     if (!targetTenantId) {

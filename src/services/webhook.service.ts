@@ -12,6 +12,7 @@ import { getTenantId, prisma } from '../lib/prisma.js';
 import { mapSendGridStatus, mapTwilioStatus } from './inbox.service.js';
 import { normalizePhoneNumber } from './twilio.service.js';
 import * as activityService from './activity.service.js';
+import { handleLeadCreated } from './lead-routing.service.js';
 
 function deriveActivityStatus(status?: CommunicationStatus | null): ActivityStatus {
   switch (status) {
@@ -54,6 +55,7 @@ async function upsertLeadByPhone(phone: string, source: LeadSource) {
     return { leadId: undefined, customerId: undefined } as const;
   }
 
+  let created = false;
   let lead = await prisma.lead.findFirst({
     where: { phone: normalized },
     select: { id: true, customerId: true },
@@ -71,6 +73,15 @@ async function upsertLeadByPhone(phone: string, source: LeadSource) {
       },
       select: { id: true, customerId: true },
     });
+    created = true;
+  }
+
+  if (created && lead.id) {
+    try {
+      await handleLeadCreated(lead.id);
+    } catch (error) {
+      console.error('Failed to route new lead', error);
+    }
   }
 
   return { leadId: lead.id, customerId: lead.customerId } as const;
