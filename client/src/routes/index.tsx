@@ -77,6 +77,7 @@ import AppointmentCalendar from '@/pages/AppointmentCalendar';
 import CustomerProfile from '@/pages/CustomerProfile';
 import CRMAnalytics from '@/pages/CRMAnalytics';
 import RoleLanding from '@/pages/role-landing';
+import DealJacketPage from '@/features/fi/pages/DealJacket';
 
 interface RouteDefinition {
   path: string;
@@ -137,6 +138,7 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/finance/reports', component: FinanceReports },
   { path: '/finance', component: FiDashboardPage, aliases: ['/fi-dashboard'] },
   { path: '/fi-configuration', component: FiConfigurationPage },
+  { path: '/fi/deal-jackets/:id', component: DealJacketPage, aliases: ['/fi/deals/:id'] },
   { path: '/accounting/deals', component: DealFinalization },
   { path: '/accounting/chart', component: ChartOfAccounts },
   { path: '/accounting/profit', component: VehicleProfit },

@@ -29,6 +29,13 @@ const envSchema = z.object({
   ML_SERVICE_URL: z.string().url().optional(),
   REDIS_URL: z.string().optional(),
   SESSION_SECRET: z.string().min(32),
+  AWS_REGION: z.string().min(1, 'AWS_REGION is required for S3 operations').optional(),
+  AWS_ACCESS_KEY_ID: z.string().min(1, 'AWS_ACCESS_KEY_ID is required for S3 operations').optional(),
+  AWS_SECRET_ACCESS_KEY: z.string().min(1, 'AWS_SECRET_ACCESS_KEY is required for S3 operations').optional(),
+  S3_BUCKET: z.string().min(1, 'S3_BUCKET is required for S3 operations').optional(),
+  S3_CLOUDFRONT_URL: z.string().url().optional(),
+  CLAMAV_HOST: z.string().optional(),
+  CLAMAV_PORT: z.coerce.number().int().positive().optional(),
 });
 
 export type AppEnvironment = z.infer<typeof envSchema>;

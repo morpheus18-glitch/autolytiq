@@ -25,7 +25,9 @@ enum UserRole {
   ADMIN
   MANAGER
   SALES
+  SALES_MANAGER
   FINANCE
+  FI_MANAGER
   SERVICE
   BDC
 }
@@ -194,14 +196,6 @@ enum DealStatus {
   CANCELLED
 }
 
-enum DealDocumentType {
-  CONTRACT
-  CREDIT_APP
-  INSURANCE
-  REGISTRATION
-  OTHER
-}
-
 enum AccountType {
   ASSET
   LIABILITY
@@ -289,7 +283,11 @@ model Tenant {
   vehicles             Vehicle[]
   vehicleHistories     VehicleHistory[]
   deals                Deal[]
-  dealDocuments        DealDocument[]
+  dealJackets          DealJacket[]
+  creditApplications   CreditApplication[]
+  lenderSubmissions    LenderSubmission[]
+  contracts            Contract[]
+  fundingChecklists    FundingChecklist[]
   glAccounts           GLAccount[]
   journalEntries       JournalEntry[]
   journalEntryLines    JournalEntryLine[]
@@ -327,13 +325,14 @@ model User {
   communications        Communication[]
   dealsAsSales          Deal[]                @relation("SalesPersonDeals")
   dealsAsFinance        Deal[]                @relation("FinanceManagerDeals")
+  dealJacketsAsSales    DealJacket[]          @relation("DealJacketSalesperson")
+  dealJacketsAsFinance  DealJacket[]          @relation("DealJacketFIManager")
   journalEntries        JournalEntry[]
   commissions           Commission[]
   reports               Report[]              @relation("ReportCreatedBy")
   notifications         Notification[]
   auditLogs             AuditLog[]
   systemSettings        SystemSetting[]
-  uploadedDealDocuments DealDocument[]        @relation("DealDocumentUploader")
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -380,6 +379,7 @@ model Customer {
   communications Communication[]
   vehicles       CustomerVehicle[]
   deals          Deal[]
+  dealJackets    DealJacket[]
 
   @@index([tenantId, leadStatus])
   @@index([tenantId, assignedToUserId])
@@ -673,6 +673,7 @@ model Vehicle {
 
   tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   deals     Deal[]
+  dealJackets DealJacket[]
   histories VehicleHistory[]
 
   @@unique([tenantId, stockNumber])
@@ -761,6 +762,135 @@ model Deal {
   @@index([tenantId, status])
   @@index([tenantId, customerId])
   @@index([tenantId, salesPersonId])
+}
+
+model DealJacket {
+  id                String   @id @default(uuid())
+  tenantId          String
+  dealNumber        String   @unique
+  customerId        String
+  vehicleId         String
+  salespersonId     String
+  fiManagerId       String?
+  sellingPrice      Decimal  @db.Decimal(18, 2)
+  tradeValue        Decimal? @db.Decimal(18, 2)
+  tradePayoff       Decimal? @db.Decimal(18, 2)
+  netTrade          Decimal? @db.Decimal(18, 2)
+  cashDown          Decimal  @db.Decimal(18, 2)
+  amountFinanced    Decimal  @db.Decimal(18, 2)
+  lenderId          String?
+  apr               Decimal? @db.Decimal(6, 3)
+  term              Int?
+  monthlyPayment    Decimal? @db.Decimal(18, 2)
+  fiProducts        Json
+  totalFiGross      Decimal? @db.Decimal(18, 2)
+  status            String
+  dealDate          DateTime @default(now())
+  contractDate      DateTime?
+  fundedDate        DateTime?
+  deliveredDate     DateTime?
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer          Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  vehicle           Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  salesperson       User     @relation("DealJacketSalesperson", fields: [salespersonId], references: [id], onDelete: Restrict)
+  fiManager         User?    @relation("DealJacketFIManager", fields: [fiManagerId], references: [id], onDelete: SetNull)
+  creditApplication CreditApplication?
+  lenderSubmissions LenderSubmission[]
+  documents         DealDocument[]
+  contracts         Contract[]
+  fundingChecklist  FundingChecklist?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@index([status])
+}
+
+model DealDocument {
+  id         String     @id @default(uuid())
+  dealId     String
+  type       String
+  category   String
+  name       String
+  fileName   String
+  fileUrl    String
+  mimeType   String
+  fileSize   Int
+  uploadedBy String
+  uploadedAt DateTime   @default(now())
+  deal       DealJacket @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId])
+  @@index([type])
+}
+
+model CreditApplication {
+  id         String   @id @default(uuid())
+  tenantId   String
+  dealId     String   @unique
+  status     String   @default("pending")
+  details    Json?
+  decision   Json?
+  submittedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal       DealJacket @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model LenderSubmission {
+  id          String   @id @default(uuid())
+  tenantId    String
+  dealId      String
+  lenderId    String
+  status      String
+  submittedAt DateTime?
+  response    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal        DealJacket @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([dealId])
+}
+
+model Contract {
+  id             String   @id @default(uuid())
+  tenantId       String
+  dealId         String
+  contractNumber String
+  status         String
+  documentUrl    String?
+  executedAt     DateTime?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal           DealJacket @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([dealId])
+  @@unique([dealId, contractNumber])
+}
+
+model FundingChecklist {
+  id         String   @id @default(uuid())
+  tenantId   String
+  dealId     String   @unique
+  items      Json
+  completed  Boolean  @default(false)
+  completedAt DateTime?
+  reviewerId String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal       DealJacket @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  reviewer   User?     @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
+  @@index([tenantId])
 }
 
 model DealDocument {

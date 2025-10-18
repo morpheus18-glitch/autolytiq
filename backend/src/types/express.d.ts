@@ -1,6 +1,14 @@
 import 'express';
 
-export type AppRole = 'ADMIN' | 'MANAGER' | 'SALES' | 'FINANCE' | 'SERVICE' | 'BDC';
+export type AppRole =
+  | 'ADMIN'
+  | 'MANAGER'
+  | 'SALES'
+  | 'SALES_MANAGER'
+  | 'FINANCE'
+  | 'FI_MANAGER'
+  | 'SERVICE'
+  | 'BDC';
 
 declare module 'express-serve-static-core' {
   interface Request {
