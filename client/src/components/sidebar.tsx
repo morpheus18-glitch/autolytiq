@@ -32,7 +32,7 @@ const navigation = [
     isSection: true,
     children: [
       { name: "Inventory", href: "/inventory", icon: Car },
-      { name: "Sales & Leads", href: "/sales", icon: Handshake },
+      { name: "Lead Workspace", href: "/leads", icon: Handshake },
       { name: "Mobile Sales", href: "/sales-mobile", icon: Handshake },
       { name: "Customers", href: "/customers", icon: Users },
       { name: "Deal Desk", href: "/professional-deal-desk", icon: Calculator },
