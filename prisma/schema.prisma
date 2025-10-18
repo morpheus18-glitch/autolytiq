@@ -293,6 +293,8 @@ model Tenant {
   deals                Deal[]
   dealJackets          DealJacket[]
   creditApplications   CreditApplication[]
+  creditReports        CreditReport[]
+  lenders              Lender[]
   lenderSubmissions    LenderSubmission[]
   contracts            Contract[]
   fundingChecklists    FundingChecklist[]
@@ -335,6 +337,7 @@ model User {
   dealsAsFinance        Deal[]                @relation("FinanceManagerDeals")
   dealJacketsAsSales    DealJacket[]          @relation("DealJacketSalesperson")
   dealJacketsAsFinance  DealJacket[]          @relation("DealJacketFIManager")
+  fundingChecklistsReviewed FundingChecklist[] @relation("FundingChecklistReviewer")
   journalEntries        JournalEntry[]
   commissions           Commission[]
   reports               Report[]              @relation("ReportCreatedBy")
@@ -821,6 +824,7 @@ model DealJacket {
   cashDown          Decimal  @db.Decimal(18, 2)
   amountFinanced    Decimal  @db.Decimal(18, 2)
   lenderId          String?
+  lender            Lender?  @relation("DealJacketLender", fields: [lenderId], references: [id], onDelete: SetNull)
   apr               Decimal? @db.Decimal(6, 3)
   term              Int?
   monthlyPayment    Decimal? @db.Decimal(18, 2)
@@ -955,21 +959,58 @@ model CreditReport {
   @@index([creditApplicationId])
 }
 
+model Lender {
+  id             String             @id @default(uuid())
+  tenantId       String
+  name           String
+  type           String
+  apiProvider    String
+  apiCredentials Json
+  isActive       Boolean            @default(true)
+  tierRange      String
+  maxTerm        Int
+  maxLtv         Decimal            @db.Decimal(6, 3)
+  minCreditScore Int?
+  maxCreditScore Int?
+  applicationFee Decimal?           @db.Decimal(18, 2)
+  submissions    LenderSubmission[]
+  fundedDeals    DealJacket[]       @relation("DealJacketLender")
+  tenant         Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
 model LenderSubmission {
-  id          String   @id @default(uuid())
-  tenantId    String
-  dealId      String
-  lenderId    String
-  status      String
-  submittedAt DateTime?
-  response    Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  deal        DealJacket @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  id              String        @id @default(uuid())
+  tenantId        String
+  dealId          String
+  lenderId        String
+  submittedAt     DateTime      @default(now())
+  submittedBy     String
+  requestPayload  Json
+  status          String
+  respondedAt     DateTime?
+  responsePayload Json?
+  amountApproved  Decimal?      @db.Decimal(18, 2)
+  apr             Decimal?      @db.Decimal(6, 3)
+  buyRate         Decimal?      @db.Decimal(6, 3)
+  dealerReserve   Decimal?      @db.Decimal(6, 3)
+  maxReserve      Decimal?      @db.Decimal(6, 3)
+  term            Int?
+  monthlyPayment  Decimal?      @db.Decimal(18, 2)
+  declineReason   String?
+  declineCode     String?
+  stipulations    Json?
+  isSelected      Boolean       @default(false)
+  selectedAt      DateTime?
+  expiresAt       DateTime?
+  deal            DealJacket    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  lender          Lender        @relation(fields: [lenderId], references: [id], onDelete: Cascade)
+  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
   @@index([dealId])
+  @@index([status])
 }
 
 model Contract {
@@ -1003,7 +1044,7 @@ model FundingChecklist {
   updatedAt  DateTime @updatedAt
   tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   deal       DealJacket @relation(fields: [dealId], references: [id], onDelete: Cascade)
-  reviewer   User?     @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
+  reviewer   User?     @relation("FundingChecklistReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
   @@index([tenantId])
 }
 
