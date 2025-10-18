@@ -28,6 +28,7 @@ import {
   NotificationType,
   PriceChangeType,
   PreferredContactMethod,
+  Prisma,
   PrismaClient,
   ReconItemStatus,
   ReportType,
@@ -41,9 +42,12 @@ import {
   MarketCompSource,
   VehicleStatus,
   VehicleType,
+  WorkflowTaskStatus,
+  WorkflowTaskType,
+  TransportOrderStatus,
 } from '@prisma/client';
 import { faker } from '@faker-js/faker';
-import { addDays, addMonths, eachMonthOfInterval, endOfMonth, startOfMonth, subDays, subYears } from 'date-fns';
+import { addDays, addHours, addMonths, eachMonthOfInterval, endOfMonth, startOfMonth, subDays, subYears } from 'date-fns';
 
 const prisma = new PrismaClient();
 
@@ -112,6 +116,13 @@ async function resetTenantData(tenantId: string) {
   await prisma.sMSTemplate.deleteMany({ where: { tenantId } });
   await prisma.automationExecution.deleteMany({ where: { tenantId } });
   await prisma.automation.deleteMany({ where: { tenantId } });
+  await prisma.pipelineAggregate.deleteMany({ where: { tenantId } });
+  await prisma.transportOrder.deleteMany({ where: { tenantId } });
+  await prisma.workflowTask.deleteMany({ where: { tenantId } });
+  await prisma.stageTransition.deleteMany({ where: { tenantId } });
+  await prisma.vehicleWorkflow.deleteMany({ where: { tenantId } });
+  await prisma.workflowStage.deleteMany({ where: { tenantId } });
+  await prisma.workflowDefinition.deleteMany({ where: { tenantId } });
   await prisma.notification.deleteMany({ where: { tenantId } });
   await prisma.report.deleteMany({ where: { tenantId } });
   await prisma.commission.deleteMany({ where: { tenantId } });
@@ -282,6 +293,45 @@ async function main() {
   const salesTeam = usersByRole[UserRole.SALES] ?? [];
   const financeManagers = usersByRole[UserRole.FINANCE] ?? [];
   const adminUser = users.find((user) => user.email === DEVELOPER_EMAIL) ?? users[0];
+
+  const defaultWorkflowStages: Array<{ key: string; name: string; slaHours?: number | null; wipLimit?: number | null }> = [
+    { key: 'ACQUISITION', name: 'Acquisition' },
+    { key: 'INTAKE', name: 'Intake' },
+    { key: 'INSPECTION', name: 'Inspection' },
+    { key: 'RECON', name: 'Reconditioning', slaHours: 72 },
+    { key: 'DETAIL', name: 'Detail', slaHours: 24 },
+    { key: 'PHOTOS', name: 'Photos', slaHours: 24 },
+    { key: 'TRANSPORT', name: 'Transport', slaHours: 72 },
+    { key: 'PRICING_SIGNOFF', name: 'Pricing Signoff' },
+    { key: 'LISTING', name: 'Listing' },
+    { key: 'FRONTLINE_READY', name: 'Frontline Ready' },
+    { key: 'SOLD', name: 'Sold' },
+  ];
+
+  const workflowDefinition = await prisma.workflowDefinition.create({
+    data: {
+      tenantId: tenant.id,
+      name: 'Default Vehicle Pipeline',
+      stages: {
+        create: defaultWorkflowStages.map((stage, index) => ({
+          tenantId: tenant.id,
+          key: stage.key,
+          name: stage.name,
+          position: index + 1,
+          slaHours: stage.slaHours ?? null,
+          wipLimit: stage.wipLimit ?? null,
+        })),
+      },
+    },
+    include: { stages: true },
+  });
+
+  const pipelineStageMap = new Map(workflowDefinition.stages.map((stage) => [stage.key, stage]));
+  const acquisitionStage = pipelineStageMap.get('ACQUISITION');
+  if (!acquisitionStage) {
+    throw new Error('Default pipeline is missing ACQUISITION stage');
+  }
+  const pipelineStageKeys = defaultWorkflowStages.map((stage) => stage.key);
 
   const customers = [] as Awaited<ReturnType<typeof prisma.customer.create>>[];
   for (let i = 0; i < 60; i += 1) {
@@ -833,6 +883,130 @@ async function main() {
           { min: 2, max: 5 }
         ),
         notes: faker.vehicle.vrm(),
+      },
+    });
+
+    const stageProgressIndex = faker.number.int({ min: 0, max: pipelineStageKeys.length - 1 });
+    const traversedStageKeys = pipelineStageKeys.slice(0, stageProgressIndex + 1);
+    let transitionTimestamp = acquisitionDate ?? received ?? new Date();
+    let previousStage: (typeof workflowDefinition.stages)[number] | undefined;
+    const stageTransitionsData: Prisma.StageTransitionCreateWithoutWorkflowInput[] = [];
+
+    traversedStageKeys.forEach((stageKey, index) => {
+      const stageEntity = pipelineStageMap.get(stageKey);
+      if (!stageEntity) {
+        return;
+      }
+      if (index > 0) {
+        transitionTimestamp = addHours(transitionTimestamp, faker.number.int({ min: 6, max: 48 }));
+      }
+      stageTransitionsData.push({
+        tenantId: tenant.id,
+        fromStageId: previousStage?.id ?? null,
+        toStageId: stageEntity.id,
+        at: transitionTimestamp,
+        byUserId: faker.helpers.arrayElement(users).id,
+        note: index === 0 ? 'Pipeline initiated' : faker.helpers.maybe(() => faker.lorem.sentence(), { probability: 0.35 }) ?? undefined,
+      });
+      previousStage = stageEntity;
+    });
+
+    const currentStage = previousStage ?? acquisitionStage;
+    if (!currentStage) {
+      throw new Error('Unable to resolve current workflow stage');
+    }
+
+    const completedAtDate = currentStage.key === 'SOLD'
+      ? addDays(transitionTimestamp, faker.number.int({ min: 1, max: 7 }))
+      : null;
+
+    const workflowTaskCreates: Prisma.WorkflowTaskCreateWithoutWorkflowInput[] = [];
+    const inspectionStage = pipelineStageMap.get('INSPECTION');
+    if (inspectionStage && traversedStageKeys.includes('INSPECTION')) {
+      workflowTaskCreates.push({
+        tenantId: tenant.id,
+        stageId: inspectionStage.id,
+        vehicleId: vehicle.id,
+        title: 'Complete inspection checklist',
+        description: faker.lorem.sentence(),
+        type: WorkflowTaskType.QA,
+        status: traversedStageKeys.includes('RECON') ? WorkflowTaskStatus.DONE : WorkflowTaskStatus.IN_PROGRESS,
+        dueAt: addDays(received, 2),
+        assigneeId: faker.helpers.arrayElement(users).id,
+        tags: ['inspection'],
+        mentions: [],
+        checklist: { items: ['Road test', 'Diagnostic scan', 'Cosmetic review'] },
+      });
+    }
+
+    const reconStage = pipelineStageMap.get('RECON');
+    if (reconStage) {
+      workflowTaskCreates.push({
+        tenantId: tenant.id,
+        stageId: reconStage.id,
+        vehicleId: vehicle.id,
+        title: 'Review recon scope',
+        description: faker.lorem.sentence(),
+        type: WorkflowTaskType.RECON,
+        status: traversedStageKeys.includes('DETAIL') ? WorkflowTaskStatus.DONE : WorkflowTaskStatus.IN_PROGRESS,
+        dueAt: addDays(received, 5),
+        assigneeId: faker.helpers.arrayElement(users).id,
+        tags: ['recon'],
+        mentions: [],
+        checklist: { items: ['Estimate parts', 'Assign technician', 'Approve spend'] },
+        costCents: faker.number.int({ min: 30000, max: 125000 }),
+      });
+    }
+
+    const photoStage = pipelineStageMap.get('PHOTOS');
+    if (photoStage && traversedStageKeys.includes('PHOTOS')) {
+      workflowTaskCreates.push({
+        tenantId: tenant.id,
+        stageId: photoStage.id,
+        vehicleId: vehicle.id,
+        title: 'Capture marketing photos',
+        description: 'Ensure hero, interior, and detail shots meet listing guidelines.',
+        type: WorkflowTaskType.PHOTOS,
+        status: traversedStageKeys.includes('LISTING') ? WorkflowTaskStatus.DONE : WorkflowTaskStatus.IN_PROGRESS,
+        dueAt: addDays(received, 7),
+        assigneeId: faker.helpers.arrayElement(users).id,
+        tags: ['photos', 'marketing'],
+        mentions: [],
+        checklist: { items: ['Exterior hero', 'Interior cockpit', 'Detail highlights'] },
+      });
+    }
+
+    const transportOrdersCreates: Prisma.TransportOrderCreateWithoutWorkflowInput[] = [];
+    const transportStage = pipelineStageMap.get('TRANSPORT');
+    if (transportStage && traversedStageKeys.includes('TRANSPORT')) {
+      transportOrdersCreates.push({
+        tenantId: tenant.id,
+        vehicleId: vehicle.id,
+        stageId: transportStage.id,
+        vendor: faker.company.name(),
+        pickupAddress: faker.location.streetAddress(),
+        dropoffAddress: faker.location.streetAddress(),
+        scheduledAt: addDays(transitionTimestamp, 1),
+        status: faker.helpers.arrayElement([
+          TransportOrderStatus.SCHEDULED,
+          TransportOrderStatus.PICKED_UP,
+          TransportOrderStatus.DELIVERED,
+        ]),
+        costCents: faker.number.int({ min: 35000, max: 95000 }),
+      });
+    }
+
+    await prisma.vehicleWorkflow.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: vehicle.id,
+        definitionId: workflowDefinition.id,
+        currentStageId: currentStage.id,
+        startedAt: stageTransitionsData[0]?.at ?? received ?? new Date(),
+        completedAt: completedAtDate ?? undefined,
+        transitions: { create: stageTransitionsData },
+        tasks: workflowTaskCreates.length > 0 ? { create: workflowTaskCreates } : undefined,
+        transportOrders: transportOrdersCreates.length > 0 ? { create: transportOrdersCreates } : undefined,
       },
     });
 

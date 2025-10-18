@@ -43,5 +43,12 @@ SELECT ensure_tenant_policy('Report');
 SELECT ensure_tenant_policy('Notification');
 SELECT ensure_tenant_policy('AuditLog');
 SELECT ensure_tenant_policy('SystemSetting');
+SELECT ensure_tenant_policy('WorkflowDefinition');
+SELECT ensure_tenant_policy('WorkflowStage');
+SELECT ensure_tenant_policy('VehicleWorkflow');
+SELECT ensure_tenant_policy('StageTransition');
+SELECT ensure_tenant_policy('WorkflowTask');
+SELECT ensure_tenant_policy('TransportOrder');
+SELECT ensure_tenant_policy('PipelineAggregate');
 
 DROP FUNCTION ensure_tenant_policy(TEXT);
