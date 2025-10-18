@@ -426,12 +426,17 @@ model Lead {
   priority            LeadPriority @default(MEDIUM)
   rating              Int?
   score               Int?
+  assignedAt          DateTime?    @db.Timestamptz(6)
   isArchived          Boolean      @default(false)
   isConverted         Boolean      @default(false)
+  convertedToDeal     Boolean      @default(false)
   lastActivityAt      DateTime?    @db.Timestamptz(6)
   lastCommunicationAt DateTime?    @db.Timestamptz(6)
   nextActionAt        DateTime?    @db.Timestamptz(6)
   convertedAt         DateTime?    @db.Timestamptz(6)
+  wonAt               DateTime?    @db.Timestamptz(6)
+  lostAt              DateTime?    @db.Timestamptz(6)
+  lostReason          String?
   description         String?
   tags                String[]     @default([])
   createdAt           DateTime     @default(now()) @db.Timestamptz(6)
