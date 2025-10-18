@@ -7,7 +7,7 @@ import {
   CommissionStatus,
   CommissionType,
   CustomerVehicleStatus,
-  DealStatus,
+  RetailDealStatus,
   DealType,
   ActivityStatus,
   ActivityType,
@@ -128,6 +128,11 @@ async function resetTenantData(tenantId: string) {
   await prisma.commission.deleteMany({ where: { tenantId } });
   await prisma.journalEntryLine.deleteMany({ where: { tenantId } });
   await prisma.journalEntry.deleteMany({ where: { tenantId } });
+  await prisma.approvalPrediction.deleteMany({ where: { tenantId } });
+  await prisma.counterOffer.deleteMany({ where: { tenantId } });
+  await prisma.dealOptimization.deleteMany({ where: { tenantId } });
+  await prisma.dealVersion.deleteMany({ where: { tenantId } });
+  await prisma.dealWorksheet.deleteMany({ where: { tenantId } });
   await prisma.dealDocument.deleteMany({ where: { deal: { tenantId } } });
   await prisma.contract.deleteMany({ where: { tenantId } });
   await prisma.lenderSubmission.deleteMany({ where: { tenantId } });
@@ -1273,7 +1278,7 @@ async function main() {
           salesPersonId: salesPerson.id,
           financeManagerId: financeManager.id,
           dealType: faker.helpers.arrayElement([DealType.CASH, DealType.FINANCE, DealType.LEASE]),
-          status: DealStatus.DELIVERED,
+      status: RetailDealStatus.DELIVERED,
           vehiclePrice: netVehiclePrice.toFixed(2),
           discount: discount.toFixed(2),
           netVehiclePrice: netVehiclePrice.toFixed(2),
@@ -1572,17 +1577,17 @@ async function main() {
     }
 
     const statusScenarios: Array<{
-      status: DealStatus;
+      status: RetailDealStatus;
       contractOffsetDays?: number;
       fundedOffsetDays?: number;
       deliveredOffsetDays?: number;
     }> = [
-      { status: DealStatus.DRAFT },
-      { status: DealStatus.PENDING },
-      { status: DealStatus.SUBMITTED },
-      { status: DealStatus.APPROVED, contractOffsetDays: 2 },
-      { status: DealStatus.FUNDED, contractOffsetDays: 2, fundedOffsetDays: 6 },
-      { status: DealStatus.DELIVERED, contractOffsetDays: 2, fundedOffsetDays: 6, deliveredOffsetDays: 9 },
+      { status: RetailDealStatus.DRAFT },
+      { status: RetailDealStatus.PENDING },
+      { status: RetailDealStatus.SUBMITTED },
+      { status: RetailDealStatus.APPROVED, contractOffsetDays: 2 },
+      { status: RetailDealStatus.FUNDED, contractOffsetDays: 2, fundedOffsetDays: 6 },
+      { status: RetailDealStatus.DELIVERED, contractOffsetDays: 2, fundedOffsetDays: 6, deliveredOffsetDays: 9 },
     ];
 
     const scenarioBaseDate = new Date();
@@ -1597,7 +1602,7 @@ async function main() {
         scenario.deliveredOffsetDays !== undefined ? addDays(dealDate, scenario.deliveredOffsetDays) : null;
 
       const scenarioFiProducts =
-        scenario.status === DealStatus.DRAFT || scenario.status === DealStatus.PENDING ? [] : baseFiProducts;
+        scenario.status === RetailDealStatus.DRAFT || scenario.status === RetailDealStatus.PENDING ? [] : baseFiProducts;
 
       const displayStatus = `${scenario.status.charAt(0)}${scenario.status.slice(1).toLowerCase()}`;
 
@@ -1610,7 +1615,7 @@ async function main() {
           netTrade: netTrade ?? undefined,
           cashDown,
           amountFinanced,
-          lenderId: scenario.status === DealStatus.DRAFT ? null : 'sunrise-credit-union',
+          lenderId: scenario.status === RetailDealStatus.DRAFT ? null : 'sunrise-credit-union',
           apr: apr ?? undefined,
           term: sampleDeal.term ?? 72,
           monthlyPayment: monthlyPayment ?? undefined,
@@ -1639,7 +1644,7 @@ async function main() {
           netTrade: netTrade ?? undefined,
           cashDown,
           amountFinanced,
-          lenderId: scenario.status === DealStatus.DRAFT ? null : 'sunrise-credit-union',
+          lenderId: scenario.status === RetailDealStatus.DRAFT ? null : 'sunrise-credit-union',
           apr: apr ?? undefined,
           term: sampleDeal.term ?? 72,
           monthlyPayment: monthlyPayment ?? undefined,
