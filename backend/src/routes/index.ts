@@ -8,6 +8,7 @@ import { requireSuperAdmin } from '../middleware/superadmin.middleware.js';
 import { errorHandler } from '../lib/errors.js';
 import { getTenantContext } from '../lib/tenant-context.js';
 import crmRoutes from './crm.routes.js';
+import leadRoutes from './lead.routes.js';
 
 async function loadOptionalRoutes(): Promise<express.Router[]> {
   const optionalImports = [
@@ -70,6 +71,7 @@ export async function registerApiRoutes(app: express.Application) {
   api.use(tenantScope);
 
   api.use('/settings', settingsRoutes);
+  api.use('/leads', leadRoutes);
   api.use('/crm', crmRoutes);
 
   const optionalRouters = await loadOptionalRoutes();
