@@ -35,6 +35,22 @@ export interface LenderDecision {
   rawResponse?: unknown;
 }
 
+export interface FundingSubmissionPayload {
+  dealId: string;
+  amount: number;
+  method: string;
+  packetUrl: string;
+  notes?: string | null;
+  bankAccountId?: string | null;
+}
+
+export interface FundingSubmissionResult {
+  referenceNumber?: string | null;
+  status: string;
+  estimatedFundingDate?: string | null;
+  metadata?: Record<string, unknown> | null;
+}
+
 export interface RouteOneSubmissionApplicant {
   firstName: string;
   lastName: string;
@@ -340,6 +356,73 @@ export class LenderIntegrationService {
       return adapter.submit(payload);
     }
     return adapter.submit(submission);
+  }
+
+  async submitFundingRequest(
+    lender: Lender,
+    payload: FundingSubmissionPayload,
+  ): Promise<FundingSubmissionResult> {
+    const credentials = this.parseCredentials<Record<string, unknown>>(lender);
+    const endpoint = credentials?.fundingUrl ?? credentials?.fundingEndpoint;
+
+    if (!endpoint || typeof endpoint !== 'string') {
+      throw new IntegrationConfigurationError(
+        `Lender ${lender.name} is not configured for funding submissions`,
+      );
+    }
+
+    const headers: Record<string, string> = { 'content-type': 'application/json' };
+    if (typeof credentials.fundingApiKey === 'string' && credentials.fundingApiKey) {
+      headers.authorization = `Bearer ${credentials.fundingApiKey}`;
+    }
+    if (typeof credentials.fundingAuthHeader === 'string' && credentials.fundingAuthHeader) {
+      const [key, value] = credentials.fundingAuthHeader.split(':', 2);
+      if (key && value) {
+        headers[key.trim()] = value.trim();
+      }
+    }
+
+    const response = await this.fetchFn(endpoint, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        lenderId: lender.id,
+        dealId: payload.dealId,
+        amount: payload.amount,
+        method: payload.method,
+        packetUrl: payload.packetUrl,
+        notes: payload.notes ?? null,
+        bankAccountId: payload.bankAccountId ?? null,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorPayload = await safeJson(response);
+      throw new LenderIntegrationError(
+        `Funding submission failed with status ${response.status}: ${response.statusText}`,
+        errorPayload,
+      );
+    }
+
+    const data = await safeJson(response);
+
+    const status = typeof data?.status === 'string' ? data.status : 'RECEIVED';
+    const reference =
+      (typeof data?.reference === 'string' && data.reference) ||
+      (typeof data?.referenceNumber === 'string' && data.referenceNumber) ||
+      (typeof data?.id === 'string' && data.id) ||
+      null;
+    const estimatedFundingDate =
+      (typeof data?.estimatedFundingDate === 'string' && data.estimatedFundingDate) ||
+      (typeof data?.eta === 'string' && data.eta) ||
+      null;
+
+    return {
+      referenceNumber: reference,
+      status,
+      estimatedFundingDate,
+      metadata: data && typeof data === 'object' ? (data as Record<string, unknown>) : null,
+    } satisfies FundingSubmissionResult;
   }
 
   private createAdapter(lender: Lender): LenderAdapter {
