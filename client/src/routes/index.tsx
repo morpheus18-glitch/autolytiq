@@ -67,6 +67,7 @@ import MLDeveloperAdmin from '@/pages/ml-developer-admin';
 import AISmartSearch from '@/pages/ai-smart-search';
 import WorkflowAssistant from '@/pages/workflow-assistant';
 import CommunicationDemo from '@/pages/communication-demo';
+import RoleLanding from '@/pages/role-landing';
 
 interface RouteDefinition {
   path: string;
@@ -81,7 +82,8 @@ export interface ResolvedRoute {
 }
 
 const routeDefinitions: RouteDefinition[] = [
-  { path: '/', component: Dashboard },
+  { path: '/', component: RoleLanding },
+  { path: '/dashboard', component: Dashboard },
   { path: '/inventory/pricing', component: InventoryPricing },
   { path: '/inventory/lot-management', component: LotManagement },
   { path: '/inventory/:id', component: InventoryDetail },

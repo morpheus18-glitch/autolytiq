@@ -8,18 +8,30 @@ import {
   MOBILE_QUICK_ACTIONS,
   type MobileNavItem
 } from '@/config/navigation';
+import { isHomePath } from '@/lib/userHomePath';
 
 export function MobileFooterMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [location] = useLocation();
 
+  const normalizePath = (value: string) => {
+    if (value === '/') {
+      return '/';
+    }
+    return value.endsWith('/') ? value.slice(0, -1) : value;
+  };
+
   const matchesPath = (path: string | undefined, current: string) => {
     if (!path) return false;
-    if (path === '/') {
-      return current === '/';
+    if (path === '/' || path === '/dashboard') {
+      return isHomePath(current);
     }
-    const normalized = path.endsWith('/') ? path.slice(0, -1) : path;
-    return current === normalized || current.startsWith(`${normalized}/`);
+    const normalized = normalizePath(path);
+    const normalizedCurrent = normalizePath(current);
+    return (
+      normalizedCurrent === normalized ||
+      normalizedCurrent.startsWith(`${normalized}/`)
+    );
   };
 
   const isPathActive = (item: MobileNavItem) => {
