@@ -1,6 +1,9 @@
 import bcrypt from 'bcrypt';
 import {
   AccountType,
+  AppraisalConditionGrade,
+  AppraisalStatus,
+  AuctionPurchaseStatus,
   CommissionStatus,
   CommissionType,
   CustomerVehicleStatus,
@@ -23,14 +26,19 @@ import {
   LineType,
   NormalBalance,
   NotificationType,
+  PriceChangeType,
   PreferredContactMethod,
   PrismaClient,
+  ReconItemStatus,
   ReportType,
   TenantPlan,
   TenantStatus,
+  VehicleAcquisitionType,
   UserRole,
   UserStatus,
   VehicleHistoryType,
+  WholesaleListingStatus,
+  MarketCompSource,
   VehicleStatus,
   VehicleType,
 } from '@prisma/client';
@@ -116,6 +124,12 @@ async function resetTenantData(tenantId: string) {
   await prisma.fundingChecklist.deleteMany({ where: { tenantId } });
   await prisma.dealJacket.deleteMany({ where: { tenantId } });
   await prisma.deal.deleteMany({ where: { tenantId } });
+  await prisma.marketComp.deleteMany({ where: { tenantId } });
+  await prisma.wholesaleListing.deleteMany({ where: { tenantId } });
+  await prisma.auctionPurchase.deleteMany({ where: { tenantId } });
+  await prisma.priceHistory.deleteMany({ where: { tenantId } });
+  await prisma.reconItem.deleteMany({ where: { tenantId } });
+  await prisma.appraisal.deleteMany({ where: { tenantId } });
   await prisma.vehicleHistory.deleteMany({ where: { tenantId } });
   await prisma.vehicle.deleteMany({ where: { tenantId } });
   await prisma.customerVehicle.deleteMany({ where: { tenantId } });
@@ -723,6 +737,37 @@ async function main() {
       from: subYears(new Date(), 2),
       to: new Date(),
     });
+    const acquisitionType = i % 4 === 0
+      ? VehicleAcquisitionType.AUCTION
+      : i % 4 === 1
+        ? VehicleAcquisitionType.TRADE_IN
+        : i % 4 === 2
+          ? VehicleAcquisitionType.PURCHASE
+          : VehicleAcquisitionType.CONSIGNMENT;
+    const acquisitionDate = faker.date.soon({ days: 10, refDate: received });
+    const basePrice = Number(listPrice ?? invoiceCost ?? msrp ?? '25000');
+    const acquisitionCost = Number(invoiceCost ?? msrp ?? listPrice ?? '0');
+    const floorPrice = Number((basePrice * 0.9).toFixed(2));
+    const wholesaleValue = Number((basePrice * 0.88).toFixed(2));
+    const marketValue = Number((basePrice * faker.number.float({ min: 0.9, max: 1.05, fractionDigits: 4 })).toFixed(2));
+    const targetPrice = Number((basePrice * 0.97).toFixed(2));
+    const aiPrice = Number((basePrice * 0.965).toFixed(2));
+    const reconEstimateValue = faker.number.float({ min: 350, max: 1800, fractionDigits: 2 });
+    const reconActualValue = Number((reconEstimateValue * faker.number.float({ min: 0.85, max: 1.1, fractionDigits: 2 })).toFixed(2));
+    const reconCompletedAt = faker.helpers.maybe(
+      () => addDays(acquisitionDate, faker.number.int({ min: 3, max: 18 })),
+      { probability: 0.65 }
+    );
+    const lastAppraisedAt = faker.helpers.maybe(
+      () => subDays(new Date(), faker.number.int({ min: 3, max: 45 })),
+      { probability: 0.55 }
+    );
+    const appraisalStatus = lastAppraisedAt ? AppraisalStatus.APPROVED : AppraisalStatus.SUBMITTED;
+    const nextPriceReviewDate = faker.helpers.maybe(
+      () => addDays(new Date(), faker.number.int({ min: 7, max: 30 })),
+      { probability: 0.7 }
+    );
+    const agingBucket = faker.helpers.arrayElement(['0-30', '31-60', '61-90', '90+']);
 
     const vehicle = await prisma.vehicle.create({
       data: {
@@ -749,6 +794,29 @@ async function main() {
         msrp,
         invoiceCost,
         listPrice,
+        acquisitionType,
+        acquisitionSource: acquisitionType === VehicleAcquisitionType.AUCTION
+          ? faker.helpers.arrayElement(['Manheim Dallas', 'ADESA Chicago', 'Manheim Orlando'])
+          : acquisitionType === VehicleAcquisitionType.TRADE_IN
+            ? 'Customer Trade'
+            : acquisitionType === VehicleAcquisitionType.CONSIGNMENT
+              ? 'Consignment'
+              : faker.company.name(),
+        acquisitionDate,
+        acquisitionCost: acquisitionCost.toFixed(2),
+        floorPrice: floorPrice.toFixed(2),
+        wholesaleValue: wholesaleValue.toFixed(2),
+        marketValue: marketValue.toFixed(2),
+        targetPrice: targetPrice.toFixed(2),
+        aiPrice: aiPrice.toFixed(2),
+        pricingNotes: faker.lorem.sentence(),
+        appraisalStatus,
+        lastAppraisedAt,
+        reconEstimate: reconEstimateValue.toFixed(2),
+        reconActual: reconActualValue.toFixed(2),
+        reconCompletedAt,
+        agingBucket,
+        nextPriceReviewDate,
         status: VehicleStatus.AVAILABLE,
         location: faker.location.city(),
         dateReceived: received,
@@ -769,6 +837,218 @@ async function main() {
     });
 
     inventoryVehicles.push(vehicle);
+  }
+
+  const managerUser = (usersByRole[UserRole.MANAGER] ?? [])[0] ?? adminUser;
+  const appraiserUser = salesTeam[0] ?? managerUser;
+  const sampleVehicle = inventoryVehicles[0];
+
+  if (sampleVehicle) {
+    const appraisalSubmittedAt = subDays(new Date(), 5);
+    const appraisalApprovedAt = subDays(new Date(), 3);
+    const appraisal = await prisma.appraisal.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        appraiserId: appraiserUser.id,
+        managerId: managerUser.id,
+        vin: sampleVehicle.vin,
+        year: sampleVehicle.year,
+        make: sampleVehicle.make,
+        model: sampleVehicle.model,
+        trim: sampleVehicle.trim,
+        exteriorColor: sampleVehicle.exteriorColor,
+        interiorColor: sampleVehicle.interiorColor,
+        mileage: sampleVehicle.mileage,
+        conditionGrade: AppraisalConditionGrade.CLEAN,
+        conditionScore: faker.number.int({ min: 70, max: 92 }),
+        conditionNotes: faker.lorem.sentence(),
+        warningLights: faker.helpers.arrayElements(['ABS', 'TPMS', 'Check Engine'], { min: 0, max: 2 }),
+        photos: [
+          'https://images.example.com/appraisals/interior.jpg',
+          'https://images.example.com/appraisals/exterior.jpg',
+        ],
+        estimatedValue: (Number(sampleVehicle.listPrice ?? sampleVehicle.msrp ?? '25000') * 0.9).toFixed(2),
+        marketValue: (Number(sampleVehicle.listPrice ?? sampleVehicle.msrp ?? '25000') * 0.92).toFixed(2),
+        aiSuggestedValue: (Number(sampleVehicle.listPrice ?? sampleVehicle.msrp ?? '25000') * 0.915).toFixed(2),
+        reconEstimate: {
+          interior: 180,
+          exterior: 275,
+          mechanical: 450,
+        },
+        status: AppraisalStatus.APPROVED,
+        submittedAt: appraisalSubmittedAt,
+        approvedAt: appraisalApprovedAt,
+        notes: 'Approved appraisal used as pricing baseline.',
+      },
+    });
+
+    await prisma.vehicle.update({
+      where: { id: sampleVehicle.id },
+      data: {
+        appraisalStatus: AppraisalStatus.APPROVED,
+        lastAppraisedAt: appraisalApprovedAt,
+        marketValue: (Number(sampleVehicle.listPrice ?? sampleVehicle.msrp ?? '25000') * 0.92).toFixed(2),
+      },
+    });
+
+    await prisma.reconItem.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        appraisalId: appraisal.id,
+        title: 'Detail and paint correction',
+        description: 'Full exterior buff with scratch repair and ceramic coating prep.',
+        category: 'Appearance',
+        status: ReconItemStatus.COMPLETED,
+        vendor: 'ShineWorks Detailing',
+        estimatedCost: '425.00',
+        actualCost: '410.00',
+        startedAt: addDays(appraisalApprovedAt, 1),
+        completedAt: addDays(appraisalApprovedAt, 3),
+        beforePhotos: ['https://images.example.com/recon/before-detail.jpg'],
+        afterPhotos: ['https://images.example.com/recon/after-detail.jpg'],
+        notes: 'Vehicle ready for front-line display.',
+      },
+    });
+
+    await prisma.reconItem.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        appraisalId: appraisal.id,
+        title: 'Brake pad replacement',
+        description: 'Replace front brake pads and resurface rotors.',
+        category: 'Mechanical',
+        status: ReconItemStatus.IN_PROGRESS,
+        vendor: 'Sunrise Service Bay',
+        estimatedCost: '320.00',
+        actualCost: null,
+        startedAt: addDays(appraisalApprovedAt, 2),
+        beforePhotos: ['https://images.example.com/recon/brakes-before.jpg'],
+        notes: 'Waiting on parts arrival.',
+      },
+    });
+
+    const oldPrice = Number(sampleVehicle.listPrice ?? sampleVehicle.msrp ?? '25000');
+    const reducedPrice = Number((oldPrice - 750).toFixed(2));
+
+    await prisma.priceHistory.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        changedById: managerUser.id,
+        changeType: PriceChangeType.MARKET,
+        oldPrice: oldPrice.toFixed(2),
+        newPrice: reducedPrice.toFixed(2),
+        adjustment: (reducedPrice - oldPrice).toFixed(2),
+        sourceReference: 'appraisal-review',
+        notes: 'Market realignment following approved appraisal.',
+      },
+    });
+
+    await prisma.priceHistory.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        changedById: appraiserUser.id,
+        changeType: PriceChangeType.AI_RECOMMENDATION,
+        oldPrice: reducedPrice.toFixed(2),
+        newPrice: (reducedPrice - 250).toFixed(2),
+        adjustment: (-250).toFixed(2),
+        sourceReference: 'ml-service',
+        notes: 'Automated pricing suggestion applied after 30 days in stock.',
+      },
+    });
+
+    await prisma.marketComp.createMany({
+      data: [
+        {
+          tenantId: tenant.id,
+          vehicleId: sampleVehicle.id,
+          source: MarketCompSource.RETAIL_LISTING,
+          compVin: faker.vehicle.vin(),
+          year: sampleVehicle.year,
+          make: sampleVehicle.make,
+          model: sampleVehicle.model,
+          trim: sampleVehicle.trim,
+          mileage: faker.number.int({ min: sampleVehicle.mileage ?? 10000, max: (sampleVehicle.mileage ?? 10000) + 15000 }),
+          price: (oldPrice * 0.98).toFixed(2),
+          distance: faker.number.int({ min: 5, max: 120 }),
+          location: faker.location.city(),
+          listedAt: subDays(new Date(), faker.number.int({ min: 2, max: 10 })),
+          payload: { provider: 'Cars.com' },
+        },
+        {
+          tenantId: tenant.id,
+          vehicleId: sampleVehicle.id,
+          source: MarketCompSource.AUCTION_RESULT,
+          compVin: faker.vehicle.vin(),
+          year: sampleVehicle.year,
+          make: sampleVehicle.make,
+          model: sampleVehicle.model,
+          trim: sampleVehicle.trim,
+          mileage: faker.number.int({ min: 10000, max: 40000 }),
+          price: (oldPrice * 0.85).toFixed(2),
+          distance: faker.number.int({ min: 50, max: 250 }),
+          location: faker.location.city(),
+          listedAt: subDays(new Date(), faker.number.int({ min: 5, max: 14 })),
+          payload: { auction: 'Manheim Nashville' },
+        },
+      ],
+      skipDuplicates: true,
+    });
+
+    await prisma.wholesaleListing.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        platform: 'ACV Auctions',
+        status: WholesaleListingStatus.LISTED,
+        askingPrice: (oldPrice - 1200).toFixed(2),
+        reservePrice: (oldPrice - 1600).toFixed(2),
+        minimumAcceptable: (oldPrice - 2000).toFixed(2),
+        publishedAt: subDays(new Date(), 1),
+        expiresAt: addDays(new Date(), 5),
+        notes: 'Listed for wholesale backup strategy.',
+      },
+    });
+  }
+
+  const auctionVehicle = inventoryVehicles.find((vehicle) => vehicle.acquisitionType === VehicleAcquisitionType.AUCTION) ?? sampleVehicle;
+
+  if (auctionVehicle) {
+    const auctionBase = Number(auctionVehicle.invoiceCost ?? auctionVehicle.listPrice ?? '22000');
+    const hammerPrice = (auctionBase - 1500).toFixed(2);
+    const totalCost = (auctionBase - 1500 + 425 + 325 + 585).toFixed(2);
+
+    await prisma.auctionPurchase.upsert({
+      where: {
+        tenantId_vehicleId: {
+          tenantId: tenant.id,
+          vehicleId: auctionVehicle.id,
+        },
+      },
+      update: {},
+      create: {
+        tenantId: tenant.id,
+        vehicleId: auctionVehicle.id,
+        provider: 'Manheim',
+        auctionName: 'Manheim Dallas Evening Sale',
+        auctionDate: subDays(new Date(), 12),
+        lane: 'B',
+        runNumber: `B-${faker.string.numeric(3)}`,
+        status: AuctionPurchaseStatus.WON,
+        hammerPrice,
+        buyerFees: '425.00',
+        transportCost: '325.00',
+        reconditioningCost: '585.00',
+        totalCost,
+        conditionGrade: '3.6',
+        inspectorNotes: 'Minor cosmetic scuffs, clean frame.',
+        documents: ['https://docs.example.com/auction/condition-report.pdf'],
+      },
+    });
   }
 
   const months = createMonthlyPeriods();

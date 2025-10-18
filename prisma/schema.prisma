@@ -181,6 +181,66 @@ enum VehicleHistoryType {
   INSPECTION
 }
 
+enum VehicleAcquisitionType {
+  TRADE_IN
+  AUCTION
+  PURCHASE
+  FLOOR_PLAN
+  CONSIGNMENT
+  OTHER
+}
+
+enum AppraisalStatus {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum AppraisalConditionGrade {
+  ROUGH
+  AVERAGE
+  CLEAN
+  EXCELLENT
+}
+
+enum ReconItemStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum PriceChangeType {
+  MANUAL
+  MARKET
+  AI_RECOMMENDATION
+  FLOOR_PLAN
+}
+
+enum AuctionPurchaseStatus {
+  PENDING
+  WON
+  LOST
+  CANCELLED
+}
+
+enum WholesaleListingStatus {
+  DRAFT
+  LISTED
+  UNDER_CONTRACT
+  SOLD
+  WITHDRAWN
+}
+
+enum MarketCompSource {
+  RETAIL_LISTING
+  WHOLESALE_LISTING
+  AUCTION_RESULT
+  THIRD_PARTY
+  INTERNAL
+}
+
 enum DealType {
   CASH
   FINANCE
@@ -290,6 +350,12 @@ model Tenant {
   automationExecutions AutomationExecution[]
   vehicles             Vehicle[]
   vehicleHistories     VehicleHistory[]
+  appraisals           Appraisal[]
+  reconItems           ReconItem[]
+  priceHistories       PriceHistory[]
+  auctionPurchases     AuctionPurchase[]
+  wholesaleListings    WholesaleListing[]
+  marketComps          MarketComp[]
   deals                Deal[]
   dealJackets          DealJacket[]
   creditApplications   CreditApplication[]
@@ -347,6 +413,9 @@ model User {
   notifications         Notification[]
   auditLogs             AuditLog[]
   systemSettings        SystemSetting[]
+  appraisalsCreated     Appraisal[]           @relation("AppraisalsAppraiser")
+  appraisalsReviewed    Appraisal[]           @relation("AppraisalsManager")
+  priceChanges          PriceHistory[]        @relation("PriceHistoryChangedBy")
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -713,22 +782,47 @@ model Vehicle {
   floorPlanId           String?
   floorPlanDate         DateTime?                @db.Timestamptz(6)
   floorPlanInterestRate Decimal?                 @db.Decimal(5, 2)
+  acquisitionType       VehicleAcquisitionType?
+  acquisitionSource     String?
+  acquisitionDate       DateTime?                @db.Timestamptz(6)
+  acquisitionCost       Decimal?                 @db.Decimal(18, 2)
+  floorPrice            Decimal?                 @db.Decimal(18, 2)
+  wholesaleValue        Decimal?                 @db.Decimal(18, 2)
+  marketValue           Decimal?                 @db.Decimal(18, 2)
+  targetPrice           Decimal?                 @db.Decimal(18, 2)
+  aiPrice               Decimal?                 @db.Decimal(18, 2)
+  pricingNotes          String?
+  appraisalStatus       AppraisalStatus?
+  lastAppraisedAt       DateTime?                @db.Timestamptz(6)
+  reconEstimate         Decimal?                 @db.Decimal(18, 2)
+  reconActual           Decimal?                 @db.Decimal(18, 2)
+  reconCompletedAt      DateTime?                @db.Timestamptz(6)
+  agingBucket           String?
+  nextPriceReviewDate   DateTime?                @db.Timestamptz(6)
   notes                 String?
   createdAt             DateTime                 @default(now()) @db.Timestamptz(6)
   updatedAt             DateTime                 @updatedAt @db.Timestamptz(6)
   deletedAt             DateTime?                @db.Timestamptz(6)
   searchVector          Unsupported("tsvector")? @default(dbgenerated("to_tsvector('english', coalesce(\"vin\",'') || ' ' || coalesce(\"make\",'') || ' ' || coalesce(\"model\",''))")) @map("search_vector")
 
-  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  deals     Deal[]
-  dealJackets DealJacket[]
-  histories VehicleHistory[]
-  appointments Appointment[]
+  tenant            Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deals             Deal[]
+  dealJackets       DealJacket[]
+  histories         VehicleHistory[]
+  appointments      Appointment[]
+  appraisals        Appraisal[]
+  reconItems        ReconItem[]
+  priceHistory      PriceHistory[]
+  auctionPurchase   AuctionPurchase?
+  wholesaleListings WholesaleListing[]
+  marketComps       MarketComp[]
 
   @@unique([tenantId, stockNumber])
   @@unique([vin])
   @@index([tenantId, status])
   @@index([tenantId, make, model])
+  @@index([tenantId, acquisitionType])
+  @@index([tenantId, appraisalStatus])
   @@index([searchVector], type: Gin)
 }
 
@@ -747,6 +841,178 @@ model VehicleHistory {
   vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, vehicleId])
+}
+
+model Appraisal {
+  id               String                  @id @default(cuid())
+  tenantId         String
+  vehicleId        String?
+  appraiserId      String
+  managerId        String?
+  vin              String
+  year             Int?
+  make             String?
+  model            String?
+  trim             String?
+  exteriorColor    String?
+  interiorColor    String?
+  mileage          Int?
+  conditionGrade   AppraisalConditionGrade?
+  conditionScore   Int?
+  conditionNotes   String?
+  warningLights    String[]                @default([])
+  photos           String[]                @default([])
+  estimatedValue   Decimal?                @db.Decimal(18, 2)
+  marketValue      Decimal?                @db.Decimal(18, 2)
+  aiSuggestedValue Decimal?                @db.Decimal(18, 2)
+  reconEstimate    Json?
+  status           AppraisalStatus         @default(DRAFT)
+  submittedAt      DateTime?               @db.Timestamptz(6)
+  approvedAt       DateTime?               @db.Timestamptz(6)
+  rejectedAt       DateTime?               @db.Timestamptz(6)
+  expiresAt        DateTime?               @db.Timestamptz(6)
+  notes            String?
+  createdAt        DateTime                @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime                @updatedAt @db.Timestamptz(6)
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle   Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  appraiser User     @relation("AppraisalsAppraiser", fields: [appraiserId], references: [id], onDelete: Restrict)
+  manager   User?    @relation("AppraisalsManager", fields: [managerId], references: [id], onDelete: SetNull)
+  reconItems ReconItem[]
+
+  @@index([tenantId, status])
+  @@index([tenantId, vehicleId])
+  @@index([tenantId, vin])
+}
+
+model ReconItem {
+  id            String          @id @default(cuid())
+  tenantId      String
+  vehicleId     String
+  appraisalId   String?
+  title         String
+  description   String?
+  category      String?
+  status        ReconItemStatus @default(PENDING)
+  vendor        String?
+  estimatedCost Decimal?        @db.Decimal(18, 2)
+  actualCost    Decimal?        @db.Decimal(18, 2)
+  startedAt     DateTime?       @db.Timestamptz(6)
+  completedAt   DateTime?       @db.Timestamptz(6)
+  beforePhotos  String[]        @default([])
+  afterPhotos   String[]        @default([])
+  notes         String?
+  createdAt     DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime        @updatedAt @db.Timestamptz(6)
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle   Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  appraisal Appraisal? @relation(fields: [appraisalId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, vehicleId])
+  @@index([tenantId, status])
+}
+
+model PriceHistory {
+  id             String          @id @default(cuid())
+  tenantId       String
+  vehicleId      String
+  changedById    String?
+  changeType     PriceChangeType @default(MANUAL)
+  oldPrice       Decimal?        @db.Decimal(18, 2)
+  newPrice       Decimal         @db.Decimal(18, 2)
+  adjustment     Decimal?        @db.Decimal(18, 2)
+  sourceReference String?
+  notes          String?
+  createdAt      DateTime        @default(now()) @db.Timestamptz(6)
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  changedBy User?    @relation("PriceHistoryChangedBy", fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, vehicleId])
+  @@index([tenantId, createdAt])
+}
+
+model AuctionPurchase {
+  id               String                @id @default(cuid())
+  tenantId         String
+  vehicleId        String
+  provider         String?
+  auctionName      String
+  auctionDate      DateTime?             @db.Timestamptz(6)
+  lane             String?
+  runNumber        String?
+  status           AuctionPurchaseStatus @default(PENDING)
+  hammerPrice      Decimal?              @db.Decimal(18, 2)
+  buyerFees        Decimal?              @db.Decimal(18, 2)
+  transportCost    Decimal?              @db.Decimal(18, 2)
+  reconditioningCost Decimal?            @db.Decimal(18, 2)
+  totalCost        Decimal?              @db.Decimal(18, 2)
+  conditionGrade   String?
+  inspectorNotes   String?
+  documents        String[]              @default([])
+  createdAt        DateTime              @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime              @updatedAt @db.Timestamptz(6)
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([vehicleId])
+  @@index([tenantId, vehicleId])
+  @@index([tenantId, status])
+}
+
+model WholesaleListing {
+  id                String                   @id @default(cuid())
+  tenantId          String
+  vehicleId         String
+  platform          String
+  status            WholesaleListingStatus   @default(DRAFT)
+  askingPrice       Decimal?                 @db.Decimal(18, 2)
+  reservePrice      Decimal?                 @db.Decimal(18, 2)
+  minimumAcceptable Decimal?                 @db.Decimal(18, 2)
+  publishedAt       DateTime?                @db.Timestamptz(6)
+  expiresAt         DateTime?                @db.Timestamptz(6)
+  soldAt            DateTime?                @db.Timestamptz(6)
+  buyerName         String?
+  buyerContact      String?
+  notes             String?
+  createdAt         DateTime                 @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime                 @updatedAt @db.Timestamptz(6)
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, vehicleId])
+  @@index([tenantId, status])
+}
+
+model MarketComp {
+  id          String           @id @default(cuid())
+  tenantId    String
+  vehicleId   String
+  source      MarketCompSource @default(THIRD_PARTY)
+  compVin     String?
+  year        Int?
+  make        String?
+  model       String?
+  trim        String?
+  mileage     Int?
+  price       Decimal?         @db.Decimal(18, 2)
+  distance    Int?
+  location    String?
+  listedAt    DateTime?        @db.Timestamptz(6)
+  payload     Json?
+  createdAt   DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime         @updatedAt @db.Timestamptz(6)
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, vehicleId])
+  @@index([tenantId, source])
 }
 
 model Deal {
