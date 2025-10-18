@@ -856,6 +856,47 @@ model DealJacket {
   @@index([status])
 }
 
+model Contract {
+  id                 String      @id @default(uuid())
+  tenantId           String
+  dealId             String
+  type               String
+  name               String
+  templateId         String?
+  pdfUrl             String?
+  docusignEnvelopeId String?
+  status             String
+  sentAt             DateTime?   @db.Timestamptz(6)
+  viewedAt           DateTime?   @db.Timestamptz(6)
+  signedAt           DateTime?   @db.Timestamptz(6)
+  completedAt        DateTime?   @db.Timestamptz(6)
+  signers            Json
+  contractData       Json
+  generatedBy        String
+  createdAt          DateTime    @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime    @updatedAt @db.Timestamptz(6)
+  deal               DealJacket  @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  signatures         Signature[]
+
+  @@index([tenantId])
+  @@index([dealId])
+  @@index([status])
+}
+
+model Signature {
+  id            String    @id @default(uuid())
+  contractId    String
+  signerName    String
+  signerEmail   String
+  signerRole    String
+  ipAddress     String
+  signatureData String
+  signedAt      DateTime  @default(now()) @db.Timestamptz(6)
+  contract      Contract  @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId])
+}
+
 model FIProduct {
   id              String   @id @default(uuid())
   tenantId        String

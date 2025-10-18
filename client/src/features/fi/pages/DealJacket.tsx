@@ -27,6 +27,7 @@ import DealStatusBadge from '../components/DealStatusBadge';
 import DocumentViewer from '../components/DocumentViewer';
 import CreditApplication from './CreditApplication';
 import CreditBureau from './CreditBureau';
+import ProductContracts from './ProductContracts';
 import {
   DealDocumentDto,
   DealJacketDto,
@@ -408,8 +409,8 @@ export default function DealJacketPage() {
                 Launch Menu Presentation
               </Button>
             </TabsContent>
-            <TabsContent value="contracts" className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-              Digital contracting integrations will live here.
+            <TabsContent value="contracts" className="space-y-6">
+              {id ? <ProductContracts dealId={id} /> : <div className="text-sm text-muted-foreground">Deal not found.</div>}
             </TabsContent>
             <TabsContent value="funding" className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
               Track funding checklist completion and lender stipulations.

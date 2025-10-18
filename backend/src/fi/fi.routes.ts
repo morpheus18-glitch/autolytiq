@@ -22,6 +22,11 @@ import {
   upsertCreditApplication,
   submitCounterOffer,
   submitLenders,
+  generateContracts,
+  sendContractsForSignature,
+  getContractStatuses,
+  handleContractsWebhook,
+  downloadContract,
 } from './fi.controller.js';
 
 const router = Router();
@@ -54,5 +59,10 @@ router.get('/lenders/decisions/:dealId', listLenderDecisions);
 router.post('/lenders/select-decision', selectLenderSubmission);
 router.post('/lenders/counter-offer', submitCounterOffer);
 router.post('/lenders/satisfy-stipulation', satisfySubmissionStipulation);
+router.post('/contracts/generate', generateContracts);
+router.post('/contracts/send-for-signature', sendContractsForSignature);
+router.get('/contracts/status/:dealId', getContractStatuses);
+router.post('/contracts/webhook', handleContractsWebhook);
+router.get('/contracts/download/:contractId', downloadContract);
 
 export default router;
