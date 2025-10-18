@@ -28,6 +28,9 @@ import DocumentViewer from '../components/DocumentViewer';
 import CreditApplication from './CreditApplication';
 import CreditBureau from './CreditBureau';
 import ProductContracts from './ProductContracts';
+import { LenderSubmissionWorkspace } from './LenderSubmission';
+import { MenuPresentationWorkspace } from './MenuPresentation';
+import { DealFundingWorkspace } from './DealFunding';
 import {
   DealDocumentDto,
   DealJacketDto,
@@ -396,29 +399,35 @@ export default function DealJacketPage() {
               />
               <CreditBureau deal={deal} active={creditStep === 'bureau'} />
             </TabsContent>
-            <TabsContent value="lenders" className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-              Lender submissions and decisions will appear here.
+            <TabsContent value="lenders" className="mt-6">
+              {id ? (
+                <LenderSubmissionWorkspace dealId={id} padded={false} showBackButton={false} />
+              ) : (
+                <div className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
+                  Deal not found.
+                </div>
+              )}
             </TabsContent>
-            <TabsContent value="menu" className="space-y-4 rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-              <p>Build and present F&amp;I menu options tailored to this deal.</p>
-              <Button
-                variant="default"
-                onClick={() => setLocation(`/fi/deals/${deal.id}/menu`)}
-                className="w-full sm:w-auto"
-              >
-                Launch Menu Presentation
-              </Button>
+            <TabsContent value="menu" className="mt-6">
+              {id ? (
+                <MenuPresentationWorkspace dealId={id} padded={false} showBackButton={false} />
+              ) : (
+                <div className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
+                  Deal not found.
+                </div>
+              )}
             </TabsContent>
             <TabsContent value="contracts" className="space-y-6">
               {id ? <ProductContracts dealId={id} /> : <div className="text-sm text-muted-foreground">Deal not found.</div>}
             </TabsContent>
-            <TabsContent value="funding" className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-              <div className="space-y-3">
-                <p>Manage funding readiness, lender submissions, and funding confirmation from the dedicated workspace.</p>
-                <Button onClick={() => setLocation(`/fi/deals/${deal.id}/funding`)} className="w-full sm:w-auto">
-                  Open Funding Workspace
-                </Button>
-              </div>
+            <TabsContent value="funding" className="mt-6">
+              {id ? (
+                <DealFundingWorkspace dealId={id} padded={false} showBackButton={false} />
+              ) : (
+                <div className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
+                  Deal not found.
+                </div>
+              )}
             </TabsContent>
             <TabsContent value="documents" className="space-y-6">
               <Card>

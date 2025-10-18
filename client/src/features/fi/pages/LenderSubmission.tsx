@@ -39,6 +39,13 @@ import {
   submitLenders,
 } from '../api';
 
+export interface LenderSubmissionWorkspaceProps {
+  dealId: string;
+  showBackButton?: boolean;
+  padded?: boolean;
+  onNavigateBack?: () => void;
+}
+
 function formatCurrency(value?: string | null) {
   if (!value) return '—';
   const numeric = Number(value);
@@ -100,8 +107,14 @@ function tierLabel(tier: string) {
   return tier || 'Other';
 }
 
-export default function LenderSubmissionPage() {
-  const { id } = useParams();
+function LenderSubmissionView({
+  dealId: providedDealId,
+  showBackButton = true,
+  padded = true,
+  onNavigateBack,
+}: Partial<LenderSubmissionWorkspaceProps>) {
+  const { id: routeDealId } = useParams<{ id: string }>();
+  const id = providedDealId ?? routeDealId;
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -117,6 +130,10 @@ export default function LenderSubmissionPage() {
     message: string;
   }>({ open: false, submission: null, amount: '', apr: '', term: '', message: '' });
   const [detailsSubmission, setDetailsSubmission] = useState<LenderSubmissionDto | null>(null);
+
+  const horizontalPadding = padded ? 'px-6' : '';
+  const containerClass = cn('space-y-6', horizontalPadding, padded ? 'py-8' : 'py-6');
+  const sectionPaddingClass = cn(horizontalPadding, padded ? 'py-8' : 'py-6');
 
   const {
     data: deal,
@@ -209,6 +226,18 @@ export default function LenderSubmissionPage() {
     },
   });
 
+  if (!id) {
+    return (
+      <div className={sectionPaddingClass}>
+        <Card>
+          <CardContent className="py-10 text-center text-sm text-muted-foreground">
+            Deal identifier is required to manage lender submissions.
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const tierGroups = useMemo(() => {
     const map = new Map<string, LenderDto[]>();
     for (const lender of lenders) {
@@ -224,8 +253,13 @@ export default function LenderSubmissionPage() {
   const recommendation = useMemo(() => computeRecommendation(deal, submissions), [deal, submissions]);
 
   const handleBack = () => {
-    if (deal?.id) {
-      setLocation(`/fi/deal-jackets/${deal.id}`);
+    if (onNavigateBack) {
+      onNavigateBack();
+      return;
+    }
+
+    if (id) {
+      setLocation(`/fi/deal-jackets/${id}`);
     } else {
       setLocation('/finance');
     }
@@ -406,9 +440,11 @@ export default function LenderSubmissionPage() {
           </CardContent>
         </Card>
         <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={handleBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to deal
-          </Button>
+          {showBackButton ? (
+            <Button variant="outline" onClick={handleBack}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to deal
+            </Button>
+          ) : null}
           <Button
             onClick={handleSubmit}
             disabled={selectedLenders.length === 0 || submitMutation.isPending}
@@ -585,7 +621,7 @@ export default function LenderSubmissionPage() {
 
   if (dealLoading) {
     return (
-      <div className="space-y-6 px-6 py-8">
+      <div className={containerClass}>
         <div className="h-10 w-64 rounded bg-muted animate-pulse" />
         <div className="h-[400px] rounded-lg border border-dashed border-muted" />
       </div>
@@ -594,7 +630,7 @@ export default function LenderSubmissionPage() {
 
   if (dealError || !deal) {
     return (
-      <div className="px-6 py-8">
+      <div className={sectionPaddingClass}>
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
             Unable to load deal. Please return to the deal desk and try again.
@@ -605,7 +641,7 @@ export default function LenderSubmissionPage() {
   }
 
   return (
-    <div className="space-y-6 px-6 py-8">
+    <div className={containerClass}>
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Lender Submissions</h1>
@@ -749,4 +785,12 @@ export default function LenderSubmissionPage() {
       </Dialog>
     </div>
   );
+}
+
+export function LenderSubmissionWorkspace(props: LenderSubmissionWorkspaceProps) {
+  return <LenderSubmissionView {...props} />;
+}
+
+export default function LenderSubmissionPage() {
+  return <LenderSubmissionView />;
 }
