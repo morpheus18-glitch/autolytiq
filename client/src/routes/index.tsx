@@ -69,6 +69,13 @@ import MLDeveloperAdmin from '@/pages/ml-developer-admin';
 import AISmartSearch from '@/pages/ai-smart-search';
 import WorkflowAssistant from '@/pages/workflow-assistant';
 import CommunicationDemo from '@/pages/communication-demo';
+import CommunicationCenter from '@/pages/CommunicationCenter';
+import CallCenter from '@/pages/CallCenter';
+import SMSInbox from '@/pages/SMSInbox';
+import EmailComposer from '@/pages/EmailComposer';
+import AppointmentCalendar from '@/pages/AppointmentCalendar';
+import CustomerProfile from '@/pages/CustomerProfile';
+import CRMAnalytics from '@/pages/CRMAnalytics';
 import RoleLanding from '@/pages/role-landing';
 
 interface RouteDefinition {
@@ -181,7 +188,14 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/ml-developer-admin', component: MLDeveloperAdmin },
   { path: '/ai-smart-search', component: AISmartSearch },
   { path: '/workflow-assistant', component: WorkflowAssistant },
-  { path: '/communication-demo', component: CommunicationDemo }
+  { path: '/communication-demo', component: CommunicationDemo },
+  { path: '/communication-center', component: CommunicationCenter },
+  { path: '/call-center', component: CallCenter },
+  { path: '/sms-inbox', component: SMSInbox },
+  { path: '/email-composer', component: EmailComposer },
+  { path: '/appointment-calendar', component: AppointmentCalendar },
+  { path: '/customer-profile', component: CustomerProfile },
+  { path: '/crm-analytics', component: CRMAnalytics }
 ];
 
 export const appRoutes: ResolvedRoute[] = routeDefinitions.flatMap((route) => {
