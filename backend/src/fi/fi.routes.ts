@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
+import { requireRole } from '../middleware/role.middleware.js';
 import {
   deleteDocument,
   getFiProductDetails,
@@ -33,6 +34,13 @@ import {
   markFundingComplete,
   cancelFundingRequest,
 } from './fi.controller.js';
+import {
+  getDashboardKpis,
+  getActiveDeals as getDashboardActiveDeals,
+  getProductPerformance,
+  getLenderPerformance,
+  getCommissionSummary,
+} from './dashboard.controller.js';
 
 const router = Router();
 
@@ -42,6 +50,14 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024,
   },
 });
+
+const fiManagerViewRoles = ['ADMIN', 'MANAGER', 'SALES_MANAGER', 'FINANCE', 'FI_MANAGER'] as const;
+
+router.get('/dashboard/kpis', requireRole([...fiManagerViewRoles]), getDashboardKpis);
+router.get('/dashboard/active-deals', requireRole([...fiManagerViewRoles]), getDashboardActiveDeals);
+router.get('/dashboard/product-performance', requireRole([...fiManagerViewRoles]), getProductPerformance);
+router.get('/dashboard/lender-performance', requireRole([...fiManagerViewRoles]), getLenderPerformance);
+router.get('/dashboard/commission', requireRole([...fiManagerViewRoles]), getCommissionSummary);
 
 router.get('/deals/:id', getDeal);
 router.put('/deals/:id', updateDeal);

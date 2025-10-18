@@ -809,6 +809,10 @@ model DealJacket {
   @@index([tenantId])
   @@index([customerId])
   @@index([status])
+  @@index([tenantId, dealDate])
+  @@index([tenantId, contractDate])
+  @@index([tenantId, lenderId])
+  @@index([tenantId, salespersonId])
 }
 
 model FIProduct {
@@ -906,6 +910,8 @@ model LenderSubmission {
 
   @@index([tenantId])
   @@index([dealId])
+  @@index([tenantId, lenderId])
+  @@index([tenantId, submittedAt])
 }
 
 model Contract {

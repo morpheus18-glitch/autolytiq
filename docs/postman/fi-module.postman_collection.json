@@ -1,0 +1,533 @@
+{
+  "info": {
+    "name": "AutolytiQ F&I API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Core Finance & Insurance endpoints for deal jackets, lender workflows, contracts, and funding."
+  },
+  "item": [
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get dashboard KPIs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/dashboard/kpis", "host": ["{{baseUrl}}"], "path": ["dashboard", "kpis"] }
+          }
+        },
+        {
+          "name": "Get active deals",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/dashboard/active-deals", "host": ["{{baseUrl}}"], "path": ["dashboard", "active-deals"] }
+          }
+        },
+        {
+          "name": "Get product performance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/dashboard/product-performance", "host": ["{{baseUrl}}"], "path": ["dashboard", "product-performance"] }
+          }
+        },
+        {
+          "name": "Get lender performance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/dashboard/lender-performance", "host": ["{{baseUrl}}"], "path": ["dashboard", "lender-performance"] }
+          }
+        },
+        {
+          "name": "Get commission summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/dashboard/commission", "host": ["{{baseUrl}}"], "path": ["dashboard", "commission"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Deal Lifecycle",
+      "item": [
+        {
+          "name": "Get deal jacket",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/deals/{{dealId}}", "host": ["{{baseUrl}}"], "path": ["deals", "{{dealId}}"] }
+          }
+        },
+        {
+          "name": "Update deal jacket",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Approved\",\n  \"apr\": 6.25,\n  \"monthlyPayment\": 545.32\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/deals/{{dealId}}", "host": ["{{baseUrl}}"], "path": ["deals", "{{dealId}}"] }
+          }
+        },
+        {
+          "name": "List deal documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/deals/{{dealId}}/documents", "host": ["{{baseUrl}}"], "path": ["deals", "{{dealId}}", "documents"] }
+          }
+        },
+        {
+          "name": "Upload deal document",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "type", "value": "contract", "type": "text" },
+                { "key": "category", "value": "Contracts", "type": "text" },
+                { "key": "name", "value": "Retail Installment Contract", "type": "text" },
+                { "key": "file", "type": "file", "src": [] }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/deals/{{dealId}}/documents/upload", "host": ["{{baseUrl}}"], "path": ["deals", "{{dealId}}", "documents", "upload"] }
+          }
+        },
+        {
+          "name": "Delete deal document",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/deals/{{dealId}}/documents/{{documentId}}", "host": ["{{baseUrl}}"], "path": ["deals", "{{dealId}}", "documents", "{{documentId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Menu",
+      "item": [
+        {
+          "name": "Get menu configuration",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/menu/{{dealId}}", "host": ["{{baseUrl}}"], "path": ["menu", "{{dealId}}"] }
+          }
+        },
+        {
+          "name": "Build menu configuration",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dealId\": \"{{dealId}}\",\n  \"options\": [\n    { \"code\": \"A\", \"productIds\": [\"prod-service-contract\", \"prod-gap\"] },\n    { \"code\": \"B\", \"productIds\": [\"prod-service-contract\"] }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/menu/build", "host": ["{{baseUrl}}"], "path": ["menu", "build"] }
+          }
+        },
+        {
+          "name": "Select menu option",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"optionCode\": \"A\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/menu/{{dealId}}/select-option", "host": ["{{baseUrl}}"], "path": ["menu", "{{dealId}}", "select-option"] }
+          }
+        },
+        {
+          "name": "Get F&I product details",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/product-details/{{productId}}", "host": ["{{baseUrl}}"], "path": ["product-details", "{{productId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Credit",
+      "item": [
+        {
+          "name": "Upsert credit application",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dealId\": \"{{dealId}}\",\n  \"applicants\": [\n    {\n      \"firstName\": \"Alex\",\n      \"lastName\": \"Driver\",\n      \"email\": \"alex.driver@example.com\",\n      \"income\": 72000\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/credit/application", "host": ["{{baseUrl}}"], "path": ["credit", "application"] }
+          }
+        },
+        {
+          "name": "Get credit application",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/credit/application/{{dealId}}", "host": ["{{baseUrl}}"], "path": ["credit", "application", "{{dealId}}"] }
+          }
+        },
+        {
+          "name": "Pull credit report",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dealId\": \"{{dealId}}\",\n  \"bureau\": \"experian\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/credit/pull", "host": ["{{baseUrl}}"], "path": ["credit", "pull"] }
+          }
+        },
+        {
+          "name": "Get credit report",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/credit/report/{{dealId}}", "host": ["{{baseUrl}}"], "path": ["credit", "report", "{{dealId}}"] }
+          }
+        },
+        {
+          "name": "Share credit report",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dealId\": \"{{dealId}}\",\n  \"emails\": [\"manager@example.com\"],\n  \"message\": \"Please review the customer's bureau data.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/credit/share", "host": ["{{baseUrl}}"], "path": ["credit", "share"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lenders",
+      "item": [
+        {
+          "name": "List lenders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/lenders", "host": ["{{baseUrl}}"], "path": ["lenders"] }
+          }
+        },
+        {
+          "name": "Submit lenders",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dealId\": \"{{dealId}}\",\n  \"lenderIds\": [\"lender-prime\", \"lender-credit-union\"],\n  \"desiredTerm\": 72\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/lenders/submit", "host": ["{{baseUrl}}"], "path": ["lenders", "submit"] }
+          }
+        },
+        {
+          "name": "Get lender decisions",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/lenders/decisions/{{dealId}}", "host": ["{{baseUrl}}"], "path": ["lenders", "decisions", "{{dealId}}"] }
+          }
+        },
+        {
+          "name": "Select lender offer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"submissionId\": \"{{submissionId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/lenders/select-decision", "host": ["{{baseUrl}}"], "path": ["lenders", "select-decision"] }
+          }
+        },
+        {
+          "name": "Submit counter offer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"submissionId\": \"{{submissionId}}\",\n  \"amount\": 28000,\n  \"apr\": 6.9,\n  \"term\": 72,\n  \"message\": \"Can you match 72 months at 6.9 APR?\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/lenders/counter-offer", "host": ["{{baseUrl}}"], "path": ["lenders", "counter-offer"] }
+          }
+        },
+        {
+          "name": "Satisfy stipulation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"submissionId\": \"{{submissionId}}\",\n  \"stipulationId\": \"{{stipulationId}}\",\n  \"note\": \"Proof of insurance uploaded to deal documents.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/lenders/satisfy-stipulation", "host": ["{{baseUrl}}"], "path": ["lenders", "satisfy-stipulation"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contracts",
+      "item": [
+        {
+          "name": "Generate contracts",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dealId\": \"{{dealId}}\",\n  \"templates\": [\"retail-installment\", \"gap-addendum\"]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/contracts/generate", "host": ["{{baseUrl}}"], "path": ["contracts", "generate"] }
+          }
+        },
+        {
+          "name": "Send for signature",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dealId\": \"{{dealId}}\",\n  \"signers\": [\n    { \"name\": \"Alex Driver\", \"email\": \"alex.driver@example.com\" }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/contracts/send-for-signature", "host": ["{{baseUrl}}"], "path": ["contracts", "send-for-signature"] }
+          }
+        },
+        {
+          "name": "Get contract status",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/contracts/status/{{dealId}}", "host": ["{{baseUrl}}"], "path": ["contracts", "status", "{{dealId}}"] }
+          }
+        },
+        {
+          "name": "Contracts webhook (DocuSign)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"COMPLETED\",\n  \"payload\": {\n    \"envelopeId\": \"{{envelopeId}}\",\n    \"dealId\": \"{{dealId}}\"\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/contracts/webhook", "host": ["{{baseUrl}}"], "path": ["contracts", "webhook"] }
+          }
+        },
+        {
+          "name": "Download executed contract",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/contracts/download/{{contractId}}", "host": ["{{baseUrl}}"], "path": ["contracts", "download", "{{contractId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Funding",
+      "item": [
+        {
+          "name": "Get funding status",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/funding/status/{{dealId}}", "host": ["{{baseUrl}}"], "path": ["funding", "status", "{{dealId}}"] }
+          }
+        },
+        {
+          "name": "Submit funding request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dealId\": \"{{dealId}}\",\n  \"fundingMethod\": \"ACH\",\n  \"submissionType\": \"INTEGRATION\",\n  \"amount\": 28950,\n  \"bankAccountId\": \"operating-account\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/funding/submit", "host": ["{{baseUrl}}"], "path": ["funding", "submit"] }
+          }
+        },
+        {
+          "name": "Update funding status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dealId\": \"{{dealId}}\",\n  \"status\": \"READY_FOR_FUNDING\",\n  \"notes\": \"All stipulations satisfied.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/funding/update-status", "host": ["{{baseUrl}}"], "path": ["funding", "update-status"] }
+          }
+        },
+        {
+          "name": "Mark deal funded",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dealId\": \"{{dealId}}\",\n  \"fundedAmount\": 28950,\n  \"fundedAt\": \"2024-07-12T15:30:00Z\",\n  \"lenderRefNumber\": \"LN-2024-9087\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/funding/mark-funded", "host": ["{{baseUrl}}"], "path": ["funding", "mark-funded"] }
+          }
+        },
+        {
+          "name": "Cancel funding request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}", "type": "text" },
+              { "key": "x-tenant-id", "value": "{{tenantId}}", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dealId\": \"{{dealId}}\",\n  \"reason\": \"Customer switched lenders\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/funding/cancel", "host": ["{{baseUrl}}"], "path": ["funding", "cancel"] }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api/fi" },
+    { "key": "authToken", "value": "" },
+    { "key": "tenantId", "value": "sunrise-motors" },
+    { "key": "dealId", "value": "demo-deal-id" },
+    { "key": "documentId", "value": "demo-document-id" },
+    { "key": "productId", "value": "fi-product-id" },
+    { "key": "submissionId", "value": "lender-submission-id" },
+    { "key": "stipulationId", "value": "stipulation-id" },
+    { "key": "contractId", "value": "contract-id" },
+    { "key": "envelopeId", "value": "docusign-envelope-id" }
+  ]
+}
