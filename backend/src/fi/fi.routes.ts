@@ -6,11 +6,17 @@ import {
   getCreditReport,
   getDeal,
   listDocuments,
+  listLenderDecisions,
+  listLenders,
   pullCreditReport,
   shareCreditReport,
+  satisfySubmissionStipulation,
+  selectLenderSubmission,
   updateDeal,
   uploadDocument,
   upsertCreditApplication,
+  submitCounterOffer,
+  submitLenders,
 } from './fi.controller.js';
 
 const router = Router();
@@ -32,5 +38,11 @@ router.get('/credit/application/:dealId', getCreditApplication);
 router.post('/credit/pull', pullCreditReport);
 router.get('/credit/report/:dealId', getCreditReport);
 router.post('/credit/share', shareCreditReport);
+router.get('/lenders', listLenders);
+router.post('/lenders/submit', submitLenders);
+router.get('/lenders/decisions/:dealId', listLenderDecisions);
+router.post('/lenders/select-decision', selectLenderSubmission);
+router.post('/lenders/counter-offer', submitCounterOffer);
+router.post('/lenders/satisfy-stipulation', satisfySubmissionStipulation);
 
 export default router;

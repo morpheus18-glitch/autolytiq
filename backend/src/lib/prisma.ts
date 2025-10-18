@@ -28,6 +28,7 @@ const TENANT_SCOPED_MODELS: Prisma.ModelName[] = [
   'Deal',
   'DealJacket',
   'CreditApplication',
+  'Lender',
   'LenderSubmission',
   'Contract',
   'FundingChecklist',

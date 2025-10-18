@@ -16,6 +16,57 @@ export interface DealVehicle {
   vin?: string;
 }
 
+export interface LenderDto {
+  id: string;
+  tenantId: string;
+  name: string;
+  type: string;
+  apiProvider: string;
+  isActive: boolean;
+  tierRange: string;
+  maxTerm: number;
+  maxLtv: string;
+  minCreditScore?: number | null;
+  maxCreditScore?: number | null;
+  applicationFee?: string | null;
+}
+
+export interface LenderStipulationDto {
+  id: string;
+  description: string;
+  status: 'REQUIRED' | 'SATISFIED' | 'WAIVED';
+  dueDate?: string | null;
+  receivedAt?: string | null;
+  notes?: string | null;
+}
+
+export interface LenderSubmissionDto {
+  id: string;
+  tenantId: string;
+  dealId: string;
+  lenderId: string;
+  submittedAt: string;
+  submittedBy: string;
+  requestPayload: Record<string, unknown>;
+  status: string;
+  respondedAt?: string | null;
+  responsePayload?: Record<string, unknown> | null;
+  amountApproved?: string | null;
+  apr?: string | null;
+  buyRate?: string | null;
+  dealerReserve?: string | null;
+  maxReserve?: string | null;
+  term?: number | null;
+  monthlyPayment?: string | null;
+  declineReason?: string | null;
+  declineCode?: string | null;
+  stipulations?: LenderStipulationDto[] | null;
+  isSelected: boolean;
+  selectedAt?: string | null;
+  expiresAt?: string | null;
+  lender: LenderDto;
+}
+
 export interface DealJacketDto {
   id: string;
   tenantId: string;
@@ -196,6 +247,26 @@ export interface ShareCreditReportPayload {
   message?: string;
 }
 
+export interface SubmitLendersPayload {
+  dealId: string;
+  lenderIds: string[];
+  desiredTerm?: number | null;
+}
+
+export interface CounterOfferPayload {
+  submissionId: string;
+  amount?: number | null;
+  apr?: number | null;
+  term?: number | null;
+  message?: string | null;
+}
+
+export interface SatisfyStipulationPayload {
+  submissionId: string;
+  stipulationId: string;
+  note?: string | null;
+}
+
 export async function fetchDealJacket(dealId: string) {
   const res = await apiRequest(`/fi/deals/${dealId}`);
   return res.json() as Promise<DealJacketDto>;
@@ -204,6 +275,36 @@ export async function fetchDealJacket(dealId: string) {
 export async function updateDealJacket(dealId: string, payload: Partial<Record<string, unknown>>) {
   const res = await apiRequest('PUT', `/fi/deals/${dealId}`, payload);
   return res.json() as Promise<DealJacketDto>;
+}
+
+export async function listLenders() {
+  const res = await apiRequest('/fi/lenders');
+  return res.json() as Promise<LenderDto[]>;
+}
+
+export async function submitLenders(payload: SubmitLendersPayload) {
+  const res = await apiRequest('POST', '/fi/lenders/submit', payload);
+  return res.json() as Promise<LenderSubmissionDto[]>;
+}
+
+export async function fetchLenderDecisions(dealId: string) {
+  const res = await apiRequest(`/fi/lenders/decisions/${dealId}`);
+  return res.json() as Promise<LenderSubmissionDto[]>;
+}
+
+export async function selectLenderSubmission(payload: { submissionId: string }) {
+  const res = await apiRequest('POST', '/fi/lenders/select-decision', payload);
+  return res.json() as Promise<LenderSubmissionDto>;
+}
+
+export async function submitCounterOffer(payload: CounterOfferPayload) {
+  const res = await apiRequest('POST', '/fi/lenders/counter-offer', payload);
+  return res.json() as Promise<LenderSubmissionDto>;
+}
+
+export async function satisfyStipulation(payload: SatisfyStipulationPayload) {
+  const res = await apiRequest('POST', '/fi/lenders/satisfy-stipulation', payload);
+  return res.json() as Promise<LenderSubmissionDto>;
 }
 
 export async function listDealDocuments(dealId: string) {

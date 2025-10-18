@@ -12,6 +12,7 @@ import {
   Upload,
   Users,
   Wallet,
+  Send,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -245,7 +246,14 @@ export default function DealJacketPage() {
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 justify-end">
+          <Button
+            variant="secondary"
+            onClick={() => setLocation(`/fi/deals/${deal.id}/lenders`)}
+            className="gap-2"
+          >
+            <Send className="h-4 w-4" /> Manage lender submissions
+          </Button>
           <Button variant="outline" onClick={() => updateMutation.mutate({ status: 'Funded' })}>
             Mark as Funded
           </Button>

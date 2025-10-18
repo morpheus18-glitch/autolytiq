@@ -89,6 +89,17 @@ const optionalNumber = z.union([z.number(), z.string()]).transform((value) => {
   return numeric;
 });
 
+const optionalNumericInput = z.union([z.number(), z.string(), z.null(), z.undefined()]).transform((value) => {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+  const numeric = typeof value === 'number' ? value : Number(value);
+  if (Number.isNaN(numeric)) {
+    throw BadRequest('Invalid numeric value');
+  }
+  return numeric;
+});
+
 const requiredNumber = z.union([z.number(), z.string()]).transform((value) => {
   const numeric = optionalNumber.parse(value);
   if (numeric === null) {
@@ -153,6 +164,45 @@ const shareCreditReportSchema = z.object({
   dealId: z.string().uuid(),
   emails: z.array(z.string().email()).min(1),
   message: z.string().max(2000).optional(),
+});
+
+const submitLendersSchema = z.object({
+  dealId: z.string().uuid(),
+  lenderIds: z.array(z.string().uuid()).min(1),
+  desiredTerm: optionalNumericInput.nullable().optional(),
+});
+
+const selectDecisionSchema = z.object({
+  submissionId: z.string().uuid(),
+});
+
+const counterOfferSchema = z
+  .object({
+    submissionId: z.string().uuid(),
+    amount: optionalNumericInput,
+    apr: optionalNumericInput,
+    term: optionalNumericInput,
+    message: z.string().max(2000).optional().nullable(),
+  })
+  .superRefine((value, ctx) => {
+    if (
+      value.amount === null &&
+      value.apr === null &&
+      value.term === null &&
+      (value.message === null || value.message === undefined || value.message.trim() === '')
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Provide at least one counter offer field to send to the lender',
+        path: ['amount'],
+      });
+    }
+  });
+
+const satisfyStipulationSchema = z.object({
+  submissionId: z.string().uuid(),
+  stipulationId: z.string().min(1),
+  note: z.string().max(2000).optional().nullable(),
 });
 
 function parseOrBadRequest<T>(schema: z.ZodSchema<T>, payload: unknown, message: string) {
@@ -273,4 +323,54 @@ export const shareCreditReport = wrapAsync(async (req: Request, res: Response) =
     message: payload.message,
   });
   res.status(200).json(result);
+});
+
+export const listLenders = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const lenders = await fiService.listLenders(req.user!, tenantId);
+  res.json(lenders);
+});
+
+export const submitLenders = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const payload = parseOrBadRequest(submitLendersSchema, req.body, 'Invalid lender submission payload');
+  const submissions = await fiService.submitLenderApplications(req.user!, tenantId, {
+    dealId: payload.dealId,
+    lenderIds: payload.lenderIds,
+    desiredTerm: payload.desiredTerm ?? undefined,
+  });
+  res.status(201).json(submissions);
+});
+
+export const listLenderDecisions = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const submissions = await fiService.listLenderDecisions(req.user!, tenantId, req.params.dealId);
+  res.json(submissions);
+});
+
+export const selectLenderSubmission = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const payload = parseOrBadRequest(selectDecisionSchema, req.body, 'Invalid decision selection payload');
+  const updated = await fiService.selectLenderDecision(req.user!, tenantId, payload.submissionId);
+  res.json(updated);
+});
+
+export const submitCounterOffer = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const payload = parseOrBadRequest(counterOfferSchema, req.body, 'Invalid counter offer payload');
+  const updated = await fiService.recordCounterOffer(req.user!, tenantId, {
+    submissionId: payload.submissionId,
+    amount: payload.amount,
+    apr: payload.apr,
+    term: payload.term,
+    message: payload.message,
+  });
+  res.json(updated);
+});
+
+export const satisfySubmissionStipulation = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const payload = parseOrBadRequest(satisfyStipulationSchema, req.body, 'Invalid stipulation payload');
+  const updated = await fiService.satisfyStipulation(req.user!, tenantId, payload);
+  res.json(updated);
 });
