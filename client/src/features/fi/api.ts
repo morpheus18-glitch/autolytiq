@@ -205,6 +205,102 @@ export interface DealDocumentDto {
   downloadUrl?: string;
 }
 
+export type ContractType =
+  | 'RISC'
+  | 'BUYERS_ORDER'
+  | 'VSC'
+  | 'GAP'
+  | 'TIRE_WHEEL'
+  | 'ODOMETER'
+  | 'BILL_OF_SALE'
+  | 'TILA'
+  | 'PRIVACY'
+  | 'ARBITRATION'
+  | 'TRADE_IN'
+  | 'POA';
+
+export type ContractStatus = 'DRAFT' | 'SENT' | 'VIEWED' | 'SIGNED' | 'COMPLETED' | 'VOIDED';
+
+export interface ContractSignerDto {
+  name: string;
+  email: string;
+  role: string;
+  roleLabel?: string;
+  routingOrder?: number;
+}
+
+export interface ContractDto {
+  id: string;
+  tenantId: string;
+  dealId: string;
+  type: ContractType;
+  name: string;
+  templateId?: string | null;
+  pdfUrl?: string | null;
+  docusignEnvelopeId?: string | null;
+  status: ContractStatus;
+  sentAt?: string | null;
+  viewedAt?: string | null;
+  signedAt?: string | null;
+  completedAt?: string | null;
+  signers: ContractSignerDto[];
+  contractData: Record<string, unknown>;
+  generatedBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContractStatusResponse {
+  contracts: ContractDto[];
+  allSigned: boolean;
+  requiredCompleted: ContractType[];
+}
+
+export interface ContractGenerationInput {
+  type: ContractType;
+  name?: string;
+  templateId?: string | null;
+  contractData?: Record<string, unknown>;
+  signers?: ContractSignerDto[];
+}
+
+export interface GenerateContractsPayload {
+  dealId: string;
+  contracts: ContractGenerationInput[];
+}
+
+export interface SendContractsPayload {
+  dealId: string;
+  contractIds?: string[];
+  signers: ContractSignerDto[];
+  message?: string;
+}
+
+export const CONTRACT_LABELS: Record<ContractType, string> = {
+  RISC: 'Retail Installment Sales Contract',
+  BUYERS_ORDER: "Buyer’s Order",
+  VSC: 'Vehicle Service Contract',
+  GAP: 'GAP Waiver',
+  TIRE_WHEEL: 'Tire & Wheel Protection',
+  ODOMETER: 'Odometer Disclosure',
+  BILL_OF_SALE: 'Bill of Sale',
+  TILA: 'Truth in Lending',
+  PRIVACY: 'Privacy Policy Acknowledgement',
+  ARBITRATION: 'Arbitration Agreement',
+  TRADE_IN: 'Trade-In Agreement',
+  POA: 'Power of Attorney',
+};
+
+export const REQUIRED_CONTRACT_TYPES: ContractType[] = [
+  'RISC',
+  'BUYERS_ORDER',
+  'BILL_OF_SALE',
+  'TILA',
+  'PRIVACY',
+  'ARBITRATION',
+  'POA',
+];
+
 export interface CreditReferenceDto {
   name: string;
   relationship: string;
@@ -518,4 +614,23 @@ export async function selectMenuOption(
 export async function fetchFiProductDetails(productId: string): Promise<FIProductDto> {
   const res = await apiRequest(`/fi/product-details/${productId}`);
   return res.json();
+}
+
+export async function fetchContractStatuses(dealId: string): Promise<ContractStatusResponse> {
+  const res = await apiRequest(`/fi/contracts/status/${dealId}`);
+  return res.json();
+}
+
+export async function generateContracts(payload: GenerateContractsPayload): Promise<ContractDto[]> {
+  const res = await apiRequest('POST', '/fi/contracts/generate', payload);
+  return res.json();
+}
+
+export async function sendContracts(payload: SendContractsPayload) {
+  const res = await apiRequest('POST', '/fi/contracts/send-for-signature', payload);
+  return res.json() as Promise<{ envelopeId: string; contractIds: string[]; status: string; sentAt: string }>;
+}
+
+export function downloadContract(contractId: string) {
+  window.location.href = resolveApiUrl(`/fi/contracts/download/${contractId}`);
 }

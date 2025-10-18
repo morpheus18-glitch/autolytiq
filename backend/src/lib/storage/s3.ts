@@ -50,6 +50,24 @@ export function buildDealDocumentKey(options: { tenantId: string; dealId: string
     .join('/');
 }
 
+export function buildContractDocumentKey(options: {
+  tenantId: string;
+  dealId: string;
+  contractId: string;
+  type: string;
+}) {
+  const sanitizedType = options.type.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  return [
+    'deal-jackets',
+    options.tenantId,
+    options.dealId,
+    'contracts',
+    `${options.contractId}-${Date.now()}-${sanitizedType}.pdf`,
+  ]
+    .filter(Boolean)
+    .join('/');
+}
+
 export function resolvePublicUrl(key: string) {
   if (env.S3_CLOUDFRONT_URL) {
     return `${env.S3_CLOUDFRONT_URL.replace(/\/$/, '')}/${key}`;

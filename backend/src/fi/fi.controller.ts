@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { fiService } from './fi.service.js';
 import { creditBureauService } from './credit-bureau.service.js';
+import { CONTRACT_TYPES } from './contracts.types.js';
 import { requireTenantIdFromRequest } from '../lib/mw/tenantGuard.js';
 import { BadRequest, wrapAsync } from '../lib/errors.js';
 import { extractKeyFromUrl, getSignedDownloadUrl } from '../lib/storage/s3.js';
@@ -164,6 +165,45 @@ const shareCreditReportSchema = z.object({
   dealId: z.string().uuid(),
   emails: z.array(z.string().email()).min(1),
   message: z.string().max(2000).optional(),
+});
+
+const contractSignerSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  role: z.string().min(1),
+  roleLabel: z.string().min(1).optional(),
+  routingOrder: z.number().int().positive().optional(),
+  clientUserId: z.string().optional(),
+});
+
+const contractGenerationSchema = z.object({
+  dealId: z.string().uuid(),
+  contracts: z
+    .array(
+      z.object({
+        type: z.enum(CONTRACT_TYPES),
+        name: z.string().min(1).optional(),
+        templateId: z.string().min(1).optional(),
+        contractData: z.record(z.any()).optional(),
+        signers: z.array(contractSignerSchema).optional(),
+      }),
+    )
+    .min(1),
+});
+
+const contractSendSchema = z.object({
+  dealId: z.string().uuid(),
+  contractIds: z.array(z.string().uuid()).optional(),
+  signers: z.array(contractSignerSchema).min(1),
+  message: z.string().max(2000).optional(),
+});
+
+const contractStatusParamsSchema = z.object({
+  dealId: z.string().uuid(),
+});
+
+const contractDownloadParamsSchema = z.object({
+  contractId: z.string().uuid(),
 });
 
 const submitLendersSchema = z.object({
@@ -434,4 +474,37 @@ export const satisfySubmissionStipulation = wrapAsync(async (req: Request, res: 
   const payload = parseOrBadRequest(satisfyStipulationSchema, req.body, 'Invalid stipulation payload');
   const updated = await fiService.satisfyStipulation(req.user!, tenantId, payload);
   res.json(updated);
+});
+
+export const generateContracts = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const payload = parseOrBadRequest(contractGenerationSchema, req.body, 'Invalid contract generation payload');
+  const contracts = await fiService.generateContracts(req.user!, tenantId, payload);
+  res.status(201).json(contracts);
+});
+
+export const sendContractsForSignature = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const payload = parseOrBadRequest(contractSendSchema, req.body, 'Invalid contract send payload');
+  const result = await fiService.sendContractsForSignature(req.user!, tenantId, payload);
+  res.json(result);
+});
+
+export const getContractStatuses = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const params = parseOrBadRequest(contractStatusParamsSchema, req.params, 'Invalid contract status request');
+  const status = await fiService.getContractStatuses(req.user!, tenantId, params.dealId);
+  res.json(status);
+});
+
+export const downloadContract = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const params = parseOrBadRequest(contractDownloadParamsSchema, req.params, 'Invalid contract download request');
+  const result = await fiService.getContractDownloadUrl(req.user!, tenantId, params.contractId);
+  res.redirect(result.url);
+});
+
+export const handleContractsWebhook = wrapAsync(async (req: Request, res: Response) => {
+  const result = await fiService.handleContractWebhook(req.body ?? {});
+  res.status(202).json(result);
 });
