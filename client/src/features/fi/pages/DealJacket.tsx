@@ -413,7 +413,12 @@ export default function DealJacketPage() {
               {id ? <ProductContracts dealId={id} /> : <div className="text-sm text-muted-foreground">Deal not found.</div>}
             </TabsContent>
             <TabsContent value="funding" className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-              Track funding checklist completion and lender stipulations.
+              <div className="space-y-3">
+                <p>Manage funding readiness, lender submissions, and funding confirmation from the dedicated workspace.</p>
+                <Button onClick={() => setLocation(`/fi/deals/${deal.id}/funding`)} className="w-full sm:w-auto">
+                  Open Funding Workspace
+                </Button>
+              </div>
             </TabsContent>
             <TabsContent value="documents" className="space-y-6">
               <Card>

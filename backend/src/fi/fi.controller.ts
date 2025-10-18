@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { fiService } from './fi.service.js';
+import { fundingService } from './funding.service.js';
 import { creditBureauService } from './credit-bureau.service.js';
 import { CONTRACT_TYPES } from './contracts.types.js';
 import { requireTenantIdFromRequest } from '../lib/mw/tenantGuard.js';
@@ -265,6 +266,46 @@ const selectMenuOptionSchema = z.object({
     .nullable(),
 });
 
+const fundingStatusParamsSchema = z.object({
+  dealId: z.string().uuid(),
+});
+
+const fundingSubmissionSchema = z.object({
+  dealId: z.string().uuid(),
+  fundingMethod: z.enum(['ACH', 'WIRE', 'CHECK']),
+  amountRequested: requiredNumber,
+  bankAccountId: z.string().uuid().optional().nullable(),
+  submissionType: z.enum(['INTEGRATION', 'MANUAL']).optional(),
+  externalReference: z.string().trim().min(1).optional().nullable(),
+  notes: z.string().max(5000).optional().nullable(),
+  previewOnly: z.boolean().optional(),
+});
+
+const fundingStatusUpdateSchema = z.object({
+  dealId: z.string().uuid(),
+  status: z.string().min(1).optional(),
+  entryId: z.string().uuid().optional(),
+  eventType: z
+    .enum(['CHECKS', 'SUBMISSION', 'REVIEW', 'APPROVAL', 'FUNDED', 'NOTE', 'WEBHOOK', 'CANCELLATION'])
+    .optional(),
+  eventStatus: z.enum(['PENDING', 'COMPLETED', 'FAILED', 'CANCELLED']).optional(),
+  note: z.string().max(5000).optional().nullable(),
+  expectedAt: optionalDateString,
+});
+
+const fundingMarkFundedSchema = z.object({
+  dealId: z.string().uuid(),
+  fundedAmount: requiredNumber,
+  fundedAt: optionalDateString,
+  lenderRefNumber: z.string().trim().min(1).optional().nullable(),
+  notes: z.string().max(5000).optional().nullable(),
+});
+
+const fundingCancelSchema = z.object({
+  dealId: z.string().uuid(),
+  reason: z.string().max(5000).optional().nullable(),
+});
+
 function parseOrBadRequest<T>(schema: z.ZodSchema<T>, payload: unknown, message: string) {
   try {
     return schema.parse(payload);
@@ -507,4 +548,81 @@ export const downloadContract = wrapAsync(async (req: Request, res: Response) =>
 export const handleContractsWebhook = wrapAsync(async (req: Request, res: Response) => {
   const result = await fiService.handleContractWebhook(req.body ?? {});
   res.status(202).json(result);
+});
+
+export const getFundingStatus = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const params = parseOrBadRequest(fundingStatusParamsSchema, req.params, 'Invalid funding status request');
+  const status = await fundingService.getStatus(req.user!, tenantId, params.dealId);
+  res.json(status);
+});
+
+export const submitFundingRequest = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const payload = parseOrBadRequest(
+    fundingSubmissionSchema,
+    req.body,
+    'Invalid funding submission payload',
+  );
+  const result = await fundingService.submitFundingRequest(req.user!, tenantId, {
+    dealId: payload.dealId,
+    fundingMethod: payload.fundingMethod,
+    amountRequested: payload.amountRequested,
+    bankAccountId: payload.bankAccountId ?? null,
+    submissionType: payload.submissionType ?? 'INTEGRATION',
+    externalReference: payload.externalReference ?? null,
+    notes: payload.notes ?? null,
+    previewOnly: payload.previewOnly ?? false,
+  });
+  res.json(result);
+});
+
+export const updateFundingStatus = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const payload = parseOrBadRequest(
+    fundingStatusUpdateSchema,
+    req.body,
+    'Invalid funding status update payload',
+  );
+  const result = await fundingService.updateStatus(req.user!, tenantId, {
+    dealId: payload.dealId,
+    status: payload.status,
+    entryId: payload.entryId,
+    eventType: payload.eventType,
+    eventStatus: payload.eventStatus,
+    note: payload.note ?? null,
+    expectedAt: payload.expectedAt ?? null,
+  });
+  res.json(result);
+});
+
+export const markFundingComplete = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const payload = parseOrBadRequest(
+    fundingMarkFundedSchema,
+    req.body,
+    'Invalid funding completion payload',
+  );
+  const result = await fundingService.markFunded(req.user!, tenantId, {
+    dealId: payload.dealId,
+    fundedAmount: payload.fundedAmount,
+    fundedAt: payload.fundedAt ?? null,
+    lenderRefNumber: payload.lenderRefNumber ?? null,
+    notes: payload.notes ?? null,
+  });
+  res.json(result);
+});
+
+export const cancelFundingRequest = wrapAsync(async (req: Request, res: Response) => {
+  const tenantId = requireTenantIdFromRequest(req);
+  const payload = parseOrBadRequest(
+    fundingCancelSchema,
+    req.body,
+    'Invalid funding cancellation payload',
+  );
+  const result = await fundingService.cancel(req.user!, tenantId, {
+    dealId: payload.dealId,
+    reason: payload.reason ?? null,
+  });
+  res.json(result);
 });

@@ -205,6 +205,123 @@ export interface DealDocumentDto {
   downloadUrl?: string;
 }
 
+export type FundingTimelineStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+
+export type FundingTimelineEventType =
+  | 'CHECKS'
+  | 'SUBMISSION'
+  | 'REVIEW'
+  | 'APPROVAL'
+  | 'FUNDED'
+  | 'NOTE'
+  | 'WEBHOOK'
+  | 'CANCELLATION';
+
+export interface FundingTimelineEntryDto {
+  id: string;
+  type: FundingTimelineEventType;
+  status: FundingTimelineStatus;
+  label: string;
+  timestamp: string;
+  message?: string | null;
+  expectedAt?: string | null;
+  metadata?: Record<string, unknown> | null;
+}
+
+export interface FundingPacketDto {
+  documentId: string;
+  url: string;
+  fileName: string;
+  generatedAt: string;
+}
+
+export interface FundingRequestDto {
+  id: string;
+  dealId: string;
+  tenantId: string;
+  lenderId: string;
+  amountRequested: number;
+  fundingMethod: string;
+  bankAccountId?: string | null;
+  status: string;
+  submittedAt?: string | null;
+  reviewedAt?: string | null;
+  approvedAt?: string | null;
+  fundedAt?: string | null;
+  fundedAmount?: number | null;
+  lenderRefNumber?: string | null;
+  timeline: FundingTimelineEntryDto[];
+  journalEntryId?: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PreFundingChecklistDto {
+  ready: boolean;
+  contractsComplete: boolean;
+  complianceComplete: boolean;
+  stipulationsComplete: boolean;
+  fundingChecklistComplete: boolean;
+  outstandingContracts: string[];
+  outstandingStipulations: Array<{ id: string; description: string }>;
+  messages: string[];
+}
+
+export interface FundingDealSummaryDto {
+  id: string;
+  dealNumber: string;
+  status: string;
+  amountFinanced: number;
+  cashDown: number;
+  lenderId?: string | null;
+  lenderName?: string | null;
+  customerName: string;
+  apr?: number | null;
+  term?: number | null;
+}
+
+export interface FundingStatusDto {
+  deal: FundingDealSummaryDto;
+  request: FundingRequestDto | null;
+  preFunding: PreFundingChecklistDto;
+  packet: FundingPacketDto | null;
+}
+
+export interface FundingSubmissionPayload {
+  dealId: string;
+  fundingMethod: 'ACH' | 'WIRE' | 'CHECK';
+  amountRequested: number;
+  bankAccountId?: string | null;
+  submissionType?: 'INTEGRATION' | 'MANUAL';
+  externalReference?: string | null;
+  notes?: string | null;
+  previewOnly?: boolean;
+}
+
+export interface FundingStatusUpdatePayload {
+  dealId: string;
+  status?: string;
+  entryId?: string;
+  eventType?: FundingTimelineEventType;
+  eventStatus?: FundingTimelineStatus;
+  note?: string | null;
+  expectedAt?: string | null;
+}
+
+export interface MarkFundingPayload {
+  dealId: string;
+  fundedAmount: number;
+  fundedAt?: string | null;
+  lenderRefNumber?: string | null;
+  notes?: string | null;
+}
+
+export interface FundingCancellationPayload {
+  dealId: string;
+  reason?: string | null;
+}
+
 export type ComplianceGroup = 'federal' | 'state' | 'lender' | 'internal';
 
 export interface ComplianceItemDto {
@@ -569,6 +686,31 @@ export async function submitCounterOffer(payload: CounterOfferPayload) {
 export async function satisfyStipulation(payload: SatisfyStipulationPayload) {
   const res = await apiRequest('POST', '/fi/lenders/satisfy-stipulation', payload);
   return res.json() as Promise<LenderSubmissionDto>;
+}
+
+export async function fetchFundingStatus(dealId: string) {
+  const res = await apiRequest(`/fi/funding/status/${dealId}`);
+  return res.json() as Promise<FundingStatusDto>;
+}
+
+export async function submitFundingRequest(payload: FundingSubmissionPayload) {
+  const res = await apiRequest('POST', '/fi/funding/submit', payload);
+  return res.json() as Promise<FundingStatusDto>;
+}
+
+export async function updateFundingStatus(payload: FundingStatusUpdatePayload) {
+  const res = await apiRequest('PUT', '/fi/funding/update-status', payload);
+  return res.json() as Promise<FundingStatusDto>;
+}
+
+export async function markDealFunded(payload: MarkFundingPayload) {
+  const res = await apiRequest('POST', '/fi/funding/mark-funded', payload);
+  return res.json() as Promise<FundingStatusDto>;
+}
+
+export async function cancelFunding(payload: FundingCancellationPayload) {
+  const res = await apiRequest('POST', '/fi/funding/cancel', payload);
+  return res.json() as Promise<FundingStatusDto>;
 }
 
 export async function listDealDocuments(dealId: string) {

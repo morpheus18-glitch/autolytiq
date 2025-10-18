@@ -801,6 +801,7 @@ model DealJacket {
   documents         DealDocument[]
   contracts         Contract[]
   fundingChecklist  FundingChecklist?
+  fundingRequest    FundingRequest?
   menuConfiguration MenuConfiguration?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -940,6 +941,33 @@ model FundingChecklist {
   deal       DealJacket @relation(fields: [dealId], references: [id], onDelete: Cascade)
   reviewer   User?     @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
   @@index([tenantId])
+}
+
+model FundingRequest {
+  id              String   @id @default(uuid())
+  dealId          String   @unique
+  tenantId        String
+  lenderId        String
+  amountRequested Decimal  @db.Decimal(18, 2)
+  fundingMethod   String
+  bankAccountId   String?
+  status          String
+  submittedAt     DateTime?
+  reviewedAt      DateTime?
+  approvedAt      DateTime?
+  fundedAt        DateTime?
+  fundedAmount    Decimal? @db.Decimal(18, 2)
+  lenderRefNumber String?
+  timeline        Json     @default("[]")
+  journalEntryId  String?
+  createdBy       String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deal            DealJacket @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([dealId])
+  @@index([status])
 }
 
 model DealDocument {

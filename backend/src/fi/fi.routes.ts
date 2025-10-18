@@ -27,6 +27,11 @@ import {
   getContractStatuses,
   handleContractsWebhook,
   downloadContract,
+  getFundingStatus,
+  submitFundingRequest,
+  updateFundingStatus,
+  markFundingComplete,
+  cancelFundingRequest,
 } from './fi.controller.js';
 
 const router = Router();
@@ -64,5 +69,10 @@ router.post('/contracts/send-for-signature', sendContractsForSignature);
 router.get('/contracts/status/:dealId', getContractStatuses);
 router.post('/contracts/webhook', handleContractsWebhook);
 router.get('/contracts/download/:contractId', downloadContract);
+router.get('/funding/status/:dealId', getFundingStatus);
+router.post('/funding/submit', submitFundingRequest);
+router.put('/funding/update-status', updateFundingStatus);
+router.post('/funding/mark-funded', markFundingComplete);
+router.post('/funding/cancel', cancelFundingRequest);
 
 export default router;

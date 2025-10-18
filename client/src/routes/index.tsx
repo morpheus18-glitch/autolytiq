@@ -80,6 +80,7 @@ import RoleLanding from '@/pages/role-landing';
 import DealJacketPage from '@/features/fi/pages/DealJacket';
 import LenderSubmissionPage from '@/features/fi/pages/LenderSubmission';
 import MenuPresentationPage from '@/features/fi/pages/MenuPresentation';
+import DealFundingPage from '@/features/fi/pages/DealFunding';
 
 interface RouteDefinition {
   path: string;
@@ -143,6 +144,7 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/fi/deal-jackets/:id', component: DealJacketPage, aliases: ['/fi/deals/:id'] },
   { path: '/fi/deals/:id/lenders', component: LenderSubmissionPage },
   { path: '/fi/deals/:id/menu', component: MenuPresentationPage },
+  { path: '/fi/deals/:id/funding', component: DealFundingPage },
   { path: '/accounting/deals', component: DealFinalization },
   { path: '/accounting/chart', component: ChartOfAccounts },
   { path: '/accounting/profit', component: VehicleProfit },
