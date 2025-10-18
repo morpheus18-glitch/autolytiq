@@ -1,6 +1,6 @@
 import { MemStorage } from './storage';
 
-export function initializeComprehensiveSampleData(storage: MemStorage): void {
+export async function initializeComprehensiveSampleData(storage: MemStorage): Promise<void> {
   // Add more comprehensive customers
   const additionalCustomers = [
     {
@@ -470,23 +470,23 @@ export function initializeComprehensiveSampleData(storage: MemStorage): void {
     }
   });
 
-  // Add customers to storage
-  additionalCustomers.forEach(async (customerData) => {
+  // Add customers to storage (properly await promises)
+  for (const customerData of additionalCustomers) {
     try {
       await storage.createCustomer(customerData);
     } catch (error) {
       console.error('Error creating customer:', error);
     }
-  });
+  }
 
-  // Add vehicles to storage  
-  additionalVehicles.forEach(async (vehicleData) => {
+  // Add vehicles to storage (properly await promises)
+  for (const vehicleData of additionalVehicles) {
     try {
       await storage.createVehicle(vehicleData);
     } catch (error) {
       console.error('Error creating vehicle:', error);
     }
-  });
+  }
 
   console.log('✅ Comprehensive sample data initialized successfully');
 }

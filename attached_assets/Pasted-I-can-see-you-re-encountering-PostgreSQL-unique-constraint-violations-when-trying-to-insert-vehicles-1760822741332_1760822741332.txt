@@ -1,0 +1,70 @@
+I can see you're encountering PostgreSQL unique constraint violations when trying to insert vehicles into your database. The error is occurring because you're attempting to insert vehicles with VIN numbers that already exist in the `vehicles` table.
+
+Here are the two duplicate VINs causing issues:
+- `2GNAXKEV5L6157804`
+- `1N4BL4BV8NC123456`
+
+## How to Fix This
+
+### 1. **Check Before Insert** (Recommended)
+Add a check to see if the VIN exists before attempting to insert:
+
+```javascript
+async createVehicle(vehicleData) {
+  // Check if VIN already exists
+  const existing = await db.select()
+    .from(vehicles)
+    .where(eq(vehicles.vin, vehicleData.vin))
+    .limit(1);
+  
+  if (existing.length > 0) {
+    // Handle duplicate - either update or skip
+    console.log(`Vehicle with VIN ${vehicleData.vin} already exists`);
+    return existing[0]; // or throw a custom error
+  }
+  
+  // Proceed with insert
+  return await db.insert(vehicles).values(vehicleData);
+}
+```
+
+### 2. **Use ON CONFLICT (Upsert)**
+With Drizzle ORM, you can use an upsert pattern to handle conflicts:
+
+```javascript
+await db.insert(vehicles)
+  .values(vehicleData)
+  .onConflictDoUpdate({
+    target: vehicles.vin,
+    set: {
+      // Update fields if VIN exists
+      updatedAt: new Date(),
+      // ... other fields to update
+    }
+  });
+```
+
+### 3. **Handle the Error Gracefully**
+Wrap your insert in a try-catch to handle the specific error:
+
+```javascript
+try {
+  await db.insert(vehicles).values(vehicleData);
+} catch (error) {
+  if (error.code === '23505') {
+    // Handle duplicate VIN
+    console.log('Vehicle with this VIN already exists');
+    // Either skip, update, or return existing record
+  } else {
+    throw error; // Re-throw other errors
+  }
+}
+```
+
+### 4. **Batch Operations Consideration**
+If you're importing multiple vehicles at once, you might want to:
+- Filter out duplicates before inserting
+- Use a transaction with proper error handling
+- Process vehicles one by one with duplicate checking
+
+The root cause is likely that your application is trying to re-insert vehicles that were already added to the database, possibly from a repeated import or a retry mechanism without proper idempotency checks.
