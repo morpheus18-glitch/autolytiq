@@ -36,6 +36,15 @@ const envSchema = z.object({
   S3_CLOUDFRONT_URL: z.string().url().optional(),
   CLAMAV_HOST: z.string().optional(),
   CLAMAV_PORT: z.coerce.number().int().positive().optional(),
+  CREDIT_ENCRYPTION_KEY: z.string().min(1).optional(),
+  EXPERIAN_API_URL: z.string().url().optional(),
+  EXPERIAN_API_KEY: z.string().min(1).optional(),
+  EXPERIAN_CLIENT_ID: z.string().min(1).optional(),
+  EXPERIAN_CLIENT_SECRET: z.string().min(1).optional(),
+  TRANSUNION_API_URL: z.string().url().optional(),
+  TRANSUNION_API_KEY: z.string().min(1).optional(),
+  EQUIFAX_API_URL: z.string().url().optional(),
+  EQUIFAX_API_KEY: z.string().min(1).optional(),
 });
 
 export type AppEnvironment = z.infer<typeof envSchema>;
