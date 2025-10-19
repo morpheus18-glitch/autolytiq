@@ -1,5 +1,5 @@
 import { 
-  users, vehicles, customers, leads, sales, activities, visitorSessions, pageViews, customerInteractions, competitorAnalytics, competitivePricing, pricingInsights, merchandisingStrategies, marketTrends, deals, dealDocuments, dealApprovals, creditApplications, coApplicants, tradeVehicles, showroomVisits, salespersonNotes, showroomSessions,
+  users, vehicles, customers, leads, sales, activities, visitorSessions, pageViews, customerInteractions, competitorAnalytics, competitivePricing, pricingInsights, merchandisingStrategies, marketTrends, deals, creditApplications, coApplicants, tradeVehicles, showroomVisits, salespersonNotes, showroomSessions,
   // User Management Tables
   systemUsers, userSessions, systemRoles, activityLog,
   // Advanced Enterprise Tables
@@ -8,7 +8,7 @@ import {
   creditPulls, lenderApplications, fiProducts, financeMenus, fiAuditLog,
   // Dealer Settings
   dealerSettings,
-  type User, type Vehicle, type Customer, type Lead, type Sale, type Activity, type VisitorSession, type PageView, type CustomerInteraction, type CompetitorAnalytics, type CompetitivePricing, type PricingInsights, type MerchandisingStrategies, type MarketTrends, type Deal, type DealDocument, type DealApproval, type CreditApplication, type CoApplicant, type TradeVehicle, type ShowroomVisit, type SalespersonNote, type ShowroomSession,
+  type User, type Vehicle, type Customer, type Lead, type Sale, type Activity, type VisitorSession, type PageView, type CustomerInteraction, type CompetitorAnalytics, type CompetitivePricing, type PricingInsights, type MerchandisingStrategies, type MarketTrends, type Deal, type CreditApplication, type CoApplicant, type TradeVehicle, type ShowroomVisit, type SalespersonNote, type ShowroomSession,
   // User Management Types
   type SystemUser, type UserSession, type SystemRole, type ActivityLogEntry,
   // Advanced Enterprise Types
@@ -17,7 +17,7 @@ import {
   type CreditPull, type LenderApplication, type FiProduct, type FinanceMenu, type FiAuditLog,
   // Dealer Settings Types
   type DealerSettings, type InsertDealerSettings,
-  type InsertUser, type InsertVehicle, type InsertCustomer, type InsertLead, type InsertSale, type InsertActivity, type InsertVisitorSession, type InsertPageView, type InsertCustomerInteraction, type InsertCompetitorAnalytics, type InsertCompetitivePricing, type InsertPricingInsights, type InsertMerchandisingStrategies, type InsertMarketTrends, type InsertDeal, type InsertDealDocument, type InsertDealApproval, type UpsertUser,
+  type InsertUser, type InsertVehicle, type InsertCustomer, type InsertLead, type InsertSale, type InsertActivity, type InsertVisitorSession, type InsertPageView, type InsertCustomerInteraction, type InsertCompetitorAnalytics, type InsertCompetitivePricing, type InsertPricingInsights, type InsertMerchandisingStrategies, type InsertMarketTrends, type InsertDeal, type UpsertUser,
   // User Management Insert Types
   type InsertSystemUser, type InsertUserSession, type InsertSystemRole, type InsertActivityLogEntry,
   // Advanced Enterprise Insert Types
@@ -372,7 +372,7 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
-  protected users: Map<number, User>;
+  protected users: Map<string, User>;
   protected vehicles: Map<number, Vehicle>;
   protected customers: Map<number, Customer>;
   protected leads: Map<number, Lead>;
@@ -429,7 +429,7 @@ export class MemStorage implements IStorage {
   protected storeFinanceSettings: Map<string, StoreFinanceSettings>;
   protected storePageSettings: Map<string, StorePageSettings>;
 
-  protected currentUserId: number;
+  protected currentUserIdCounter: number;
   protected currentVehicleId: number;
   protected currentCustomerId: number;
   protected currentLeadId: number;
@@ -458,8 +458,6 @@ export class MemStorage implements IStorage {
   protected currentWorkflowExecutionId: number;
   protected currentPredictiveScoreId: number;
   protected currentMarketBenchmarkId: number;
-
-  // F&I ID Counters
   protected currentCreditPullId: number;
   protected currentLenderApplicationId: number;
   protected currentFiProductId: number;
@@ -512,7 +510,19 @@ export class MemStorage implements IStorage {
     this.financeMenus = new Map();
     this.fiAuditLogs = new Map();
     
-    this.currentUserId = 1;
+    // Advanced Enterprise Feature Map Initialization
+    this.customerTimeline = new Map();
+    this.aiInsights = new Map();
+    this.collaborationThreads = new Map();
+    this.collaborationMessages = new Map();
+    this.kpiMetrics = new Map();
+    this.duplicateCustomers = new Map();
+    this.workflowTemplates = new Map();
+    this.workflowExecutions = new Map();
+    this.predictiveScores = new Map();
+    this.marketBenchmarks = new Map();
+    
+    this.currentUserIdCounter = 1;
     this.currentVehicleId = 1;
     this.currentCustomerId = 1;
     this.currentLeadId = 1;
@@ -531,8 +541,16 @@ export class MemStorage implements IStorage {
     this.currentShowroomVisitId = 1;
     this.currentSalespersonNoteId = 1;
     this.currentShowroomSessionId = 1;
-    
-    // F&I ID Counter Initialization
+    this.currentCustomerTimelineId = 1;
+    this.currentAiInsightsId = 1;
+    this.currentCollaborationThreadId = 1;
+    this.currentCollaborationMessageId = 1;
+    this.currentKpiMetricId = 1;
+    this.currentDuplicateCustomerId = 1;
+    this.currentWorkflowTemplateId = 1;
+    this.currentWorkflowExecutionId = 1;
+    this.currentPredictiveScoreId = 1;
+    this.currentMarketBenchmarkId = 1;
     this.currentCreditPullId = 1;
     this.currentLenderApplicationId = 1;
     this.currentFiProductId = 1;
@@ -557,10 +575,23 @@ export class MemStorage implements IStorage {
     return null;
   }
 
+  protected toNullableString(value: unknown): string | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+    if (typeof value === "string") {
+      return value;
+    }
+    if (typeof value === "number") {
+      return value.toString();
+    }
+    return null;
+  }
+
   protected normalizeCustomerRow(row: typeof customers.$inferSelect): Customer {
     return {
       ...row,
-      income: this.toNullableNumber(row.income),
+      income: this.toNullableString(row.income),
     };
   }
 
@@ -575,10 +606,10 @@ export class MemStorage implements IStorage {
   protected normalizeTradeVehicleRow(row: typeof tradeVehicles.$inferSelect): TradeVehicle {
     return {
       ...row,
-      estimatedValue: this.toNullableNumber(row.estimatedValue),
-      kbbValue: this.toNullableNumber(row.kbbValue),
-      mmrValue: this.toNullableNumber(row.mmrValue),
-      actualValue: this.toNullableNumber(row.actualValue),
+      estimatedValue: this.toNullableString(row.estimatedValue),
+      kbbValue: this.toNullableString(row.kbbValue),
+      mmrValue: this.toNullableString(row.mmrValue),
+      actualValue: this.toNullableString(row.actualValue),
       createdAt: row.createdAt ?? new Date(),
       updatedAt: row.updatedAt ?? new Date(),
     };
@@ -588,7 +619,7 @@ export class MemStorage implements IStorage {
     // Create default users
     const users: User[] = [
       {
-        id: 1,
+        id: "1",
         username: "admin",
         password: "password",
         name: "John Smith",
@@ -599,10 +630,14 @@ export class MemStorage implements IStorage {
         isActive: true,
         lastLogin: new Date(),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        firstName: null,
+        lastName: null,
+        profileImageUrl: null,
+        provider: "replit"
       },
       {
-        id: 2,
+        id: "2",
         username: "sarah.jones",
         password: "password",
         name: "Sarah Jones",
@@ -613,10 +648,14 @@ export class MemStorage implements IStorage {
         isActive: true,
         lastLogin: new Date(),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        firstName: null,
+        lastName: null,
+        profileImageUrl: null,
+        provider: "replit"
       },
       {
-        id: 3,
+        id: "3",
         username: "mike.wilson",
         password: "password",
         name: "Mike Wilson",
@@ -627,12 +666,16 @@ export class MemStorage implements IStorage {
         isActive: true,
         lastLogin: new Date(),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        firstName: null,
+        lastName: null,
+        profileImageUrl: null,
+        provider: "replit"
       }
     ];
     
     users.forEach(user => this.users.set(user.id, user));
-    this.currentUserId = 4;
+    this.currentUserIdCounter = 4;
 
     // Create sample vehicles
     const vehicles: Vehicle[] = [
@@ -1251,7 +1294,7 @@ export class MemStorage implements IStorage {
           this.users.delete(key);
         }
       });
-      this.users.set(userData.id as any, updatedUser);
+      this.users.set(userData.id, updatedUser);
       return updatedUser;
     } else {
       // Create new user
@@ -1268,7 +1311,7 @@ export class MemStorage implements IStorage {
         name: null,
         ...userData,
       };
-      this.users.set(userData.id as any, newUser);
+      this.users.set(userData.id, newUser);
       return newUser;
     }
   }
@@ -1278,10 +1321,10 @@ export class MemStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
+    const id = String(this.currentUserIdCounter++);
     const user: User = { 
       ...insertUser, 
-      id: String(id),
+      id,
       phone: insertUser.phone || null,
       departmentId: insertUser.departmentId || null,
       roleId: insertUser.roleId || null,
@@ -1294,7 +1337,7 @@ export class MemStorage implements IStorage {
     return user;
   }
 
-  async updateUser(id: number, updates: Partial<User>): Promise<User> {
+  async updateUser(id: string, updates: Partial<User>): Promise<User> {
     const user = this.users.get(id);
     if (!user) {
       throw new Error(`User with id ${id} not found`);
@@ -1309,7 +1352,7 @@ export class MemStorage implements IStorage {
     return updatedUser;
   }
 
-  async deleteUser(id: number): Promise<void> {
+  async deleteUser(id: string): Promise<void> {
     this.users.delete(id);
   }
 

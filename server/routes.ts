@@ -45,7 +45,7 @@ import { registerMLAdminRoutes } from "./ml-admin-routes";
 import { registerMLEnterpriseRoutes } from "./ml-enterprise-routes";
 import { registerMLHeatmapRoutes } from "./ml-heatmap-routes";
 import { registerSettingsRoutes } from "./settings-routes";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { eq, and } from "drizzle-orm";
 import { EnterpriseWebSocketManager } from "./enterprise-websocket";
 import { lifecycleTracker } from "./tracking-service";
@@ -344,11 +344,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         await storage.createPricingInsights({
           vehicleId: vehicle.id,
-          marketValue: valuationResult.averageMarketValue || vehicle.price,
-          recommendedPrice: valuationResult.recommendedPrice || vehicle.price,
-          competitorPrices: JSON.stringify(valuationResult.valuations),
-          analysisDate: new Date(),
-          insights: JSON.stringify(pricingInsights.marketAnalysis)
+          make: vehicle.make,
+          model: vehicle.model,
+          year: vehicle.year,
+          currentPrice: vehicle.price.toString(),
+          suggestedPrice: (valuationResult.recommendedPrice || vehicle.price).toString(),
+          marketAverage: (valuationResult.averageMarketValue || vehicle.price).toString(),
+          priceRange: {
+            min: valuationResult.averageMarketValue ? valuationResult.averageMarketValue * 0.9 : vehicle.price * 0.9,
+            max: valuationResult.averageMarketValue ? valuationResult.averageMarketValue * 1.1 : vehicle.price * 1.1
+          },
+          competitorCount: valuationResult.valuations.length,
+          insights: pricingInsights.marketAnalysis
         });
       } catch (storageError) {
         console.warn('Failed to store pricing insights:', storageError);
@@ -771,7 +778,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         valuationResult = {
           vinData: null,
           valuations: quickVal ? [quickVal] : [],
-          averageMarketValue: quickVal?.marketValue
+          averageMarketValue: (quickVal as any)?.marketValue
         };
       }
       
@@ -790,7 +797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         // Legacy format for compatibility
         kbb: valuationResult.averageMarketValue || vehicle.price,
-        mmr: valuationResult.valuations.find(v => v.source === 'VinCheck.info')?.marketValue || vehicle.price,
+        mmr: (valuationResult.valuations.find(v => v.source === 'VinCheck.info') as any)?.marketValue || vehicle.price,
         blackBook: valuationResult.valuations.find(v => v.source === 'Market Estimation')?.tradeInValue || vehicle.price * 0.85,
         jdPower: valuationResult.recommendedPrice || vehicle.price,
         lastUpdated: new Date().toISOString()
@@ -830,7 +837,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         valuationResult = {
           vinData: null,
           valuations: quickVal ? [quickVal] : [],
-          averageMarketValue: quickVal?.marketValue
+          averageMarketValue: (quickVal as any)?.marketValue
         };
       }
       
@@ -838,7 +845,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (valuationResult.averageMarketValue) {
         const valuationData = {
           kbb: valuationResult.averageMarketValue,
-          mmr: valuationResult.valuations.find(v => v.source === 'VinCheck.info')?.marketValue,
+          mmr: (valuationResult.valuations.find(v => v.source === 'VinCheck.info') as any)?.marketValue,
           blackBook: valuationResult.valuations.find(v => v.source === 'Market Estimation')?.tradeInValue,
           jdPower: valuationResult.recommendedPrice,
           lastUpdated: new Date().toISOString(),
@@ -855,7 +862,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         refreshed: true,
         sourcesUsed: valuationResult.valuations.length,
         kbb: valuationResult.averageMarketValue || vehicle.price,
-        mmr: valuationResult.valuations.find(v => v.source === 'VinCheck.info')?.marketValue || vehicle.price,
+        mmr: (valuationResult.valuations.find(v => v.source === 'VinCheck.info') as any)?.marketValue || vehicle.price,
         blackBook: valuationResult.valuations.find(v => v.source === 'Market Estimation')?.tradeInValue || vehicle.price * 0.85,
         jdPower: valuationResult.recommendedPrice || vehicle.price,
         lastUpdated: new Date().toISOString()
@@ -1972,7 +1979,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: 'deal_created',
           timestamp: deal.createdAt,
           vehicleInfo: deal.vehicleDetails,
-          amount: deal.salePrice,
+          salePrice: deal.salePrice,
           salesperson: deal.salesConsultant,
           metadata: deal
         });
@@ -1984,7 +1991,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: 'sale_completed',
           timestamp: sale.createdAt,
           vehicleInfo: sale.vehicleDetails,
-          amount: sale.finalPrice,
+          salePrice: sale.salePrice,
           salesperson: sale.salesConsultant,
           metadata: sale
         });
@@ -3017,10 +3024,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/customers/:id/messages', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
-      const result = await db.execute({
-        sql: 'SELECT * FROM text_messages WHERE customer_id = ? ORDER BY created_at DESC',
-        args: [customerId]
-      });
+      const result = await pool.query(
+        'SELECT * FROM text_messages WHERE customer_id = $1 ORDER BY created_at DESC',
+        [customerId]
+      );
       res.json(result.rows || []);
     } catch (error) {
       console.error('Error fetching text messages:', error);
@@ -3033,12 +3040,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const customerId = parseInt(req.params.id);
       const { direction, phoneNumber, messageBody, messageType = 'sms', senderId } = req.body;
       
-      const result = await db.execute({
-        sql: `INSERT INTO text_messages 
+      const result = await pool.query(
+        `INSERT INTO text_messages 
               (customer_id, sender_id, direction, phone_number, message_body, message_type, status, created_at) 
-              VALUES (?, ?, ?, ?, ?, ?, 'sent', NOW()) RETURNING *`,
-        args: [customerId, senderId, direction, phoneNumber, messageBody, messageType]
-      });
+              VALUES ($1, $2, $3, $4, $5, $6, 'sent', NOW()) RETURNING *`,
+        [customerId, senderId, direction, phoneNumber, messageBody, messageType]
+      );
       
       res.status(201).json(result.rows?.[0] || {});
     } catch (error) {
@@ -3197,10 +3204,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/customers/:id/calls', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
-      const result = await db.execute({
-        sql: 'SELECT * FROM phone_calls WHERE customer_id = ? ORDER BY created_at DESC',
-        args: [customerId]
-      });
+      const result = await pool.query(
+        'SELECT * FROM phone_calls WHERE customer_id = $1 ORDER BY created_at DESC',
+        [customerId]
+      );
       res.json(result.rows || []);
     } catch (error) {
       console.error('Error fetching phone calls:', error);
@@ -3216,14 +3223,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         followUpRequired = false, followUpDate, callPurpose, outcome, userId 
       } = req.body;
       
-      const result = await db.execute({
-        sql: `INSERT INTO phone_calls 
+      const result = await pool.query(
+        `INSERT INTO phone_calls 
               (customer_id, user_id, direction, phone_number, status, duration, call_notes, 
                follow_up_required, follow_up_date, call_purpose, outcome, started_at, created_at) 
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW()) RETURNING *`,
-        args: [customerId, userId, direction, phoneNumber, status, duration, callNotes, 
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW()) RETURNING *`,
+        [customerId, userId, direction, phoneNumber, status, duration, callNotes, 
                followUpRequired, followUpDate, callPurpose, outcome]
-      });
+      );
       
       res.status(201).json(result.rows?.[0] || {});
     } catch (error) {
@@ -3237,16 +3244,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { category } = req.query;
       let sql = 'SELECT * FROM message_templates WHERE is_active = true';
-      const args = [];
+      const args: any[] = [];
       
       if (category) {
-        sql += ' AND category = ?';
+        sql += ' AND category = $1';
         args.push(category);
       }
       
       sql += ' ORDER BY name';
       
-      const result = await db.execute({ sql, args });
+      const result = await pool.query(sql, args);
       res.json(result.rows || []);
     } catch (error) {
       console.error('Error fetching message templates:', error);
@@ -3258,12 +3265,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { name, category, subject, body, variables, createdBy } = req.body;
       
-      const result = await db.execute({
-        sql: `INSERT INTO message_templates 
+      const result = await pool.query(
+        `INSERT INTO message_templates 
               (name, category, subject, body, variables, created_by, created_at, updated_at) 
-              VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW()) RETURNING *`,
-        args: [name, category, subject, body, JSON.stringify(variables || {}), createdBy]
-      });
+              VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING *`,
+        [name, category, subject, body, JSON.stringify(variables || {}), createdBy]
+      );
       
       res.status(201).json(result.rows?.[0] || {});
     } catch (error) {
@@ -3277,16 +3284,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { category } = req.query;
       let sql = 'SELECT * FROM communication_settings WHERE is_active = true';
-      const args = [];
+      const args: any[] = [];
       
       if (category) {
-        sql += ' AND category = ?';
+        sql += ' AND category = $1';
         args.push(category);
       }
       
       sql += ' ORDER BY category, setting_key';
       
-      const result = await db.execute({ sql, args });
+      const result = await pool.query(sql, args);
       res.json(result.rows || []);
     } catch (error) {
       console.error('Error fetching communication settings:', error);
@@ -3298,10 +3305,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { settingKey, settingValue, displayName, description, category, dataType, isRequired } = req.body;
       
-      const result = await db.execute({
-        sql: `INSERT INTO communication_settings 
+      const result = await pool.query(
+        `INSERT INTO communication_settings 
               (setting_key, setting_value, display_name, description, category, data_type, is_required, created_at, updated_at) 
-              VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW()) 
+              VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) 
               ON CONFLICT (setting_key) DO UPDATE SET 
               setting_value = EXCLUDED.setting_value, 
               display_name = EXCLUDED.display_name,
@@ -4241,8 +4248,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Calculate real business performance metrics
       const totalDataPoints = vehicles.length + sales.length + leads.length + customers.length;
-      const conversionRate = leads.length > 0 ? (sales.filter(s => s.status === 'completed').length / leads.filter(l => l.status === 'active').length) : 0;
-      const avgDealValue = sales.length > 0 ? sales.reduce((sum, sale) => sum + (sale.amount || 0), 0) / sales.length : 0;
+      const conversionRate = leads.length > 0 ? (sales.length / leads.filter(l => l.status === 'active').length) : 0;
+      const avgDealValue = sales.length > 0 ? sales.reduce((sum, sale) => sum + (sale.salePrice || 0), 0) / sales.length : 0;
       
       const telemetryStatus = {
         adapters_active: 3,
@@ -4441,9 +4448,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           break;
           
         case "sales_conversion":
-          const completedSales = sales.filter(s => s.status === 'completed');
+          const completedSales = sales;
           const avgDealValue = completedSales.length > 0 
-            ? completedSales.reduce((sum, sale) => sum + (sale.amount || 0), 0) / completedSales.length 
+            ? completedSales.reduce((sum, sale) => sum + (sale.salePrice || 0), 0) / completedSales.length 
             : 0;
           insights = {
             id: nodeId,
