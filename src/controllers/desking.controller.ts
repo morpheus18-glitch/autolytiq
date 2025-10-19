@@ -18,7 +18,6 @@ import {
 import { assertRole, assertTenantContext } from '../utils/authz.js';
 import { renderWorksheetPreview } from '../utils/pdf.js';
 import { uploadBufferToS3 } from '../lib/storage/s3.js';
-import { mlService } from '../services/ml.service.js';
 import type { Role } from '../types/roles.js';
 import {
   getWorksheet,
@@ -26,14 +25,16 @@ import {
   listCounterOffers,
   listOptimizations,
   listVersions,
-  recordApproval,
-  recordCounterOffer,
-  recordOptimization,
   saveWorksheet,
   selectVersion,
   updateWorksheetPrintUrl,
   getWorksheetPrintContext,
 } from '../services/desking.service.js';
+import {
+  analyzeCounter as analyzeCounterService,
+  optimizeDeal as executeDealOptimization,
+} from '../services/dealOptimizer.service.js';
+import { predictApprovals } from '../services/approvalPredictor.service.js';
 
 const SALES_ROLE: Role = 'SALES';
 const MANAGER_ROLE: Role = 'MANAGER';
@@ -195,10 +196,15 @@ export async function optimizeWorksheet(req: Request, res: Response) {
     }
 
     const requestId = req.get('x-request-id') ?? undefined;
-    const { result, traceId } = await mlService.optimizeDeal(payload, { tenantId, requestId });
-    const optimization = await recordOptimization(tenantId, dealId, userId, payload, result, traceId);
+    const { optimization, recommendation, version, traceId } = await executeDealOptimization({
+      tenantId,
+      dealId,
+      userId,
+      request: payload,
+      requestId,
+    });
 
-    res.status(201).json({ data: { optimization, recommendation: result, traceId } });
+    res.status(201).json({ data: { optimization, recommendation, version, traceId } });
   } catch (error) {
     sendError(res, error);
   }
@@ -225,10 +231,15 @@ export async function analyzeCounterOffer(req: Request, res: Response) {
     }
 
     const requestId = req.get('x-request-id') ?? undefined;
-    const { result, traceId } = await mlService.analyzeCounter(payload, { tenantId, requestId });
-    const counter = await recordCounterOffer(tenantId, dealId, userId, payload, result);
+    const { counter, analysis, traceId } = await analyzeCounterService({
+      tenantId,
+      dealId,
+      userId,
+      request: payload,
+      requestId,
+    });
 
-    res.status(201).json({ data: { counter, analysis: result, traceId } });
+    res.status(201).json({ data: { counter, analysis, traceId } });
   } catch (error) {
     sendError(res, error);
   }
@@ -301,9 +312,20 @@ export async function refreshApprovalPrediction(req: Request, res: Response) {
     }
 
     const requestId = req.get('x-request-id') ?? undefined;
-    const { result, traceId } = await mlService.predictApproval(payload, { tenantId, requestId });
-    const approval = await recordApproval(tenantId, dealId, result);
-    res.status(201).json({ data: { approval, traceId } });
+    const { approvals, traces } = await predictApprovals({
+      tenantId,
+      dealId,
+      worksheetId: payload.worksheetId,
+      versionId: payload.versionId,
+      structure: payload.structure,
+      customer: payload.customerProfile,
+      vehicle: payload.vehicle,
+      payment: payload.payment,
+      requestId,
+      lenderIds: payload.lenderId ? [payload.lenderId] : undefined,
+    });
+
+    res.status(201).json({ data: { approvals, traces } });
   } catch (error) {
     sendError(res, error);
   }
