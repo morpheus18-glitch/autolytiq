@@ -1,4 +1,4 @@
-name: CI
+name: ci
 
 on:
   push:
@@ -10,44 +10,39 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:15
         env:
-          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: autolytiq
         ports:
-          - 5432:5432
+          - "5432:5432"
         options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/autolytiq?schema=public
-      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/autolytiq?schema=public
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+          cache: pnpm
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install Node dependencies
-        run: npm ci
-      - name: Lint
-        run: npm run lint
-      - name: Typecheck
-        run: npm run check
-      - name: Backend and frontend tests
-        run: npm run test
-      - name: Prisma migrate verify
-        run: npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --exit-code
+      - name: Install dependencies
+        run: pnpm install
+      - name: Apply migrations
+        run: pnpm prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+      - name: Run Node checks
+        run: pnpm ci
       - name: Install ML dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r ml_service/requirements.txt
-      - name: ML unit tests
-        run: pytest
-        working-directory: ml_service
+        run: pip install -r ml_service/requirements.txt
+      - name: Run ML tests
+        run: pnpm ml:test

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatISO } from 'date-fns';
@@ -10,12 +10,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Loader2, MessageCircle, Save, Sparkles, Printer, ArrowUpRight } from 'lucide-react';
+import { Loader2, MessageCircle, Save, Sparkles, Printer, ArrowUpRight, History } from 'lucide-react';
 import { useDeal } from '@/features/desking/hooks';
 import type { DeskingDeal, PaymentScenario } from '@/features/desking/types';
 import PanelErrorBoundary from '@/components/desking/PanelErrorBoundary';
 import PencilPrintPreview from '@/components/desking/PencilPrintPreview';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const DEAL_ID = 'demo-deal-001';
 
@@ -23,9 +25,11 @@ interface CounterFormValues {
   customerAsk: string;
   paymentTarget: number;
   competitor: string;
-  urgency: 'today' | 'soon' | 'shopping';
+  urgency: 'LOW' | 'MEDIUM' | 'HIGH';
   objections: string;
   notes: string;
+  selectedObjections: string[];
+  sellingPrice: number;
 }
 
 interface CounterScenarioOption {
@@ -117,6 +121,13 @@ const defaultOptions: CounterScenarioOption[] = [
   },
 ];
 
+const OBJECTION_OPTIONS = [
+  { id: 'selling-price', label: 'Selling price gap' },
+  { id: 'payment', label: 'Payment too high' },
+  { id: 'trade', label: 'Trade allowance concern' },
+  { id: 'rate', label: 'APR too high' },
+];
+
 async function requestCounterAnalysis(values: CounterFormValues): Promise<CounterAnalysisResponse> {
   try {
     const response = await apiRequest('POST', `/api/desking/deals/${DEAL_ID}/counter`, values);
@@ -152,15 +163,18 @@ export default function CustomerCounter() {
   const { data: deal } = useDeal(DEAL_ID);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewScenario, setPreviewScenario] = useState<PaymentScenario | undefined>(undefined);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const form = useForm<CounterFormValues>({
     defaultValues: {
       customerAsk: 'We need to be under $580 with $1500 total out of pocket.',
       paymentTarget: 580,
       competitor: 'Lexus of Austin • $579 @ 72 / $0 down',
-      urgency: 'today',
+      urgency: 'HIGH',
       objections: 'Worried about payment and wants price protection if the order takes longer than 30 days.',
       notes: 'Customer loves the Escalade but is waiting on spouse approval. Highlight VIP delivery perks.',
+      selectedObjections: [],
+      sellingPrice: 0,
     },
   });
 
@@ -181,6 +195,11 @@ export default function CustomerCounter() {
     },
   });
 
+  const triggerAnalysis = useCallback(() => {
+    toast({ title: 'Analyzing counter request', description: 'AI is refreshing customer counter options.' });
+    refetch();
+  }, [refetch, toast]);
+
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
@@ -189,8 +208,7 @@ export default function CustomerCounter() {
       }
       if (!event.metaKey && !event.ctrlKey && event.key.toLowerCase() === 'o') {
         event.preventDefault();
-        toast({ title: 'Analyzing counter request', description: 'AI is refreshing customer counter options.' });
-        refetch();
+        triggerAnalysis();
       }
       if (!event.metaKey && !event.ctrlKey && event.key.toLowerCase() === 'p') {
         event.preventDefault();
@@ -200,7 +218,7 @@ export default function CustomerCounter() {
 
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [form, refetch, saveDraft, toast]);
+  }, [form, saveDraft, triggerAnalysis]);
 
   const handleSelectOption = (option: CounterScenarioOption) => {
     queryClient.setQueryData<DeskingDeal | undefined>(['desking', 'deal', DEAL_ID], current => {
@@ -234,6 +252,13 @@ export default function CustomerCounter() {
 
   const options = analysis?.options ?? defaultOptions;
 
+  const recommendedOptionId = useMemo(() => {
+    if (!options.length) {
+      return undefined;
+    }
+    return options.reduce((best, current) => (current.aiScore > best.aiScore ? current : best)).id;
+  }, [options]);
+
   const formatCurrency = useMemo(
     () =>
       new Intl.NumberFormat(undefined, {
@@ -243,6 +268,15 @@ export default function CustomerCounter() {
       }),
     [],
   );
+
+  const handleRunAnalysis = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    triggerAnalysis();
+  };
+
+  const handlePreviewSave = () => {
+    toast({ title: 'Scenario saved to deal', description: 'Counter recommendation shared with the desk team.' });
+  };
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-6 px-6 py-6">
@@ -262,10 +296,8 @@ export default function CustomerCounter() {
           <Button
             variant="outline"
             className="gap-2"
-            onClick={() => {
-              toast({ title: 'Optimization requested', description: 'Regenerating AI options with the latest inputs.' });
-              refetch();
-            }}
+            onClick={triggerAnalysis}
+            data-testid="counter-run-analysis"
           >
             <Sparkles className="h-4 w-4" />
             Optimize
@@ -274,11 +306,19 @@ export default function CustomerCounter() {
             <Printer className="h-4 w-4" />
             Print
           </Button>
+          <Button variant="ghost" className="gap-2" onClick={() => setHistoryOpen(true)} data-testid="panel-history-open">
+            <History className="h-4 w-4" />
+            View history
+          </Button>
         </div>
       </div>
 
       <Form {...form}>
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+        <form
+          className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]"
+          onSubmit={handleRunAnalysis}
+          data-testid="counter-form"
+        >
           <PanelErrorBoundary title="Customer ask">
             <Card className="border-border/70 shadow-sm">
               <CardHeader className="flex flex-row items-start gap-4">
@@ -304,6 +344,42 @@ export default function CustomerCounter() {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="selectedObjections"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Key objections</FormLabel>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {OBJECTION_OPTIONS.map(option => {
+                          const checked = field.value?.includes(option.id) ?? false;
+                          return (
+                            <label
+                              key={option.id}
+                              className="flex items-center gap-2 rounded-md border border-border/60 bg-muted/30 px-3 py-2 text-sm"
+                            >
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={value => {
+                                  const next = new Set(field.value ?? []);
+                                  if (value === true) {
+                                    next.add(option.id);
+                                  } else {
+                                    next.delete(option.id);
+                                  }
+                                  field.onChange(Array.from(next));
+                                }}
+                                data-testid={`obj-${option.id}`}
+                              />
+                              <span className="text-foreground">{option.label}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="grid gap-4 md:grid-cols-2">
                   <FormField
                     control={form.control}
@@ -313,6 +389,25 @@ export default function CustomerCounter() {
                         <FormLabel>Payment target</FormLabel>
                         <FormControl>
                           <Input type="number" inputMode="decimal" {...field} onChange={event => field.onChange(Number(event.target.value) || 0)} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="sellingPrice"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Requested selling price</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            inputMode="decimal"
+                            {...field}
+                            data-testid="counter-selling-price"
+                            onChange={event => field.onChange(Number(event.target.value) || 0)}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -340,7 +435,16 @@ export default function CustomerCounter() {
                       <FormItem>
                         <FormLabel>Urgency</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="today | soon | shopping" />
+                          <select
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                            value={field.value}
+                            onChange={event => field.onChange(event.target.value as CounterFormValues['urgency'])}
+                            data-testid="urgency-level"
+                          >
+                            <option value="HIGH">High — needs decision today</option>
+                            <option value="MEDIUM">Medium — deciding this week</option>
+                            <option value="LOW">Low — exploratory</option>
+                          </select>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -353,7 +457,7 @@ export default function CustomerCounter() {
                       <FormItem>
                         <FormLabel>Internal notes</FormLabel>
                         <FormControl>
-                          <Textarea rows={2} {...field} />
+                          <Textarea rows={2} {...field} data-testid="counter-notes" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -386,9 +490,13 @@ export default function CustomerCounter() {
                 </div>
                 {isFetching && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
               </CardHeader>
-              <CardContent className="grid gap-4">
+              <CardContent className="grid gap-4" data-testid="counter-options-grid">
                 {options.map(option => (
-                  <Card key={option.id} className="border border-border/60 bg-muted/30 p-4">
+                  <Card
+                    key={option.id}
+                    className="border border-border/60 bg-muted/30 p-4"
+                    data-testid={option.id === recommendedOptionId ? 'counter-option-recommended' : undefined}
+                  >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="space-y-2">
                         <h3 className="text-sm font-semibold text-foreground">{option.label}</h3>
@@ -411,18 +519,63 @@ export default function CustomerCounter() {
                     </div>
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
                       <span className="text-xs text-muted-foreground">{option.concession}</span>
-                      <Button size="sm" className="gap-2" onClick={() => handleSelectOption(option)}>
+                      <Button size="sm" className="gap-2" onClick={() => handleSelectOption(option)} data-testid="select-option">
                         Select option
                         <ArrowUpRight className="h-4 w-4" />
                       </Button>
                     </div>
                   </Card>
                 ))}
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="mt-2 w-full justify-center gap-2"
+                  onClick={() => {
+                    const fallbackScenario = deal?.scenarios[0] ?? options[0]?.scenario;
+                    if (fallbackScenario) {
+                      setPreviewScenario(fallbackScenario);
+                      setPreviewOpen(true);
+                    }
+                  }}
+                  data-testid="generate-new-pencil"
+                >
+                  Generate new pencil
+                  <ArrowUpRight className="h-4 w-4" />
+                </Button>
               </CardContent>
             </Card>
           </PanelErrorBoundary>
-        </div>
+        </form>
       </Form>
+
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Version history</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {(deal?.versions ?? []).length === 0 ? (
+              <p className="text-sm text-muted-foreground">No history available yet.</p>
+            ) : (
+              deal?.versions.map((version, index) => {
+                const linkedScenario = deal?.scenarios.find(scenario => scenario.id === version.scenarioId);
+                return (
+                  <div
+                    key={version.id}
+                    className="rounded-md border border-border/60 bg-muted/20 p-3 text-sm"
+                    data-testid={index === 0 ? 'history-version-latest' : undefined}
+                  >
+                    <p className="font-semibold text-foreground">{linkedScenario?.label ?? version.summary}</p>
+                    <p className="text-xs text-muted-foreground">{new Date(version.createdAt).toLocaleString()}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{version.summary}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">By {version.createdBy}</p>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <PencilPrintPreview
         open={previewOpen}
@@ -432,6 +585,7 @@ export default function CustomerCounter() {
         predictions={undefined}
         similarDeals={undefined}
         formatCurrency={value => formatCurrency.format(value)}
+        onSaveToDeal={handlePreviewSave}
       />
     </div>
   );

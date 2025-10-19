@@ -392,10 +392,12 @@ def get_scorer() -> HeuristicLeadScorer:
     return HeuristicLeadScorer()
 
 
+from .config.scoring import start_watcher as start_scoring_watcher
 from .routers.desking import router as desking_router
 
 
 app = FastAPI(title="Autolytiq ML Service", version="1.0.0")
+start_scoring_watcher()
 
 app.include_router(desking_router, dependencies=[Depends(verify_token)])
 

@@ -10,6 +10,7 @@ from numpy.random import default_rng
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.isotonic import IsotonicRegression
 
+from ..config.scoring import get_config
 from ..schemas.desking import (
     ClosePrediction,
     ClosePredictionRequest,
@@ -144,6 +145,11 @@ class ClosePredictor:
         base_probability = float(self._model.predict_proba(features.reshape(1, -1))[0, 1])
         calibrated = float(self._calibrator.predict([base_probability])[0])
         calibrated = float(np.clip(calibrated, 0.01, 0.995))
+        config = get_config()
+        clip_cfg = config.get("normalization", {}).get("close_probability", {})
+        clip_min = float(clip_cfg.get("clip_min", 0.0)) / 100.0
+        clip_max = float(clip_cfg.get("clip_max", 100.0)) / 100.0
+        calibrated = float(np.clip(calibrated, clip_min, clip_max))
 
         horizon_days = int(np.clip(45 - calibrated * 20 - request.engagement.sms_replies, 7, 45))
         influencing_factors = self._build_influencing_factors(request, calibrated)

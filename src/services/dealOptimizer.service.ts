@@ -1,6 +1,7 @@
 import { Prisma, RetailDealStatus } from '@prisma/client';
 import { prisma, toInputJson } from '../lib/prisma.js';
 import { mlService } from './ml.service.js';
+import { getScoringConfig, type ScoringConfig } from '../config/scoring.js';
 import {
   competitiveRange,
   getMarketData,
@@ -64,6 +65,44 @@ const decimalToNumber = (value: DecimalLike): number | null => {
 };
 
 const sum = (values: number[]): number => values.reduce((total, value) => total + value, 0);
+
+function normalizeObjectiveWeights(
+  base: ScoringConfig['objectives'],
+  override?: Partial<ScoringConfig['objectives']> | null,
+): ScoringConfig['objectives'] {
+  const merged: ScoringConfig['objectives'] = {
+    gross_weight: base.gross_weight,
+    close_weight: base.close_weight,
+    approval_weight: base.approval_weight,
+    payment_weight: base.payment_weight,
+  };
+
+  if (override) {
+    for (const [key, value] of Object.entries(override)) {
+      if (value == null || Number.isNaN(value)) {
+        continue;
+      }
+      if (key in merged) {
+        // @ts-expect-error dynamic assignment validated above
+        merged[key as keyof typeof merged] = value;
+      }
+    }
+  }
+
+  const total =
+    merged.gross_weight + merged.close_weight + merged.approval_weight + merged.payment_weight;
+  if (total <= 0) {
+    return merged;
+  }
+
+  const normalize = (value: number) => value / total;
+  return {
+    gross_weight: normalize(merged.gross_weight),
+    close_weight: normalize(merged.close_weight),
+    approval_weight: normalize(merged.approval_weight),
+    payment_weight: normalize(merged.payment_weight),
+  };
+}
 
 interface StructureFinancials {
   basePrice: number;
@@ -571,13 +610,14 @@ export async function optimizeDeal(params: {
   userId: string;
   request: OptimizationRequest;
   requestId?: string;
+  scoringOverride?: Partial<ScoringConfig['objectives']> | null;
 }): Promise<{
   optimization: OptimizationView;
   recommendation: OptimizationResponse;
   version?: VersionView | null;
   traceId?: string;
 }> {
-  const { tenantId, dealId, userId, request, requestId } = params;
+  const { tenantId, dealId, userId, request, requestId, scoringOverride } = params;
 
   const vehicleContext = {
     id: request.vehicle.id,
@@ -663,11 +703,18 @@ export async function optimizeDeal(params: {
   const structureMetrics = deriveStructureFinancials(request.structure);
   const lenderCriteria = await buildLenderCriteria(tenantId, request, structureMetrics);
 
+  const scoringConfig = getScoringConfig();
+  const effectiveObjectives = normalizeObjectiveWeights(scoringConfig.objectives, scoringOverride ?? undefined);
+  const scoringSnapshot = structuredClone(scoringConfig) as ScoringConfig;
+  scoringSnapshot.objectives = effectiveObjectives;
+
   const payload: OptimizationPayload = {
     ...request,
+    ...(scoringOverride ? { scoringOverride: scoringSnapshot.objectives } : {}),
     marketData,
     similarDeals,
     lenderCriteria,
+    scoringConfig: scoringSnapshot,
   };
 
   const { result, traceId } = await mlService.optimizeDeal(payload, { tenantId, requestId });

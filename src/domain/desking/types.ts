@@ -1,3 +1,8 @@
+import type { ScoringConfig as BackendScoringConfig } from '../../config/scoring.js';
+
+export type ScoringConfig = BackendScoringConfig;
+export type ScoringObjectives = BackendScoringConfig['objectives'];
+
 export const DEAL_STATUSES = ['WORKING', 'PENCILED', 'SUBMITTED', 'CLOSED', 'LOST'] as const;
 export type DealStatus = (typeof DEAL_STATUSES)[number];
 
@@ -232,12 +237,14 @@ export interface OptimizationRequest {
   currentPayment: PaymentCalculation;
   goals: OptimizationGoals;
   constraints: OptimizationConstraints;
+  scoringOverride?: Partial<ScoringObjectives>;
 }
 
 export interface OptimizationPayload extends OptimizationRequest {
   marketData: MarketDataContext;
   similarDeals: SimilarDealsContext;
   lenderCriteria: LenderCriteriaEntry[];
+  scoringConfig?: ScoringConfig;
 }
 
 export interface AlternativeStructure {
