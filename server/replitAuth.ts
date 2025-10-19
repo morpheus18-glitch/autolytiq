@@ -267,7 +267,7 @@ export async function setupAuth(app: Express) {
           const user = { 
             provider: 'replit',
             claims: claims,
-            id: claims.sub
+            id: claims?.sub || ''
           };
           updateUserSession(user, tokens);
           await upsertUser(claims, 'replit');
@@ -293,7 +293,7 @@ export async function setupAuth(app: Express) {
         passport.use(strategy);
       }
     } catch (error) {
-      console.warn("Replit OAuth setup failed:", error.message);
+      console.warn("Replit OAuth setup failed:", (error as Error).message);
     }
   }
 
@@ -331,7 +331,7 @@ export async function setupAuth(app: Express) {
         done(null, user);
       } catch (error) {
         console.error('Google auth error:', error);
-        done(error, null);
+        done(error as Error, false);
       }
     }));
   }
@@ -346,7 +346,7 @@ export async function setupAuth(app: Express) {
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
       callbackURL: `${protocol}://${domain}/api/auth/github/callback`
-    }, async (accessToken, refreshToken, profile, done) => {
+    }, async (accessToken: string, refreshToken: string, profile: any, done: any) => {
       try {
         const userId = `github_${profile.id}`;
         const claims = {
@@ -368,7 +368,7 @@ export async function setupAuth(app: Express) {
         done(null, user);
       } catch (error) {
         console.error('GitHub auth error:', error);
-        done(error, null);
+        done(error as Error, false);
       }
     }));
   }
@@ -381,7 +381,7 @@ export async function setupAuth(app: Express) {
       keyID: process.env.APPLE_KEY_ID,
       privateKey: process.env.APPLE_PRIVATE_KEY,
       callbackURL: "https://autolytiq.com/api/auth/apple/callback"
-    }, async (accessToken, refreshToken, idToken, profile, done) => {
+    }, async (accessToken: string, refreshToken: string, idToken: string, profile: any, done: any) => {
       try {
         const user = {
           provider: 'apple',
@@ -396,7 +396,7 @@ export async function setupAuth(app: Express) {
         await upsertUser(user.claims, 'apple');
         done(null, user);
       } catch (error) {
-        done(error, null);
+        done(error as Error, false);
       }
     }));
   }
