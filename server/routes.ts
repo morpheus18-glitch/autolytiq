@@ -1859,15 +1859,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ipAddress: '192.168.1.100',
         referrer: 'https://google.com',
         landingPage: '/',
-        startTime: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
         lastActivity: new Date(),
         sessionDuration: 45 * 60, // 45 minutes
-        pageViews: 12,
+        totalPageViews: 12,
         deviceType: 'desktop',
-        browser: 'Chrome',
-        screenResolution: '1920x1080',
-        language: 'en-US',
-        timezone: 'America/New_York'
+        browserName: 'Chrome',
+        operatingSystem: 'Windows'
       });
 
       // Create demo page views
@@ -1885,10 +1882,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           sessionId: demoSessionId,
           pageUrl: page.url,
           pageTitle: page.title,
-
-          timestamp: new Date(Date.now() - (40 - i * 5) * 60 * 1000),
           timeOnPage: page.timeOnPage,
-          deviceType: 'desktop',
           exitPage: i === demoPages.length - 1
         });
       }
@@ -1906,9 +1900,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const interaction = demoInteractions[i];
         await storage.createCustomerInteraction({
           sessionId: demoSessionId,
-          customerId: customerId.toString(),
           interactionType: interaction.type,
-          timestamp: new Date(Date.now() - (35 - i * 5) * 60 * 1000),
           elementId: interaction.elementId || null,
           vehicleId: interaction.vehicleId ? parseInt(interaction.vehicleId) : null,
           data: JSON.stringify(interaction.data || { description: interaction.description })
