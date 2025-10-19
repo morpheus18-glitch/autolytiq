@@ -693,8 +693,8 @@ export default function CRMLeadManagement() {
           const isCurrency = metric.id === "pipeline";
           const displayValue = isCurrency
             ? formatCurrency(metric.value)
-            : `${metric.value}${metric.suffix ?? metric.id === "conversion" ? "%" : ""}`;
-          const changeIcon = metric.change >= 0 ? ArrowUpRight : ArrowDownRight;
+            : `${metric.value}${"suffix" in metric ? metric.suffix : metric.id === "conversion" ? "%" : ""}`;
+          const ChangeIcon = metric.change >= 0 ? ArrowUpRight : ArrowDownRight;
           const changeColor = metric.change >= 0 ? "text-emerald-600" : "text-red-600";
 
           return (
@@ -708,7 +708,7 @@ export default function CRMLeadManagement() {
                     <p className="text-lg font-semibold md:text-xl">{displayValue}</p>
                   </div>
                   <div className={`flex items-center gap-1 text-xs font-semibold ${changeColor}`}>
-                    <changeIcon className="h-3.5 w-3.5" />
+                    <ChangeIcon className="h-3.5 w-3.5" />
                     {Math.abs(metric.change)}%
                   </div>
                 </div>

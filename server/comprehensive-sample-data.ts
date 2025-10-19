@@ -474,8 +474,11 @@ export async function initializeComprehensiveSampleData(storage: MemStorage): Pr
   for (const customerData of additionalCustomers) {
     try {
       await storage.createCustomer(customerData);
-    } catch (error) {
-      console.error('Error creating customer:', error);
+    } catch (error: any) {
+      // Silently ignore duplicate key errors (23505) - data already exists
+      if (error?.code !== '23505') {
+        console.error('Error creating customer in database:', error);
+      }
     }
   }
 
@@ -483,8 +486,11 @@ export async function initializeComprehensiveSampleData(storage: MemStorage): Pr
   for (const vehicleData of additionalVehicles) {
     try {
       await storage.createVehicle(vehicleData);
-    } catch (error) {
-      console.error('Error creating vehicle:', error);
+    } catch (error: any) {
+      // Silently ignore duplicate key errors (23505) - data already exists
+      if (error?.code !== '23505') {
+        console.error('Error creating vehicle in database:', error);
+      }
     }
   }
 
