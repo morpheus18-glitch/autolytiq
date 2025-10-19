@@ -13,6 +13,7 @@ import { automationRouter } from './automation.routes.js';
 import { mlRouter } from './ml.routes.js';
 import { simulateLeadRouting } from '../services/lead-routing.service.js';
 import { fiRouter } from './fi/index.js';
+import { deskingRouter } from './desking.routes.js';
 
 export function registerRoutes(app: Express) {
   app.get('/health', ((req, res) => {
@@ -30,6 +31,7 @@ export function registerRoutes(app: Express) {
   apiRouter.use('/automations', automationRouter);
   apiRouter.use('/ml', mlRouter);
   apiRouter.use('/fi', fiRouter);
+  apiRouter.use('/desking', deskingRouter);
 
   const leadRoutingRoles: Role[] = ['ADMIN', 'BDC', 'SALES'];
   apiRouter.post(

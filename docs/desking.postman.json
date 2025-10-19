@@ -1,0 +1,174 @@
+{
+  "info": {
+    "name": "AutolytiQ Desking API",
+    "description": "Sample requests for the Desking REST API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Worksheet",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <token>" },
+          { "key": "X-Tenant-Id", "value": "tenant-demo" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/desking/desking-deal-001/worksheet",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "desking", "desking-deal-001", "worksheet"]
+        }
+      }
+    },
+    {
+      "name": "Save Worksheet",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <token>" },
+          { "key": "X-Tenant-Id", "value": "tenant-demo" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"worksheetId\": \"desking-camry-worksheet\",\n  \"customerId\": \"customer-tier-one\",\n  \"vehicleId\": \"vehicle-camry\",\n  \"salespersonId\": \"user-sales-1\",\n  \"status\": \"WORKING\",\n  \"structure\": {\n    \"pricing\": { \"salePrice\": 28950, \"msrp\": 30100 },\n    \"fees\": [ { \"code\": \"DOC\", \"label\": \"Doc Fee\", \"amount\": 347 } ],\n    \"taxes\": [ { \"jurisdiction\": \"CA/Santa Clara\", \"rate\": 0.0975, \"amount\": 2167.44 } ]\n  },\n  \"totals\": {\n    \"salePrice\": 28950,\n    \"amountFinanced\": 27450,\n    \"backendProducts\": 1994,\n    \"fees\": 717,\n    \"taxes\": 2167.44,\n    \"totalGross\": 3994,\n    \"frontEndGross\": 2450,\n    \"backEndGross\": 1194,\n    \"financeReserve\": 350\n  },\n  \"payment\": {\n    \"amountFinanced\": 27450,\n    \"apr\": 0.0349,\n    \"termMonths\": 72,\n    \"monthlyPayment\": 439.87,\n    \"dueAtSigning\": 3500\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/desking/desking-deal-001/worksheet",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "desking", "desking-deal-001", "worksheet"]
+        }
+      }
+    },
+    {
+      "name": "Print Worksheet",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <token>" },
+          { "key": "X-Tenant-Id", "value": "tenant-demo" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"worksheetId\": \"desking-camry-worksheet\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/desking/desking-deal-001/worksheet/print",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "desking", "desking-deal-001", "worksheet", "print"]
+        }
+      }
+    },
+    {
+      "name": "Optimize Worksheet",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <token>" },
+          { "key": "X-Tenant-Id", "value": "tenant-demo" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"dealId\": \"desking-deal-001\",\n  \"worksheetId\": \"desking-camry-worksheet\",\n  \"structure\": {\n    \"pricing\": { \"salePrice\": 28950 },\n    \"fees\": [ { \"code\": \"DOC\", \"label\": \"Doc Fee\", \"amount\": 347 } ],\n    \"taxes\": [ { \"jurisdiction\": \"CA/Santa Clara\", \"rate\": 0.0975, \"amount\": 2167.44 } ]\n  },\n  \"customerProfile\": {\n    \"firstName\": \"Jamie\",\n    \"lastName\": \"Rivera\",\n    \"creditScore\": 762,\n    \"creditTier\": \"TIER_1\",\n    \"residenceType\": \"OWN\"\n  },\n  \"vehicle\": {\n    \"vin\": \"4T1C11AK2PU123456\",\n    \"year\": 2024,\n    \"make\": \"Toyota\",\n    \"model\": \"Camry\"\n  },\n  \"currentPayment\": {\n    \"amountFinanced\": 27450,\n    \"apr\": 0.0349,\n    \"termMonths\": 72,\n    \"monthlyPayment\": 439.87\n  },\n  \"goals\": {\n    \"targetPayment\": 400,\n    \"minimumGross\": 3500\n  },\n  \"constraints\": {\n    \"maxTerm\": 72,\n    \"minCashDown\": 3000\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/desking/desking-deal-001/optimize",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "desking", "desking-deal-001", "optimize"]
+        }
+      }
+    },
+    {
+      "name": "Analyze Counter",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <token>" },
+          { "key": "X-Tenant-Id", "value": "tenant-demo" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"dealId\": \"desking-deal-001\",\n  \"worksheetId\": \"desking-camry-worksheet\",\n  \"versionId\": \"desking-camry-version-initial\",\n  \"customerInput\": {\n    \"customerConcern\": \"Need the payment to start with a 3\",\n    \"requestedPayment\": 399\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/desking/desking-deal-001/counter",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "desking", "desking-deal-001", "counter"]
+        }
+      }
+    },
+    {
+      "name": "List Versions",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <token>" },
+          { "key": "X-Tenant-Id", "value": "tenant-demo" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/desking/desking-deal-001/versions",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "desking", "desking-deal-001", "versions"]
+        }
+      }
+    },
+    {
+      "name": "Select Version",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <token>" },
+          { "key": "X-Tenant-Id", "value": "tenant-demo" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"worksheetId\": \"desking-camry-worksheet\",\n  \"versionId\": \"desking-camry-version-initial\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/desking/desking-deal-001/version/select",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "desking", "desking-deal-001", "version", "select"]
+        }
+      }
+    },
+    {
+      "name": "List Approvals",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <token>" },
+          { "key": "X-Tenant-Id", "value": "tenant-demo" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/desking/desking-deal-001/approvals",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "desking", "desking-deal-001", "approvals"]
+        }
+      }
+    },
+    {
+      "name": "Refresh Approval",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <token>" },
+          { "key": "X-Tenant-Id", "value": "tenant-demo" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"dealId\": \"desking-deal-001\",\n  \"worksheetId\": \"desking-camry-worksheet\",\n  \"versionId\": \"desking-camry-version-initial\",\n  \"lenderId\": \"sunrise-credit\",\n  \"structure\": {\n    \"pricing\": { \"salePrice\": 28950 },\n    \"fees\": [ { \"code\": \"DOC\", \"label\": \"Doc Fee\", \"amount\": 347 } ],\n    \"taxes\": [ { \"jurisdiction\": \"CA/Santa Clara\", \"rate\": 0.0975, \"amount\": 2167.44 } ]\n  },\n  \"customerProfile\": {\n    \"firstName\": \"Jamie\",\n    \"lastName\": \"Rivera\",\n    \"creditScore\": 762,\n    \"creditTier\": \"TIER_1\",\n    \"residenceType\": \"OWN\"\n  },\n  \"vehicle\": {\n    \"vin\": \"4T1C11AK2PU123456\",\n    \"year\": 2024,\n    \"make\": \"Toyota\",\n    \"model\": \"Camry\"\n  },\n  \"payment\": {\n    \"amountFinanced\": 27450,\n    \"apr\": 0.0349,\n    \"termMonths\": 72,\n    \"monthlyPayment\": 439.87\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/desking/desking-deal-001/approvals/refresh",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "desking", "desking-deal-001", "approvals", "refresh"]
+        }
+      }
+    }
+  ]
+}

@@ -8,6 +8,14 @@ import type {
   SentimentRequestPayload,
   SentimentResponsePayload,
 } from '../types/ml.js';
+import type {
+  ApprovalPrediction,
+  ApprovalPredictionRequest,
+  CounterAnalysisRequest,
+  CounterAnalysisResponse,
+  OptimizationRequest,
+  OptimizationResponse,
+} from '../domain/desking/types.js';
 
 const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
 const RETRYABLE_CODES = new Set(['ECONNABORTED', 'ECONNRESET', 'ENOTFOUND', 'ETIMEDOUT']);
@@ -157,6 +165,42 @@ class MLService {
     return this.withRetry(async () => {
       const response = await this.client.post<SentimentResponsePayload>('/sentiment-analysis', payload, { headers });
       return response.data;
+    });
+  }
+
+  async optimizeDeal(
+    payload: OptimizationRequest,
+    options: { tenantId: string; requestId?: string },
+  ): Promise<{ result: OptimizationResponse; traceId?: string }> {
+    const headers = this.buildHeaders(options.requestId, options.tenantId);
+    return this.withRetry(async () => {
+      const response = await this.client.post<OptimizationResponse>('/desking/optimize', payload, { headers });
+      const traceId = response.headers['x-ml-trace-id'];
+      return { result: response.data, traceId: typeof traceId === 'string' ? traceId : undefined };
+    });
+  }
+
+  async analyzeCounter(
+    payload: CounterAnalysisRequest,
+    options: { tenantId: string; requestId?: string },
+  ): Promise<{ result: CounterAnalysisResponse; traceId?: string }> {
+    const headers = this.buildHeaders(options.requestId, options.tenantId);
+    return this.withRetry(async () => {
+      const response = await this.client.post<CounterAnalysisResponse>('/desking/counter', payload, { headers });
+      const traceId = response.headers['x-ml-trace-id'];
+      return { result: response.data, traceId: typeof traceId === 'string' ? traceId : undefined };
+    });
+  }
+
+  async predictApproval(
+    payload: ApprovalPredictionRequest,
+    options: { tenantId: string; requestId?: string },
+  ): Promise<{ result: ApprovalPrediction; traceId?: string }> {
+    const headers = this.buildHeaders(options.requestId, options.tenantId);
+    return this.withRetry(async () => {
+      const response = await this.client.post<ApprovalPrediction>('/desking/approval', payload, { headers });
+      const traceId = response.headers['x-ml-trace-id'];
+      return { result: response.data, traceId: typeof traceId === 'string' ? traceId : undefined };
     });
   }
 
