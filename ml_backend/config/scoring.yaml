@@ -1,0 +1,145 @@
+objectives:
+  gross_weight: 0.35          # prioritize profitability
+  close_weight: 0.30          # probability to close today
+  approval_weight: 0.25       # likelihood a lender will approve
+  payment_weight: 0.10        # lower is better (penalize high payment)
+
+normalization:
+  gross:
+    # normalize against dealership/class baselines (last 90d)
+    baseline_avg: 3500
+    baseline_std: 800
+    clip_min: 0
+    clip_max: 8000
+  close_probability:
+    clip_min: 0
+    clip_max: 100
+  approval_probability:
+    clip_min: 0
+    clip_max: 100
+  payment:
+    # lower payment → higher score after inversion
+    target_payment: 300       # can be overridden per deal via request.constraints.targetPayment
+    soft_cap: 450
+    hard_cap: 650
+
+constraints:
+  global:
+    max_ltv: 140              # never exceed lender-acceptable LTV envelope
+    max_pti: 20               # PTI hard ceiling
+    min_gross: 500            # do not present options below this unless flagged
+    terms_allowed: [60, 72, 84]
+    apr_bounds:
+      min: 0.0
+      max: 24.0
+  search:
+    price_delta_abs: 1500     # +/- exploration around current selling price
+    price_step: 50
+    down_step: 500
+    term_candidates: [60, 72, 84]
+    consider_rebates: true
+    consider_trade_adjustments: true
+
+policy:
+  tie_breakers:
+    - max_approval_probability
+    - max_gross
+    - min_payment
+  warnings:
+    low_gross_threshold: 800
+    high_payment_threshold: 500
+    risky_profile_threshold: 0.65  # risk score
+
+# How scoring is computed (conceptual)
+#
+# score =
+#   w_g * norm(gross) +
+#   w_c * (close_prob/100) +
+#   w_a * (approval_prob/100) +
+#   w_p * invert(norm(payment))
+#
+# - norm(gross) uses clipped z-score → min-max to 0,1.
+# - invert(norm(payment)) = 1 - norm(payment) so lower payments score higher.
+# - Hard constraints filter candidates before scoring; soft constraints apply penalties (e.g., if payment > soft_cap, subtract 0.05).
+
+# Per-deal overrides (example OptimizationRequest with constraints)
+#
+# {
+#   "tenantId": "t_abc",
+#   "deal": {
+#     "vehicle": {
+#       "id": "veh1",
+#       "vin": "4T1G11AK8RU234567",
+#       "stockNumber": "TC24-045",
+#       "make": "Toyota",
+#       "model": "Camry",
+#       "year": 2024,
+#       "mileage": 12,
+#       "msrp": 28965,
+#       "cost": 26400,
+#       "pack": 500,
+#       "daysInStock": 45
+#     },
+#     "customer": {
+#       "id": "c_1",
+#       "firstName": "John",
+#       "lastName": "Smith",
+#       "creditScore": 720,
+#       "monthlyIncome": 6000,
+#       "monthlyObligations": 1200,
+#       "employmentLength": 48,
+#       "residenceType": "OWN",
+#       "bankruptcies": 0,
+#       "repoHistory": false
+#     },
+#     "structure": {
+#       "vehicle": { "id": "veh1", "vin": "4T1G11AK8RU234567", "stockNumber": "TC24-045", "make": "Toyota", "model": "Camry", "year": 2024, "mileage": 12, "msrp": 28965, "cost": 26400, "pack": 500, "daysInStock": 45 },
+#       "sellingPrice": 27995,
+#       "tradeAllowance": 8500,
+#       "tradePayoff": 7200,
+#       "cashDown": 2000,
+#       "rebatesTotal": 1500,
+#       "term": 72,
+#       "apr": 6.49,
+#       "fees": { "taxAmount": 1409.63, "docFee": 399, "registration": 285, "titleFee": 89, "otherFees": 0 }
+#     }
+#   },
+#   "goals": {
+#     "maximizeGross": true,
+#     "maximizeClose": true,
+#     "maximizeApproval": true,
+#     "minimizePayment": true
+#   },
+#   "constraints": {
+#     "minGross": 800,
+#     "maxPayment": 425,
+#     "preferredTerm": 72,
+#     "maxLTV": 130,
+#     "targetPayment": 400,
+#     "maxDiscount": 1500
+#   }
+# }
+
+# Counter-analysis strategy weights (starter)
+#
+# counter_strategy:
+#   # How much we prefer splitting the difference vs. holding line vs. dropping price
+#   split_diff_bias: 0.6
+#   hold_line_bias: 0.2
+#   drop_price_bias: 0.2
+#
+#   # Trade vs price lever usage
+#   use_trade_adjustment_first: true
+#   max_over_allow_extra: 500
+#
+#   # Sweeteners (low-cost)
+#   perks:
+#     oil_changes_value: 120
+#     floor_mats_value: 80
+#     detail_coupon_value: 150
+#   max_total_perks_value: 200
+#
+#   # Messaging
+#   urgency_templates:
+#     - "This price is good through today because of weekend traffic."
+#     - "We have another appointment set for the morning; I can hold this number now."
