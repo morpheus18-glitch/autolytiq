@@ -202,12 +202,28 @@ export async function optimizeWorksheet(req: Request, res: Response) {
     }
 
     const requestId = req.get('x-request-id') ?? undefined;
+    const rawOverride = req.body?.scoringOverride;
+    const scoringOverride =
+      rawOverride && typeof rawOverride === 'object'
+        ? {
+            gross_weight:
+              typeof rawOverride.gross_weight === 'number' ? rawOverride.gross_weight : undefined,
+            close_weight:
+              typeof rawOverride.close_weight === 'number' ? rawOverride.close_weight : undefined,
+            approval_weight:
+              typeof rawOverride.approval_weight === 'number' ? rawOverride.approval_weight : undefined,
+            payment_weight:
+              typeof rawOverride.payment_weight === 'number' ? rawOverride.payment_weight : undefined,
+          }
+        : undefined;
+
     const { optimization, recommendation, version, traceId } = await executeDealOptimization({
       tenantId,
       dealId,
       userId,
       request: payload,
       requestId,
+      scoringOverride,
     });
 
     res.status(201).json({ data: { optimization, recommendation, version, traceId } });

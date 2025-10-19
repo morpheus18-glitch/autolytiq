@@ -6,6 +6,7 @@ from uuid import uuid4
 
 import numpy as np
 
+from ..config.scoring import get_config
 from ..schemas.desking import (
     ApprovalPredictionRequest,
     ClosePredictionRequest,
@@ -46,7 +47,8 @@ class CounterAnalyzer:
         self._rng = np.random.default_rng(RANDOM_SEED)
 
     def analyze(self, request: CounterAnalysisRequest, ml_trace_id: str) -> CounterAnalysisResponse:
-        blueprints = self._build_blueprints(request)
+        config = get_config()
+        blueprints = self._build_blueprints(request, config)
         options: List[CounterOption] = []
         for blueprint in blueprints:
             option = self._build_option(request, blueprint)
@@ -67,9 +69,21 @@ class CounterAnalyzer:
             ml_trace_id=ml_trace_id,
         )
 
-    def _build_blueprints(self, request: CounterAnalysisRequest) -> List[StrategyBlueprint]:
+    def _build_blueprints(
+        self,
+        request: CounterAnalysisRequest,
+        config: Dict[str, Any],
+    ) -> List[StrategyBlueprint]:
         customer_input = request.customer_input
         requested_payment = customer_input.requested_payment
+        strategy_cfg = config.get("counter_strategy") or {}
+        max_over_allow = float(strategy_cfg.get("max_over_allow_extra", 500.0))
+        biases = {
+            "Balanced concession": float(strategy_cfg.get("split_diff_bias", 0.5)),
+            "Gross preservation": float(strategy_cfg.get("hold_line_bias", 0.3)),
+            "Close oriented": float(strategy_cfg.get("drop_price_bias", 0.2)),
+            "Match requested payment": float(strategy_cfg.get("split_diff_bias", 0.5)),
+        }
         blueprints = [
             StrategyBlueprint(label="Balanced concession", sale_price_delta=-350, cash_adjustment=0.0, term_adjustment=0, emphasize_value=True),
             StrategyBlueprint(label="Gross preservation", sale_price_delta=150, cash_adjustment=500.0, term_adjustment=0, emphasize_value=False),
@@ -81,7 +95,13 @@ class CounterAnalyzer:
                     label="Match requested payment", sale_price_delta=-950, cash_adjustment=-500.0, term_adjustment=12, emphasize_value=True
                 )
             )
-        return blueprints
+        ordered: List[StrategyBlueprint] = []
+        for blueprint in blueprints:
+            adjusted_cash = float(np.clip(blueprint.cash_adjustment, -max_over_allow, max_over_allow))
+            blueprint.cash_adjustment = adjusted_cash
+            ordered.append(blueprint)
+        ordered.sort(key=lambda bp: biases.get(bp.label, 0.0), reverse=True)
+        return ordered
 
     def _build_option(self, request: CounterAnalysisRequest, blueprint: StrategyBlueprint) -> CounterOption:
         structure = request.structure.model_copy(deep=True)

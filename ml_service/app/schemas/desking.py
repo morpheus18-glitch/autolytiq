@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import Field
 
@@ -203,6 +203,7 @@ class OptimizationRequest(CamelModel):
     current_payment: PaymentCalculation
     goals: OptimizationGoals
     constraints: OptimizationConstraints
+    scoring_override: Optional[Dict[str, float]] = Field(default=None, alias="scoringOverride")
 
 
 class OptimizationResponse(CamelModel):
@@ -337,3 +338,4 @@ TradeDetails.model_rebuild()
 DealStructure.model_rebuild()
 AlternativeStructure.model_rebuild()
 CounterOption.model_rebuild()
+OptimizationRequest.model_rebuild()

@@ -11,16 +11,27 @@ interface PaymentScenarioCardProps {
   isActive?: boolean;
   onSelect?: (scenario: PaymentScenario) => void;
   formatCurrency: (value: number) => string;
+  dataTestId?: string;
+  recommendedTestId?: string;
 }
 
-export function PaymentScenarioCard({ scenario, isActive, onSelect, formatCurrency }: PaymentScenarioCardProps) {
+export function PaymentScenarioCard({
+  scenario,
+  isActive,
+  onSelect,
+  formatCurrency,
+  dataTestId,
+  recommendedTestId,
+}: PaymentScenarioCardProps) {
   return (
     <Card
+      data-testid={dataTestId}
       className={cn(
         'transition-shadow duration-200 border-border/70 hover:border-primary/60',
         isActive ? 'border-primary shadow-lg shadow-primary/10' : 'shadow-sm'
       )}
     >
+      {recommendedTestId ? <span data-testid={recommendedTestId} className="sr-only" /> : null}
       <CardHeader className="space-y-3">
         <div className="flex items-start justify-between">
           <div>
@@ -110,6 +121,7 @@ export function PaymentScenarioCard({ scenario, isActive, onSelect, formatCurren
           size="sm"
           variant={isActive ? 'secondary' : 'outline'}
           onClick={() => onSelect?.(scenario)}
+          data-testid="select-scenario"
         >
           {isActive ? 'Active' : 'Make Active'}
         </Button>

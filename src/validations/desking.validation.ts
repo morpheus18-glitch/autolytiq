@@ -57,7 +57,18 @@ export const versionSelectSchema = z.object({
   versionId: z.string().min(1),
 });
 
-export const optimizeDealSchema = optimizationRequestSchema;
+const scoringOverrideSchema = z
+  .object({
+    gross_weight: z.number().min(0).max(100).optional(),
+    close_weight: z.number().min(0).max(100).optional(),
+    approval_weight: z.number().min(0).max(100).optional(),
+    payment_weight: z.number().min(0).max(100).optional(),
+  })
+  .partial();
+
+export const optimizeDealSchema = optimizationRequestSchema.extend({
+  scoringOverride: scoringOverrideSchema.optional(),
+});
 
 export const counterAnalysisSchema = counterAnalysisRequestSchema;
 

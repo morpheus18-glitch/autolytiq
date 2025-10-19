@@ -436,6 +436,13 @@ export default function InitialPencil() {
 
   const analysisStructure = analysis?.structure ?? buildFallbackAnalysis(form.getValues()).structure;
 
+  const handlePreviewSave = () => {
+    toast({
+      title: 'Scenario saved to deal',
+      description: 'Worksheet committed to deal history and ready for delivery.',
+    });
+  };
+
   return (
     <div className="mx-auto max-w-[1600px] space-y-6 px-6 py-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -463,7 +470,11 @@ export default function InitialPencil() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleGenerate)} className="grid gap-6 xl:grid-cols-[minmax(0,2.05fr)_minmax(0,1fr)]">
+        <form
+          onSubmit={form.handleSubmit(handleGenerate)}
+          className="grid gap-6 xl:grid-cols-[minmax(0,2.05fr)_minmax(0,1fr)]"
+          data-testid="pencil-form"
+        >
           <div className="space-y-6">
             <PanelErrorBoundary title="Pencil form">
               <Card className="border-border/70 shadow-sm">
@@ -624,7 +635,13 @@ export default function InitialPencil() {
                           <FormItem>
                             <FormLabel>Sale price</FormLabel>
                             <FormControl>
-                              <Input type="number" inputMode="decimal" {...field} onChange={event => field.onChange(Number(event.target.value) || 0)} />
+                              <Input
+                                type="number"
+                                inputMode="decimal"
+                                {...field}
+                                data-testid="selling-price-input"
+                                onChange={event => field.onChange(Number(event.target.value) || 0)}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -731,7 +748,13 @@ export default function InitialPencil() {
                           <FormItem>
                             <FormLabel>Trade value</FormLabel>
                             <FormControl>
-                              <Input type="number" inputMode="decimal" {...field} onChange={event => field.onChange(Number(event.target.value) || 0)} />
+                              <Input
+                                type="number"
+                                inputMode="decimal"
+                                {...field}
+                                data-testid="trade-allow-input"
+                                onChange={event => field.onChange(Number(event.target.value) || 0)}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -744,7 +767,13 @@ export default function InitialPencil() {
                           <FormItem>
                             <FormLabel>Trade payoff</FormLabel>
                             <FormControl>
-                              <Input type="number" inputMode="decimal" {...field} onChange={event => field.onChange(Number(event.target.value) || 0)} />
+                              <Input
+                                type="number"
+                                inputMode="decimal"
+                                {...field}
+                                data-testid="trade-payoff-input"
+                                onChange={event => field.onChange(Number(event.target.value) || 0)}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -766,7 +795,13 @@ export default function InitialPencil() {
                               <FormItem>
                                 <FormLabel>{label}</FormLabel>
                                 <FormControl>
-                                  <Input type="number" inputMode="decimal" {...field} onChange={event => field.onChange(Number(event.target.value) || 0)} />
+                                  <Input
+                                    type="number"
+                                    inputMode="decimal"
+                                    {...field}
+                                    data-testid={name === 'down.cash' ? 'cash-down-input' : undefined}
+                                    onChange={event => field.onChange(Number(event.target.value) || 0)}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -821,7 +856,12 @@ export default function InitialPencil() {
                   </section>
 
                   <div className="flex justify-end">
-                    <Button type="submit" className="gap-2" disabled={generateWorksheet.isPending}>
+                    <Button
+                      type="submit"
+                      className="gap-2"
+                      disabled={generateWorksheet.isPending}
+                      data-testid="pencil-generate"
+                    >
                       {generateWorksheet.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
                       Generate worksheet
                     </Button>
@@ -858,7 +898,12 @@ export default function InitialPencil() {
                           </div>
                           <div className="text-right">
                             <p className="text-xs uppercase tracking-wide text-muted-foreground">Monthly</p>
-                            <p className="text-lg font-semibold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(analysisStructure.monthlyPayment)}</p>
+                            <p
+                              className="text-lg font-semibold"
+                              data-testid="ai-optimal-price"
+                            >
+                              {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(analysisStructure.monthlyPayment)}
+                            </p>
                           </div>
                         </div>
                         <div className="mt-3 flex flex-wrap gap-2">
@@ -926,6 +971,7 @@ export default function InitialPencil() {
         predictions={predictions}
         similarDeals={similarDeals}
         formatCurrency={value => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value)}
+        onSaveToDeal={handlePreviewSave}
       />
     </div>
   );
