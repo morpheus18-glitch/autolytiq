@@ -11,9 +11,9 @@ import type {
 import type {
   ApprovalPrediction,
   ApprovalPredictionRequest,
-  CounterAnalysisRequest,
+  CounterAnalysisPayload,
   CounterAnalysisResponse,
-  OptimizationRequest,
+  OptimizationPayload,
   OptimizationResponse,
 } from '../domain/desking/types.js';
 
@@ -169,7 +169,7 @@ class MLService {
   }
 
   async optimizeDeal(
-    payload: OptimizationRequest,
+    payload: OptimizationPayload,
     options: { tenantId: string; requestId?: string },
   ): Promise<{ result: OptimizationResponse; traceId?: string }> {
     const headers = this.buildHeaders(options.requestId, options.tenantId);
@@ -181,7 +181,7 @@ class MLService {
   }
 
   async analyzeCounter(
-    payload: CounterAnalysisRequest,
+    payload: CounterAnalysisPayload,
     options: { tenantId: string; requestId?: string },
   ): Promise<{ result: CounterAnalysisResponse; traceId?: string }> {
     const headers = this.buildHeaders(options.requestId, options.tenantId);

@@ -9,7 +9,12 @@ export default defineConfig({
   minify: false,
   shims: false,
   splitting: false,
-  outDir: 'dist',
+  
+
+  bundle: true,
+  skipNodeModulesBundle: true,
+  treeshake: false,
+
   external: [
     /^(?!@shared)[^.\/]/,
   ],

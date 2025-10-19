@@ -127,6 +127,101 @@ export interface OptimizationConstraints {
   bannedProducts?: string[];
 }
 
+export interface MarketComparable {
+  vehicle: {
+    vin?: string;
+    year: number;
+    make: string;
+    model: string;
+    trim?: string;
+    segment?: string;
+  };
+  salePrice: number;
+  saleDate: string;
+  daysInStock?: number;
+  mileage?: number;
+  source?: string;
+}
+
+export interface MarketDataSummary {
+  sampleSize: number;
+  averagePrice: number;
+  medianPrice: number;
+  minPrice: number;
+  maxPrice: number;
+  stdDeviation: number;
+}
+
+export interface MarketDataRange {
+  floor: number;
+  target: number;
+  ceiling: number;
+}
+
+export interface MarketDataContext {
+  summary: MarketDataSummary;
+  competitiveRange: MarketDataRange;
+  comparables: MarketComparable[];
+}
+
+export interface SimilarDealVehicle {
+  vin?: string;
+  year: number;
+  make: string;
+  model: string;
+  trim?: string;
+}
+
+export interface SimilarDealSnapshot {
+  id: string;
+  status: 'closed' | 'lost' | 'pending';
+  closeDate: string;
+  vehicle: SimilarDealVehicle;
+  frontGross: number;
+  financeReserve: number;
+  totalGross?: number;
+}
+
+export interface SimilarDealMetrics {
+  sampleSize: number;
+  averageFrontGross: number;
+  averageReserve: number;
+  averageTotalGross: number;
+  closeRate: number;
+}
+
+export interface SimilarDealsContext {
+  deals: SimilarDealSnapshot[];
+  metrics: SimilarDealMetrics;
+}
+
+export interface LenderTierCriteria {
+  id: string;
+  tier: CreditTier;
+  minScore: number;
+  maxScore?: number;
+  buyRate: number;
+  sellRate: number;
+  participation?: number;
+  maxTermMonths?: number;
+  maxReserve?: number;
+}
+
+export interface LenderCriteriaEntry {
+  lenderId: string;
+  lenderName: string;
+  maxTermMonths?: number;
+  maxLtv?: number;
+  maxPti?: number;
+  tiers: LenderTierCriteria[];
+  violations: Array<{
+    code: string;
+    message: string;
+    limit?: number;
+    actual?: number;
+  }>;
+}
+
 export interface OptimizationRequest {
   dealId: string;
   worksheetId?: string;
@@ -137,6 +232,12 @@ export interface OptimizationRequest {
   currentPayment: PaymentCalculation;
   goals: OptimizationGoals;
   constraints: OptimizationConstraints;
+}
+
+export interface OptimizationPayload extends OptimizationRequest {
+  marketData: MarketDataContext;
+  similarDeals: SimilarDealsContext;
+  lenderCriteria: LenderCriteriaEntry[];
 }
 
 export interface AlternativeStructure {
@@ -173,6 +274,14 @@ export interface CounterAnalysisRequest {
   };
 }
 
+export interface CounterAnalysisPayload extends CounterAnalysisRequest {
+  originalStructure: DealStructure;
+  originalPayment: PaymentCalculation;
+  originalGross?: GrossCalculation;
+  marketData?: MarketDataContext;
+  similarDeals?: SimilarDealsContext;
+}
+
 export interface CounterOption {
   id: string;
   label: string;
@@ -202,6 +311,14 @@ export interface ApprovalPredictionRequest {
   customerProfile: CustomerProfile;
   vehicle: VehicleInfo;
   payment: PaymentCalculation;
+}
+
+export interface ApprovalOptimizationCandidate {
+  strategy: 'EXTEND_TERM' | 'MORE_DOWN' | 'REMOVE_PRODUCTS';
+  structure: DealStructure;
+  payment: PaymentCalculation;
+  approvals: ApprovalPrediction[];
+  improvement: number;
 }
 
 export interface Stipulation {
