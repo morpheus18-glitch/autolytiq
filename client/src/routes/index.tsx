@@ -28,6 +28,7 @@ import CompetitivePricing from '@/pages/competitive-pricing';
 import MarketLeads from '@/pages/market-leads';
 import AutomotiveDataCenter from '@/pages/automotive-data-center';
 import MLModelComparison from '@/pages/ml-model-comparison';
+import DesignShowcase from '@/pages/DesignShowcase';
 import FiDashboardPage from '@/pages/fi-dashboard';
 import LenderManagement from '@/pages/finance/lenders';
 import RateSheets from '@/pages/finance/rates';
@@ -141,6 +142,7 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/market-leads', component: MarketLeads },
   { path: '/automotive-data-center', component: AutomotiveDataCenter },
   { path: '/ml-model-comparison', component: MLModelComparison },
+  { path: '/design-system', component: DesignShowcase },
   { path: '/finance/lenders', component: LenderManagement },
   { path: '/finance/rates', component: RateSheets },
   { path: '/finance/compliance', component: ComplianceEngine },
