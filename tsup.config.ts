@@ -10,13 +10,10 @@ export default defineConfig({
   shims: false,
   splitting: false,
   outDir: 'dist',
-  bundle: false,
-  skipNodeModulesBundle: true,
-  treeshake: false,
   external: [
-    /^[^.\/]/,
+    /^(?!@shared)[^.\/]/,
   ],
-  noExternal: [],
+  noExternal: ['@shared'],
   tsconfig: 'tsconfig.api.json',
   esbuildOptions(options) {
     options.resolveExtensions = ['.ts', '.js'];
