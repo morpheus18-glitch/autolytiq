@@ -10,7 +10,7 @@ export default defineConfig({
   shims: false,
   splitting: false,
   outDir: 'dist',
-  bundle: false,
+  bundle: true,
   skipNodeModulesBundle: true,
   treeshake: false,
   external: [
