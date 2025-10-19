@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: ['server/index.ts'],
   format: ['esm'],
   target: 'node20',
   sourcemap: true,
@@ -10,9 +10,21 @@ export default defineConfig({
   shims: false,
   splitting: false,
   outDir: 'dist',
-  noExternal: [],
-  external: [/.*/],
   bundle: false,
+  skipNodeModulesBundle: true,
+  treeshake: false,
+  external: [
+    /^[^.\/]/,
+  ],
+  noExternal: [],
+  tsconfig: 'tsconfig.api.json',
+  esbuildOptions(options) {
+    options.resolveExtensions = ['.ts', '.js'];
+    options.alias = {
+      '@shared': './shared',
+    };
+    options.external = ['lightningcss', '@babel/*', '@tailwindcss/*', 'vite', 'postcss', 'autoprefixer'];
+  },
   env: {
     NODE_ENV: process.env.NODE_ENV ?? 'development',
   },
