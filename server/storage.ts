@@ -1372,8 +1372,11 @@ export class MemStorage implements IStorage {
       });
 
       return vehicle;
-    } catch (error) {
-      console.error('Error creating vehicle in database:', error);
+    } catch (error: any) {
+      // Only log errors that are not duplicate key constraints (data already exists)
+      if (error?.code !== '23505') {
+        console.error('Error creating vehicle in database:', error);
+      }
     }
 
     const fallbackId = this.currentVehicleId++;
@@ -1604,8 +1607,11 @@ export class MemStorage implements IStorage {
       this.customers.set(customer.id, customer);
       this.currentCustomerId = Math.max(this.currentCustomerId, customer.id + 1);
       return customer;
-    } catch (error) {
-      console.error('Error creating customer in database:', error);
+    } catch (error: any) {
+      // Only log errors that are not duplicate key constraints (data already exists)
+      if (error?.code !== '23505') {
+        console.error('Error creating customer in database:', error);
+      }
     }
 
     const id = this.currentCustomerId++;

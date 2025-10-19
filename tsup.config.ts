@@ -10,6 +10,9 @@ export default defineConfig({
   shims: false,
   splitting: false,
   outDir: 'dist',
+  noExternal: [],
+  external: [/.*/],
+  bundle: false,
   env: {
     NODE_ENV: process.env.NODE_ENV ?? 'development',
   },
