@@ -732,3 +732,34 @@ textarea {
     }
   }
 }
+
+@media print {
+  @page {
+    margin: 0.6in;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #1f2937 !important;
+    box-shadow: none !important;
+  }
+
+  body::before,
+  body::after,
+  .no-print {
+    display: none !important;
+  }
+
+  .print-container {
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+
+  .print\:border-0 {
+    border: 0 !important;
+  }
+}
