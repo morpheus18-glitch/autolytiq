@@ -2,6 +2,9 @@ import express from 'express';
 import { toApiError } from './lib/errors.js';
 import { initializeContext } from './middleware/context.js';
 import { registerRoutes } from './routes/index.js';
+import { initializeDomainIntegrations } from './integrations/index.js';
+
+initializeDomainIntegrations();
 
 export function createApp() {
   const app = express();

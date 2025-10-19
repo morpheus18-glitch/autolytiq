@@ -16,13 +16,20 @@ function assertS3Config() {
 
 function createClient() {
   assertS3Config();
-  return new S3Client({
+  const config: ConstructorParameters<typeof S3Client>[0] = {
     region: env.AWS_REGION!,
     credentials: {
       accessKeyId: env.AWS_ACCESS_KEY_ID!,
       secretAccessKey: env.AWS_SECRET_ACCESS_KEY!,
     },
-  });
+  };
+
+  if (env.S3_ENDPOINT) {
+    config.endpoint = env.S3_ENDPOINT;
+    config.forcePathStyle = true;
+  }
+
+  return new S3Client(config);
 }
 
 let client: S3Client | null = null;
@@ -35,7 +42,7 @@ function getClient() {
 }
 
 export function buildDealDocumentKey(options: { tenantId: string; dealId: string; documentId: string; originalName: string }) {
-  const sanitizedName = options.originalName.trim().toLowerCase().replace(/[^a-z0-9.\-]+/g, '-');
+  const sanitizedName = options.originalName.trim().toLowerCase().replace(/[^a-z0-9.-]+/g, '-');
   return ['deal-jackets', options.tenantId, options.dealId, options.documentId, `${Date.now()}-${sanitizedName}`]
     .filter(Boolean)
     .join('/');
@@ -48,7 +55,7 @@ export function buildComplianceDocumentKey(options: {
   fileName: string;
 }) {
   const sanitizedType = options.documentType.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  const sanitizedName = options.fileName.trim().toLowerCase().replace(/[^a-z0-9.\-]+/g, '-');
+  const sanitizedName = options.fileName.trim().toLowerCase().replace(/[^a-z0-9.-]+/g, '-');
   return ['deal-jackets', options.tenantId, options.dealId, 'compliance', `${Date.now()}-${sanitizedType}-${sanitizedName}`]
     .filter(Boolean)
     .join('/');

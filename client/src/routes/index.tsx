@@ -14,6 +14,7 @@ import PhoneCalls from '@/pages/customers/phone-calls';
 import CRMLeadManagement from '@/pages/crm-lead-management';
 import DealsPage from '@/pages/deals';
 import ProfessionalDealDesk from '@/pages/professional-deal-desk';
+import DeskingWorkspace from '@/pages/desking/DeskingWorkspace';
 import TradeAppraisals from '@/pages/trade-appraisals';
 import ShowroomManager from '@/pages/showroom-manager';
 import Reports from '@/pages/reports';
@@ -119,6 +120,11 @@ const routeDefinitions: RouteDefinition[] = [
     path: '/professional-deal-desk',
     component: ProfessionalDealDesk,
     aliases: ['/deals-finance', '/deal-desk', '/deal-working', '/finance/structuring']
+  },
+  {
+    path: '/desking/workspace',
+    component: DeskingWorkspace,
+    aliases: ['/desking', '/deals/desking']
   },
   { path: '/professional-deal-desk/:id', component: ProfessionalDealDesk },
   { path: '/deals/:id', component: ProfessionalDealDesk },

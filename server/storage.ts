@@ -422,6 +422,13 @@ export class MemStorage implements IStorage {
   protected predictiveScores: Map<number, PredictiveScores>;
   protected marketBenchmarks: Map<number, MarketBenchmarks>;
 
+  // Store Management Storage
+  protected stores: Map<string, Store>;
+  protected storeLenders: Map<string, StoreLender>;
+  protected storeProductPresets: Map<string, StoreProductPreset>;
+  protected storeFinanceSettings: Map<string, StoreFinanceSettings>;
+  protected storePageSettings: Map<string, StorePageSettings>;
+
   protected currentUserId: number;
   protected currentVehicleId: number;
   protected currentCustomerId: number;
@@ -490,6 +497,13 @@ export class MemStorage implements IStorage {
     this.userSessions = new Map();
     this.systemRoles = new Map();
     this.activityLogs = new Map();
+    
+    // Store Management Map Initialization
+    this.stores = new Map();
+    this.storeLenders = new Map();
+    this.storeProductPresets = new Map();
+    this.storeFinanceSettings = new Map();
+    this.storePageSettings = new Map();
     
     // F&I Map Initialization
     this.creditPulls = new Map();
@@ -1335,45 +1349,53 @@ export class MemStorage implements IStorage {
   }
 
   async createVehicle(insertVehicle: InsertVehicle): Promise<Vehicle> {
-    try {
-      // Check if VIN already exists
-      if (insertVehicle.vin) {
-        const existing = await db.select()
-          .from(vehicles)
-          .where(eq(vehicles.vin, insertVehicle.vin))
-          .limit(1);
-        
-        if (existing.length > 0) {
-          const vehicle = this.normalizeVehicleRow(existing[0]);
-          this.vehicles.set(vehicle.id, vehicle);
-          return vehicle;
-        }
-      }
+    const now = new Date();
+    const preparedVehicle = {
+      ...insertVehicle,
+      uuid: insertVehicle.uuid ?? crypto.randomUUID(),
+      createdAt: insertVehicle.createdAt ?? now,
+      updatedAt: now,
+      description: insertVehicle.description ?? null,
+      imageUrl: insertVehicle.imageUrl ?? null,
+    } satisfies InsertVehicle;
 
-      const now = new Date();
+    try {
       const [created] = await db
         .insert(vehicles)
-        .values({
-          ...insertVehicle,
-          uuid: insertVehicle.uuid ?? crypto.randomUUID(),
-          createdAt: now,
-          updatedAt: now,
+        .values(preparedVehicle)
+        .onConflictDoNothing({
+          target: vehicles.vin,
         })
         .returning();
 
-      const vehicle = this.normalizeVehicleRow(created);
-      this.vehicles.set(vehicle.id, vehicle);
-      this.currentVehicleId = Math.max(this.currentVehicleId, vehicle.id + 1);
+      let vehicleRow = created;
 
-      await this.createActivity({
-        type: "vehicle_added",
-        description: `Added new vehicle: ${vehicle.year} ${vehicle.make} ${vehicle.model}`,
-        userId: 1
-      });
+      if (!vehicleRow && insertVehicle.vin) {
+        const [existing] = await db
+          .select()
+          .from(vehicles)
+          .where(eq(vehicles.vin, insertVehicle.vin))
+          .limit(1);
 
-      return vehicle;
+        vehicleRow = existing;
+      }
+
+      if (vehicleRow) {
+        const vehicle = this.normalizeVehicleRow(vehicleRow);
+        this.vehicles.set(vehicle.id, vehicle);
+        this.currentVehicleId = Math.max(this.currentVehicleId, vehicle.id + 1);
+
+        if (created) {
+          await this.createActivity({
+            type: "vehicle_added",
+            description: `Added new vehicle: ${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+            userId: 1
+          });
+        }
+
+        return vehicle;
+      }
     } catch (error: any) {
-      // Only log errors that are not duplicate key constraints (data already exists)
       if (error?.code !== '23505') {
         console.error('Error creating vehicle in database:', error);
       }
@@ -1381,12 +1403,8 @@ export class MemStorage implements IStorage {
 
     const fallbackId = this.currentVehicleId++;
     const fallbackVehicle: Vehicle = {
-      ...insertVehicle,
+      ...preparedVehicle,
       id: fallbackId,
-      uuid: insertVehicle.uuid ?? crypto.randomUUID(),
-      createdAt: new Date(),
-      description: insertVehicle.description || null,
-      imageUrl: insertVehicle.imageUrl || null
     };
     this.vehicles.set(fallbackId, fallbackVehicle);
 
@@ -3331,6 +3349,120 @@ export class MemStorage implements IStorage {
     }
     
     return logs;
+  }
+
+  async getStoreLenders(storeId: string): Promise<StoreLender[]> {
+    return Array.from(this.storeLenders.values())
+      .filter(lender => lender.storeId === storeId)
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+  }
+
+  async createStoreLender(lender: InsertStoreLender): Promise<StoreLender> {
+    const id = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const newLender: StoreLender = {
+      ...lender,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.storeLenders.set(id, newLender);
+    return newLender;
+  }
+
+  async updateStoreLender(id: string, updates: Partial<InsertStoreLender>): Promise<StoreLender | undefined> {
+    const lender = this.storeLenders.get(id);
+    if (!lender) return undefined;
+    
+    const updatedLender = { ...lender, ...updates, updatedAt: new Date() };
+    this.storeLenders.set(id, updatedLender);
+    return updatedLender;
+  }
+
+  async deleteStoreLender(id: string): Promise<void> {
+    this.storeLenders.delete(id);
+  }
+
+  async getStoreProductPresets(storeId: string): Promise<StoreProductPreset[]> {
+    return Array.from(this.storeProductPresets.values())
+      .filter(preset => preset.storeId === storeId)
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+  }
+
+  async createStoreProductPreset(preset: InsertStoreProductPreset): Promise<StoreProductPreset> {
+    const id = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const newPreset: StoreProductPreset = {
+      ...preset,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.storeProductPresets.set(id, newPreset);
+    return newPreset;
+  }
+
+  async updateStoreProductPreset(id: string, updates: Partial<InsertStoreProductPreset>): Promise<StoreProductPreset | undefined> {
+    const preset = this.storeProductPresets.get(id);
+    if (!preset) return undefined;
+    
+    const updatedPreset = { ...preset, ...updates, updatedAt: new Date() };
+    this.storeProductPresets.set(id, updatedPreset);
+    return updatedPreset;
+  }
+
+  async deleteStoreProductPreset(id: string): Promise<void> {
+    this.storeProductPresets.delete(id);
+  }
+
+  async getStoreFinanceSettings(storeId: string): Promise<StoreFinanceSettings | undefined> {
+    return Array.from(this.storeFinanceSettings.values())
+      .find(settings => settings.storeId === storeId);
+  }
+
+  async createStoreFinanceSettings(settings: InsertStoreFinanceSettings): Promise<StoreFinanceSettings> {
+    const id = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const newSettings: StoreFinanceSettings = {
+      ...settings,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.storeFinanceSettings.set(id, newSettings);
+    return newSettings;
+  }
+
+  async updateStoreFinanceSettings(id: string, updates: Partial<InsertStoreFinanceSettings>): Promise<StoreFinanceSettings | undefined> {
+    const settings = this.storeFinanceSettings.get(id);
+    if (!settings) return undefined;
+    
+    const updatedSettings = { ...settings, ...updates, updatedAt: new Date() };
+    this.storeFinanceSettings.set(id, updatedSettings);
+    return updatedSettings;
+  }
+
+  async getStorePageSettings(storeId: string, pageName: string): Promise<StorePageSettings | undefined> {
+    return Array.from(this.storePageSettings.values())
+      .find(settings => settings.storeId === storeId && settings.pageName === pageName);
+  }
+
+  async createStorePageSettings(settings: InsertStorePageSettings): Promise<StorePageSettings> {
+    const id = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const newSettings: StorePageSettings = {
+      ...settings,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.storePageSettings.set(id, newSettings);
+    return newSettings;
+  }
+
+  async updateStorePageSettings(id: string, updates: Partial<InsertStorePageSettings>): Promise<StorePageSettings | undefined> {
+    const settings = this.storePageSettings.get(id);
+    if (!settings) return undefined;
+    
+    const updatedSettings = { ...settings, ...updates, updatedAt: new Date() };
+    this.storePageSettings.set(id, updatedSettings);
+    return updatedSettings;
   }
 
   async getAiInsights(entityType?: string, entityId?: number) {

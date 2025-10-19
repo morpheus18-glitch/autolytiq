@@ -6,10 +6,9 @@ import type {
   DealVersion as DealVersionRecord,
   DealWorksheet as DealWorksheetRecord,
   DealStatus as PrismaDealStatus,
-  User,
 } from '@prisma/client';
 import { ApiError } from '../lib/errors.js';
-import { createDomainEvent, eventBus } from '../lib/event-bus.js';
+import { EVENT_TOPICS, emitEvent } from '../events/index.js';
 import { prisma, toInputJson } from '../lib/prisma.js';
 import type {
   ApprovalPrediction,
@@ -23,6 +22,27 @@ import type {
 } from '../domain/desking/types.js';
 
 type DecimalLike = Prisma.Decimal | number | string | null | undefined;
+
+async function getDealContext(
+  tx: Prisma.TransactionClient,
+  tenantId: string,
+  dealId: string,
+): Promise<{ customerId: string; vehicleId: string; salespersonId: string | null }> {
+  const deal = await tx.deal.findFirst({
+    where: { tenantId, id: dealId },
+    select: { customerId: true, vehicleId: true, salesPersonId: true },
+  });
+
+  if (!deal) {
+    throw new ApiError('DEAL_NOT_FOUND', 'Deal could not be located for the provided worksheet.', { status: 404 });
+  }
+
+  return {
+    customerId: deal.customerId,
+    vehicleId: deal.vehicleId,
+    salespersonId: deal.salesPersonId ?? null,
+  };
+}
 
 function decimalToNumber(value: DecimalLike): number | null {
   if (value == null) {
@@ -302,7 +322,10 @@ export async function saveWorksheet(
   userId: string,
   payload: WorksheetPayload,
 ): Promise<{ worksheet: WorksheetView; version?: VersionView | null }> {
-  return prisma.$transaction(async (tx) => {
+  const postCommit: Array<() => Promise<void>> = [];
+
+  const result = await prisma.$transaction(async (tx) => {
+    const dealContext = await getDealContext(tx, tenantId, dealId);
     const existing = payload.worksheetId
       ? await tx.dealWorksheet.findFirst({ where: { id: payload.worksheetId, tenantId, dealId } })
       : null;
@@ -311,6 +334,7 @@ export async function saveWorksheet(
       throw new ApiError('WORKSHEET_NOT_FOUND', 'Worksheet could not be located for update.', { status: 404 });
     }
 
+    const previousStatus = existing?.status ?? null;
     let worksheetRecord: DealWorksheetRecord;
 
     if (existing) {
@@ -349,6 +373,18 @@ export async function saveWorksheet(
           aiScore: payload.aiScore != null ? new Prisma.Decimal(payload.aiScore) : null,
         },
       });
+
+      postCommit.push(() =>
+        emitEvent(EVENT_TOPICS.DEAL_WORKSHEET_CREATED, {
+          tenantId,
+          dealId,
+          worksheetId: worksheetRecord.id,
+          vehicleId: dealContext.vehicleId,
+          customerId: dealContext.customerId,
+          salespersonId: worksheetRecord.salespersonId ?? dealContext.salespersonId,
+          status: worksheetRecord.status,
+        }),
+      );
     }
 
     let versionRecord: DealVersionRecord | null = null;
@@ -388,18 +424,68 @@ export async function saveWorksheet(
         data: { versionPointerId: versionRecord.id },
       });
 
-      const event = createDomainEvent('desking.version.created', {
-        tenantId,
-        dealId,
-        worksheetId: worksheetRecord.id,
-        versionId: versionRecord.id,
-        createdBy: userId,
-      });
-      await eventBus.publish(event);
+      postCommit.push(() =>
+        emitEvent(EVENT_TOPICS.DEAL_VERSION_CREATED, {
+          tenantId,
+          dealId,
+          worksheetId: worksheetRecord.id,
+          versionId: versionRecord!.id,
+          createdBy: userId,
+          customerId: dealContext.customerId,
+          vehicleId: dealContext.vehicleId,
+          salespersonId: worksheetRecord.salespersonId ?? dealContext.salespersonId,
+        }),
+      );
+    }
+
+    if (previousStatus !== worksheetRecord.status) {
+      postCommit.push(() =>
+        emitEvent(EVENT_TOPICS.DEAL_STATUS_UPDATED, {
+          tenantId,
+          dealId,
+          worksheetId: worksheetRecord.id,
+          previousStatus: previousStatus,
+          nextStatus: worksheetRecord.status,
+        }),
+      );
+
+      if (worksheetRecord.status === 'LOST') {
+        postCommit.push(() =>
+          emitEvent(EVENT_TOPICS.DEAL_STATUS_LOST, {
+            tenantId,
+            dealId,
+            worksheetId: worksheetRecord.id,
+            vehicleId: dealContext.vehicleId,
+            customerId: dealContext.customerId,
+            salespersonId: worksheetRecord.salespersonId ?? dealContext.salespersonId,
+            reason: undefined,
+          }),
+        );
+      }
+
+      if (worksheetRecord.status === 'CLOSED') {
+        postCommit.push(() =>
+          emitEvent(EVENT_TOPICS.DEAL_STATUS_CLOSED, {
+            tenantId,
+            dealId,
+            worksheetId: worksheetRecord.id,
+            vehicleId: dealContext.vehicleId,
+            totals: payload.totals,
+            salespersonId: worksheetRecord.salespersonId ?? dealContext.salespersonId,
+            customerId: dealContext.customerId,
+          }),
+        );
+      }
     }
 
     return { worksheet: mapWorksheet(worksheetRecord), version: versionRecord ? mapVersion(versionRecord) : null };
   });
+
+  for (const trigger of postCommit) {
+    await trigger();
+  }
+
+  return result;
 }
 
 export async function listVersions(tenantId: string, dealId: string): Promise<VersionView[]> {
@@ -428,14 +514,31 @@ export async function selectVersion(
     include: { versionPointer: true },
   });
 
-  const event = createDomainEvent('desking.version.selected', {
-    tenantId,
-    dealId,
-    worksheetId,
-    versionId,
-    selectedBy: userId,
+  const dealContext = await prisma.deal.findFirst({
+    where: { tenantId, id: dealId },
+    select: { customerId: true, vehicleId: true, salesPersonId: true },
   });
-  await eventBus.publish(event);
+
+  const snapshot = (version.snapshot as Record<string, unknown>) ?? {};
+  const structure = (snapshot.structure as Record<string, unknown>) ?? {};
+  const totals = (snapshot.totals as Record<string, unknown>) ?? {};
+  const payment = (snapshot.payment as Record<string, unknown>) ?? {};
+
+  if (dealContext) {
+    await emitEvent(EVENT_TOPICS.DEAL_VERSION_SELECTED, {
+      tenantId,
+      dealId,
+      worksheetId,
+      versionId,
+      selectedBy: userId,
+      customerId: dealContext.customerId,
+      vehicleId: dealContext.vehicleId,
+      salespersonId: worksheet.salespersonId ?? dealContext.salesPersonId ?? null,
+      structure,
+      totals,
+      payment,
+    });
+  }
 
   return mapWorksheet(worksheet);
 }
@@ -467,6 +570,24 @@ export async function recordOptimization(
     },
   });
 
+  const dealContext = await prisma.deal.findFirst({
+    where: { tenantId, id: dealId },
+    select: { customerId: true, salesPersonId: true },
+  });
+
+  if (dealContext) {
+    await emitEvent(EVENT_TOPICS.DEAL_OPTIMIZED, {
+      tenantId,
+      dealId,
+      worksheetId: optimization.worksheetId,
+      versionId: optimization.versionId,
+      optimizationId: optimization.id,
+      runBy: userId,
+      customerId: dealContext.customerId,
+      salespersonId: dealContext.salesPersonId ?? null,
+    });
+  }
+
   return mapOptimization(optimization);
 }
 
@@ -496,6 +617,25 @@ export async function recordCounterOffer(
       handledById: userId,
     },
   });
+
+  if (counter.outcome === 'ACCEPTED') {
+    const dealContext = await prisma.deal.findFirst({
+      where: { tenantId, id: dealId },
+      select: { customerId: true, salesPersonId: true },
+    });
+
+    if (dealContext) {
+      await emitEvent(EVENT_TOPICS.DEAL_COUNTER_ACCEPTED, {
+        tenantId,
+        dealId,
+        worksheetId: counter.worksheetId,
+        counterId: counter.id,
+        handledBy: userId,
+        customerId: dealContext.customerId,
+        salespersonId: dealContext.salesPersonId ?? null,
+      });
+    }
+  }
 
   return mapCounterOffer(counter);
 }
