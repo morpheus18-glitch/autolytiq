@@ -1335,45 +1335,53 @@ export class MemStorage implements IStorage {
   }
 
   async createVehicle(insertVehicle: InsertVehicle): Promise<Vehicle> {
-    try {
-      // Check if VIN already exists
-      if (insertVehicle.vin) {
-        const existing = await db.select()
-          .from(vehicles)
-          .where(eq(vehicles.vin, insertVehicle.vin))
-          .limit(1);
-        
-        if (existing.length > 0) {
-          const vehicle = this.normalizeVehicleRow(existing[0]);
-          this.vehicles.set(vehicle.id, vehicle);
-          return vehicle;
-        }
-      }
+    const now = new Date();
+    const preparedVehicle = {
+      ...insertVehicle,
+      uuid: insertVehicle.uuid ?? crypto.randomUUID(),
+      createdAt: insertVehicle.createdAt ?? now,
+      updatedAt: now,
+      description: insertVehicle.description ?? null,
+      imageUrl: insertVehicle.imageUrl ?? null,
+    } satisfies InsertVehicle;
 
-      const now = new Date();
+    try {
       const [created] = await db
         .insert(vehicles)
-        .values({
-          ...insertVehicle,
-          uuid: insertVehicle.uuid ?? crypto.randomUUID(),
-          createdAt: now,
-          updatedAt: now,
+        .values(preparedVehicle)
+        .onConflictDoNothing({
+          target: vehicles.vin,
         })
         .returning();
 
-      const vehicle = this.normalizeVehicleRow(created);
-      this.vehicles.set(vehicle.id, vehicle);
-      this.currentVehicleId = Math.max(this.currentVehicleId, vehicle.id + 1);
+      let vehicleRow = created;
 
-      await this.createActivity({
-        type: "vehicle_added",
-        description: `Added new vehicle: ${vehicle.year} ${vehicle.make} ${vehicle.model}`,
-        userId: 1
-      });
+      if (!vehicleRow && insertVehicle.vin) {
+        const [existing] = await db
+          .select()
+          .from(vehicles)
+          .where(eq(vehicles.vin, insertVehicle.vin))
+          .limit(1);
 
-      return vehicle;
+        vehicleRow = existing;
+      }
+
+      if (vehicleRow) {
+        const vehicle = this.normalizeVehicleRow(vehicleRow);
+        this.vehicles.set(vehicle.id, vehicle);
+        this.currentVehicleId = Math.max(this.currentVehicleId, vehicle.id + 1);
+
+        if (created) {
+          await this.createActivity({
+            type: "vehicle_added",
+            description: `Added new vehicle: ${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+            userId: 1
+          });
+        }
+
+        return vehicle;
+      }
     } catch (error: any) {
-      // Only log errors that are not duplicate key constraints (data already exists)
       if (error?.code !== '23505') {
         console.error('Error creating vehicle in database:', error);
       }
@@ -1381,12 +1389,8 @@ export class MemStorage implements IStorage {
 
     const fallbackId = this.currentVehicleId++;
     const fallbackVehicle: Vehicle = {
-      ...insertVehicle,
+      ...preparedVehicle,
       id: fallbackId,
-      uuid: insertVehicle.uuid ?? crypto.randomUUID(),
-      createdAt: new Date(),
-      description: insertVehicle.description || null,
-      imageUrl: insertVehicle.imageUrl || null
     };
     this.vehicles.set(fallbackId, fallbackVehicle);
 
