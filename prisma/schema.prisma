@@ -1234,6 +1234,7 @@ model DealVersion {
   optimizations       DealOptimization[]
   counterOffers       CounterOffer[]
   approvalPredictions ApprovalPrediction[]
+  creditSubmissions   CreditSubmissionDraft[]
 
   @@index([tenantId, dealId])
   @@index([tenantId, worksheetId])
@@ -1241,6 +1242,26 @@ model DealVersion {
   @@index([worksheetId, createdAt(sort: Desc)])
   @@index([snapshot], type: Gin)
   @@index([grossBreakdown], type: Gin)
+}
+
+model CreditSubmissionDraft {
+  id          String   @id @default(cuid())
+  tenantId    String
+  dealId      String
+  worksheetId String
+  versionId   String
+  payload     Json
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(6)
+
+  tenant    Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal      Deal          @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  worksheet DealWorksheet @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
+  version   DealVersion   @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, dealId])
+  @@unique([tenantId, versionId])
 }
 
 model DealOptimization {

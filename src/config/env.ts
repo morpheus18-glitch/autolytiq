@@ -33,6 +33,7 @@ const envSchema = z
     AWS_SECRET_ACCESS_KEY: z.string().min(1).optional(),
     S3_BUCKET: z.string().min(1).optional(),
     S3_CLOUDFRONT_URL: z.string().url().optional(),
+    S3_ENDPOINT: z.string().url().optional(),
     CLAMAV_HOST: z.string().optional(),
     CLAMAV_PORT: z.coerce.number().int().positive().optional(),
     PORT: z
