@@ -20,6 +20,12 @@ const tenantScopedModels = new Set<Prisma.ModelName>([
   Prisma.ModelName.Automation,
   Prisma.ModelName.AutomationExecution,
   Prisma.ModelName.ComplianceChecklist,
+  Prisma.ModelName.Deal,
+  Prisma.ModelName.DealWorksheet,
+  Prisma.ModelName.DealVersion,
+  Prisma.ModelName.DealOptimization,
+  Prisma.ModelName.CounterOffer,
+  Prisma.ModelName.ApprovalPrediction,
 ]);
 
 function withTenantGuard<T extends Prisma.MiddlewareParams>(params: T) {
