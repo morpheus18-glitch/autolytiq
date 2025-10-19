@@ -36,7 +36,10 @@
     "pino": "^9.3.2",
     "socket.io": "^4.7.5",
     "twilio": "^5.3.3",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "axios": "^1.6.8",
+    "ioredis": "^5.4.1",
+    "prom-client": "^15.1.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

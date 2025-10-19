@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: dms-production
+  labels:
+    app: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/autolytiq/dms-backend:latest
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: dms-config
+            - secretRef:
+                name: dms-secrets
+          env:
+            - name: DATABASE_URL
+              value: postgresql://$(DB_USER):$(DB_PASSWORD)@postgres-service:5432/$(DB_NAME)
+            - name: REDIS_URL
+              value: redis://:$(REDIS_PASSWORD)@redis-service:6379/0
+            - name: CLICKHOUSE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: dms-config
+                  key: CLICKHOUSE_HOST
+            - name: CLICKHOUSE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: dms-config
+                  key: CLICKHOUSE_PORT
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+      imagePullSecrets:
+        - name: registry-credentials
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: dms-production
+spec:
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+  type: ClusterIP

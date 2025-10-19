@@ -1,12 +1,12 @@
 import express from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import settingsRoutes from './settings.routes.js';
+import healthRoutes from './health.routes.js';
 import superAdminRoutes from './superadmin.routes.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import { tenantScope } from '../middleware/tenant.middleware.js';
 import { requireSuperAdmin } from '../middleware/superadmin.middleware.js';
 import { errorHandler } from '../lib/errors.js';
-import { getTenantContext } from '../lib/tenant-context.js';
 import crmRoutes from './crm.routes.js';
 import leadRoutes from './lead.routes.js';
 import fiRoutes from '../fi/fi.routes.js';
@@ -51,15 +51,7 @@ export async function registerApiRoutes(app: express.Application) {
   api.use(express.json({ limit: '4mb' }));
   api.use(express.urlencoded({ extended: true }));
 
-  api.get('/health', (req, res) => {
-    const tenantContext = getTenantContext();
-    res.json({
-      ok: true,
-      service: 'autolytiq-backend',
-      timestamp: new Date().toISOString(),
-      tenant: tenantContext?.tenantId ?? req.header('x-tenant-id') ?? null,
-    });
-  });
+  api.use(healthRoutes);
 
   const mlProxy = createProxyMiddleware({
     target: process.env.ML_SERVICE_URL ?? 'http://localhost:5001',
