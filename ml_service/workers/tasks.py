@@ -8,7 +8,8 @@ import subprocess
 from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Iterable, Optional
+from typing import Dict, Iterable, Optional
+from urllib.parse import urlparse
 
 import boto3
 import joblib
@@ -22,6 +23,7 @@ from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 from twilio.rest import Client as TwilioClient
 
+from config.env import ENV
 from workers.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
@@ -32,25 +34,40 @@ logger.setLevel(logging.INFO)
 # Helpers
 # ---------------------------------------------------------------------------
 
+def _database_credentials() -> Dict[str, str]:
+    parsed = urlparse(str(ENV.DATABASE_URL))
+    host = ENV.DB_HOST or (parsed.hostname or 'localhost')
+    port = ENV.DB_PORT or str(parsed.port or 5432)
+    database = ENV.DB_NAME or (parsed.path.lstrip('/') or 'dms')
+    user = ENV.DB_USER or (parsed.username or 'postgres')
+    password = ENV.DB_PASSWORD or (parsed.password or 'password')
+    return {
+        'host': host,
+        'port': port,
+        'database': database,
+        'user': user,
+        'password': password,
+    }
+
+
 def get_db_connection() -> psycopg2.extensions.connection:
-    """Create a new PostgreSQL connection using environment variables."""
-    return psycopg2.connect(
-        host=os.getenv('DB_HOST', 'localhost'),
-        port=os.getenv('DB_PORT', '5432'),
-        database=os.getenv('DB_NAME', 'dms'),
-        user=os.getenv('DB_USER', 'postgres'),
-        password=os.getenv('DB_PASSWORD', 'password'),
-    )
+    """Create a new PostgreSQL connection using configuration settings."""
+    return psycopg2.connect(**_database_credentials())
 
 
 def get_clickhouse_client() -> ClickHouseClient:
     """Return a ClickHouse client configured for analytics queries."""
+    host = ENV.CLICKHOUSE_HOST or 'localhost'
+    port = ENV.CLICKHOUSE_PORT or 9000
+    database = ENV.CLICKHOUSE_DB or 'analytics'
+    user = ENV.CLICKHOUSE_USER or 'default'
+    password = ENV.CLICKHOUSE_PASSWORD or ''
     return ClickHouseClient(
-        host=os.getenv('CLICKHOUSE_HOST', 'localhost'),
-        port=int(os.getenv('CLICKHOUSE_PORT', '9000')),
-        database=os.getenv('CLICKHOUSE_DB', 'analytics'),
-        user=os.getenv('CLICKHOUSE_USER', 'default'),
-        password=os.getenv('CLICKHOUSE_PASSWORD', ''),
+        host=host,
+        port=int(port),
+        database=database,
+        user=user,
+        password=password,
     )
 
 
@@ -129,14 +146,14 @@ def retrain_price_model(self: Task):
 
         logger.info("Model trained - MAE: $%.2f, R²: %.4f", mae, r2)
 
-        model_dir = os.getenv('MODEL_PATH', '/models')
+        model_dir = ENV.MODEL_PATH
         os.makedirs(model_dir, exist_ok=True)
         model_path = os.path.join(
             model_dir, f"price_model_{datetime.now().strftime('%Y%m%d')}.pkl"
         )
         joblib.dump(model, model_path)
 
-        s3_bucket = os.getenv('S3_BUCKET')
+        s3_bucket = ENV.S3_BUCKET
         if not s3_bucket:
             raise RuntimeError('S3_BUCKET environment variable is required for model upload')
 
@@ -501,16 +518,20 @@ def backup_database():
     logger.info("Starting database backup...")
 
     backup_file = f"/tmp/backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
-    db_host = os.getenv('DB_HOST', 'localhost')
-    db_name = os.getenv('DB_NAME', 'dms')
-    db_user = os.getenv('DB_USER', 'postgres')
-    db_password = os.getenv('DB_PASSWORD', 'password')
+    creds = _database_credentials()
+    db_host = creds['host']
+    db_name = creds['database']
+    db_user = creds['user']
+    db_password = creds['password']
+    db_port = creds['port']
 
     os.environ['PGPASSWORD'] = db_password
     dump_command = [
         'pg_dump',
         '-h',
         db_host,
+        '-p',
+        str(db_port),
         '-U',
         db_user,
         '-d',
@@ -529,7 +550,7 @@ def backup_database():
     backup_size = os.path.getsize(backup_file)
     logger.info("Backup file created: %s (%.2f MB)", backup_file, backup_size / 1024 / 1024)
 
-    s3_bucket = os.getenv('S3_BUCKET')
+    s3_bucket = ENV.S3_BUCKET
     if not s3_bucket:
         raise RuntimeError('S3_BUCKET environment variable is required for backups')
 
@@ -575,11 +596,11 @@ def send_email(to_emails: Iterable[str] | str, subject: str, body: str, attachme
     recipients = list(to_emails) if isinstance(to_emails, (list, tuple, set)) else [to_emails]
     logger.info("Sending email to %s", recipients)
 
-    smtp_host = os.getenv('SMTP_HOST', 'smtp.gmail.com')
-    smtp_port = int(os.getenv('SMTP_PORT', '587'))
-    smtp_user = os.getenv('SMTP_USER')
-    smtp_password = os.getenv('SMTP_PASSWORD')
-    from_email = os.getenv('SMTP_FROM_EMAIL') or smtp_user
+    smtp_host = ENV.SMTP_HOST
+    smtp_port = ENV.SMTP_PORT
+    smtp_user = ENV.SMTP_USER or None
+    smtp_password = ENV.SMTP_PASS or None
+    from_email = ENV.SENDGRID_FROM_EMAIL or smtp_user
 
     if not smtp_user or not smtp_password:
         raise RuntimeError('SMTP credentials must be configured for send_email task')
@@ -609,9 +630,9 @@ def send_sms(to_phone: str, message: str):
     """Send transactional SMS messages using Twilio."""
     logger.info("Sending SMS to %s", to_phone)
 
-    account_sid = os.getenv('TWILIO_ACCOUNT_SID')
-    auth_token = os.getenv('TWILIO_AUTH_TOKEN')
-    from_phone = os.getenv('TWILIO_PHONE_NUMBER')
+    account_sid = ENV.TWILIO_ACCOUNT_SID
+    auth_token = ENV.TWILIO_AUTH_TOKEN
+    from_phone = ENV.TWILIO_PHONE_NUMBER or None
 
     if not all([account_sid, auth_token, from_phone]):
         raise RuntimeError('Twilio credentials are not configured')
@@ -856,6 +877,13 @@ def update_dashboard_cache():
         conn.close()
 
 
+@celery_app.task
+def smoke_check():
+    """Trivial task used to verify Celery worker execution."""
+    logger.info("Executing smoke_check task")
+    return {'status': 'ok', 'checked_at': datetime.utcnow().isoformat()}
+
+
 __all__ = [
     'retrain_price_model',
     'update_lead_scores',
@@ -870,4 +898,5 @@ __all__ = [
     'sync_integrations',
     'cleanup_expired_sessions',
     'update_dashboard_cache',
+    'smoke_check',
 ]

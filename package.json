@@ -18,7 +18,17 @@
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "audit:infra": "tsx scripts/repo-audit.ts",
+    "scan:secrets": "./scripts/scan-secrets.sh",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "vite --config vite.config.ts --port 3000",
+    "dev:ml": "uvicorn ml_service.app.main:app --host 0.0.0.0 --port 8000",
+    "dev:worker:hp": "cd ml_service && celery -A workers.celery_app worker --queues=high_priority,default --loglevel=info --concurrency=2",
+    "dev:worker:ml": "cd ml_service && celery -A workers.celery_app worker --queues=ml_jobs --loglevel=info --concurrency=1",
+    "dev:beat": "cd ml_service && celery -A workers.celery_app beat --loglevel=info",
+    "dev:replit": "concurrently -k -n BE,FE,ML,HP,MLQ,BEAT \"npm:dev:backend\" \"npm:dev:frontend\" \"npm:dev:ml\" \"npm:dev:worker:hp\" \"npm:dev:worker:ml\" \"npm:dev:beat\"",
+    "prepare": "husky"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.679.0",
@@ -164,7 +174,12 @@
     "tsx": "^4.19.1",
     "typescript": "5.6.3",
     "vite": "^5.4.19",
-    "vitest": "^2.1.4"
+    "vitest": "^2.1.4",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "globby": "^14.0.2",
+    "husky": "^9.0.11",
+    "ts-node": "^10.9.2"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"

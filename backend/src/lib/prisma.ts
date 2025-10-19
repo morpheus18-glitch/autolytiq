@@ -1,5 +1,6 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import pino from 'pino';
+import { env } from '../config/env.js';
 import {
   getEffectiveTenantId,
   getTenantContext,
@@ -131,7 +132,7 @@ function tenantIsolationMiddleware(): Prisma.Middleware {
 }
 
 const logConfiguration: Prisma.LogDefinition[] =
-  process.env.NODE_ENV === 'development'
+  env.NODE_ENV === 'development'
     ? [
         { emit: 'event', level: 'query' },
         { emit: 'stdout', level: 'error' },
@@ -151,7 +152,7 @@ function createClient() {
 const globalWithPrisma = globalThis as GlobalPrisma;
 export const prisma = globalWithPrisma.prisma ?? createClient();
 
-if (process.env.NODE_ENV !== 'production') {
+if (env.NODE_ENV !== 'production') {
   globalWithPrisma.prisma = prisma;
 }
 

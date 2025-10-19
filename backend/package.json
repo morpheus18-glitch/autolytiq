@@ -39,7 +39,8 @@
     "zod": "^3.23.8",
     "axios": "^1.6.8",
     "ioredis": "^5.4.1",
-    "prom-client": "^15.1.0"
+    "prom-client": "^15.1.0",
+    "envalid": "^8.0.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
