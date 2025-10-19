@@ -3,6 +3,8 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import { env } from './config/env.js';
+import { metricsController, metricsMiddleware } from './lib/metrics.js';
 import { registerApiRoutes } from './routes/index.js';
 
 export async function createApp() {
@@ -12,14 +14,21 @@ export async function createApp() {
 
   app.use(
     cors({
-      origin: process.env.CORS_ORIGIN?.split(',') ?? ['http://localhost:5173'],
+      origin: env.SOCKET_IO_CORS_ORIGIN.split(',').map((entry) => entry.trim()),
       credentials: true,
     }),
   );
 
   app.use(helmet());
   app.use(compression());
-  app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+  app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+  app.use(metricsMiddleware);
+
+  app.get('/health', (_req, res) => {
+    res.json({ ok: true, timestamp: new Date().toISOString() });
+  });
+
+  app.get('/metrics', metricsController);
 
   await registerApiRoutes(app);
 

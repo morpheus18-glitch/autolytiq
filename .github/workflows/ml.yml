@@ -6,7 +6,7 @@ on:
     paths:
       - 'ml_service/**'
       - 'infrastructure/docker/Dockerfile.ml'
-      - '.github/workflows/ml-service.yml'
+      - '.github/workflows/ml.yml'
   pull_request:
     branches: [main]
     paths:

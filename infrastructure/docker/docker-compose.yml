@@ -69,17 +69,35 @@ services:
     container_name: dms-backend
     restart: always
     environment:
+      DEPLOY_MODE: self_hosted
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 5000
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@postgres:5432/${DB_NAME:-dms}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis123}@redis:6379/0
       CLICKHOUSE_HOST: clickhouse
       CLICKHOUSE_PORT: 9000
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-default}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse123}
       ML_SERVICE_URL: http://ml-service:8000
       JWT_SECRET: ${JWT_SECRET}
+      SESSION_SECRET: ${SESSION_SECRET}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      SENDGRID_FROM_EMAIL: ${SENDGRID_FROM_EMAIL}
+      SENDGRID_WEBHOOK_SIGNING_KEY: ${SENDGRID_WEBHOOK_SIGNING_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_MESSAGING_SERVICE_SID: ${TWILIO_MESSAGING_SERVICE_SID}
+      PEXELS_API_KEY: ${PEXELS_API_KEY}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
       S3_BUCKET: ${S3_BUCKET}
+      S3_REGION: ${S3_REGION}
+      S3_ENDPOINT: ${S3_ENDPOINT}
     volumes:
       - ./uploads:/app/uploads
     ports:
@@ -124,12 +142,32 @@ services:
     container_name: dms-ml-service
     restart: always
     environment:
+      DEPLOY_MODE: self_hosted
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@postgres:5432/${DB_NAME:-dms}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis123}@redis:6379/0
       MODEL_PATH: /models
+      JWT_SECRET: ${JWT_SECRET}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      SENDGRID_FROM_EMAIL: ${SENDGRID_FROM_EMAIL}
+      SENDGRID_WEBHOOK_SIGNING_KEY: ${SENDGRID_WEBHOOK_SIGNING_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_MESSAGING_SERVICE_SID: ${TWILIO_MESSAGING_SERVICE_SID}
+      PEXELS_API_KEY: ${PEXELS_API_KEY}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
       S3_BUCKET: ${S3_BUCKET}
+      S3_REGION: ${S3_REGION}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: 9000
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-default}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse123}
     volumes:
       - ./models:/models
     ports:
@@ -155,20 +193,32 @@ services:
     restart: always
     command: celery -A workers.celery_app worker --queues=high_priority,default --loglevel=info --concurrency=4 --max-tasks-per-child=100
     environment:
+      DEPLOY_MODE: self_hosted
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@postgres:5432/${DB_NAME:-dms}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis123}@redis:6379/0
       CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: 9000
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-default}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse123}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       S3_BUCKET: ${S3_BUCKET}
+      S3_REGION: ${S3_REGION}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      AWS_REGION: ${AWS_REGION}
+      JWT_SECRET: ${JWT_SECRET}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      SENDGRID_FROM_EMAIL: ${SENDGRID_FROM_EMAIL}
+      SENDGRID_WEBHOOK_SIGNING_KEY: ${SENDGRID_WEBHOOK_SIGNING_KEY}
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT}
       SMTP_USER: ${SMTP_USER}
-      SMTP_PASSWORD: ${SMTP_PASSWORD}
-      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
+      SMTP_PASS: ${SMTP_PASS}
       TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
       TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_MESSAGING_SERVICE_SID: ${TWILIO_MESSAGING_SERVICE_SID}
       TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
+      PEXELS_API_KEY: ${PEXELS_API_KEY}
     depends_on:
       - postgres
       - redis
@@ -184,11 +234,31 @@ services:
     restart: always
     command: celery -A workers.celery_app worker --queues=ml_jobs --loglevel=info --concurrency=2 --max-tasks-per-child=10
     environment:
+      DEPLOY_MODE: self_hosted
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@postgres:5432/${DB_NAME:-dms}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis123}@redis:6379/0
+      JWT_SECRET: ${JWT_SECRET}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      SENDGRID_FROM_EMAIL: ${SENDGRID_FROM_EMAIL}
+      SENDGRID_WEBHOOK_SIGNING_KEY: ${SENDGRID_WEBHOOK_SIGNING_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_MESSAGING_SERVICE_SID: ${TWILIO_MESSAGING_SERVICE_SID}
+      PEXELS_API_KEY: ${PEXELS_API_KEY}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
       S3_BUCKET: ${S3_BUCKET}
+      S3_REGION: ${S3_REGION}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: 9000
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-default}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse123}
     volumes:
       - ./models:/models
     depends_on:
@@ -205,11 +275,31 @@ services:
     restart: always
     command: celery -A workers.celery_app worker --queues=low_priority --loglevel=info --concurrency=2 --max-tasks-per-child=100
     environment:
+      DEPLOY_MODE: self_hosted
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@postgres:5432/${DB_NAME:-dms}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis123}@redis:6379/0
+      JWT_SECRET: ${JWT_SECRET}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      SENDGRID_FROM_EMAIL: ${SENDGRID_FROM_EMAIL}
+      SENDGRID_WEBHOOK_SIGNING_KEY: ${SENDGRID_WEBHOOK_SIGNING_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_MESSAGING_SERVICE_SID: ${TWILIO_MESSAGING_SERVICE_SID}
+      PEXELS_API_KEY: ${PEXELS_API_KEY}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
       S3_BUCKET: ${S3_BUCKET}
+      S3_REGION: ${S3_REGION}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: 9000
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-default}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse123}
     depends_on:
       - postgres
       - redis
@@ -224,8 +314,27 @@ services:
     restart: always
     command: celery -A workers.celery_app beat --loglevel=info
     environment:
+      DEPLOY_MODE: self_hosted
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@postgres:5432/${DB_NAME:-dms}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis123}@redis:6379/0
+      JWT_SECRET: ${JWT_SECRET}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      SENDGRID_FROM_EMAIL: ${SENDGRID_FROM_EMAIL}
+      SENDGRID_WEBHOOK_SIGNING_KEY: ${SENDGRID_WEBHOOK_SIGNING_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_MESSAGING_SERVICE_SID: ${TWILIO_MESSAGING_SERVICE_SID}
+      PEXELS_API_KEY: ${PEXELS_API_KEY}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      S3_BUCKET: ${S3_BUCKET}
+      S3_REGION: ${S3_REGION}
+      S3_ENDPOINT: ${S3_ENDPOINT}
     depends_on:
       - postgres
       - redis

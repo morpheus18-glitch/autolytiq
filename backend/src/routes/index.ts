@@ -14,6 +14,7 @@ import pipelineRoutes from '../modules/pipeline/routes.js';
 import taskRoutes from '../modules/tasks/routes.js';
 import notificationRoutes from '../modules/notifications/routes.js';
 import transportRoutes from '../modules/transport/routes.js';
+import { env } from '../config/env.js';
 
 async function loadOptionalRoutes(): Promise<express.Router[]> {
   const optionalImports = [
@@ -36,7 +37,7 @@ async function loadOptionalRoutes(): Promise<express.Router[]> {
         routers.push(router);
       }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
+      if (env.NODE_ENV === 'development') {
         console.warn(`Optional route module ${candidate.path} unavailable:`, error instanceof Error ? error.message : error);
       }
     }
@@ -54,7 +55,7 @@ export async function registerApiRoutes(app: express.Application) {
   api.use(healthRoutes);
 
   const mlProxy = createProxyMiddleware({
-    target: process.env.ML_SERVICE_URL ?? 'http://localhost:5001',
+    target: env.ML_SERVICE_URL,
     changeOrigin: true,
     pathRewrite: { '^/ml': '/api/ml' },
   });

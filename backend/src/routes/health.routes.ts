@@ -1,38 +1,15 @@
 import express from 'express';
 import axios from 'axios';
-import Redis from 'ioredis';
 import { PrismaClient } from '@prisma/client';
-import client from 'prom-client';
+import { env } from '../config/env.js';
+import { metricsController } from '../lib/metrics.js';
+import { createCacheClient } from '../lib/cache.js';
 
 const router = express.Router();
 const prisma = new PrismaClient();
-const redisUrl = process.env.REDIS_URL ?? 'redis://localhost:6379/0';
-const clickhouseHost = process.env.CLICKHOUSE_HOST ?? 'localhost';
-const clickhousePort = process.env.CLICKHOUSE_PORT ?? '8123';
-const mlServiceUrl = process.env.ML_SERVICE_URL ?? 'http://localhost:8000';
-
-const register = new client.Registry();
-register.setDefaultLabels({ service: 'autolytiq-backend' });
-client.collectDefaultMetrics({ register });
-
-const httpRequestDuration = new client.Histogram({
-  name: 'http_request_duration_seconds',
-  help: 'Duration of HTTP requests in seconds',
-  labelNames: ['method', 'route', 'status_code'],
-  buckets: [0.05, 0.1, 0.3, 0.5, 1, 2, 5],
-});
-register.registerMetric(httpRequestDuration);
-
-router.use((req, res, next) => {
-  const end = httpRequestDuration.startTimer({ method: req.method, route: req.path });
-  res.on('finish', () => {
-    end({ status_code: res.statusCode });
-  });
-  next();
-});
 
 router.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ ok: true, timestamp: new Date().toISOString() });
 });
 
 router.get('/health/live', (_req, res) => {
@@ -43,8 +20,8 @@ router.get('/health/ready', async (_req, res) => {
   const checks: Record<string, 'ok' | 'error'> = {
     database: 'error',
     redis: 'error',
-    clickhouse: 'error',
-    mlService: 'error',
+    clickhouse: 'ok',
+    mlService: 'ok',
   };
 
   let ready = true;
@@ -54,35 +31,49 @@ router.get('/health/ready', async (_req, res) => {
     checks.database = 'ok';
   } catch (error) {
     ready = false;
+    checks.database = 'error';
   }
 
-  const redis = new Redis(redisUrl, { lazyConnect: true });
+  const redis = createCacheClient();
   try {
     await redis.connect();
     await redis.ping();
     checks.redis = 'ok';
   } catch (error) {
     ready = false;
+    checks.redis = 'error';
   } finally {
-    redis.disconnect();
-  }
-
-  try {
-    const clickhouseUrl = `http://${clickhouseHost}:${clickhousePort}/ping`;
-    const response = await axios.get(clickhouseUrl, { timeout: 2000 });
-    checks.clickhouse = response.status === 200 && response.data === 'Ok.' ? 'ok' : 'error';
-    if (checks.clickhouse === 'error') {
-      ready = false;
+    try {
+      if (redis.status !== 'end') {
+        await redis.quit();
+      }
+    } catch (quitError) {
+      redis.disconnect();
+      if (env.NODE_ENV === 'development') {
+        console.warn('Failed to quit Redis client during health check:', quitError);
+      }
     }
-  } catch (error) {
-    ready = false;
+  }
+
+  const clickhouseHost = env.CLICKHOUSE_HOST;
+  if (clickhouseHost) {
+    try {
+      const clickhouseUrl = `http://${clickhouseHost}:${env.CLICKHOUSE_PORT}/ping`;
+      const response = await axios.get(clickhouseUrl, { timeout: 2000 });
+      checks.clickhouse = response.status === 200 && response.data === 'Ok.' ? 'ok' : 'error';
+      if (checks.clickhouse === 'error') {
+        ready = false;
+      }
+    } catch (error) {
+      ready = false;
+      checks.clickhouse = 'error';
+    }
   }
 
   try {
-    const response = await axios.get(`${mlServiceUrl}/health`, { timeout: 2000 });
+    const response = await axios.get(`${env.ML_SERVICE_URL.replace(/\/$/, '')}/health`, { timeout: 2000 });
     checks.mlService = response.status === 200 ? 'ok' : 'error';
   } catch (error) {
-    // ML service is optional; do not fail readiness but report state
     checks.mlService = 'error';
   }
 
@@ -103,7 +94,7 @@ router.get('/health/detailed', async (_req, res) => {
 
   try {
     const [stats] = await prisma.$queryRaw<Array<{ tenants: bigint; users: bigint; deals: bigint }>>`
-      SELECT 
+      SELECT
         (SELECT COUNT(*) FROM tenants) as tenants,
         (SELECT COUNT(*) FROM users) as users,
         (SELECT COUNT(*) FROM deals) as deals
@@ -120,13 +111,6 @@ router.get('/health/detailed', async (_req, res) => {
   res.json(details);
 });
 
-router.get('/metrics', async (_req, res) => {
-  try {
-    res.setHeader('Content-Type', register.contentType);
-    res.send(await register.metrics());
-  } catch (error) {
-    res.status(500).send('# Metrics collection failed');
-  }
-});
+router.get('/metrics', metricsController);
 
 export default router;

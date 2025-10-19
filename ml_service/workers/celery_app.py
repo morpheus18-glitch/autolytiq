@@ -1,21 +1,15 @@
 """Celery application configuration for Autolytiq background workers."""
 from __future__ import annotations
 
-import os
-
 from celery import Celery
+
+from config.env import ENV
 
 from .schedules import BEAT_SCHEDULE
 
 
 def _redis_url() -> str:
-    password = os.getenv('REDIS_PASSWORD')
-    url = os.getenv('REDIS_URL')
-    if url:
-        return url
-    if password:
-        return f"redis://:{password}@localhost:6379/0"
-    return 'redis://localhost:6379/0'
+    return str(ENV.REDIS_URL)
 
 
 celery_app = Celery(

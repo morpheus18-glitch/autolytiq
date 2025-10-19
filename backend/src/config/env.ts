@@ -1,58 +1,85 @@
-import { config } from 'dotenv';
-import { z } from 'zod';
+import 'dotenv/config';
+import { cleanEnv, num, str, url } from 'envalid';
+import { DEPLOY_MODE, FEATURE_CLICKHOUSE } from './flags.js';
 
-config();
-
-const keyTransformer = z
-  .string()
-  .min(1)
-  .transform((value) => value.replace(/\\n/g, '\n'));
-
-const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  PORT: z.coerce.number().int().positive().max(65535).default(5000),
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  DIRECT_URL: z.string().min(1).optional(),
-  JWT_PUBLIC_KEY: keyTransformer,
-  JWT_PRIVATE_KEY: keyTransformer,
-  JWT_ISSUER: z.string().min(1),
-  JWT_AUDIENCE: z.string().min(1),
-  SENDGRID_API_KEY: z.string().min(1),
-  SENDGRID_FROM: z.string().email(),
-  TWILIO_ACCOUNT_SID: z.string().min(1),
-  TWILIO_AUTH_TOKEN: z.string().min(1),
-  TWILIO_MESSAGING_SERVICE_SID: z.string().min(1),
-  TWILIO_CALLER_ID: z.string().min(1),
-  SOCKET_IO_CORS_ORIGIN: z.string().min(1),
-  APP_URL: z.string().url(),
-  API_URL: z.string().url(),
-  ML_SERVICE_URL: z.string().url().optional(),
-  REDIS_URL: z.string().optional(),
-  SESSION_SECRET: z.string().min(32),
-  AWS_REGION: z.string().min(1, 'AWS_REGION is required for S3 operations').optional(),
-  AWS_ACCESS_KEY_ID: z.string().min(1, 'AWS_ACCESS_KEY_ID is required for S3 operations').optional(),
-  AWS_SECRET_ACCESS_KEY: z.string().min(1, 'AWS_SECRET_ACCESS_KEY is required for S3 operations').optional(),
-  S3_BUCKET: z.string().min(1, 'S3_BUCKET is required for S3 operations').optional(),
-  S3_CLOUDFRONT_URL: z.string().url().optional(),
-  CLAMAV_HOST: z.string().optional(),
-  CLAMAV_PORT: z.coerce.number().int().positive().optional(),
-  DOCUSIGN_BASE_URL: z.string().url().optional(),
-  DOCUSIGN_INTEGRATOR_KEY: z.string().min(1).optional(),
-  DOCUSIGN_USER_ID: z.string().min(1).optional(),
-  DOCUSIGN_AUTH_JWT: z.string().min(1).optional(),
-  DOCUSIGN_ACCOUNT_ID: z.string().min(1).optional(),
-  DOCUSIGN_REDIRECT_URL: z.string().url().optional(),
-  CREDIT_ENCRYPTION_KEY: z.string().min(1).optional(),
-  EXPERIAN_API_URL: z.string().url().optional(),
-  EXPERIAN_API_KEY: z.string().min(1).optional(),
-  EXPERIAN_CLIENT_ID: z.string().min(1).optional(),
-  EXPERIAN_CLIENT_SECRET: z.string().min(1).optional(),
-  TRANSUNION_API_URL: z.string().url().optional(),
-  TRANSUNION_API_KEY: z.string().min(1).optional(),
-  EQUIFAX_API_URL: z.string().url().optional(),
-  EQUIFAX_API_KEY: z.string().min(1).optional(),
+const ENV = cleanEnv(process.env, {
+  NODE_ENV: str({ choices: ['development', 'production', 'test'], default: 'development' }),
+  DEPLOY_MODE: str({ choices: ['replit', 'self_hosted'], default: 'replit' }),
+  PORT: num({ default: 5000 }),
+  DATABASE_URL: str(),
+  DIRECT_URL: str({ default: undefined }),
+  REDIS_URL: str(),
+  JWT_SECRET: str(),
+  JWT_PUBLIC_KEY: str({ default: undefined }),
+  JWT_PRIVATE_KEY: str({ default: undefined }),
+  JWT_ISSUER: str({ default: 'autolytiq' }),
+  JWT_AUDIENCE: str({ default: 'autolytiq-clients' }),
+  SENDGRID_API_KEY: str(),
+  SENDGRID_FROM_EMAIL: str(),
+  SENDGRID_WEBHOOK_SIGNING_KEY: str(),
+  SMTP_HOST: str({ default: 'smtp.sendgrid.net' }),
+  SMTP_PORT: num({ default: 587 }),
+  SMTP_USER: str({ default: '' }),
+  SMTP_PASS: str({ default: '' }),
+  TWILIO_ACCOUNT_SID: str(),
+  TWILIO_AUTH_TOKEN: str(),
+  TWILIO_MESSAGING_SERVICE_SID: str(),
+  TWILIO_CALLER_ID: str({ default: '' }),
+  PEXELS_API_KEY: str(),
+  AWS_ACCESS_KEY_ID: str(),
+  AWS_SECRET_ACCESS_KEY: str(),
+  AWS_REGION: str({ default: '' }),
+  S3_BUCKET: str(),
+  S3_REGION: str({ default: '' }),
+  S3_ENDPOINT: str({ default: '' }),
+  S3_CLOUDFRONT_URL: str({ default: '' }),
+  APP_URL: url({ default: 'http://localhost:3000' }),
+  API_URL: url({ default: 'http://localhost:5000/api' }),
+  ML_SERVICE_URL: url({ default: 'http://localhost:8000' }),
+  SOCKET_IO_CORS_ORIGIN: str({ default: 'http://localhost:5173' }),
+  SESSION_SECRET: str(),
+  CLICKHOUSE_HOST: str({ default: '' }),
+  CLICKHOUSE_PORT: num({ default: 8123 }),
+  CLICKHOUSE_USER: str({ default: '' }),
+  CLICKHOUSE_PASSWORD: str({ default: '' }),
 });
 
-export type AppEnvironment = z.infer<typeof envSchema>;
+const missingForSelfHosted: string[] = [];
 
-export const env = envSchema.parse(process.env);
+if (ENV.DEPLOY_MODE === 'self_hosted') {
+  for (const key of [
+    'SENDGRID_API_KEY',
+    'SENDGRID_FROM_EMAIL',
+    'SENDGRID_WEBHOOK_SIGNING_KEY',
+    'TWILIO_ACCOUNT_SID',
+    'TWILIO_AUTH_TOKEN',
+    'TWILIO_MESSAGING_SERVICE_SID',
+    'PEXELS_API_KEY',
+    'AWS_ACCESS_KEY_ID',
+    'AWS_SECRET_ACCESS_KEY',
+    'S3_BUCKET',
+  ] as const) {
+    if (!ENV[key]) {
+      missingForSelfHosted.push(key);
+    }
+  }
+}
+
+const clickhouseConfigured = FEATURE_CLICKHOUSE || ENV.CLICKHOUSE_HOST.length > 0;
+if (clickhouseConfigured) {
+  for (const key of ['CLICKHOUSE_PORT', 'CLICKHOUSE_USER'] as const) {
+    if (!ENV[key]) {
+      missingForSelfHosted.push(key);
+    }
+  }
+}
+
+if (missingForSelfHosted.length > 0) {
+  throw new Error(
+    `Missing required environment variables for ${DEPLOY_MODE} deploy mode: ${missingForSelfHosted.join(', ')}`,
+  );
+}
+
+export type Environment = Readonly<typeof ENV>;
+export { ENV };
+export const env = ENV;
