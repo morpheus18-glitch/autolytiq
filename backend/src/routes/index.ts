@@ -10,6 +10,10 @@ import { getTenantContext } from '../lib/tenant-context.js';
 import crmRoutes from './crm.routes.js';
 import leadRoutes from './lead.routes.js';
 import fiRoutes from '../fi/fi.routes.js';
+import pipelineRoutes from '../modules/pipeline/routes.js';
+import taskRoutes from '../modules/tasks/routes.js';
+import notificationRoutes from '../modules/notifications/routes.js';
+import transportRoutes from '../modules/transport/routes.js';
 
 async function loadOptionalRoutes(): Promise<express.Router[]> {
   const optionalImports = [
@@ -75,6 +79,10 @@ export async function registerApiRoutes(app: express.Application) {
   api.use('/leads', leadRoutes);
   api.use('/crm', crmRoutes);
   api.use('/fi', fiRoutes);
+  api.use('/pipeline', pipelineRoutes);
+  api.use('/tasks', taskRoutes);
+  api.use('/notifications', notificationRoutes);
+  api.use('/transport', transportRoutes);
 
   const optionalRouters = await loadOptionalRoutes();
   for (const router of optionalRouters) {

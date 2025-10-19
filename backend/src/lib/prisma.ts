@@ -43,6 +43,13 @@ const TENANT_SCOPED_MODELS: Prisma.ModelName[] = [
   'Notification',
   'AuditLog',
   'SystemSetting',
+  'WorkflowDefinition',
+  'WorkflowStage',
+  'VehicleWorkflow',
+  'StageTransition',
+  'WorkflowTask',
+  'TransportOrder',
+  'PipelineAggregate',
 ];
 
 function shouldIsolate(model?: Prisma.ModelName) {

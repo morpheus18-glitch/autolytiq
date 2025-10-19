@@ -1,10 +1,16 @@
 import bcrypt from 'bcrypt';
 import {
   AccountType,
+  AppraisalConditionGrade,
+  AppraisalStatus,
+  AuctionPurchaseStatus,
   CommissionStatus,
   CommissionType,
+  CounterOfferOutcome,
+  CreditTier,
   CustomerVehicleStatus,
-  DealStatus,
+  RetailDealStatus,
+  DealStatus as WorksheetStatus,
   DealType,
   ActivityStatus,
   ActivityType,
@@ -23,19 +29,30 @@ import {
   LineType,
   NormalBalance,
   NotificationType,
+  Recommendation,
+  PriceChangeType,
   PreferredContactMethod,
+  ResidenceType,
+  Prisma,
   PrismaClient,
+  ReconItemStatus,
   ReportType,
   TenantPlan,
   TenantStatus,
+  VehicleAcquisitionType,
   UserRole,
   UserStatus,
   VehicleHistoryType,
+  WholesaleListingStatus,
+  MarketCompSource,
   VehicleStatus,
   VehicleType,
+  WorkflowTaskStatus,
+  WorkflowTaskType,
+  TransportOrderStatus,
 } from '@prisma/client';
 import { faker } from '@faker-js/faker';
-import { addDays, addMonths, eachMonthOfInterval, endOfMonth, startOfMonth, subDays, subYears } from 'date-fns';
+import { addDays, addHours, addMonths, eachMonthOfInterval, endOfMonth, startOfMonth, subDays, subYears } from 'date-fns';
 
 const prisma = new PrismaClient();
 
@@ -104,11 +121,23 @@ async function resetTenantData(tenantId: string) {
   await prisma.sMSTemplate.deleteMany({ where: { tenantId } });
   await prisma.automationExecution.deleteMany({ where: { tenantId } });
   await prisma.automation.deleteMany({ where: { tenantId } });
+  await prisma.pipelineAggregate.deleteMany({ where: { tenantId } });
+  await prisma.transportOrder.deleteMany({ where: { tenantId } });
+  await prisma.workflowTask.deleteMany({ where: { tenantId } });
+  await prisma.stageTransition.deleteMany({ where: { tenantId } });
+  await prisma.vehicleWorkflow.deleteMany({ where: { tenantId } });
+  await prisma.workflowStage.deleteMany({ where: { tenantId } });
+  await prisma.workflowDefinition.deleteMany({ where: { tenantId } });
   await prisma.notification.deleteMany({ where: { tenantId } });
   await prisma.report.deleteMany({ where: { tenantId } });
   await prisma.commission.deleteMany({ where: { tenantId } });
   await prisma.journalEntryLine.deleteMany({ where: { tenantId } });
   await prisma.journalEntry.deleteMany({ where: { tenantId } });
+  await prisma.approvalPrediction.deleteMany({ where: { tenantId } });
+  await prisma.counterOffer.deleteMany({ where: { tenantId } });
+  await prisma.dealOptimization.deleteMany({ where: { tenantId } });
+  await prisma.dealVersion.deleteMany({ where: { tenantId } });
+  await prisma.dealWorksheet.deleteMany({ where: { tenantId } });
   await prisma.dealDocument.deleteMany({ where: { deal: { tenantId } } });
   await prisma.contract.deleteMany({ where: { tenantId } });
   await prisma.lenderSubmission.deleteMany({ where: { tenantId } });
@@ -116,6 +145,12 @@ async function resetTenantData(tenantId: string) {
   await prisma.fundingChecklist.deleteMany({ where: { tenantId } });
   await prisma.dealJacket.deleteMany({ where: { tenantId } });
   await prisma.deal.deleteMany({ where: { tenantId } });
+  await prisma.marketComp.deleteMany({ where: { tenantId } });
+  await prisma.wholesaleListing.deleteMany({ where: { tenantId } });
+  await prisma.auctionPurchase.deleteMany({ where: { tenantId } });
+  await prisma.priceHistory.deleteMany({ where: { tenantId } });
+  await prisma.reconItem.deleteMany({ where: { tenantId } });
+  await prisma.appraisal.deleteMany({ where: { tenantId } });
   await prisma.vehicleHistory.deleteMany({ where: { tenantId } });
   await prisma.vehicle.deleteMany({ where: { tenantId } });
   await prisma.customerVehicle.deleteMany({ where: { tenantId } });
@@ -171,6 +206,144 @@ async function main() {
   });
 
   const passwordHash = await bcrypt.hash(DEVELOPER_PASSWORD, 12);
+
+  const rateSheetEffectiveFrom = subDays(new Date(), 14);
+  const rateSheetEffectiveTo = addMonths(new Date(), 2);
+
+  const [sunriseCreditUnion, horizonAutoFinance] = await Promise.all([
+    prisma.lender.upsert({
+      where: { id: 'sunrise-credit-union' },
+      update: {
+        name: 'Sunrise Credit Union',
+        type: 'Credit Union',
+        apiProvider: 'manual',
+        apiCredentials: {
+          supportEmail: 'deskingsupport@sunrisecredit.demo',
+          rateSheets: [
+            {
+              program: 'Standard Retail',
+              effectiveFrom: rateSheetEffectiveFrom.toISOString(),
+              effectiveTo: rateSheetEffectiveTo.toISOString(),
+              tiers: [
+                { tier: 'TIER_1', maxTerm: 72, apr: 3.49, reserve: 0.02 },
+                { tier: 'TIER_2', maxTerm: 72, apr: 4.19, reserve: 0.0175 },
+              ],
+            },
+            {
+              program: 'Extended Term',
+              effectiveFrom: rateSheetEffectiveFrom.toISOString(),
+              effectiveTo: rateSheetEffectiveTo.toISOString(),
+              tiers: [
+                { tier: 'TIER_1', maxTerm: 84, apr: 3.99, reserve: 0.0185 },
+                { tier: 'TIER_2', maxTerm: 84, apr: 4.59, reserve: 0.015 },
+              ],
+            },
+          ],
+        },
+        tierRange: '640-850',
+        maxTerm: 84,
+        maxLtv: new Prisma.Decimal('1.25'),
+        minCreditScore: 640,
+        maxCreditScore: 850,
+        applicationFee: new Prisma.Decimal('95.00'),
+        isActive: true,
+      },
+      create: {
+        id: 'sunrise-credit-union',
+        tenantId: tenant.id,
+        name: 'Sunrise Credit Union',
+        type: 'Credit Union',
+        apiProvider: 'manual',
+        apiCredentials: {
+          supportEmail: 'deskingsupport@sunrisecredit.demo',
+          rateSheets: [
+            {
+              program: 'Standard Retail',
+              effectiveFrom: rateSheetEffectiveFrom.toISOString(),
+              effectiveTo: rateSheetEffectiveTo.toISOString(),
+              tiers: [
+                { tier: 'TIER_1', maxTerm: 72, apr: 3.49, reserve: 0.02 },
+                { tier: 'TIER_2', maxTerm: 72, apr: 4.19, reserve: 0.0175 },
+              ],
+            },
+            {
+              program: 'Extended Term',
+              effectiveFrom: rateSheetEffectiveFrom.toISOString(),
+              effectiveTo: rateSheetEffectiveTo.toISOString(),
+              tiers: [
+                { tier: 'TIER_1', maxTerm: 84, apr: 3.99, reserve: 0.0185 },
+                { tier: 'TIER_2', maxTerm: 84, apr: 4.59, reserve: 0.015 },
+              ],
+            },
+          ],
+        },
+        tierRange: '640-850',
+        maxTerm: 84,
+        maxLtv: new Prisma.Decimal('1.25'),
+        minCreditScore: 640,
+        maxCreditScore: 850,
+        applicationFee: new Prisma.Decimal('95.00'),
+      },
+    }),
+    prisma.lender.upsert({
+      where: { id: 'horizon-auto-finance' },
+      update: {
+        name: 'Horizon Auto Finance',
+        type: 'Bank',
+        apiProvider: 'manual',
+        apiCredentials: {
+          supportEmail: 'programs@horizonauto.demo',
+          rateSheets: [
+            {
+              program: 'Prime Flex',
+              effectiveFrom: rateSheetEffectiveFrom.toISOString(),
+              effectiveTo: rateSheetEffectiveTo.toISOString(),
+              tiers: [
+                { tier: 'TIER_1', maxTerm: 72, apr: 3.79, reserve: 0.018 },
+                { tier: 'TIER_2', maxTerm: 72, apr: 4.35, reserve: 0.015 },
+                { tier: 'TIER_3', maxTerm: 72, apr: 5.25, reserve: 0.0125 },
+              ],
+            },
+          ],
+        },
+        tierRange: '600-780',
+        maxTerm: 75,
+        maxLtv: new Prisma.Decimal('1.20'),
+        minCreditScore: 600,
+        maxCreditScore: 780,
+        applicationFee: new Prisma.Decimal('125.00'),
+        isActive: true,
+      },
+      create: {
+        id: 'horizon-auto-finance',
+        tenantId: tenant.id,
+        name: 'Horizon Auto Finance',
+        type: 'Bank',
+        apiProvider: 'manual',
+        apiCredentials: {
+          supportEmail: 'programs@horizonauto.demo',
+          rateSheets: [
+            {
+              program: 'Prime Flex',
+              effectiveFrom: rateSheetEffectiveFrom.toISOString(),
+              effectiveTo: rateSheetEffectiveTo.toISOString(),
+              tiers: [
+                { tier: 'TIER_1', maxTerm: 72, apr: 3.79, reserve: 0.018 },
+                { tier: 'TIER_2', maxTerm: 72, apr: 4.35, reserve: 0.015 },
+                { tier: 'TIER_3', maxTerm: 72, apr: 5.25, reserve: 0.0125 },
+              ],
+            },
+          ],
+        },
+        tierRange: '600-780',
+        maxTerm: 75,
+        maxLtv: new Prisma.Decimal('1.20'),
+        minCreditScore: 600,
+        maxCreditScore: 780,
+        applicationFee: new Prisma.Decimal('125.00'),
+      },
+    }),
+  ]);
 
   const userSeed = [
     {
@@ -268,6 +441,45 @@ async function main() {
   const salesTeam = usersByRole[UserRole.SALES] ?? [];
   const financeManagers = usersByRole[UserRole.FINANCE] ?? [];
   const adminUser = users.find((user) => user.email === DEVELOPER_EMAIL) ?? users[0];
+
+  const defaultWorkflowStages: Array<{ key: string; name: string; slaHours?: number | null; wipLimit?: number | null }> = [
+    { key: 'ACQUISITION', name: 'Acquisition' },
+    { key: 'INTAKE', name: 'Intake' },
+    { key: 'INSPECTION', name: 'Inspection' },
+    { key: 'RECON', name: 'Reconditioning', slaHours: 72 },
+    { key: 'DETAIL', name: 'Detail', slaHours: 24 },
+    { key: 'PHOTOS', name: 'Photos', slaHours: 24 },
+    { key: 'TRANSPORT', name: 'Transport', slaHours: 72 },
+    { key: 'PRICING_SIGNOFF', name: 'Pricing Signoff' },
+    { key: 'LISTING', name: 'Listing' },
+    { key: 'FRONTLINE_READY', name: 'Frontline Ready' },
+    { key: 'SOLD', name: 'Sold' },
+  ];
+
+  const workflowDefinition = await prisma.workflowDefinition.create({
+    data: {
+      tenantId: tenant.id,
+      name: 'Default Vehicle Pipeline',
+      stages: {
+        create: defaultWorkflowStages.map((stage, index) => ({
+          tenantId: tenant.id,
+          key: stage.key,
+          name: stage.name,
+          position: index + 1,
+          slaHours: stage.slaHours ?? null,
+          wipLimit: stage.wipLimit ?? null,
+        })),
+      },
+    },
+    include: { stages: true },
+  });
+
+  const pipelineStageMap = new Map(workflowDefinition.stages.map((stage) => [stage.key, stage]));
+  const acquisitionStage = pipelineStageMap.get('ACQUISITION');
+  if (!acquisitionStage) {
+    throw new Error('Default pipeline is missing ACQUISITION stage');
+  }
+  const pipelineStageKeys = defaultWorkflowStages.map((stage) => stage.key);
 
   const customers = [] as Awaited<ReturnType<typeof prisma.customer.create>>[];
   for (let i = 0; i < 60; i += 1) {
@@ -723,6 +935,37 @@ async function main() {
       from: subYears(new Date(), 2),
       to: new Date(),
     });
+    const acquisitionType = i % 4 === 0
+      ? VehicleAcquisitionType.AUCTION
+      : i % 4 === 1
+        ? VehicleAcquisitionType.TRADE_IN
+        : i % 4 === 2
+          ? VehicleAcquisitionType.PURCHASE
+          : VehicleAcquisitionType.CONSIGNMENT;
+    const acquisitionDate = faker.date.soon({ days: 10, refDate: received });
+    const basePrice = Number(listPrice ?? invoiceCost ?? msrp ?? '25000');
+    const acquisitionCost = Number(invoiceCost ?? msrp ?? listPrice ?? '0');
+    const floorPrice = Number((basePrice * 0.9).toFixed(2));
+    const wholesaleValue = Number((basePrice * 0.88).toFixed(2));
+    const marketValue = Number((basePrice * faker.number.float({ min: 0.9, max: 1.05, fractionDigits: 4 })).toFixed(2));
+    const targetPrice = Number((basePrice * 0.97).toFixed(2));
+    const aiPrice = Number((basePrice * 0.965).toFixed(2));
+    const reconEstimateValue = faker.number.float({ min: 350, max: 1800, fractionDigits: 2 });
+    const reconActualValue = Number((reconEstimateValue * faker.number.float({ min: 0.85, max: 1.1, fractionDigits: 2 })).toFixed(2));
+    const reconCompletedAt = faker.helpers.maybe(
+      () => addDays(acquisitionDate, faker.number.int({ min: 3, max: 18 })),
+      { probability: 0.65 }
+    );
+    const lastAppraisedAt = faker.helpers.maybe(
+      () => subDays(new Date(), faker.number.int({ min: 3, max: 45 })),
+      { probability: 0.55 }
+    );
+    const appraisalStatus = lastAppraisedAt ? AppraisalStatus.APPROVED : AppraisalStatus.SUBMITTED;
+    const nextPriceReviewDate = faker.helpers.maybe(
+      () => addDays(new Date(), faker.number.int({ min: 7, max: 30 })),
+      { probability: 0.7 }
+    );
+    const agingBucket = faker.helpers.arrayElement(['0-30', '31-60', '61-90', '90+']);
 
     const vehicle = await prisma.vehicle.create({
       data: {
@@ -749,6 +992,29 @@ async function main() {
         msrp,
         invoiceCost,
         listPrice,
+        acquisitionType,
+        acquisitionSource: acquisitionType === VehicleAcquisitionType.AUCTION
+          ? faker.helpers.arrayElement(['Manheim Dallas', 'ADESA Chicago', 'Manheim Orlando'])
+          : acquisitionType === VehicleAcquisitionType.TRADE_IN
+            ? 'Customer Trade'
+            : acquisitionType === VehicleAcquisitionType.CONSIGNMENT
+              ? 'Consignment'
+              : faker.company.name(),
+        acquisitionDate,
+        acquisitionCost: acquisitionCost.toFixed(2),
+        floorPrice: floorPrice.toFixed(2),
+        wholesaleValue: wholesaleValue.toFixed(2),
+        marketValue: marketValue.toFixed(2),
+        targetPrice: targetPrice.toFixed(2),
+        aiPrice: aiPrice.toFixed(2),
+        pricingNotes: faker.lorem.sentence(),
+        appraisalStatus,
+        lastAppraisedAt,
+        reconEstimate: reconEstimateValue.toFixed(2),
+        reconActual: reconActualValue.toFixed(2),
+        reconCompletedAt,
+        agingBucket,
+        nextPriceReviewDate,
         status: VehicleStatus.AVAILABLE,
         location: faker.location.city(),
         dateReceived: received,
@@ -768,7 +1034,343 @@ async function main() {
       },
     });
 
+    const stageProgressIndex = faker.number.int({ min: 0, max: pipelineStageKeys.length - 1 });
+    const traversedStageKeys = pipelineStageKeys.slice(0, stageProgressIndex + 1);
+    let transitionTimestamp = acquisitionDate ?? received ?? new Date();
+    let previousStage: (typeof workflowDefinition.stages)[number] | undefined;
+    const stageTransitionsData: Prisma.StageTransitionCreateWithoutWorkflowInput[] = [];
+
+    traversedStageKeys.forEach((stageKey, index) => {
+      const stageEntity = pipelineStageMap.get(stageKey);
+      if (!stageEntity) {
+        return;
+      }
+      if (index > 0) {
+        transitionTimestamp = addHours(transitionTimestamp, faker.number.int({ min: 6, max: 48 }));
+      }
+      stageTransitionsData.push({
+        tenantId: tenant.id,
+        fromStageId: previousStage?.id ?? null,
+        toStageId: stageEntity.id,
+        at: transitionTimestamp,
+        byUserId: faker.helpers.arrayElement(users).id,
+        note: index === 0 ? 'Pipeline initiated' : faker.helpers.maybe(() => faker.lorem.sentence(), { probability: 0.35 }) ?? undefined,
+      });
+      previousStage = stageEntity;
+    });
+
+    const currentStage = previousStage ?? acquisitionStage;
+    if (!currentStage) {
+      throw new Error('Unable to resolve current workflow stage');
+    }
+
+    const completedAtDate = currentStage.key === 'SOLD'
+      ? addDays(transitionTimestamp, faker.number.int({ min: 1, max: 7 }))
+      : null;
+
+    const workflowTaskCreates: Prisma.WorkflowTaskCreateWithoutWorkflowInput[] = [];
+    const inspectionStage = pipelineStageMap.get('INSPECTION');
+    if (inspectionStage && traversedStageKeys.includes('INSPECTION')) {
+      workflowTaskCreates.push({
+        tenantId: tenant.id,
+        stageId: inspectionStage.id,
+        vehicleId: vehicle.id,
+        title: 'Complete inspection checklist',
+        description: faker.lorem.sentence(),
+        type: WorkflowTaskType.QA,
+        status: traversedStageKeys.includes('RECON') ? WorkflowTaskStatus.DONE : WorkflowTaskStatus.IN_PROGRESS,
+        dueAt: addDays(received, 2),
+        assigneeId: faker.helpers.arrayElement(users).id,
+        tags: ['inspection'],
+        mentions: [],
+        checklist: { items: ['Road test', 'Diagnostic scan', 'Cosmetic review'] },
+      });
+    }
+
+    const reconStage = pipelineStageMap.get('RECON');
+    if (reconStage) {
+      workflowTaskCreates.push({
+        tenantId: tenant.id,
+        stageId: reconStage.id,
+        vehicleId: vehicle.id,
+        title: 'Review recon scope',
+        description: faker.lorem.sentence(),
+        type: WorkflowTaskType.RECON,
+        status: traversedStageKeys.includes('DETAIL') ? WorkflowTaskStatus.DONE : WorkflowTaskStatus.IN_PROGRESS,
+        dueAt: addDays(received, 5),
+        assigneeId: faker.helpers.arrayElement(users).id,
+        tags: ['recon'],
+        mentions: [],
+        checklist: { items: ['Estimate parts', 'Assign technician', 'Approve spend'] },
+        costCents: faker.number.int({ min: 30000, max: 125000 }),
+      });
+    }
+
+    const photoStage = pipelineStageMap.get('PHOTOS');
+    if (photoStage && traversedStageKeys.includes('PHOTOS')) {
+      workflowTaskCreates.push({
+        tenantId: tenant.id,
+        stageId: photoStage.id,
+        vehicleId: vehicle.id,
+        title: 'Capture marketing photos',
+        description: 'Ensure hero, interior, and detail shots meet listing guidelines.',
+        type: WorkflowTaskType.PHOTOS,
+        status: traversedStageKeys.includes('LISTING') ? WorkflowTaskStatus.DONE : WorkflowTaskStatus.IN_PROGRESS,
+        dueAt: addDays(received, 7),
+        assigneeId: faker.helpers.arrayElement(users).id,
+        tags: ['photos', 'marketing'],
+        mentions: [],
+        checklist: { items: ['Exterior hero', 'Interior cockpit', 'Detail highlights'] },
+      });
+    }
+
+    const transportOrdersCreates: Prisma.TransportOrderCreateWithoutWorkflowInput[] = [];
+    const transportStage = pipelineStageMap.get('TRANSPORT');
+    if (transportStage && traversedStageKeys.includes('TRANSPORT')) {
+      transportOrdersCreates.push({
+        tenantId: tenant.id,
+        vehicleId: vehicle.id,
+        stageId: transportStage.id,
+        vendor: faker.company.name(),
+        pickupAddress: faker.location.streetAddress(),
+        dropoffAddress: faker.location.streetAddress(),
+        scheduledAt: addDays(transitionTimestamp, 1),
+        status: faker.helpers.arrayElement([
+          TransportOrderStatus.SCHEDULED,
+          TransportOrderStatus.PICKED_UP,
+          TransportOrderStatus.DELIVERED,
+        ]),
+        costCents: faker.number.int({ min: 35000, max: 95000 }),
+      });
+    }
+
+    await prisma.vehicleWorkflow.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: vehicle.id,
+        definitionId: workflowDefinition.id,
+        currentStageId: currentStage.id,
+        startedAt: stageTransitionsData[0]?.at ?? received ?? new Date(),
+        completedAt: completedAtDate ?? undefined,
+        transitions: { create: stageTransitionsData },
+        tasks: workflowTaskCreates.length > 0 ? { create: workflowTaskCreates } : undefined,
+        transportOrders: transportOrdersCreates.length > 0 ? { create: transportOrdersCreates } : undefined,
+      },
+    });
+
     inventoryVehicles.push(vehicle);
+  }
+
+  const managerUser = (usersByRole[UserRole.MANAGER] ?? [])[0] ?? adminUser;
+  const appraiserUser = salesTeam[0] ?? managerUser;
+  const sampleVehicle = inventoryVehicles[0];
+
+  if (sampleVehicle) {
+    const appraisalSubmittedAt = subDays(new Date(), 5);
+    const appraisalApprovedAt = subDays(new Date(), 3);
+    const appraisal = await prisma.appraisal.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        appraiserId: appraiserUser.id,
+        managerId: managerUser.id,
+        vin: sampleVehicle.vin,
+        year: sampleVehicle.year,
+        make: sampleVehicle.make,
+        model: sampleVehicle.model,
+        trim: sampleVehicle.trim,
+        exteriorColor: sampleVehicle.exteriorColor,
+        interiorColor: sampleVehicle.interiorColor,
+        mileage: sampleVehicle.mileage,
+        conditionGrade: AppraisalConditionGrade.CLEAN,
+        conditionScore: faker.number.int({ min: 70, max: 92 }),
+        conditionNotes: faker.lorem.sentence(),
+        warningLights: faker.helpers.arrayElements(['ABS', 'TPMS', 'Check Engine'], { min: 0, max: 2 }),
+        photos: [
+          'https://images.example.com/appraisals/interior.jpg',
+          'https://images.example.com/appraisals/exterior.jpg',
+        ],
+        estimatedValue: (Number(sampleVehicle.listPrice ?? sampleVehicle.msrp ?? '25000') * 0.9).toFixed(2),
+        marketValue: (Number(sampleVehicle.listPrice ?? sampleVehicle.msrp ?? '25000') * 0.92).toFixed(2),
+        aiSuggestedValue: (Number(sampleVehicle.listPrice ?? sampleVehicle.msrp ?? '25000') * 0.915).toFixed(2),
+        reconEstimate: {
+          interior: 180,
+          exterior: 275,
+          mechanical: 450,
+        },
+        status: AppraisalStatus.APPROVED,
+        submittedAt: appraisalSubmittedAt,
+        approvedAt: appraisalApprovedAt,
+        notes: 'Approved appraisal used as pricing baseline.',
+      },
+    });
+
+    await prisma.vehicle.update({
+      where: { id: sampleVehicle.id },
+      data: {
+        appraisalStatus: AppraisalStatus.APPROVED,
+        lastAppraisedAt: appraisalApprovedAt,
+        marketValue: (Number(sampleVehicle.listPrice ?? sampleVehicle.msrp ?? '25000') * 0.92).toFixed(2),
+      },
+    });
+
+    await prisma.reconItem.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        appraisalId: appraisal.id,
+        title: 'Detail and paint correction',
+        description: 'Full exterior buff with scratch repair and ceramic coating prep.',
+        category: 'Appearance',
+        status: ReconItemStatus.COMPLETED,
+        vendor: 'ShineWorks Detailing',
+        estimatedCost: '425.00',
+        actualCost: '410.00',
+        startedAt: addDays(appraisalApprovedAt, 1),
+        completedAt: addDays(appraisalApprovedAt, 3),
+        beforePhotos: ['https://images.example.com/recon/before-detail.jpg'],
+        afterPhotos: ['https://images.example.com/recon/after-detail.jpg'],
+        notes: 'Vehicle ready for front-line display.',
+      },
+    });
+
+    await prisma.reconItem.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        appraisalId: appraisal.id,
+        title: 'Brake pad replacement',
+        description: 'Replace front brake pads and resurface rotors.',
+        category: 'Mechanical',
+        status: ReconItemStatus.IN_PROGRESS,
+        vendor: 'Sunrise Service Bay',
+        estimatedCost: '320.00',
+        actualCost: null,
+        startedAt: addDays(appraisalApprovedAt, 2),
+        beforePhotos: ['https://images.example.com/recon/brakes-before.jpg'],
+        notes: 'Waiting on parts arrival.',
+      },
+    });
+
+    const oldPrice = Number(sampleVehicle.listPrice ?? sampleVehicle.msrp ?? '25000');
+    const reducedPrice = Number((oldPrice - 750).toFixed(2));
+
+    await prisma.priceHistory.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        changedById: managerUser.id,
+        changeType: PriceChangeType.MARKET,
+        oldPrice: oldPrice.toFixed(2),
+        newPrice: reducedPrice.toFixed(2),
+        adjustment: (reducedPrice - oldPrice).toFixed(2),
+        sourceReference: 'appraisal-review',
+        notes: 'Market realignment following approved appraisal.',
+      },
+    });
+
+    await prisma.priceHistory.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        changedById: appraiserUser.id,
+        changeType: PriceChangeType.AI_RECOMMENDATION,
+        oldPrice: reducedPrice.toFixed(2),
+        newPrice: (reducedPrice - 250).toFixed(2),
+        adjustment: (-250).toFixed(2),
+        sourceReference: 'ml-service',
+        notes: 'Automated pricing suggestion applied after 30 days in stock.',
+      },
+    });
+
+    await prisma.marketComp.createMany({
+      data: [
+        {
+          tenantId: tenant.id,
+          vehicleId: sampleVehicle.id,
+          source: MarketCompSource.RETAIL_LISTING,
+          compVin: faker.vehicle.vin(),
+          year: sampleVehicle.year,
+          make: sampleVehicle.make,
+          model: sampleVehicle.model,
+          trim: sampleVehicle.trim,
+          mileage: faker.number.int({ min: sampleVehicle.mileage ?? 10000, max: (sampleVehicle.mileage ?? 10000) + 15000 }),
+          price: (oldPrice * 0.98).toFixed(2),
+          distance: faker.number.int({ min: 5, max: 120 }),
+          location: faker.location.city(),
+          listedAt: subDays(new Date(), faker.number.int({ min: 2, max: 10 })),
+          payload: { provider: 'Cars.com' },
+        },
+        {
+          tenantId: tenant.id,
+          vehicleId: sampleVehicle.id,
+          source: MarketCompSource.AUCTION_RESULT,
+          compVin: faker.vehicle.vin(),
+          year: sampleVehicle.year,
+          make: sampleVehicle.make,
+          model: sampleVehicle.model,
+          trim: sampleVehicle.trim,
+          mileage: faker.number.int({ min: 10000, max: 40000 }),
+          price: (oldPrice * 0.85).toFixed(2),
+          distance: faker.number.int({ min: 50, max: 250 }),
+          location: faker.location.city(),
+          listedAt: subDays(new Date(), faker.number.int({ min: 5, max: 14 })),
+          payload: { auction: 'Manheim Nashville' },
+        },
+      ],
+      skipDuplicates: true,
+    });
+
+    await prisma.wholesaleListing.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        platform: 'ACV Auctions',
+        status: WholesaleListingStatus.LISTED,
+        askingPrice: (oldPrice - 1200).toFixed(2),
+        reservePrice: (oldPrice - 1600).toFixed(2),
+        minimumAcceptable: (oldPrice - 2000).toFixed(2),
+        publishedAt: subDays(new Date(), 1),
+        expiresAt: addDays(new Date(), 5),
+        notes: 'Listed for wholesale backup strategy.',
+      },
+    });
+  }
+
+  const auctionVehicle = inventoryVehicles.find((vehicle) => vehicle.acquisitionType === VehicleAcquisitionType.AUCTION) ?? sampleVehicle;
+
+  if (auctionVehicle) {
+    const auctionBase = Number(auctionVehicle.invoiceCost ?? auctionVehicle.listPrice ?? '22000');
+    const hammerPrice = (auctionBase - 1500).toFixed(2);
+    const totalCost = (auctionBase - 1500 + 425 + 325 + 585).toFixed(2);
+
+    await prisma.auctionPurchase.upsert({
+      where: {
+        tenantId_vehicleId: {
+          tenantId: tenant.id,
+          vehicleId: auctionVehicle.id,
+        },
+      },
+      update: {},
+      create: {
+        tenantId: tenant.id,
+        vehicleId: auctionVehicle.id,
+        provider: 'Manheim',
+        auctionName: 'Manheim Dallas Evening Sale',
+        auctionDate: subDays(new Date(), 12),
+        lane: 'B',
+        runNumber: `B-${faker.string.numeric(3)}`,
+        status: AuctionPurchaseStatus.WON,
+        hammerPrice,
+        buyerFees: '425.00',
+        transportCost: '325.00',
+        reconditioningCost: '585.00',
+        totalCost,
+        conditionGrade: '3.6',
+        inspectorNotes: 'Minor cosmetic scuffs, clean frame.',
+        documents: ['https://docs.example.com/auction/condition-report.pdf'],
+      },
+    });
   }
 
   const months = createMonthlyPeriods();
@@ -819,7 +1421,7 @@ async function main() {
           salesPersonId: salesPerson.id,
           financeManagerId: financeManager.id,
           dealType: faker.helpers.arrayElement([DealType.CASH, DealType.FINANCE, DealType.LEASE]),
-          status: DealStatus.DELIVERED,
+      status: RetailDealStatus.DELIVERED,
           vehiclePrice: netVehiclePrice.toFixed(2),
           discount: discount.toFixed(2),
           netVehiclePrice: netVehiclePrice.toFixed(2),
@@ -1118,17 +1720,17 @@ async function main() {
     }
 
     const statusScenarios: Array<{
-      status: DealStatus;
+      status: RetailDealStatus;
       contractOffsetDays?: number;
       fundedOffsetDays?: number;
       deliveredOffsetDays?: number;
     }> = [
-      { status: DealStatus.DRAFT },
-      { status: DealStatus.PENDING },
-      { status: DealStatus.SUBMITTED },
-      { status: DealStatus.APPROVED, contractOffsetDays: 2 },
-      { status: DealStatus.FUNDED, contractOffsetDays: 2, fundedOffsetDays: 6 },
-      { status: DealStatus.DELIVERED, contractOffsetDays: 2, fundedOffsetDays: 6, deliveredOffsetDays: 9 },
+      { status: RetailDealStatus.DRAFT },
+      { status: RetailDealStatus.PENDING },
+      { status: RetailDealStatus.SUBMITTED },
+      { status: RetailDealStatus.APPROVED, contractOffsetDays: 2 },
+      { status: RetailDealStatus.FUNDED, contractOffsetDays: 2, fundedOffsetDays: 6 },
+      { status: RetailDealStatus.DELIVERED, contractOffsetDays: 2, fundedOffsetDays: 6, deliveredOffsetDays: 9 },
     ];
 
     const scenarioBaseDate = new Date();
@@ -1143,7 +1745,7 @@ async function main() {
         scenario.deliveredOffsetDays !== undefined ? addDays(dealDate, scenario.deliveredOffsetDays) : null;
 
       const scenarioFiProducts =
-        scenario.status === DealStatus.DRAFT || scenario.status === DealStatus.PENDING ? [] : baseFiProducts;
+        scenario.status === RetailDealStatus.DRAFT || scenario.status === RetailDealStatus.PENDING ? [] : baseFiProducts;
 
       const displayStatus = `${scenario.status.charAt(0)}${scenario.status.slice(1).toLowerCase()}`;
 
@@ -1156,7 +1758,7 @@ async function main() {
           netTrade: netTrade ?? undefined,
           cashDown,
           amountFinanced,
-          lenderId: scenario.status === DealStatus.DRAFT ? null : 'sunrise-credit-union',
+          lenderId: scenario.status === RetailDealStatus.DRAFT ? null : 'sunrise-credit-union',
           apr: apr ?? undefined,
           term: sampleDeal.term ?? 72,
           monthlyPayment: monthlyPayment ?? undefined,
@@ -1185,7 +1787,7 @@ async function main() {
           netTrade: netTrade ?? undefined,
           cashDown,
           amountFinanced,
-          lenderId: scenario.status === DealStatus.DRAFT ? null : 'sunrise-credit-union',
+          lenderId: scenario.status === RetailDealStatus.DRAFT ? null : 'sunrise-credit-union',
           apr: apr ?? undefined,
           term: sampleDeal.term ?? 72,
           monthlyPayment: monthlyPayment ?? undefined,
@@ -1200,6 +1802,574 @@ async function main() {
       });
     }
   }
+
+  const primarySalesPerson = salesTeam[0] ?? adminUser;
+  const financeManagerUser = financeManagers[0] ?? adminUser;
+  const now = new Date();
+
+  const camryVehicle = await prisma.vehicle.upsert({
+    where: { id: 'desking-toyota-camry' },
+    update: {
+      tenantId: tenant.id,
+      stockNumber: 'DESK-CAMRY-001',
+      vin: '4T1C11AK7PU123456',
+      type: VehicleType.NEW,
+      year: now.getFullYear(),
+      make: 'Toyota',
+      model: 'Camry',
+      trim: 'XSE',
+      exteriorColor: 'Celestial Silver Metallic',
+      interiorColor: 'Black SofTex',
+      mileage: 12,
+      engineType: '2.5L I4',
+      transmission: '8-Speed Automatic',
+      drivetrain: 'FWD',
+      fuelType: FuelType.GASOLINE,
+      msrp: new Prisma.Decimal('30950.00'),
+      invoiceCost: new Prisma.Decimal('28420.00'),
+      listPrice: new Prisma.Decimal('29950.00'),
+      specialPrice: new Prisma.Decimal('28950.00'),
+      status: VehicleStatus.AVAILABLE,
+      location: 'Showroom - Front Row',
+      dateReceived: subDays(now, 5),
+      images: ['https://files.autolytiq.dev/seed/camry-front.jpg'],
+      features: ['Panoramic Roof', 'Toyota Safety Sense 3.0', 'Heated Seats'],
+      acquisitionType: VehicleAcquisitionType.NEW_INVENTORY,
+      acquisitionSource: 'Toyota Motor Sales',
+      acquisitionDate: subDays(now, 5),
+      acquisitionCost: new Prisma.Decimal('28420.00'),
+    },
+    create: {
+      id: 'desking-toyota-camry',
+      tenantId: tenant.id,
+      stockNumber: 'DESK-CAMRY-001',
+      vin: '4T1C11AK7PU123456',
+      type: VehicleType.NEW,
+      year: now.getFullYear(),
+      make: 'Toyota',
+      model: 'Camry',
+      trim: 'XSE',
+      exteriorColor: 'Celestial Silver Metallic',
+      interiorColor: 'Black SofTex',
+      mileage: 12,
+      engineType: '2.5L I4',
+      transmission: '8-Speed Automatic',
+      drivetrain: 'FWD',
+      fuelType: FuelType.GASOLINE,
+      msrp: new Prisma.Decimal('30950.00'),
+      invoiceCost: new Prisma.Decimal('28420.00'),
+      listPrice: new Prisma.Decimal('29950.00'),
+      specialPrice: new Prisma.Decimal('28950.00'),
+      status: VehicleStatus.AVAILABLE,
+      location: 'Showroom - Front Row',
+      dateReceived: subDays(now, 5),
+      images: ['https://files.autolytiq.dev/seed/camry-front.jpg'],
+      features: ['Panoramic Roof', 'Toyota Safety Sense 3.0', 'Heated Seats'],
+      acquisitionType: VehicleAcquisitionType.NEW_INVENTORY,
+      acquisitionSource: 'Toyota Motor Sales',
+      acquisitionDate: subDays(now, 5),
+      acquisitionCost: new Prisma.Decimal('28420.00'),
+    },
+  });
+
+  const tierOneCustomer = await prisma.customer.upsert({
+    where: { id: 'desking-tier1-customer' },
+    update: {
+      tenantId: tenant.id,
+      firstName: 'Jordan',
+      lastName: 'Ellis',
+      email: 'jordan.ellis@sunrisemotors.demo',
+      phone: '(555) 867-1000',
+      mobile: '(555) 867-1000',
+      leadSource: LeadSource.WEBSITE,
+      leadStatus: LeadStatus.QUALIFIED,
+      creditScore: 762,
+      addressStreet: '415 Lakeshore Dr',
+      addressCity: 'Chicago',
+      addressState: 'IL',
+      addressZip: '60611',
+      preferredContactMethod: PreferredContactMethod.EMAIL,
+      tags: ['desking', 'tier-1'],
+      notes: 'Prime customer interested in Camry with technology package.',
+    },
+    create: {
+      id: 'desking-tier1-customer',
+      tenantId: tenant.id,
+      firstName: 'Jordan',
+      lastName: 'Ellis',
+      email: 'jordan.ellis@sunrisemotors.demo',
+      phone: '(555) 867-1000',
+      mobile: '(555) 867-1000',
+      leadSource: LeadSource.WEBSITE,
+      leadStatus: LeadStatus.QUALIFIED,
+      creditScore: 762,
+      addressStreet: '415 Lakeshore Dr',
+      addressCity: 'Chicago',
+      addressState: 'IL',
+      addressZip: '60611',
+      preferredContactMethod: PreferredContactMethod.EMAIL,
+      tags: ['desking', 'tier-1'],
+      notes: 'Prime customer interested in Camry with technology package.',
+    },
+  });
+
+  const tradeAllowance = 6000;
+  const tradePayoff = 3200;
+  const tradeEquity = tradeAllowance - tradePayoff;
+  const cashDown = 3250;
+  const amountFinanced = 27778.44;
+  const aprRate = 0.0349;
+  const termMonths = 72;
+  const monthlyPayment = 428.17;
+
+  const worksheetStructure = {
+    pricing: {
+      msrp: 30950,
+      salePrice: 28950,
+      dealerDiscounts: [
+        { label: 'Spring Upgrade Event', amount: 1000 },
+      ],
+      accessories: [
+        { label: 'All-weather mats', amount: 199 },
+        { label: 'Ceramic coating', amount: 349 },
+      ],
+    },
+    trade: {
+      allowance: tradeAllowance,
+      payoff: tradePayoff,
+      equity: tradeEquity,
+      description: '2018 Honda Accord EX-L, 65k miles, excellent condition',
+    },
+    cashDown: {
+      customerCash: 2500,
+      manufacturerRebate: 750,
+      total: cashDown,
+    },
+    fees: [
+      { code: 'DOC', label: 'Documentation Fee', amount: 347, taxable: true },
+      { code: 'TITLE', label: 'Title Fee', amount: 150, taxable: false },
+      { code: 'REG', label: 'Registration', amount: 220, taxable: false },
+    ],
+    taxes: [
+      { jurisdiction: 'IL-COOK', rate: 0.0875, amount: 2167.44 },
+    ],
+    backendProducts: [
+      { code: 'VSC', name: 'Vehicle Service Contract', price: 1295, cost: 795, termMonths: 72 },
+      { code: 'GAP', name: 'GAP Protection', price: 699, cost: 299 },
+    ],
+    lender: {
+      preferredLenderId: sunriseCreditUnion.id,
+      backupLenderId: horizonAutoFinance.id,
+      maxTerm: 72,
+      targetPayment: 400,
+    },
+  };
+
+  const worksheetTotals = {
+    salePrice: 28950,
+    tradeAllowance,
+    tradePayoff,
+    tradeEquity,
+    cashDown,
+    fees: 717,
+    backendProducts: 1994,
+    taxes: 2167.44,
+    amountFinanced,
+    dueAtSigning: cashDown,
+    frontEndGross: 2450,
+    backEndGross: 1194,
+    financeReserve: 350,
+    totalGross: 3994,
+  };
+
+  const paymentSummary = {
+    amountFinanced,
+    apr: aprRate,
+    termMonths,
+    monthlyPayment,
+    dueAtSigning: cashDown,
+  };
+
+  const grossBreakdown = {
+    frontEnd: 2450,
+    backEnd: 1194,
+    financeReserve: 350,
+    docFee: 347,
+    pack: 495,
+    total: 3994,
+  };
+
+  const workingDeal = await prisma.deal.upsert({
+    where: { id: 'desking-camry-deal' },
+    update: {
+      tenantId: tenant.id,
+      dealNumber: 'DESK-1001',
+      customerId: tierOneCustomer.id,
+      vehicleId: camryVehicle.id,
+      salesPersonId: primarySalesPerson.id,
+      financeManagerId: financeManagerUser.id,
+      dealType: DealType.FINANCE,
+      status: RetailDealStatus.PENDING,
+      vehiclePrice: new Prisma.Decimal('28950.00'),
+      discount: new Prisma.Decimal('1000.00'),
+      netVehiclePrice: new Prisma.Decimal('27950.00'),
+      tradeVehicleId: null,
+      tradeAllowance: new Prisma.Decimal(tradeAllowance.toFixed(2)),
+      tradePayoff: new Prisma.Decimal(tradePayoff.toFixed(2)),
+      tradeEquity: new Prisma.Decimal(tradeEquity.toFixed(2)),
+      downPayment: new Prisma.Decimal(cashDown.toFixed(2)),
+      amountFinanced: new Prisma.Decimal(amountFinanced.toFixed(2)),
+      apr: new Prisma.Decimal(aprRate.toFixed(3)),
+      term: termMonths,
+      monthlyPayment: new Prisma.Decimal(monthlyPayment.toFixed(2)),
+      lenderName: sunriseCreditUnion.name,
+      lenderRate: new Prisma.Decimal('3.49'),
+      dealerReserve: new Prisma.Decimal('350.00'),
+      docFee: new Prisma.Decimal('347.00'),
+      registrationFee: new Prisma.Decimal('220.00'),
+      salesTax: new Prisma.Decimal('2167.44'),
+      otherFees: worksheetStructure.fees,
+      warrantyProduct: 'Vehicle Service Contract',
+      warrantyCost: new Prisma.Decimal('795.00'),
+      gapInsurance: true,
+      gapCost: new Prisma.Decimal('299.00'),
+      maintenancePlan: false,
+      otherProducts: worksheetStructure.backendProducts,
+      frontEndGross: new Prisma.Decimal(grossBreakdown.frontEnd.toFixed(2)),
+      backEndGross: new Prisma.Decimal(grossBreakdown.backEnd.toFixed(2)),
+      totalGross: new Prisma.Decimal(grossBreakdown.total.toFixed(2)),
+      packAmount: new Prisma.Decimal('495.00'),
+      dealDate: now,
+      fundedDate: null,
+      deliveryDate: null,
+      notes: 'Working desking deal generated by seed script.',
+    },
+    create: {
+      id: 'desking-camry-deal',
+      tenantId: tenant.id,
+      dealNumber: 'DESK-1001',
+      customerId: tierOneCustomer.id,
+      vehicleId: camryVehicle.id,
+      salesPersonId: primarySalesPerson.id,
+      financeManagerId: financeManagerUser.id,
+      dealType: DealType.FINANCE,
+      status: RetailDealStatus.PENDING,
+      vehiclePrice: new Prisma.Decimal('28950.00'),
+      discount: new Prisma.Decimal('1000.00'),
+      netVehiclePrice: new Prisma.Decimal('27950.00'),
+      tradeVehicleId: null,
+      tradeAllowance: new Prisma.Decimal(tradeAllowance.toFixed(2)),
+      tradePayoff: new Prisma.Decimal(tradePayoff.toFixed(2)),
+      tradeEquity: new Prisma.Decimal(tradeEquity.toFixed(2)),
+      downPayment: new Prisma.Decimal(cashDown.toFixed(2)),
+      amountFinanced: new Prisma.Decimal(amountFinanced.toFixed(2)),
+      apr: new Prisma.Decimal(aprRate.toFixed(3)),
+      term: termMonths,
+      monthlyPayment: new Prisma.Decimal(monthlyPayment.toFixed(2)),
+      lenderName: sunriseCreditUnion.name,
+      lenderRate: new Prisma.Decimal('3.49'),
+      dealerReserve: new Prisma.Decimal('350.00'),
+      docFee: new Prisma.Decimal('347.00'),
+      registrationFee: new Prisma.Decimal('220.00'),
+      salesTax: new Prisma.Decimal('2167.44'),
+      otherFees: worksheetStructure.fees,
+      warrantyProduct: 'Vehicle Service Contract',
+      warrantyCost: new Prisma.Decimal('795.00'),
+      gapInsurance: true,
+      gapCost: new Prisma.Decimal('299.00'),
+      maintenancePlan: false,
+      otherProducts: worksheetStructure.backendProducts,
+      frontEndGross: new Prisma.Decimal(grossBreakdown.frontEnd.toFixed(2)),
+      backEndGross: new Prisma.Decimal(grossBreakdown.backEnd.toFixed(2)),
+      totalGross: new Prisma.Decimal(grossBreakdown.total.toFixed(2)),
+      packAmount: new Prisma.Decimal('495.00'),
+      dealDate: now,
+      fundedDate: null,
+      deliveryDate: null,
+      notes: 'Working desking deal generated by seed script.',
+    },
+  });
+
+  const amountFinancedValue = amountFinanced.toFixed(2);
+  const aprValue = aprRate.toFixed(3);
+  const paymentValue = monthlyPayment.toFixed(2);
+
+  const worksheet = await prisma.dealWorksheet.upsert({
+    where: { id: 'desking-camry-worksheet' },
+    update: {
+      tenantId: tenant.id,
+      dealId: workingDeal.id,
+      customerId: tierOneCustomer.id,
+      vehicleId: camryVehicle.id,
+      salespersonId: primarySalesPerson.id,
+      structure: worksheetStructure,
+      totals: worksheetTotals,
+      amountFinanced: new Prisma.Decimal(amountFinancedValue),
+      term: termMonths,
+      apr: new Prisma.Decimal(aprValue),
+      payment: new Prisma.Decimal(paymentValue),
+      aiScore: new Prisma.Decimal('0.82'),
+      status: WorksheetStatus.WORKING,
+      printablePdfUrl: 'https://files.autolytiq.dev/seed/desking/DESK-1001.pdf',
+    },
+    create: {
+      id: 'desking-camry-worksheet',
+      tenantId: tenant.id,
+      dealId: workingDeal.id,
+      customerId: tierOneCustomer.id,
+      vehicleId: camryVehicle.id,
+      salespersonId: primarySalesPerson.id,
+      structure: worksheetStructure,
+      totals: worksheetTotals,
+      amountFinanced: new Prisma.Decimal(amountFinancedValue),
+      term: termMonths,
+      apr: new Prisma.Decimal(aprValue),
+      payment: new Prisma.Decimal(paymentValue),
+      aiScore: new Prisma.Decimal('0.82'),
+      status: WorksheetStatus.WORKING,
+      printablePdfUrl: 'https://files.autolytiq.dev/seed/desking/DESK-1001.pdf',
+    },
+  });
+
+  const versionSnapshot = {
+    structure: worksheetStructure,
+    totals: worksheetTotals,
+    payment: paymentSummary,
+    lender: {
+      primary: sunriseCreditUnion.id,
+      backup: horizonAutoFinance.id,
+    },
+  };
+
+  const version = await prisma.dealVersion.upsert({
+    where: { id: 'desking-camry-version-initial' },
+    update: {
+      tenantId: tenant.id,
+      dealId: workingDeal.id,
+      worksheetId: worksheet.id,
+      snapshot: versionSnapshot,
+      grossBreakdown,
+      closeProbability: new Prisma.Decimal('0.66'),
+      approvalProbability: new Prisma.Decimal('0.83'),
+      aiScore: new Prisma.Decimal('0.81'),
+      label: 'Initial pencil',
+      createdById: adminUser.id,
+    },
+    create: {
+      id: 'desking-camry-version-initial',
+      tenantId: tenant.id,
+      dealId: workingDeal.id,
+      worksheetId: worksheet.id,
+      snapshot: versionSnapshot,
+      grossBreakdown,
+      closeProbability: new Prisma.Decimal('0.66'),
+      approvalProbability: new Prisma.Decimal('0.83'),
+      aiScore: new Prisma.Decimal('0.81'),
+      label: 'Initial pencil',
+      createdById: adminUser.id,
+    },
+  });
+
+  await prisma.dealWorksheet.update({
+    where: { id: worksheet.id },
+    data: { versionPointer: { connect: { id: version.id } } },
+  });
+
+  const alternativeStructures = [
+    {
+      id: 'alt-short-term',
+      label: '60-month accelerated payoff',
+      payment: { amountFinanced: 26450, apr: 0.0339, termMonths: 60, monthlyPayment: 479.62, dueAtSigning: cashDown },
+      gross: { frontEnd: 2525, backEnd: 1095, financeReserve: 310, total: 3930 },
+      structure: {
+        ...worksheetStructure,
+        cashDown: { ...worksheetStructure.cashDown, total: cashDown + 500, customerCash: 3000 },
+      },
+      probabilityOfClose: 0.58,
+      notes: 'Higher payment but completes payoff a year sooner.',
+    },
+    {
+      id: 'alt-payment-relief',
+      label: '72-month payment relief',
+      payment: { amountFinanced: 28250, apr: 0.0359, termMonths: 72, monthlyPayment: 439.87, dueAtSigning: cashDown - 500 },
+      gross: { frontEnd: 2325, backEnd: 999, financeReserve: 275, total: 3600 },
+      structure: {
+        ...worksheetStructure,
+        backendProducts: worksheetStructure.backendProducts?.filter((product) => product.code !== 'GAP'),
+        cashDown: { ...worksheetStructure.cashDown, total: cashDown - 500, customerCash: 2000 },
+      },
+      probabilityOfClose: 0.71,
+      notes: 'Lowers cash due at signing by reallocating rebates.',
+    },
+  ];
+
+  await prisma.dealOptimization.upsert({
+    where: { id: 'desking-camry-optimization' },
+    update: {
+      tenantId: tenant.id,
+      dealId: workingDeal.id,
+      worksheetId: worksheet.id,
+      versionId: version.id,
+      goals: {
+        targetPayment: 400,
+        minimumGross: 3500,
+        preserveProducts: ['VSC', 'GAP'],
+        lenderPreference: sunriseCreditUnion.id,
+      },
+      constraints: {
+        maxTerm: 72,
+        minCashDown: 3000,
+        allowedTiers: [CreditTier.TIER_1, CreditTier.TIER_2],
+        residenceType: ResidenceType.OWN,
+      },
+      recommendedStructure: worksheetStructure,
+      alternatives: alternativeStructures,
+      insights: [
+        'Maintaining the service contract keeps backend gross above $1,100.',
+        'Customer qualifies for Tier 1 with Sunrise Credit Union at 3.49% APR.',
+      ],
+      warnings: ['Dropping GAP coverage reduces reserve by $350 and weakens lender approval odds.'],
+      projectedGross: new Prisma.Decimal('3994.00'),
+      runById: adminUser.id,
+      mlTraceId: 'seed-trace-worksheet-001',
+    },
+    create: {
+      id: 'desking-camry-optimization',
+      tenantId: tenant.id,
+      dealId: workingDeal.id,
+      worksheetId: worksheet.id,
+      versionId: version.id,
+      goals: {
+        targetPayment: 400,
+        minimumGross: 3500,
+        preserveProducts: ['VSC', 'GAP'],
+        lenderPreference: sunriseCreditUnion.id,
+      },
+      constraints: {
+        maxTerm: 72,
+        minCashDown: 3000,
+        allowedTiers: [CreditTier.TIER_1, CreditTier.TIER_2],
+        residenceType: ResidenceType.OWN,
+      },
+      recommendedStructure: worksheetStructure,
+      alternatives: alternativeStructures,
+      insights: [
+        'Maintaining the service contract keeps backend gross above $1,100.',
+        'Customer qualifies for Tier 1 with Sunrise Credit Union at 3.49% APR.',
+      ],
+      warnings: ['Dropping GAP coverage reduces reserve by $350 and weakens lender approval odds.'],
+      projectedGross: new Prisma.Decimal('3994.00'),
+      runById: adminUser.id,
+      mlTraceId: 'seed-trace-worksheet-001',
+    },
+  });
+
+  const counterOptions = alternativeStructures.map((option) => ({
+    id: option.id,
+    label: option.label,
+    payment: option.payment,
+    gross: option.gross,
+    probabilityOfClose: option.probabilityOfClose,
+    notes: option.notes,
+  }));
+
+  await prisma.counterOffer.upsert({
+    where: { id: 'desking-camry-counteroffer' },
+    update: {
+      tenantId: tenant.id,
+      dealId: workingDeal.id,
+      worksheetId: worksheet.id,
+      originalVersionId: version.id,
+      input: {
+        customerConcern: 'Monthly payment needs to start with a 3.',
+        requestedPayment: 399,
+        requestedTerm: termMonths,
+        requestedCashDown: 2500,
+      },
+      aiResponse: {
+        summary: 'Presented two concessions balancing payment relief and gross retention.',
+        options: counterOptions,
+        recommendation: 'Lead with payment relief plan, keep service contract.',
+      },
+      selectedOption: counterOptions[1],
+      scriptUsed: 'Payment Relief Script v2',
+      outcome: CounterOfferOutcome.PENDING,
+      handledById: primarySalesPerson.id,
+    },
+    create: {
+      id: 'desking-camry-counteroffer',
+      tenantId: tenant.id,
+      dealId: workingDeal.id,
+      worksheetId: worksheet.id,
+      originalVersionId: version.id,
+      input: {
+        customerConcern: 'Monthly payment needs to start with a 3.',
+        requestedPayment: 399,
+        requestedTerm: termMonths,
+        requestedCashDown: 2500,
+      },
+      aiResponse: {
+        summary: 'Presented two concessions balancing payment relief and gross retention.',
+        options: counterOptions,
+        recommendation: 'Lead with payment relief plan, keep service contract.',
+      },
+      selectedOption: counterOptions[1],
+      scriptUsed: 'Payment Relief Script v2',
+      outcome: CounterOfferOutcome.PENDING,
+      handledById: primarySalesPerson.id,
+    },
+  });
+
+  await prisma.approvalPrediction.upsert({
+    where: { id: 'desking-camry-approval' },
+    update: {
+      tenantId: tenant.id,
+      dealId: workingDeal.id,
+      worksheetId: worksheet.id,
+      versionId: version.id,
+      lenderId: sunriseCreditUnion.id,
+      lenderName: sunriseCreditUnion.name,
+      approvalProbability: new Prisma.Decimal('0.84'),
+      recommendedTier: CreditTier.TIER_1,
+      estimatedRate: new Prisma.Decimal('3.29'),
+      estimatedReserve: new Prisma.Decimal('450.00'),
+      strengths: [
+        'Prime credit score (762) with low revolving utilization.',
+        'Stable employment with 5-year tenure at Techline Analytics.',
+        'Down payment and trade equity cover fees and backend products.',
+      ],
+      weaknesses: ['Slightly elevated LTV due to accessories and backend products.'],
+      stipulations: [
+        { code: 'POI', description: 'Proof of income covering the last 30 days', required: true },
+        { code: 'POR', description: 'Proof of residency (utility bill within 60 days)', required: true },
+      ],
+      recommendation: Recommendation.STRONG,
+    },
+    create: {
+      id: 'desking-camry-approval',
+      tenantId: tenant.id,
+      dealId: workingDeal.id,
+      worksheetId: worksheet.id,
+      versionId: version.id,
+      lenderId: sunriseCreditUnion.id,
+      lenderName: sunriseCreditUnion.name,
+      approvalProbability: new Prisma.Decimal('0.84'),
+      recommendedTier: CreditTier.TIER_1,
+      estimatedRate: new Prisma.Decimal('3.29'),
+      estimatedReserve: new Prisma.Decimal('450.00'),
+      strengths: [
+        'Prime credit score (762) with low revolving utilization.',
+        'Stable employment with 5-year tenure at Techline Analytics.',
+        'Down payment and trade equity cover fees and backend products.',
+      ],
+      weaknesses: ['Slightly elevated LTV due to accessories and backend products.'],
+      stipulations: [
+        { code: 'POI', description: 'Proof of income covering the last 30 days', required: true },
+        { code: 'POR', description: 'Proof of residency (utility bill within 60 days)', required: true },
+      ],
+      recommendation: Recommendation.STRONG,
+    },
+  });
 
   await prisma.auditLog.create({
     data: {

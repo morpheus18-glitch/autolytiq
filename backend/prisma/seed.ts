@@ -1,10 +1,13 @@
 import bcrypt from 'bcrypt';
 import {
   AccountType,
+  AppraisalConditionGrade,
+  AppraisalStatus,
+  AuctionPurchaseStatus,
   CommissionStatus,
   CommissionType,
   CustomerVehicleStatus,
-  DealStatus,
+  RetailDealStatus,
   DealType,
   ActivityStatus,
   ActivityType,
@@ -23,19 +26,28 @@ import {
   LineType,
   NormalBalance,
   NotificationType,
+  PriceChangeType,
   PreferredContactMethod,
+  Prisma,
   PrismaClient,
+  ReconItemStatus,
   ReportType,
   TenantPlan,
   TenantStatus,
+  VehicleAcquisitionType,
   UserRole,
   UserStatus,
   VehicleHistoryType,
+  WholesaleListingStatus,
+  MarketCompSource,
   VehicleStatus,
   VehicleType,
+  WorkflowTaskStatus,
+  WorkflowTaskType,
+  TransportOrderStatus,
 } from '@prisma/client';
 import { faker } from '@faker-js/faker';
-import { addDays, addMonths, eachMonthOfInterval, endOfMonth, startOfMonth, subDays, subYears } from 'date-fns';
+import { addDays, addHours, addMonths, eachMonthOfInterval, endOfMonth, startOfMonth, subDays, subYears } from 'date-fns';
 
 const prisma = new PrismaClient();
 
@@ -102,12 +114,25 @@ async function resetTenantData(tenantId: string) {
   await prisma.lead.deleteMany({ where: { tenantId } });
   await prisma.emailTemplate.deleteMany({ where: { tenantId } });
   await prisma.sMSTemplate.deleteMany({ where: { tenantId } });
+  await prisma.automationExecution.deleteMany({ where: { tenantId } });
   await prisma.automation.deleteMany({ where: { tenantId } });
+  await prisma.pipelineAggregate.deleteMany({ where: { tenantId } });
+  await prisma.transportOrder.deleteMany({ where: { tenantId } });
+  await prisma.workflowTask.deleteMany({ where: { tenantId } });
+  await prisma.stageTransition.deleteMany({ where: { tenantId } });
+  await prisma.vehicleWorkflow.deleteMany({ where: { tenantId } });
+  await prisma.workflowStage.deleteMany({ where: { tenantId } });
+  await prisma.workflowDefinition.deleteMany({ where: { tenantId } });
   await prisma.notification.deleteMany({ where: { tenantId } });
   await prisma.report.deleteMany({ where: { tenantId } });
   await prisma.commission.deleteMany({ where: { tenantId } });
   await prisma.journalEntryLine.deleteMany({ where: { tenantId } });
   await prisma.journalEntry.deleteMany({ where: { tenantId } });
+  await prisma.approvalPrediction.deleteMany({ where: { tenantId } });
+  await prisma.counterOffer.deleteMany({ where: { tenantId } });
+  await prisma.dealOptimization.deleteMany({ where: { tenantId } });
+  await prisma.dealVersion.deleteMany({ where: { tenantId } });
+  await prisma.dealWorksheet.deleteMany({ where: { tenantId } });
   await prisma.dealDocument.deleteMany({ where: { deal: { tenantId } } });
   await prisma.contract.deleteMany({ where: { tenantId } });
   await prisma.lenderSubmission.deleteMany({ where: { tenantId } });
@@ -115,6 +140,12 @@ async function resetTenantData(tenantId: string) {
   await prisma.fundingChecklist.deleteMany({ where: { tenantId } });
   await prisma.dealJacket.deleteMany({ where: { tenantId } });
   await prisma.deal.deleteMany({ where: { tenantId } });
+  await prisma.marketComp.deleteMany({ where: { tenantId } });
+  await prisma.wholesaleListing.deleteMany({ where: { tenantId } });
+  await prisma.auctionPurchase.deleteMany({ where: { tenantId } });
+  await prisma.priceHistory.deleteMany({ where: { tenantId } });
+  await prisma.reconItem.deleteMany({ where: { tenantId } });
+  await prisma.appraisal.deleteMany({ where: { tenantId } });
   await prisma.vehicleHistory.deleteMany({ where: { tenantId } });
   await prisma.vehicle.deleteMany({ where: { tenantId } });
   await prisma.customerVehicle.deleteMany({ where: { tenantId } });
@@ -267,6 +298,45 @@ async function main() {
   const salesTeam = usersByRole[UserRole.SALES] ?? [];
   const financeManagers = usersByRole[UserRole.FINANCE] ?? [];
   const adminUser = users.find((user) => user.email === DEVELOPER_EMAIL) ?? users[0];
+
+  const defaultWorkflowStages: Array<{ key: string; name: string; slaHours?: number | null; wipLimit?: number | null }> = [
+    { key: 'ACQUISITION', name: 'Acquisition' },
+    { key: 'INTAKE', name: 'Intake' },
+    { key: 'INSPECTION', name: 'Inspection' },
+    { key: 'RECON', name: 'Reconditioning', slaHours: 72 },
+    { key: 'DETAIL', name: 'Detail', slaHours: 24 },
+    { key: 'PHOTOS', name: 'Photos', slaHours: 24 },
+    { key: 'TRANSPORT', name: 'Transport', slaHours: 72 },
+    { key: 'PRICING_SIGNOFF', name: 'Pricing Signoff' },
+    { key: 'LISTING', name: 'Listing' },
+    { key: 'FRONTLINE_READY', name: 'Frontline Ready' },
+    { key: 'SOLD', name: 'Sold' },
+  ];
+
+  const workflowDefinition = await prisma.workflowDefinition.create({
+    data: {
+      tenantId: tenant.id,
+      name: 'Default Vehicle Pipeline',
+      stages: {
+        create: defaultWorkflowStages.map((stage, index) => ({
+          tenantId: tenant.id,
+          key: stage.key,
+          name: stage.name,
+          position: index + 1,
+          slaHours: stage.slaHours ?? null,
+          wipLimit: stage.wipLimit ?? null,
+        })),
+      },
+    },
+    include: { stages: true },
+  });
+
+  const pipelineStageMap = new Map(workflowDefinition.stages.map((stage) => [stage.key, stage]));
+  const acquisitionStage = pipelineStageMap.get('ACQUISITION');
+  if (!acquisitionStage) {
+    throw new Error('Default pipeline is missing ACQUISITION stage');
+  }
+  const pipelineStageKeys = defaultWorkflowStages.map((stage) => stage.key);
 
   const customers = [] as Awaited<ReturnType<typeof prisma.customer.create>>[];
   for (let i = 0; i < 60; i += 1) {
@@ -497,10 +567,11 @@ async function main() {
     const status = faker.helpers.arrayElement(
       [
         AppointmentStatus.SCHEDULED,
+        AppointmentStatus.CONFIRMED,
+        AppointmentStatus.IN_PROGRESS,
         AppointmentStatus.COMPLETED,
-        AppointmentStatus.CANCELLED,
         AppointmentStatus.NO_SHOW,
-        AppointmentStatus.RESCHEDULED,
+        AppointmentStatus.CANCELLED,
       ] as AppointmentStatus[],
     );
 
@@ -509,7 +580,7 @@ async function main() {
         tenantId: tenant.id,
         leadId: lead.id,
         customerId: lead.customerId,
-        userId: assignedUser.id,
+        assignedToId: assignedUser.id,
         title: `${faker.company.catchPhrase()} with ${lead.firstName ?? lead.lastName ?? 'prospect'}`,
         notes: faker.lorem.sentences({ min: 1, max: 2 }),
         type: faker.helpers.arrayElement(Object.values(AppointmentType) as AppointmentType[]),
@@ -520,8 +591,19 @@ async function main() {
           'Virtual Appointment',
           'Service Bay 1',
         ]),
+        timeZone: faker.helpers.arrayElement(['America/Chicago', 'America/Los_Angeles', 'America/New_York']),
         startAt,
         endAt: new Date(startAt.getTime() + faker.number.int({ min: 30, max: 90 }) * 60000),
+        checkedInAt:
+          status === AppointmentStatus.IN_PROGRESS || status === AppointmentStatus.COMPLETED
+            ? faker.date.between({ from: startAt, to: new Date(startAt.getTime() + 30 * 60000) })
+            : undefined,
+        completedAt:
+          status === AppointmentStatus.COMPLETED
+            ? faker.date.between({ from: startAt, to: new Date(startAt.getTime() + 90 * 60000) })
+            : undefined,
+        cancelledAt: status === AppointmentStatus.CANCELLED ? faker.date.recent({ days: 10 }) : undefined,
+        noShowAt: status === AppointmentStatus.NO_SHOW ? faker.date.recent({ days: 5 }) : undefined,
       },
     });
 
@@ -710,6 +792,37 @@ async function main() {
       from: subYears(new Date(), 2),
       to: new Date(),
     });
+    const acquisitionType = i % 4 === 0
+      ? VehicleAcquisitionType.AUCTION
+      : i % 4 === 1
+        ? VehicleAcquisitionType.TRADE_IN
+        : i % 4 === 2
+          ? VehicleAcquisitionType.PURCHASE
+          : VehicleAcquisitionType.CONSIGNMENT;
+    const acquisitionDate = faker.date.soon({ days: 10, refDate: received });
+    const basePrice = Number(listPrice ?? invoiceCost ?? msrp ?? '25000');
+    const acquisitionCost = Number(invoiceCost ?? msrp ?? listPrice ?? '0');
+    const floorPrice = Number((basePrice * 0.9).toFixed(2));
+    const wholesaleValue = Number((basePrice * 0.88).toFixed(2));
+    const marketValue = Number((basePrice * faker.number.float({ min: 0.9, max: 1.05, fractionDigits: 4 })).toFixed(2));
+    const targetPrice = Number((basePrice * 0.97).toFixed(2));
+    const aiPrice = Number((basePrice * 0.965).toFixed(2));
+    const reconEstimateValue = faker.number.float({ min: 350, max: 1800, fractionDigits: 2 });
+    const reconActualValue = Number((reconEstimateValue * faker.number.float({ min: 0.85, max: 1.1, fractionDigits: 2 })).toFixed(2));
+    const reconCompletedAt = faker.helpers.maybe(
+      () => addDays(acquisitionDate, faker.number.int({ min: 3, max: 18 })),
+      { probability: 0.65 }
+    );
+    const lastAppraisedAt = faker.helpers.maybe(
+      () => subDays(new Date(), faker.number.int({ min: 3, max: 45 })),
+      { probability: 0.55 }
+    );
+    const appraisalStatus = lastAppraisedAt ? AppraisalStatus.APPROVED : AppraisalStatus.SUBMITTED;
+    const nextPriceReviewDate = faker.helpers.maybe(
+      () => addDays(new Date(), faker.number.int({ min: 7, max: 30 })),
+      { probability: 0.7 }
+    );
+    const agingBucket = faker.helpers.arrayElement(['0-30', '31-60', '61-90', '90+']);
 
     const vehicle = await prisma.vehicle.create({
       data: {
@@ -736,6 +849,29 @@ async function main() {
         msrp,
         invoiceCost,
         listPrice,
+        acquisitionType,
+        acquisitionSource: acquisitionType === VehicleAcquisitionType.AUCTION
+          ? faker.helpers.arrayElement(['Manheim Dallas', 'ADESA Chicago', 'Manheim Orlando'])
+          : acquisitionType === VehicleAcquisitionType.TRADE_IN
+            ? 'Customer Trade'
+            : acquisitionType === VehicleAcquisitionType.CONSIGNMENT
+              ? 'Consignment'
+              : faker.company.name(),
+        acquisitionDate,
+        acquisitionCost: acquisitionCost.toFixed(2),
+        floorPrice: floorPrice.toFixed(2),
+        wholesaleValue: wholesaleValue.toFixed(2),
+        marketValue: marketValue.toFixed(2),
+        targetPrice: targetPrice.toFixed(2),
+        aiPrice: aiPrice.toFixed(2),
+        pricingNotes: faker.lorem.sentence(),
+        appraisalStatus,
+        lastAppraisedAt,
+        reconEstimate: reconEstimateValue.toFixed(2),
+        reconActual: reconActualValue.toFixed(2),
+        reconCompletedAt,
+        agingBucket,
+        nextPriceReviewDate,
         status: VehicleStatus.AVAILABLE,
         location: faker.location.city(),
         dateReceived: received,
@@ -755,7 +891,343 @@ async function main() {
       },
     });
 
+    const stageProgressIndex = faker.number.int({ min: 0, max: pipelineStageKeys.length - 1 });
+    const traversedStageKeys = pipelineStageKeys.slice(0, stageProgressIndex + 1);
+    let transitionTimestamp = acquisitionDate ?? received ?? new Date();
+    let previousStage: (typeof workflowDefinition.stages)[number] | undefined;
+    const stageTransitionsData: Prisma.StageTransitionCreateWithoutWorkflowInput[] = [];
+
+    traversedStageKeys.forEach((stageKey, index) => {
+      const stageEntity = pipelineStageMap.get(stageKey);
+      if (!stageEntity) {
+        return;
+      }
+      if (index > 0) {
+        transitionTimestamp = addHours(transitionTimestamp, faker.number.int({ min: 6, max: 48 }));
+      }
+      stageTransitionsData.push({
+        tenantId: tenant.id,
+        fromStageId: previousStage?.id ?? null,
+        toStageId: stageEntity.id,
+        at: transitionTimestamp,
+        byUserId: faker.helpers.arrayElement(users).id,
+        note: index === 0 ? 'Pipeline initiated' : faker.helpers.maybe(() => faker.lorem.sentence(), { probability: 0.35 }) ?? undefined,
+      });
+      previousStage = stageEntity;
+    });
+
+    const currentStage = previousStage ?? acquisitionStage;
+    if (!currentStage) {
+      throw new Error('Unable to resolve current workflow stage');
+    }
+
+    const completedAtDate = currentStage.key === 'SOLD'
+      ? addDays(transitionTimestamp, faker.number.int({ min: 1, max: 7 }))
+      : null;
+
+    const workflowTaskCreates: Prisma.WorkflowTaskCreateWithoutWorkflowInput[] = [];
+    const inspectionStage = pipelineStageMap.get('INSPECTION');
+    if (inspectionStage && traversedStageKeys.includes('INSPECTION')) {
+      workflowTaskCreates.push({
+        tenantId: tenant.id,
+        stageId: inspectionStage.id,
+        vehicleId: vehicle.id,
+        title: 'Complete inspection checklist',
+        description: faker.lorem.sentence(),
+        type: WorkflowTaskType.QA,
+        status: traversedStageKeys.includes('RECON') ? WorkflowTaskStatus.DONE : WorkflowTaskStatus.IN_PROGRESS,
+        dueAt: addDays(received, 2),
+        assigneeId: faker.helpers.arrayElement(users).id,
+        tags: ['inspection'],
+        mentions: [],
+        checklist: { items: ['Road test', 'Diagnostic scan', 'Cosmetic review'] },
+      });
+    }
+
+    const reconStage = pipelineStageMap.get('RECON');
+    if (reconStage) {
+      workflowTaskCreates.push({
+        tenantId: tenant.id,
+        stageId: reconStage.id,
+        vehicleId: vehicle.id,
+        title: 'Review recon scope',
+        description: faker.lorem.sentence(),
+        type: WorkflowTaskType.RECON,
+        status: traversedStageKeys.includes('DETAIL') ? WorkflowTaskStatus.DONE : WorkflowTaskStatus.IN_PROGRESS,
+        dueAt: addDays(received, 5),
+        assigneeId: faker.helpers.arrayElement(users).id,
+        tags: ['recon'],
+        mentions: [],
+        checklist: { items: ['Estimate parts', 'Assign technician', 'Approve spend'] },
+        costCents: faker.number.int({ min: 30000, max: 125000 }),
+      });
+    }
+
+    const photoStage = pipelineStageMap.get('PHOTOS');
+    if (photoStage && traversedStageKeys.includes('PHOTOS')) {
+      workflowTaskCreates.push({
+        tenantId: tenant.id,
+        stageId: photoStage.id,
+        vehicleId: vehicle.id,
+        title: 'Capture marketing photos',
+        description: 'Ensure hero, interior, and detail shots meet listing guidelines.',
+        type: WorkflowTaskType.PHOTOS,
+        status: traversedStageKeys.includes('LISTING') ? WorkflowTaskStatus.DONE : WorkflowTaskStatus.IN_PROGRESS,
+        dueAt: addDays(received, 7),
+        assigneeId: faker.helpers.arrayElement(users).id,
+        tags: ['photos', 'marketing'],
+        mentions: [],
+        checklist: { items: ['Exterior hero', 'Interior cockpit', 'Detail highlights'] },
+      });
+    }
+
+    const transportOrdersCreates: Prisma.TransportOrderCreateWithoutWorkflowInput[] = [];
+    const transportStage = pipelineStageMap.get('TRANSPORT');
+    if (transportStage && traversedStageKeys.includes('TRANSPORT')) {
+      transportOrdersCreates.push({
+        tenantId: tenant.id,
+        vehicleId: vehicle.id,
+        stageId: transportStage.id,
+        vendor: faker.company.name(),
+        pickupAddress: faker.location.streetAddress(),
+        dropoffAddress: faker.location.streetAddress(),
+        scheduledAt: addDays(transitionTimestamp, 1),
+        status: faker.helpers.arrayElement([
+          TransportOrderStatus.SCHEDULED,
+          TransportOrderStatus.PICKED_UP,
+          TransportOrderStatus.DELIVERED,
+        ]),
+        costCents: faker.number.int({ min: 35000, max: 95000 }),
+      });
+    }
+
+    await prisma.vehicleWorkflow.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: vehicle.id,
+        definitionId: workflowDefinition.id,
+        currentStageId: currentStage.id,
+        startedAt: stageTransitionsData[0]?.at ?? received ?? new Date(),
+        completedAt: completedAtDate ?? undefined,
+        transitions: { create: stageTransitionsData },
+        tasks: workflowTaskCreates.length > 0 ? { create: workflowTaskCreates } : undefined,
+        transportOrders: transportOrdersCreates.length > 0 ? { create: transportOrdersCreates } : undefined,
+      },
+    });
+
     inventoryVehicles.push(vehicle);
+  }
+
+  const managerUser = (usersByRole[UserRole.MANAGER] ?? [])[0] ?? adminUser;
+  const appraiserUser = salesTeam[0] ?? managerUser;
+  const sampleVehicle = inventoryVehicles[0];
+
+  if (sampleVehicle) {
+    const appraisalSubmittedAt = subDays(new Date(), 5);
+    const appraisalApprovedAt = subDays(new Date(), 3);
+    const appraisal = await prisma.appraisal.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        appraiserId: appraiserUser.id,
+        managerId: managerUser.id,
+        vin: sampleVehicle.vin,
+        year: sampleVehicle.year,
+        make: sampleVehicle.make,
+        model: sampleVehicle.model,
+        trim: sampleVehicle.trim,
+        exteriorColor: sampleVehicle.exteriorColor,
+        interiorColor: sampleVehicle.interiorColor,
+        mileage: sampleVehicle.mileage,
+        conditionGrade: AppraisalConditionGrade.CLEAN,
+        conditionScore: faker.number.int({ min: 70, max: 92 }),
+        conditionNotes: faker.lorem.sentence(),
+        warningLights: faker.helpers.arrayElements(['ABS', 'TPMS', 'Check Engine'], { min: 0, max: 2 }),
+        photos: [
+          'https://images.example.com/appraisals/interior.jpg',
+          'https://images.example.com/appraisals/exterior.jpg',
+        ],
+        estimatedValue: (Number(sampleVehicle.listPrice ?? sampleVehicle.msrp ?? '25000') * 0.9).toFixed(2),
+        marketValue: (Number(sampleVehicle.listPrice ?? sampleVehicle.msrp ?? '25000') * 0.92).toFixed(2),
+        aiSuggestedValue: (Number(sampleVehicle.listPrice ?? sampleVehicle.msrp ?? '25000') * 0.915).toFixed(2),
+        reconEstimate: {
+          interior: 180,
+          exterior: 275,
+          mechanical: 450,
+        },
+        status: AppraisalStatus.APPROVED,
+        submittedAt: appraisalSubmittedAt,
+        approvedAt: appraisalApprovedAt,
+        notes: 'Approved appraisal used as pricing baseline.',
+      },
+    });
+
+    await prisma.vehicle.update({
+      where: { id: sampleVehicle.id },
+      data: {
+        appraisalStatus: AppraisalStatus.APPROVED,
+        lastAppraisedAt: appraisalApprovedAt,
+        marketValue: (Number(sampleVehicle.listPrice ?? sampleVehicle.msrp ?? '25000') * 0.92).toFixed(2),
+      },
+    });
+
+    await prisma.reconItem.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        appraisalId: appraisal.id,
+        title: 'Detail and paint correction',
+        description: 'Full exterior buff with scratch repair and ceramic coating prep.',
+        category: 'Appearance',
+        status: ReconItemStatus.COMPLETED,
+        vendor: 'ShineWorks Detailing',
+        estimatedCost: '425.00',
+        actualCost: '410.00',
+        startedAt: addDays(appraisalApprovedAt, 1),
+        completedAt: addDays(appraisalApprovedAt, 3),
+        beforePhotos: ['https://images.example.com/recon/before-detail.jpg'],
+        afterPhotos: ['https://images.example.com/recon/after-detail.jpg'],
+        notes: 'Vehicle ready for front-line display.',
+      },
+    });
+
+    await prisma.reconItem.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        appraisalId: appraisal.id,
+        title: 'Brake pad replacement',
+        description: 'Replace front brake pads and resurface rotors.',
+        category: 'Mechanical',
+        status: ReconItemStatus.IN_PROGRESS,
+        vendor: 'Sunrise Service Bay',
+        estimatedCost: '320.00',
+        actualCost: null,
+        startedAt: addDays(appraisalApprovedAt, 2),
+        beforePhotos: ['https://images.example.com/recon/brakes-before.jpg'],
+        notes: 'Waiting on parts arrival.',
+      },
+    });
+
+    const oldPrice = Number(sampleVehicle.listPrice ?? sampleVehicle.msrp ?? '25000');
+    const reducedPrice = Number((oldPrice - 750).toFixed(2));
+
+    await prisma.priceHistory.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        changedById: managerUser.id,
+        changeType: PriceChangeType.MARKET,
+        oldPrice: oldPrice.toFixed(2),
+        newPrice: reducedPrice.toFixed(2),
+        adjustment: (reducedPrice - oldPrice).toFixed(2),
+        sourceReference: 'appraisal-review',
+        notes: 'Market realignment following approved appraisal.',
+      },
+    });
+
+    await prisma.priceHistory.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        changedById: appraiserUser.id,
+        changeType: PriceChangeType.AI_RECOMMENDATION,
+        oldPrice: reducedPrice.toFixed(2),
+        newPrice: (reducedPrice - 250).toFixed(2),
+        adjustment: (-250).toFixed(2),
+        sourceReference: 'ml-service',
+        notes: 'Automated pricing suggestion applied after 30 days in stock.',
+      },
+    });
+
+    await prisma.marketComp.createMany({
+      data: [
+        {
+          tenantId: tenant.id,
+          vehicleId: sampleVehicle.id,
+          source: MarketCompSource.RETAIL_LISTING,
+          compVin: faker.vehicle.vin(),
+          year: sampleVehicle.year,
+          make: sampleVehicle.make,
+          model: sampleVehicle.model,
+          trim: sampleVehicle.trim,
+          mileage: faker.number.int({ min: sampleVehicle.mileage ?? 10000, max: (sampleVehicle.mileage ?? 10000) + 15000 }),
+          price: (oldPrice * 0.98).toFixed(2),
+          distance: faker.number.int({ min: 5, max: 120 }),
+          location: faker.location.city(),
+          listedAt: subDays(new Date(), faker.number.int({ min: 2, max: 10 })),
+          payload: { provider: 'Cars.com' },
+        },
+        {
+          tenantId: tenant.id,
+          vehicleId: sampleVehicle.id,
+          source: MarketCompSource.AUCTION_RESULT,
+          compVin: faker.vehicle.vin(),
+          year: sampleVehicle.year,
+          make: sampleVehicle.make,
+          model: sampleVehicle.model,
+          trim: sampleVehicle.trim,
+          mileage: faker.number.int({ min: 10000, max: 40000 }),
+          price: (oldPrice * 0.85).toFixed(2),
+          distance: faker.number.int({ min: 50, max: 250 }),
+          location: faker.location.city(),
+          listedAt: subDays(new Date(), faker.number.int({ min: 5, max: 14 })),
+          payload: { auction: 'Manheim Nashville' },
+        },
+      ],
+      skipDuplicates: true,
+    });
+
+    await prisma.wholesaleListing.create({
+      data: {
+        tenantId: tenant.id,
+        vehicleId: sampleVehicle.id,
+        platform: 'ACV Auctions',
+        status: WholesaleListingStatus.LISTED,
+        askingPrice: (oldPrice - 1200).toFixed(2),
+        reservePrice: (oldPrice - 1600).toFixed(2),
+        minimumAcceptable: (oldPrice - 2000).toFixed(2),
+        publishedAt: subDays(new Date(), 1),
+        expiresAt: addDays(new Date(), 5),
+        notes: 'Listed for wholesale backup strategy.',
+      },
+    });
+  }
+
+  const auctionVehicle = inventoryVehicles.find((vehicle) => vehicle.acquisitionType === VehicleAcquisitionType.AUCTION) ?? sampleVehicle;
+
+  if (auctionVehicle) {
+    const auctionBase = Number(auctionVehicle.invoiceCost ?? auctionVehicle.listPrice ?? '22000');
+    const hammerPrice = (auctionBase - 1500).toFixed(2);
+    const totalCost = (auctionBase - 1500 + 425 + 325 + 585).toFixed(2);
+
+    await prisma.auctionPurchase.upsert({
+      where: {
+        tenantId_vehicleId: {
+          tenantId: tenant.id,
+          vehicleId: auctionVehicle.id,
+        },
+      },
+      update: {},
+      create: {
+        tenantId: tenant.id,
+        vehicleId: auctionVehicle.id,
+        provider: 'Manheim',
+        auctionName: 'Manheim Dallas Evening Sale',
+        auctionDate: subDays(new Date(), 12),
+        lane: 'B',
+        runNumber: `B-${faker.string.numeric(3)}`,
+        status: AuctionPurchaseStatus.WON,
+        hammerPrice,
+        buyerFees: '425.00',
+        transportCost: '325.00',
+        reconditioningCost: '585.00',
+        totalCost,
+        conditionGrade: '3.6',
+        inspectorNotes: 'Minor cosmetic scuffs, clean frame.',
+        documents: ['https://docs.example.com/auction/condition-report.pdf'],
+      },
+    });
   }
 
   const months = createMonthlyPeriods();
@@ -806,7 +1278,7 @@ async function main() {
           salesPersonId: salesPerson.id,
           financeManagerId: financeManager.id,
           dealType: faker.helpers.arrayElement([DealType.CASH, DealType.FINANCE, DealType.LEASE]),
-          status: DealStatus.DELIVERED,
+      status: RetailDealStatus.DELIVERED,
           vehiclePrice: netVehiclePrice.toFixed(2),
           discount: discount.toFixed(2),
           netVehiclePrice: netVehiclePrice.toFixed(2),
@@ -1105,17 +1577,17 @@ async function main() {
     }
 
     const statusScenarios: Array<{
-      status: DealStatus;
+      status: RetailDealStatus;
       contractOffsetDays?: number;
       fundedOffsetDays?: number;
       deliveredOffsetDays?: number;
     }> = [
-      { status: DealStatus.DRAFT },
-      { status: DealStatus.PENDING },
-      { status: DealStatus.SUBMITTED },
-      { status: DealStatus.APPROVED, contractOffsetDays: 2 },
-      { status: DealStatus.FUNDED, contractOffsetDays: 2, fundedOffsetDays: 6 },
-      { status: DealStatus.DELIVERED, contractOffsetDays: 2, fundedOffsetDays: 6, deliveredOffsetDays: 9 },
+      { status: RetailDealStatus.DRAFT },
+      { status: RetailDealStatus.PENDING },
+      { status: RetailDealStatus.SUBMITTED },
+      { status: RetailDealStatus.APPROVED, contractOffsetDays: 2 },
+      { status: RetailDealStatus.FUNDED, contractOffsetDays: 2, fundedOffsetDays: 6 },
+      { status: RetailDealStatus.DELIVERED, contractOffsetDays: 2, fundedOffsetDays: 6, deliveredOffsetDays: 9 },
     ];
 
     const scenarioBaseDate = new Date();
@@ -1130,7 +1602,7 @@ async function main() {
         scenario.deliveredOffsetDays !== undefined ? addDays(dealDate, scenario.deliveredOffsetDays) : null;
 
       const scenarioFiProducts =
-        scenario.status === DealStatus.DRAFT || scenario.status === DealStatus.PENDING ? [] : baseFiProducts;
+        scenario.status === RetailDealStatus.DRAFT || scenario.status === RetailDealStatus.PENDING ? [] : baseFiProducts;
 
       const displayStatus = `${scenario.status.charAt(0)}${scenario.status.slice(1).toLowerCase()}`;
 
@@ -1143,7 +1615,7 @@ async function main() {
           netTrade: netTrade ?? undefined,
           cashDown,
           amountFinanced,
-          lenderId: scenario.status === DealStatus.DRAFT ? null : 'sunrise-credit-union',
+          lenderId: scenario.status === RetailDealStatus.DRAFT ? null : 'sunrise-credit-union',
           apr: apr ?? undefined,
           term: sampleDeal.term ?? 72,
           monthlyPayment: monthlyPayment ?? undefined,
@@ -1172,7 +1644,7 @@ async function main() {
           netTrade: netTrade ?? undefined,
           cashDown,
           amountFinanced,
-          lenderId: scenario.status === DealStatus.DRAFT ? null : 'sunrise-credit-union',
+          lenderId: scenario.status === RetailDealStatus.DRAFT ? null : 'sunrise-credit-union',
           apr: apr ?? undefined,
           term: sampleDeal.term ?? 72,
           monthlyPayment: monthlyPayment ?? undefined,
