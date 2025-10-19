@@ -5,7 +5,7 @@ import {
   DEAL_STATUSES,
   RESIDENCE_TYPES,
   RECOMMENDATIONS,
-} from './types';
+} from './types.js';
 
 export const feeLineSchema = z.object({
   code: z.string().min(1),

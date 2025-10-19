@@ -1,11 +1,3 @@
-import type {
-  CounterOfferOutcome as PrismaCounterOfferOutcome,
-  CreditTier as PrismaCreditTier,
-  DealStatus as PrismaDealStatus,
-  Recommendation as PrismaRecommendation,
-  ResidenceType as PrismaResidenceType,
-} from '@prisma/client';
-
 export const DEAL_STATUSES = ['WORKING', 'PENCILED', 'SUBMITTED', 'CLOSED', 'LOST'] as const;
 export type DealStatus = (typeof DEAL_STATUSES)[number];
 
@@ -20,14 +12,6 @@ export type Recommendation = (typeof RECOMMENDATIONS)[number];
 
 export const COUNTER_OUTCOMES = ['PENDING', 'ACCEPTED', 'DECLINED'] as const;
 export type CounterOfferOutcome = (typeof COUNTER_OUTCOMES)[number];
-
-type EnsureLiteralMatch<T extends readonly string[], U extends string> = Exclude<U, T[number]> extends never ? true : never;
-
-type _DealStatusCheck = EnsureLiteralMatch<typeof DEAL_STATUSES, PrismaDealStatus>;
-type _CreditTierCheck = EnsureLiteralMatch<typeof CREDIT_TIERS, PrismaCreditTier>;
-type _ResidenceTypeCheck = EnsureLiteralMatch<typeof RESIDENCE_TYPES, PrismaResidenceType>;
-type _RecommendationCheck = EnsureLiteralMatch<typeof RECOMMENDATIONS, PrismaRecommendation>;
-type _CounterOutcomeCheck = EnsureLiteralMatch<typeof COUNTER_OUTCOMES, PrismaCounterOfferOutcome>;
 
 export interface FeeLine {
   code: string;
