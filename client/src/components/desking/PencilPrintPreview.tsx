@@ -1,0 +1,198 @@
+import type { ApprovalPredictions, DeskingDeal, PaymentScenario, SimilarDealSummary } from '@/features/desking/types';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
+
+interface PencilPrintPreviewProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  deal?: DeskingDeal;
+  scenario?: PaymentScenario;
+  predictions?: ApprovalPredictions;
+  similarDeals?: SimilarDealSummary[];
+  formatCurrency: (value: number) => string;
+}
+
+export function PencilPrintPreview({
+  open,
+  onOpenChange,
+  deal,
+  scenario,
+  predictions,
+  similarDeals,
+  formatCurrency,
+}: PencilPrintPreviewProps) {
+  const handlePrint = () => {
+    window.print();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-5xl overflow-hidden bg-white print:max-w-none print:w-full print:rounded-none print:border-0 print:p-0">
+        <DialogHeader className="no-print">
+          <DialogTitle>Pencil Print Preview</DialogTitle>
+          <DialogDescription>Review the pencil summary before generating a printable worksheet.</DialogDescription>
+        </DialogHeader>
+        <div className="no-print flex justify-end gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          <Button onClick={handlePrint}>Print</Button>
+        </div>
+        <div className="print-container print:bg-white">
+          {deal && scenario ? (
+            <div className="space-y-6 p-6 text-sm leading-relaxed text-slate-700 print:p-8">
+              <header className="flex flex-col gap-1 border-b border-slate-200 pb-4">
+                <h2 className="text-2xl font-semibold text-slate-900">{deal.dealership}</h2>
+                <p className="text-xs uppercase tracking-wide text-slate-500">Desk Manager: {deal.deskManager}</p>
+                <p className="text-xs text-slate-500">Generated {format(new Date(), 'PPpp')}</p>
+              </header>
+
+              <section className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <h3 className="text-sm font-semibold text-slate-900">Customer</h3>
+                  <p className="text-slate-700">{deal.customer.name}</p>
+                  <p className="text-slate-500 text-xs">{deal.customer.email} • {deal.customer.phone}</p>
+                  <p className="text-xs text-slate-500">Credit Score: {deal.customer.creditScore}</p>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-sm font-semibold text-slate-900">Vehicle</h3>
+                  <p className="text-slate-700">{deal.vehicle.year} {deal.vehicle.make} {deal.vehicle.model}</p>
+                  <p className="text-xs text-slate-500">VIN {deal.vehicle.vin}</p>
+                  <p className="text-xs text-slate-500">Stock {deal.vehicle.stockNumber} • {deal.vehicle.mileage.toLocaleString()} miles</p>
+                </div>
+              </section>
+
+              <section>
+                <h3 className="text-sm font-semibold text-slate-900">Selected Structure</h3>
+                <div className="mt-2 grid grid-cols-2 gap-4 rounded-lg border border-slate-200 p-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Scenario</p>
+                    <p className="text-base font-semibold text-slate-900">{scenario.label}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Monthly</p>
+                    <p className="text-base font-semibold text-slate-900">{formatCurrency(scenario.monthlyPayment)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">APR / Term</p>
+                    <p className="text-slate-700">{scenario.apr.toFixed(2)}% • {scenario.termMonths} months</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Due at signing</p>
+                    <p className="text-slate-700">{formatCurrency(scenario.totalDueAtSigning)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Total of payments</p>
+                    <p className="text-slate-700">{formatCurrency(scenario.totalOfPayments)}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Cash down</p>
+                    <p className="text-slate-700">{formatCurrency(scenario.cashDown)}</p>
+                  </div>
+                </div>
+              </section>
+
+              <section>
+                <h3 className="text-sm font-semibold text-slate-900">Gross Summary</h3>
+                <div className="mt-2 grid grid-cols-4 gap-4 rounded-lg border border-slate-200 p-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Front</p>
+                    <p className="text-base font-semibold text-slate-900">{formatCurrency(deal.gross.frontGross)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Back</p>
+                    <p className="text-base font-semibold text-slate-900">{formatCurrency(deal.gross.backGross)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">F&I</p>
+                    <p className="text-base font-semibold text-slate-900">{formatCurrency(deal.gross.fAndIGross)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Total</p>
+                    <p className="text-base font-semibold text-slate-900">{formatCurrency(deal.gross.totalGross)}</p>
+                  </div>
+                </div>
+              </section>
+
+              <section>
+                <h3 className="text-sm font-semibold text-slate-900">Fees & Taxes</h3>
+                <div className="mt-2 grid grid-cols-3 gap-4 rounded-lg border border-slate-200 p-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Doc</p>
+                    <p>{formatCurrency(deal.fees.docFee)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Acquisition</p>
+                    <p>{formatCurrency(deal.fees.acquisitionFee)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">License</p>
+                    <p>{formatCurrency(deal.fees.licenseFee)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Registration</p>
+                    <p>{formatCurrency(deal.fees.registration)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Taxes</p>
+                    <p>{formatCurrency(deal.fees.taxes)}</p>
+                  </div>
+                </div>
+              </section>
+
+              {predictions && (
+                <section>
+                  <h3 className="text-sm font-semibold text-slate-900">Approval Outlook</h3>
+                  <div className="mt-2 grid grid-cols-3 gap-4 rounded-lg border border-slate-200 p-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Overall probability</p>
+                      <p className="text-base font-semibold text-slate-900">{Math.round(predictions.overallProbability * 100)}%</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Funding window</p>
+                      <p className="text-slate-700">{predictions.likelyFundingWindowHours} hours</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Risk signals</p>
+                      <ul className="mt-1 list-disc space-y-1 pl-5">
+                        {predictions.riskSignals.map(signal => (
+                          <li key={signal}>{signal}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {similarDeals && similarDeals.length > 0 && (
+                <section>
+                  <h3 className="text-sm font-semibold text-slate-900">Similar Deals</h3>
+                  <div className="mt-2 space-y-3 rounded-lg border border-slate-200 p-4">
+                    {similarDeals.map(dealSummary => (
+                      <div key={dealSummary.id} className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">{dealSummary.vehicle}</p>
+                          <p className="text-xs text-slate-500">{dealSummary.customer} • {dealSummary.structure}</p>
+                          <p className="text-xs text-slate-500">Highlights: {dealSummary.highlights.join('; ')}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-slate-900">{formatCurrency(dealSummary.payment)}</p>
+                          <p className="text-xs text-slate-500">Close {Math.round(dealSummary.closeProbability * 100)}%</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+          ) : (
+            <div className="flex h-40 items-center justify-center">
+              <p className="text-sm text-muted-foreground">Loading deal data…</p>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export default PencilPrintPreview;
