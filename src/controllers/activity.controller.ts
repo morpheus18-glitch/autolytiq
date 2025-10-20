@@ -9,6 +9,7 @@ import {
   smsActivitySchema,
 } from '../validations/activity.validation.js';
 import * as activityService from '../services/activity.service.js';
+import { resolveHttpError } from '../utils/http-errors.js';
 
 function ensureTenant(req: Request, res: Response): string | undefined {
   const tenantId = req.context?.tenantId;
@@ -58,8 +59,7 @@ export async function getActivity(req: Request, res: Response) {
     const activity = await activityService.getActivity(req.params.id);
     res.json({ data: activity });
   } catch (error) {
-    const status = typeof error === 'object' && error && 'status' in error ? (error as any).status : 500;
-    const message = error instanceof Error ? error.message : 'Unable to fetch activity';
+    const { status, message } = resolveHttpError(error, 500, 'Unable to fetch activity');
     res.status(status).json({ message });
   }
 }
@@ -79,8 +79,7 @@ export async function updateActivity(req: Request, res: Response) {
     const activity = await activityService.updateActivity(req.params.id, parsed.data);
     res.json({ data: activity });
   } catch (error) {
-    const status = typeof error === 'object' && error && 'status' in error ? (error as any).status : 500;
-    const message = error instanceof Error ? error.message : 'Unable to update activity';
+    const { status, message } = resolveHttpError(error, 500, 'Unable to update activity');
     res.status(status).json({ message });
   }
 }

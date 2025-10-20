@@ -799,13 +799,13 @@ async function evaluateRouting(
     }
     const primary = await resolveAssignment(tenantId, lead, config, roundRobin, options, rule, rule.assignment);
     if (primary) {
-      primary.reason = `Rule \"${rule.name}\" satisfied. ${primary.reason}`;
+      primary.reason = `Rule "${rule.name}" satisfied. ${primary.reason}`;
       return primary;
     }
     if (rule.fallback) {
       const fallback = await resolveAssignment(tenantId, lead, config, roundRobin, options, rule, rule.fallback);
       if (fallback) {
-        fallback.reason = `Rule \"${rule.name}\" fallback applied. ${fallback.reason}`;
+        fallback.reason = `Rule "${rule.name}" fallback applied. ${fallback.reason}`;
         return fallback;
       }
     }

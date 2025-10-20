@@ -13,6 +13,7 @@ import {
   type ComplianceGroupKey,
   type ComplianceUpdatePayload,
 } from '../../fi/compliance.service.js';
+import { resolveHttpError } from '../../utils/http-errors.js';
 
 const allowedRoles: Role[] = ['ADMIN', 'SALES'];
 
@@ -30,10 +31,9 @@ function handleError(error: unknown, res: Response, next: NextFunction) {
   if (error instanceof DealNotFoundError || error instanceof DocumentGenerationError) {
     return res.status(error.status).json({ message: error.message });
   }
-  if (error && typeof error === 'object' && 'status' in error && typeof (error as any).status === 'number') {
-    const status = (error as any).status as number;
-    const message = (error as any).message ?? 'Request failed';
-    return res.status(status).json({ message });
+  const resolved = resolveHttpError(error, 500, 'Request failed');
+  if (resolved.status !== 500 || resolved.message !== 'Request failed') {
+    return res.status(resolved.status).json({ message: resolved.message });
   }
   return next(error);
 }

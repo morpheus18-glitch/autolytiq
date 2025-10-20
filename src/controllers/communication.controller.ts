@@ -8,6 +8,7 @@ import {
 } from '../validations/communication.validation.js';
 import * as communicationService from '../services/communication.service.js';
 import * as inboxService from '../services/inbox.service.js';
+import { resolveHttpError } from '../utils/http-errors.js';
 
 function ensureTenant(req: Request, res: Response): string | undefined {
   const tenantId = req.context?.tenantId;
@@ -19,8 +20,7 @@ function ensureTenant(req: Request, res: Response): string | undefined {
 }
 
 function handleServiceError(error: unknown, res: Response, defaultMessage: string) {
-  const status = typeof error === 'object' && error && 'status' in error ? (error as any).status : 500;
-  const message = error instanceof Error ? error.message : defaultMessage;
+  const { status, message } = resolveHttpError(error, 500, defaultMessage);
   res.status(status).json({ message });
 }
 

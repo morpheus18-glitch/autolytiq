@@ -8,11 +8,19 @@ import {
   LeadStatus,
   Prisma,
 } from '@prisma/client';
-import { getTenantId, prisma } from '../lib/prisma.js';
+import { getTenantId, prisma, toInputJson } from '../lib/prisma.js';
 import { mapSendGridStatus, mapTwilioStatus } from './inbox.service.js';
 import { normalizePhoneNumber } from './twilio.service.js';
 import * as activityService from './activity.service.js';
 import { handleLeadCreated } from './lead-routing.service.js';
+
+export type TwilioWebhookPayload = Record<string, string | null | undefined>;
+
+export interface SendGridWebhookEvent extends Record<string, unknown> {
+  event: string;
+  timestamp?: number;
+  sg_message_id?: string;
+}
 
 function deriveActivityStatus(status?: CommunicationStatus | null): ActivityStatus {
   switch (status) {
@@ -45,7 +53,8 @@ function mergeJson(
   base: Record<string, unknown> | null | undefined,
   extra: Record<string, unknown>,
 ): Prisma.InputJsonValue {
-  return { ...(base ?? {}), ...extra } as Prisma.InputJsonValue;
+  const normalizedBase = (base ?? {}) as Record<string, unknown>;
+  return toInputJson({ ...normalizedBase, ...extra });
 }
 
 async function upsertLeadByPhone(phone: string, source: LeadSource) {
@@ -120,19 +129,24 @@ async function updateActivityFromCommunication(
   await prisma.activity.update({ where: { id: communication.activityId }, data: updates });
 }
 
-export async function handleTwilioWebhook(payload: Record<string, any>) {
+function readString(payload: TwilioWebhookPayload, key: string): string | undefined {
+  const value = payload[key];
+  return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
+export async function handleTwilioWebhook(payload: TwilioWebhookPayload) {
   const tenantId = requireTenantId();
-  const messageSid = payload.MessageSid ?? payload.SmsSid;
-  const callSid = payload.CallSid;
+  const messageSid = readString(payload, 'MessageSid') ?? readString(payload, 'SmsSid');
+  const callSid = readString(payload, 'CallSid');
 
   if (messageSid) {
-    const status = mapTwilioStatus(payload.MessageStatus ?? payload.SmsStatus);
-    const direction = (payload.Direction ?? payload.MessageDirection ?? '').toLowerCase();
+    const status = mapTwilioStatus(readString(payload, 'MessageStatus') ?? readString(payload, 'SmsStatus'));
+    const direction = (readString(payload, 'Direction') ?? readString(payload, 'MessageDirection') ?? '').toLowerCase();
 
-    if ((payload.SmsStatus ?? '').toLowerCase() === 'received' || direction === 'inbound') {
-      const from = normalizePhoneNumber(payload.From ?? '');
-      const to = normalizePhoneNumber(payload.To ?? '');
-      const body = payload.Body ?? '';
+    if ((readString(payload, 'SmsStatus') ?? '').toLowerCase() === 'received' || direction === 'inbound') {
+      const from = normalizePhoneNumber(readString(payload, 'From') ?? '');
+      const to = normalizePhoneNumber(readString(payload, 'To') ?? '');
+      const body = readString(payload, 'Body') ?? '';
       const { leadId, customerId } = await upsertLeadByPhone(from, LeadSource.PHONE);
 
       const communication = await prisma.communication.create({
@@ -145,7 +159,7 @@ export async function handleTwilioWebhook(payload: Record<string, any>) {
           body,
           providerId: messageSid,
           status: CommunicationStatus.DELIVERED,
-          metadata: { twilio: payload } as Prisma.InputJsonValue,
+          metadata: toInputJson({ twilio: payload }),
           lead: optionalRelation<Prisma.LeadCreateNestedOneWithoutCommunicationsInput>(leadId),
           customer: optionalRelation<Prisma.CustomerCreateNestedOneWithoutCommunicationsInput>(customerId),
         },
@@ -183,18 +197,22 @@ export async function handleTwilioWebhook(payload: Record<string, any>) {
       },
     });
 
-    await updateActivityFromCommunication(updated.id, updated.status ?? undefined, payload.MessageStatus ?? payload.SmsStatus);
+    await updateActivityFromCommunication(
+      updated.id,
+      updated.status ?? undefined,
+      readString(payload, 'MessageStatus') ?? readString(payload, 'SmsStatus'),
+    );
     return;
   }
 
   if (callSid) {
-    const status = mapTwilioStatus(payload.CallStatus);
-    const direction = (payload.Direction ?? '').toLowerCase();
+    const status = mapTwilioStatus(readString(payload, 'CallStatus'));
+    const direction = (readString(payload, 'Direction') ?? '').toLowerCase();
     const existing = await prisma.communication.findFirst({ where: { providerId: callSid } });
 
     if (!existing) {
-      const from = normalizePhoneNumber(payload.From ?? '');
-      const to = normalizePhoneNumber(payload.To ?? '');
+      const from = normalizePhoneNumber(readString(payload, 'From') ?? '');
+      const to = normalizePhoneNumber(readString(payload, 'To') ?? '');
       const { leadId, customerId } = await upsertLeadByPhone(direction === 'inbound' ? from : to, LeadSource.PHONE);
 
       const communication = await prisma.communication.create({
@@ -206,7 +224,7 @@ export async function handleTwilioWebhook(payload: Record<string, any>) {
           from,
           providerId: callSid,
           status: status ?? CommunicationStatus.SENT,
-          metadata: { twilio: payload } as Prisma.InputJsonValue,
+          metadata: toInputJson({ twilio: payload }),
           lead: optionalRelation<Prisma.LeadCreateNestedOneWithoutCommunicationsInput>(leadId),
           customer: optionalRelation<Prisma.CustomerCreateNestedOneWithoutCommunicationsInput>(customerId),
         },
@@ -218,9 +236,9 @@ export async function handleTwilioWebhook(payload: Record<string, any>) {
         startedAt: new Date(),
         completedAt: status === CommunicationStatus.DELIVERED ? new Date() : undefined,
         callSid,
-        recordingUrl: payload.RecordingUrl,
-        outcome: payload.CallStatus,
-        durationSeconds: payload.CallDuration ? Number(payload.CallDuration) : undefined,
+        recordingUrl: readString(payload, 'RecordingUrl'),
+        outcome: readString(payload, 'CallStatus'),
+        durationSeconds: readString(payload, 'CallDuration') ? Number(readString(payload, 'CallDuration')) : undefined,
       });
 
       await prisma.communication.update({ where: { id: communication.id }, data: { activityId: activity.id } });
@@ -233,18 +251,19 @@ export async function handleTwilioWebhook(payload: Record<string, any>) {
         status: status ?? undefined,
         metadata: mergeJson(existing.metadata as Record<string, unknown> | null, {
           lastEvent: payload,
-          recordingUrl: payload.RecordingUrl ?? (existing.metadata as Record<string, unknown> | null)?.recordingUrl,
+          recordingUrl:
+            readString(payload, 'RecordingUrl') ?? (existing.metadata as Record<string, unknown> | null)?.recordingUrl,
         }),
       },
     });
 
-    await updateActivityFromCommunication(updated.id, updated.status ?? undefined, payload.CallStatus);
+    await updateActivityFromCommunication(updated.id, updated.status ?? undefined, readString(payload, 'CallStatus'));
   }
 }
 
-export async function handleSendGridWebhook(events: Array<Record<string, any>>) {
+export async function handleSendGridWebhook(events: SendGridWebhookEvent[]) {
   for (const event of events) {
-    const rawMessageId = event.sg_message_id ?? event['sg_message_id'];
+    const rawMessageId = (event.sg_message_id ?? event['sg_message_id']) as string | undefined;
     if (!rawMessageId) {
       continue;
     }
@@ -268,18 +287,21 @@ export async function handleSendGridWebhook(events: Array<Record<string, any>>) 
     const existingEvents = Array.isArray(metadata?.events)
       ? (metadata!.events as Prisma.JsonArray)
       : ([] as Prisma.JsonArray);
-    const events: Prisma.JsonArray = [...existingEvents, { type: event.event, timestamp: event.timestamp }] as Prisma.JsonArray;
+    const events: Prisma.JsonArray = [
+      ...existingEvents,
+      { type: event.event, timestamp: event.timestamp ?? Date.now() },
+    ] as Prisma.JsonArray;
 
     const updated = await prisma.communication.update({
       where: { id: communication.id },
       data: {
         status: status ?? undefined,
-        metadata: {
-          ...metadata,
+        metadata: toInputJson({
+          ...(metadata ?? {}),
           lastEvent: event,
           events,
           messageId,
-        },
+        }),
       },
     });
 

@@ -14,7 +14,7 @@ export default defineConfig({
   skipNodeModulesBundle: true,
   treeshake: false,
 
-  external: [/^(?!@shared)[^.\/]/],
+  external: [/^(?!@shared)[^./]/],
   noExternal: ["@shared"],
   tsconfig: "tsconfig.api.json",
   esbuildOptions(options) {
