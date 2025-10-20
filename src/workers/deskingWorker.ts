@@ -1,14 +1,14 @@
 import { randomUUID } from 'node:crypto';
 
-interface Job<T> {
+interface Job {
   id: string;
   attemptsRemaining: number;
-  execute: () => Promise<T>;
-  resolve: (value: T) => void;
+  execute: () => Promise<unknown>;
+  resolve: (value: unknown) => void;
   reject: (reason?: unknown) => void;
 }
 
-const queue: Job<unknown>[] = [];
+const queue: Job[] = [];
 let activeJobs = 0;
 const MAX_CONCURRENCY = 2;
 
@@ -45,11 +45,11 @@ function scheduleNext(): void {
 
 export function enqueueDeskingJob<T>(execute: () => Promise<T>, options: { retries?: number } = {}): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    const job: Job<T> = {
+    const job: Job = {
       id: randomUUID(),
       attemptsRemaining: options.retries ?? 2,
       execute,
-      resolve,
+      resolve: (value) => resolve(value as T),
       reject,
     };
     queue.push(job);

@@ -61,14 +61,14 @@ export async function createDealCloseJournal(params: {
 
   if (frontGross > 0) {
     lines.push({
-      tenantId: params.tenantId,
+      tenant: { connect: { id: params.tenantId } },
       glAccount: { connect: { id: accountMap.get(FRONT_REVENUE_ACCOUNT)! } },
       type: LineType.CREDIT,
       amount: toDecimal(frontGross),
       description: 'Front-end gross recognition',
     });
     lines.push({
-      tenantId: params.tenantId,
+      tenant: { connect: { id: params.tenantId } },
       glAccount: { connect: { id: accountMap.get(COST_OF_SALE_ACCOUNT)! } },
       type: LineType.DEBIT,
       amount: toDecimal(frontGross),
@@ -79,7 +79,7 @@ export async function createDealCloseJournal(params: {
   const backendTotal = backGross + reserve;
   if (backendTotal > 0) {
     lines.push({
-      tenantId: params.tenantId,
+      tenant: { connect: { id: params.tenantId } },
       glAccount: { connect: { id: accountMap.get(BACKEND_REVENUE_ACCOUNT)! } },
       type: LineType.CREDIT,
       amount: toDecimal(backendTotal),

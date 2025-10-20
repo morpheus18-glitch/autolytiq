@@ -7,6 +7,17 @@ const parseFontStack = (stack: string) =>
     .map((font) => font.trim())
     .map((font) => font.replace(/^"|"$/g, '').replace(/^'|'$/g, ''));
 
+const loadFormsPlugin = () => {
+  try {
+    return require('tailwindcss/forms');
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'MODULE_NOT_FOUND') {
+      return require('@tailwindcss/forms');
+    }
+    throw error;
+  }
+};
+
 const fontFamily = Object.fromEntries(
   Object.entries(designTokens.typography.fontFamily).map(([key, value]) => [
     key,
@@ -152,7 +163,7 @@ export default {
   },
   plugins: [
     require('tailwindcss-animate'),
-    // require('@tailwindcss/forms'), // Temporarily disabled - module not found
+    loadFormsPlugin(),
     require('@tailwindcss/typography'),
   ],
 } satisfies Config;
