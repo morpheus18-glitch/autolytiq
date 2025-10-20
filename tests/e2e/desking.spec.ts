@@ -52,8 +52,15 @@ test.describe("Desking happy path", () => {
 });
 
 test.describe("Customer counter flow", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("http://localhost:3000/login");
+    await page.fill('[data-testid="login-email"]', "mike@deal.com");
+    await page.fill('[data-testid="login-password"]', "password123!");
+    await page.click('[data-testid="login-submit"]');
+    await page.waitForURL("**/dashboard");
+  });
+
   test("Counter → AI options → choose → new version in history", async ({ page }) => {
-    // Assume still logged in from previous run
     await page.goto("http://localhost:3000/desking/deals/D-2025-4567");
 
     // Open counter page
