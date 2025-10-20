@@ -436,6 +436,7 @@ function parseLenderProfiles(
     maxTerm?: number;
     minCreditScore?: number | null;
     maxCreditScore?: number | null;
+    maxReserve?: DecimalLike | null;
   }>,
 ): LenderProfile[] {
   return records.map<LenderProfile>((record) => {
@@ -471,13 +472,19 @@ function parseLenderProfiles(
       ),
     );
 
+    const lenderMaxReserve = decimalToNumber(record.maxReserve);
+    const sheetsMaxReserve = sheets
+      .map((tier) => tier.maxReserve)
+      .filter((value): value is number => value != null);
+    const profileMaxReserve = sheetsMaxReserve.length > 0 ? Math.max(...sheetsMaxReserve) : undefined;
+
     return {
       id: record.id,
       tenantId,
       name: record.name,
       status: record.isActive ? 'active' : 'inactive',
       rateSheets: sheets,
-      maxReserve: undefined,
+      maxReserve: lenderMaxReserve ?? profileMaxReserve ?? undefined,
       maxLtv: decimalToNumber(record.maxLtv) ?? undefined,
       maxPti: undefined,
       maxTermMonths: record.maxTerm ?? undefined,
@@ -512,6 +519,7 @@ async function buildLenderCriteria(
       maxTerm: true,
       minCreditScore: true,
       maxCreditScore: true,
+      maxReserve: true,
     },
   });
 
