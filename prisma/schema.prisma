@@ -534,7 +534,7 @@ model Customer {
   createdAt              DateTime                 @default(now()) @db.Timestamptz(6)
   updatedAt              DateTime                 @updatedAt @db.Timestamptz(6)
   deletedAt              DateTime?                @db.Timestamptz(6)
-  searchVector           Unsupported("tsvector")? @map("search_vector")
+  searchVector           String?                  @db.Text @map("search_vector")
 
   tenant         Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   assignedToUser User?                 @relation("CustomerAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
@@ -550,7 +550,8 @@ model Customer {
 
   @@index([tenantId, leadStatus])
   @@index([tenantId, assignedToUserId])
-  @@index([searchVector], type: Gin)
+  @@index([tenantId])
+  @@index([tenantId, searchVector])
   @@index([tenantId, lastName, firstName])
 }
 
@@ -887,7 +888,7 @@ model Vehicle {
   createdAt             DateTime                 @default(now()) @db.Timestamptz(6)
   updatedAt             DateTime                 @updatedAt @db.Timestamptz(6)
   deletedAt             DateTime?                @db.Timestamptz(6)
-  searchVector          Unsupported("tsvector")? @map("search_vector")
+  searchVector          String?                 @db.Text @map("search_vector")
 
   tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   deals             Deal[]
@@ -911,7 +912,8 @@ model Vehicle {
   @@index([tenantId, make, model])
   @@index([tenantId, acquisitionType])
   @@index([tenantId, appraisalStatus])
-  @@index([searchVector], type: Gin)
+  @@index([tenantId])
+  @@index([tenantId, searchVector])
 }
 
 model VehicleHistory {

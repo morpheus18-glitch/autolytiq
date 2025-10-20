@@ -5,6 +5,7 @@ export interface TenantContextValue {
   userId?: string;
   isSuperAdmin?: boolean;
   impersonatedTenantId?: string;
+  skipSearchVector?: boolean;
 }
 
 const tenantStorage = new AsyncLocalStorage<TenantContextValue>();
