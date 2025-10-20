@@ -106,11 +106,11 @@ app.use((req, res, next) => {
 
   const server = await registerRoutes(app);
   
-  // Seed default data on startup
-  await seedDefaultData();
+  // Seed default data on startup - DISABLED due to Drizzle/Prisma table mismatch
+  // await seedDefaultData();
   
-  // Initialize comprehensive sample data
-  await initializeComprehensiveSampleData(storage as any);
+  // Initialize comprehensive sample data - DISABLED due to Drizzle/Prisma table mismatch  
+  // await initializeComprehensiveSampleData(storage as any);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
