@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum TenantPlan {
@@ -429,6 +429,7 @@ model Tenant {
   dealJackets          DealJacket[]
   creditApplications   CreditApplication[]
   creditReports        CreditReport[]
+  creditSubmissions    CreditSubmissionDraft[]
   lenders              Lender[]
   lenderSubmissions    LenderSubmission[]
   contracts            Contract[]
@@ -1150,12 +1151,12 @@ model Deal {
   updatedAt        DateTime         @updatedAt @db.Timestamptz(6)
   deletedAt        DateTime?        @db.Timestamptz(6)
 
-  tenant              Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  customer            Customer             @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  vehicle             Vehicle              @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
-  salesPerson         User                 @relation("SalesPersonDeals", fields: [salesPersonId], references: [id], onDelete: Restrict)
-  financeManager      User?                @relation("FinanceManagerDeals", fields: [financeManagerId], references: [id], onDelete: SetNull)
-  tradeVehicle        CustomerVehicle?     @relation("TradeVehicleDeal", fields: [tradeVehicleId], references: [id], onDelete: SetNull)
+  tenant              Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer            Customer                @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  vehicle             Vehicle                 @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  salesPerson         User                    @relation("SalesPersonDeals", fields: [salesPersonId], references: [id], onDelete: Restrict)
+  financeManager      User?                   @relation("FinanceManagerDeals", fields: [financeManagerId], references: [id], onDelete: SetNull)
+  tradeVehicle        CustomerVehicle?        @relation("TradeVehicleDeal", fields: [tradeVehicleId], references: [id], onDelete: SetNull)
   journalEntries      JournalEntry[]
   commissions         Commission[]
   worksheets          DealWorksheet[]
@@ -1163,6 +1164,7 @@ model Deal {
   optimizations       DealOptimization[]
   counterOffers       CounterOffer[]
   approvalPredictions ApprovalPrediction[]
+  creditSubmissions   CreditSubmissionDraft[]
 
   @@unique([tenantId, dealNumber])
   @@index([tenantId, status])
@@ -1190,16 +1192,17 @@ model DealWorksheet {
   createdAt        DateTime   @default(now()) @db.Timestamptz(6)
   updatedAt        DateTime   @updatedAt @db.Timestamptz(6)
 
-  tenant              Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  deal                Deal                 @relation(fields: [dealId], references: [id], onDelete: Cascade)
-  customer            Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  vehicle             Vehicle              @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
-  salesperson         User?                @relation("DealWorksheetSalesperson", fields: [salespersonId], references: [id], onDelete: SetNull)
-  versionPointer      DealVersion?         @relation("CurrentWorksheetVersion", fields: [versionPointerId], references: [id], onDelete: SetNull)
-  versions            DealVersion[]        @relation("WorksheetVersions")
+  tenant              Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal                Deal                    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  customer            Customer                @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  vehicle             Vehicle                 @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  salesperson         User?                   @relation("DealWorksheetSalesperson", fields: [salespersonId], references: [id], onDelete: SetNull)
+  versionPointer      DealVersion?            @relation("CurrentWorksheetVersion", fields: [versionPointerId], references: [id], onDelete: SetNull)
+  versions            DealVersion[]           @relation("WorksheetVersions")
   optimizations       DealOptimization[]
   counterOffers       CounterOffer[]
   approvalPredictions ApprovalPrediction[]
+  creditSubmissions   CreditSubmissionDraft[]
 
   @@index([tenantId, dealId])
   @@index([tenantId, customerId])
@@ -1225,11 +1228,11 @@ model DealVersion {
   createdById         String?
   createdAt           DateTime @default(now()) @db.Timestamptz(6)
 
-  tenant              Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  deal                Deal                 @relation(fields: [dealId], references: [id], onDelete: Cascade)
-  worksheet           DealWorksheet        @relation("WorksheetVersions", fields: [worksheetId], references: [id], onDelete: Cascade)
-  createdBy           User?                @relation("DealVersionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  currentWorksheet    DealWorksheet?       @relation("CurrentWorksheetVersion")
+  tenant              Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal                Deal                    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  worksheet           DealWorksheet           @relation("WorksheetVersions", fields: [worksheetId], references: [id], onDelete: Cascade)
+  createdBy           User?                   @relation("DealVersionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  currentWorksheet    DealWorksheet?          @relation("CurrentWorksheetVersion")
   optimizations       DealOptimization[]
   counterOffers       CounterOffer[]
   approvalPredictions ApprovalPrediction[]
@@ -1259,8 +1262,8 @@ model CreditSubmissionDraft {
   worksheet DealWorksheet @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
   version   DealVersion   @relation(fields: [versionId], references: [id], onDelete: Cascade)
 
-  @@index([tenantId, dealId])
   @@unique([tenantId, versionId])
+  @@index([tenantId, dealId])
 }
 
 model DealOptimization {
