@@ -1,7 +1,7 @@
-import { pgTable, text, serial, integer, boolean, timestamp, varchar, decimal, json, primaryKey, unique, date, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, varchar, decimal, json, primaryKey, unique, date, jsonb, index, bigint, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { relations, sql } from "drizzle-orm";
+import { relations, sql, desc } from "drizzle-orm";
 
 // Session storage table for Replit Auth
 export const sessions = pgTable(
@@ -13,6 +13,42 @@ export const sessions = pgTable(
   },
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
+
+// Backup metadata for operational exports
+export const backups = pgTable(
+  "backups",
+  {
+    id: serial("id").primaryKey(),
+    backupType: text("backup_type").notNull(),
+    filePath: text("file_path").notNull(),
+    fileSize: bigint("file_size", { mode: "number" }).notNull(),
+    status: text("status").notNull().default("COMPLETED"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    createdAtIdx: index("idx_backups_created_at").on(desc(table.createdAt)),
+  }),
+);
+
+// Daily operational reporting exports consumed by analytics workers
+export const dailyReports = pgTable(
+  "daily_reports",
+  {
+    id: serial("id").primaryKey(),
+    tenantId: uuid("tenant_id").notNull(),
+    reportDate: date("report_date").notNull(),
+    revenue: decimal("revenue", { precision: 18, scale: 2 }).default("0"),
+    expenses: decimal("expenses", { precision: 18, scale: 2 }).default("0"),
+    profit: decimal("profit", { precision: 18, scale: 2 }).default("0"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    tenantDateIdx: index("idx_daily_reports_tenant_date").on(table.tenantId, desc(table.reportDate)),
+  }),
+);
+
+export const insertBackupSchema = createInsertSchema(backups).omit({ id: true, createdAt: true });
+export const insertDailyReportSchema = createInsertSchema(dailyReports).omit({ id: true, createdAt: true });
 
 // Departments table
 export const departments = pgTable("departments", {
@@ -986,6 +1022,8 @@ export const insertTradeVehicleSchema = createInsertSchema(tradeVehicles).omit({
 export const insertShowroomVisitSchema = createInsertSchema(showroomVisits).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertSalespersonNoteSchema = createInsertSchema(salespersonNotes).omit({ id: true, createdAt: true, updatedAt: true });
 
+export type Backup = typeof backups.$inferSelect;
+export type DailyReport = typeof dailyReports.$inferSelect;
 export type Department = typeof departments.$inferSelect;
 export type Role = typeof roles.$inferSelect;
 export type Permission = typeof permissions.$inferSelect;
@@ -1360,6 +1398,8 @@ export type PricingInsights = typeof pricingInsights.$inferSelect;
 export type MerchandisingStrategies = typeof merchandisingStrategies.$inferSelect;
 export type MarketTrends = typeof marketTrends.$inferSelect;
 
+export type InsertBackup = z.infer<typeof insertBackupSchema>;
+export type InsertDailyReport = z.infer<typeof insertDailyReportSchema>;
 export type InsertDepartment = z.infer<typeof insertDepartmentSchema>;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
 export type InsertPermission = z.infer<typeof insertPermissionSchema>;
