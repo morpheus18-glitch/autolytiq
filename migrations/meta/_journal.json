@@ -8,6 +8,13 @@
       "when": 1760136001689,
       "tag": "0000_add_desking_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1760958082667,
+      "tag": "0001_operational_tables",
+      "breakpoints": false
     }
   ]
 }

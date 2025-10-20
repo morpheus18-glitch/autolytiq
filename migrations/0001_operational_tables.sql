@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS backups (
     file_path TEXT NOT NULL,
     file_size BIGINT NOT NULL,
     status TEXT NOT NULL DEFAULT 'COMPLETED',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_backups_created_at ON backups (created_at DESC);
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS daily_reports (
     revenue NUMERIC(18,2) DEFAULT 0,
     expenses NUMERIC(18,2) DEFAULT 0,
     profit NUMERIC(18,2) DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_daily_reports_tenant_date ON daily_reports (tenant_id, report_date DESC);
