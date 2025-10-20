@@ -449,9 +449,9 @@ model Tenant {
   workflowStages       WorkflowStage[]
   vehicleWorkflows     VehicleWorkflow[]
   workflowTasks        WorkflowTask[]
-  stageTransitions     StageTransition[]
-  transportOrders      TransportOrder[]
-  pipelineAggregates   PipelineAggregate[]
+  stageTransitions   StageTransition[]
+  transportOrders    TransportOrder[]
+  pipelineAggregates PipelineAggregate[]
 }
 
 model User {
@@ -534,7 +534,7 @@ model Customer {
   createdAt              DateTime                 @default(now()) @db.Timestamptz(6)
   updatedAt              DateTime                 @updatedAt @db.Timestamptz(6)
   deletedAt              DateTime?                @db.Timestamptz(6)
-  searchVector           Unsupported("tsvector")? @default(dbgenerated("to_tsvector('english', coalesce(\"firstName\",'') || ' ' || coalesce(\"lastName\",'') || ' ' || coalesce(\"email\",'') || ' ' || coalesce(\"phone\",''))")) @map("search_vector")
+  searchVector           Unsupported("tsvector")? @map("search_vector")
 
   tenant         Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   assignedToUser User?                 @relation("CustomerAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
@@ -887,7 +887,7 @@ model Vehicle {
   createdAt             DateTime                 @default(now()) @db.Timestamptz(6)
   updatedAt             DateTime                 @updatedAt @db.Timestamptz(6)
   deletedAt             DateTime?                @db.Timestamptz(6)
-  searchVector          Unsupported("tsvector")? @default(dbgenerated("to_tsvector('english', coalesce(\"vin\",'') || ' ' || coalesce(\"make\",'') || ' ' || coalesce(\"model\",''))")) @map("search_vector")
+  searchVector          Unsupported("tsvector")? @map("search_vector")
 
   tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   deals             Deal[]

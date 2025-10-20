@@ -152,7 +152,7 @@ export default {
   },
   plugins: [
     require('tailwindcss-animate'),
-    require('@tailwindcss/forms'),
+    // require('@tailwindcss/forms'), // Temporarily disabled - module not found
     require('@tailwindcss/typography'),
   ],
 } satisfies Config;
