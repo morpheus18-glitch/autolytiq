@@ -1,4 +1,7 @@
 import type { Config } from 'tailwindcss';
+import formsPlugin from '@tailwindcss/forms';
+import typographyPlugin from '@tailwindcss/typography';
+import tailwindcssAnimate from 'tailwindcss-animate';
 import { colorWithOpacity, designTokens } from './lib/design-tokens';
 
 const parseFontStack = (stack: string) =>
@@ -6,17 +9,6 @@ const parseFontStack = (stack: string) =>
     .split(',')
     .map((font) => font.trim())
     .map((font) => font.replace(/^"|"$/g, '').replace(/^'|'$/g, ''));
-
-const loadFormsPlugin = () => {
-  try {
-    return require('tailwindcss/forms');
-  } catch (error) {
-    if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'MODULE_NOT_FOUND') {
-      return require('@tailwindcss/forms');
-    }
-    throw error;
-  }
-};
 
 const fontFamily = Object.fromEntries(
   Object.entries(designTokens.typography.fontFamily).map(([key, value]) => [
@@ -161,9 +153,5 @@ export default {
       },
     },
   },
-  plugins: [
-    require('tailwindcss-animate'),
-    loadFormsPlugin(),
-    require('@tailwindcss/typography'),
-  ],
+  plugins: [tailwindcssAnimate, formsPlugin, typographyPlugin],
 } satisfies Config;
