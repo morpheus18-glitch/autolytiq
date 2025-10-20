@@ -3304,19 +3304,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/communication-settings', async (req, res) => {
     try {
       const { settingKey, settingValue, displayName, description, category, dataType, isRequired } = req.body;
-      
+
       const result = await pool.query(
-        `INSERT INTO communication_settings 
-              (setting_key, setting_value, display_name, description, category, data_type, is_required, created_at, updated_at) 
-              VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) 
-              ON CONFLICT (setting_key) DO UPDATE SET 
-              setting_value = EXCLUDED.setting_value, 
+        `INSERT INTO communication_settings
+              (setting_key, setting_value, display_name, description, category, data_type, is_required, created_at, updated_at)
+              VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+              ON CONFLICT (setting_key) DO UPDATE SET
+              setting_value = EXCLUDED.setting_value,
               display_name = EXCLUDED.display_name,
               description = EXCLUDED.description,
-              updated_at = NOW() 
+              updated_at = NOW()
               RETURNING *`,
-        args: [settingKey, JSON.stringify(settingValue), displayName, description, category, dataType, isRequired]
-      });
+        [settingKey, JSON.stringify(settingValue), displayName, description, category, dataType, isRequired],
+      );
       
       res.status(201).json(result.rows?.[0] || {});
     } catch (error) {

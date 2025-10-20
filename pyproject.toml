@@ -22,4 +22,5 @@ dependencies = [
     "clickhouse-driver>=0.2.9",
     "psycopg2-binary>=2.9.10",
     "prometheus-client>=0.21.0",
+    "watchdog>=5.0.3",
 ]
