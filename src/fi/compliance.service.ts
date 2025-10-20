@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, type ComplianceChecklist } from '@prisma/client';
 import PDFDocument from 'pdfkit';
 import { prisma, toInputJson } from '../lib/prisma.js';
 import {
@@ -83,7 +83,7 @@ export interface GenerateComplianceDocumentResult {
 
 type DealWithRelations = Prisma.DealJacketGetPayload<{ include: { customer: true; vehicle: true } }>;
 type SelectedLenderSubmission = Prisma.LenderSubmissionGetPayload<{ include: { lender: true } }> | null;
-type ChecklistRecord = Prisma.ComplianceChecklistGetPayload<{}>;
+type ChecklistRecord = ComplianceChecklist;
 
 export class DealNotFoundError extends Error {
   status = 404 as const;
