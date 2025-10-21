@@ -1,5 +1,4 @@
--- CreateTable
-CREATE TABLE "ComplianceChecklist" (
+CREATE TABLE IF NOT EXISTS "ComplianceChecklist" (
     "id" TEXT NOT NULL,
     "dealId" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
@@ -21,15 +20,37 @@ CREATE TABLE "ComplianceChecklist" (
 );
 
 -- AddForeignKey
-ALTER TABLE "ComplianceChecklist"
-ADD CONSTRAINT "ComplianceChecklist_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.table_constraints
+        WHERE constraint_name = 'ComplianceChecklist_tenantId_fkey'
+          AND table_name = 'ComplianceChecklist'
+          AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE "ComplianceChecklist"
+        ADD CONSTRAINT "ComplianceChecklist_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "ComplianceChecklist"
-ADD CONSTRAINT "ComplianceChecklist_dealId_fkey" FOREIGN KEY ("dealId") REFERENCES "DealJacket"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.table_constraints
+        WHERE constraint_name = 'ComplianceChecklist_dealId_fkey'
+          AND table_name = 'ComplianceChecklist'
+          AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE "ComplianceChecklist"
+        ADD CONSTRAINT "ComplianceChecklist_dealId_fkey" FOREIGN KEY ("dealId") REFERENCES "DealJacket"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+END $$;
 
 -- CreateIndex
-CREATE INDEX "ComplianceChecklist_tenantId_idx" ON "ComplianceChecklist"("tenantId");
+CREATE INDEX IF NOT EXISTS "ComplianceChecklist_tenantId_idx" ON "ComplianceChecklist"("tenantId");
 
 -- CreateIndex
-CREATE INDEX "ComplianceChecklist_dealId_idx" ON "ComplianceChecklist"("dealId");
+CREATE INDEX IF NOT EXISTS "ComplianceChecklist_dealId_idx" ON "ComplianceChecklist"("dealId");

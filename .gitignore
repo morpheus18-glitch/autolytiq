@@ -18,6 +18,7 @@ pytest_cache/
 .env.local
 .env.*
 !.env.*.example
+!prisma/.env
 
 # Secrets & runtime state
 var/secrets/
