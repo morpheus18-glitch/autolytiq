@@ -405,6 +405,7 @@ model Tenant {
   vehicleWorkflows     VehicleWorkflow[]
   workflowTasks        WorkflowTask[]
   transportOrders      TransportOrder[]
+  stageTransitions     StageTransition[]
   pipelineAggregates   PipelineAggregate[]
 }
 
