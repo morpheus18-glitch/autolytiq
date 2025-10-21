@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "FIProduct" (
+CREATE TABLE IF NOT EXISTS "FIProduct" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE "FIProduct" (
 );
 
 -- CreateTable
-CREATE TABLE "MenuConfiguration" (
+CREATE TABLE IF NOT EXISTS "MenuConfiguration" (
     "id" TEXT NOT NULL,
     "dealId" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
@@ -43,25 +43,58 @@ CREATE TABLE "MenuConfiguration" (
 );
 
 -- AddForeignKey
-ALTER TABLE "FIProduct"
-ADD CONSTRAINT "FIProduct_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.table_constraints
+        WHERE constraint_name = 'FIProduct_tenantId_fkey'
+          AND table_name = 'FIProduct'
+          AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE "FIProduct"
+        ADD CONSTRAINT "FIProduct_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "MenuConfiguration"
-ADD CONSTRAINT "MenuConfiguration_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.table_constraints
+        WHERE constraint_name = 'MenuConfiguration_tenantId_fkey'
+          AND table_name = 'MenuConfiguration'
+          AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE "MenuConfiguration"
+        ADD CONSTRAINT "MenuConfiguration_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "MenuConfiguration"
-ADD CONSTRAINT "MenuConfiguration_dealId_fkey" FOREIGN KEY ("dealId") REFERENCES "DealJacket"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.table_constraints
+        WHERE constraint_name = 'MenuConfiguration_dealId_fkey'
+          AND table_name = 'MenuConfiguration'
+          AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE "MenuConfiguration"
+        ADD CONSTRAINT "MenuConfiguration_dealId_fkey" FOREIGN KEY ("dealId") REFERENCES "DealJacket"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+END $$;
 
 -- CreateIndex
-CREATE INDEX "FIProduct_tenantId_idx" ON "FIProduct"("tenantId");
+CREATE INDEX IF NOT EXISTS "FIProduct_tenantId_idx" ON "FIProduct"("tenantId");
 
 -- CreateIndex
-CREATE INDEX "FIProduct_category_idx" ON "FIProduct"("category");
+CREATE INDEX IF NOT EXISTS "FIProduct_category_idx" ON "FIProduct"("category");
 
 -- CreateIndex
-CREATE INDEX "MenuConfiguration_tenantId_idx" ON "MenuConfiguration"("tenantId");
+CREATE INDEX IF NOT EXISTS "MenuConfiguration_tenantId_idx" ON "MenuConfiguration"("tenantId");
 
 -- CreateIndex
-CREATE INDEX "MenuConfiguration_dealId_idx" ON "MenuConfiguration"("dealId");
+CREATE INDEX IF NOT EXISTS "MenuConfiguration_dealId_idx" ON "MenuConfiguration"("dealId");
