@@ -1,4 +1,4 @@
-CREATE TABLE "Contract" (
+CREATE TABLE IF NOT EXISTS "Contract" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "tenantId" TEXT NOT NULL,
     "dealId" UUID NOT NULL,
@@ -20,11 +20,11 @@ CREATE TABLE "Contract" (
     CONSTRAINT "Contract_dealId_fkey" FOREIGN KEY ("dealId") REFERENCES "DealJacket"("id") ON DELETE CASCADE
 );
 
-CREATE INDEX "Contract_tenantId_idx" ON "Contract" ("tenantId");
-CREATE INDEX "Contract_dealId_idx" ON "Contract" ("dealId");
-CREATE INDEX "Contract_status_idx" ON "Contract" ("status");
+CREATE INDEX IF NOT EXISTS "Contract_tenantId_idx" ON "Contract" ("tenantId");
+CREATE INDEX IF NOT EXISTS "Contract_dealId_idx" ON "Contract" ("dealId");
+CREATE INDEX IF NOT EXISTS "Contract_status_idx" ON "Contract" ("status");
 
-CREATE TABLE "Signature" (
+CREATE TABLE IF NOT EXISTS "Signature" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "contractId" UUID NOT NULL,
     "signerName" TEXT NOT NULL,
@@ -36,5 +36,5 @@ CREATE TABLE "Signature" (
     CONSTRAINT "Signature_contractId_fkey" FOREIGN KEY ("contractId") REFERENCES "Contract"("id") ON DELETE CASCADE
 );
 
-CREATE INDEX "Signature_contractId_idx" ON "Signature" ("contractId");
+CREATE INDEX IF NOT EXISTS "Signature_contractId_idx" ON "Signature" ("contractId");
 
