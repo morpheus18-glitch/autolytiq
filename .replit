@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["glibcLocales", "libxcrypt", "nano", "pm2"]
+packages = ["glibcLocales", "libxcrypt", "nano", "pm2", "nvidia-container-toolkit"]
 
 [deployment]
 deploymentTarget = "autoscale"
