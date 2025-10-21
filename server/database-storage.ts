@@ -726,7 +726,48 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createNotification(insertNotification: InsertNotification & { id: string }): Promise<Notification> {
-    const [notification] = await db.insert(notifications).values(insertNotification).returning();
+    const {
+      createdAt: createdAtInput,
+      readAt: readAtInput,
+      expiresAt: expiresAtInput,
+      actionUrl,
+      actionData,
+      userId,
+      ...rest
+    } = insertNotification as (InsertNotification & {
+      createdAt?: Date | string | null;
+      readAt?: Date | string | null;
+      expiresAt?: Date | string | null;
+    });
+
+    const normalizeDate = (value?: Date | string | null) => {
+      if (!value) return null;
+      const dateValue = value instanceof Date ? value : new Date(value);
+      return Number.isNaN(dateValue.getTime()) ? null : dateValue;
+    };
+
+    const createdAt = normalizeDate(createdAtInput) ?? new Date();
+    const readAt = normalizeDate(readAtInput);
+    const expiresAt = normalizeDate(expiresAtInput);
+
+    const [notification] = await db
+      .insert(notifications)
+      .values({
+        ...rest,
+        id: insertNotification.id,
+        userId: userId ?? null,
+        type: insertNotification.type,
+        priority: insertNotification.priority,
+        title: insertNotification.title,
+        message: insertNotification.message,
+        actionUrl: actionUrl ?? null,
+        actionData: actionData ?? null,
+        isRead: insertNotification.isRead ?? false,
+        createdAt,
+        readAt,
+        expiresAt,
+      })
+      .returning();
     return notification;
   }
 
