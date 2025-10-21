@@ -33,7 +33,7 @@ real-time intelligence.
 | `tracking-service/` | Dedicated event ingestion and analytics service. |
 | `infrastructure/` | Docker, Kubernetes, and monitoring manifests for self-hosted deployments. |
 | `prisma/` | Canonical Prisma schema, migrations, and data seed scripts for the core service. |
-| `docs/`, `attached_assets/`, and other legacy markdown files were consolidated into this README and `ARCHITECTURE.md`. |
+| `docs/` (including `docs/resources/assets/`) and other legacy markdown files were consolidated into this README and `ARCHITECTURE.md`. |
 
 ## Prerequisites
 

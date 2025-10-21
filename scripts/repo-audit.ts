@@ -94,7 +94,7 @@ async function detectEnvVarUsage() {
       'backend/src/**/*.{ts,js}',
       'client/src/**/*.{ts,tsx,js,jsx}',
       'ml_service/**/*.{py}',
-      'ml-service/**/*.{py}',
+      'ml_service/**/*.{py}',
       '*.config.*',
     ],
     { cwd: ROOT, gitignore: true },
@@ -167,7 +167,7 @@ async function main() {
   const endpoints = await detectHealthEndpoints([
     'backend/src/**/*.{ts,js}',
     'ml_service/**/*.py',
-    'ml-service/**/*.py',
+    'ml_service/**/*.py',
   ]);
 
   const envUsages = await detectEnvVarUsage();

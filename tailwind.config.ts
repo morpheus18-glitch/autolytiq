@@ -2,7 +2,7 @@ import type { Config } from 'tailwindcss';
 import formsPlugin from '@tailwindcss/forms';
 import typographyPlugin from '@tailwindcss/typography';
 import tailwindcssAnimate from 'tailwindcss-animate';
-import { colorWithOpacity, designTokens } from './lib/design-tokens';
+import { colorWithOpacity, designTokens } from './client/src/lib/design-tokens';
 
 const parseFontStack = (stack: string) =>
   stack
