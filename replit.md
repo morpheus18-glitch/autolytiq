@@ -6,6 +6,13 @@ AutolytiQ is an enterprise-grade retail automotive platform that consolidates CR
 
 The platform replaces fragmented workflows found in traditional DMS systems (CDK, Reynolds & Reynolds, DealerSocket) with modern cloud-native architecture, ML-driven intelligence, and integrated third-party services for credit bureaus, lenders, OEM data sources, and market intelligence.
 
+## Replit Hosting Notes
+
+- The `.replit` profile exposes **only** port `5000`, which the monolithic dev server uses to serve both the API and the Vite-powered client. This aligns with Replit's requirement that hosted projects present a single external port.
+- `npm run dev` (the default run command) launches `server/index.ts`, which internally mounts Vite in middleware mode and binds to the `PORT` environment variable. No additional frontend process or port configuration is required.
+- Replit workspaces do not support running Docker Compose or multiple long-lived services. Connect to managed services (e.g., Neon, Supabase, or Replit's PostgreSQL module) by setting the appropriate environment variables in the Secrets tab.
+- If you need to start the stack manually from the shell, export `PORT=5000` (or let `.replit` do it for you) and run `npm run dev`. Avoid the `npm run dev:replit` helper locally—it spawns multiple services that compete for ports and will be blocked in hosted mode.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
