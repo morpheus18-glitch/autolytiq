@@ -5,7 +5,7 @@ ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'FI_MANAGER';
 DROP TABLE IF EXISTS "DealDocument";
 DROP TYPE IF EXISTS "DealDocumentType";
 
-CREATE TABLE "DealJacket" (
+CREATE TABLE IF NOT EXISTS "DealJacket" (
   "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
   "tenantId" TEXT NOT NULL,
   "dealNumber" TEXT NOT NULL,
@@ -39,12 +39,12 @@ CREATE TABLE "DealJacket" (
   CONSTRAINT "DealJacket_fiManagerId_fkey" FOREIGN KEY ("fiManagerId") REFERENCES "User"("id") ON DELETE SET NULL
 );
 
-CREATE UNIQUE INDEX "DealJacket_dealNumber_key" ON "DealJacket" ("dealNumber");
-CREATE INDEX "DealJacket_tenantId_idx" ON "DealJacket" ("tenantId");
-CREATE INDEX "DealJacket_customerId_idx" ON "DealJacket" ("customerId");
-CREATE INDEX "DealJacket_status_idx" ON "DealJacket" ("status");
+CREATE UNIQUE INDEX IF NOT EXISTS "DealJacket_dealNumber_key" ON "DealJacket" ("dealNumber");
+CREATE INDEX IF NOT EXISTS "DealJacket_tenantId_idx" ON "DealJacket" ("tenantId");
+CREATE INDEX IF NOT EXISTS "DealJacket_customerId_idx" ON "DealJacket" ("customerId");
+CREATE INDEX IF NOT EXISTS "DealJacket_status_idx" ON "DealJacket" ("status");
 
-CREATE TABLE "DealDocument" (
+CREATE TABLE IF NOT EXISTS "DealDocument" (
   "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
   "dealId" TEXT NOT NULL,
   "type" TEXT NOT NULL,
@@ -59,10 +59,10 @@ CREATE TABLE "DealDocument" (
   CONSTRAINT "DealDocument_dealId_fkey" FOREIGN KEY ("dealId") REFERENCES "DealJacket"("id") ON DELETE CASCADE
 );
 
-CREATE INDEX "DealDocument_dealId_idx" ON "DealDocument" ("dealId");
-CREATE INDEX "DealDocument_type_idx" ON "DealDocument" ("type");
+CREATE INDEX IF NOT EXISTS "DealDocument_dealId_idx" ON "DealDocument" ("dealId");
+CREATE INDEX IF NOT EXISTS "DealDocument_type_idx" ON "DealDocument" ("type");
 
-CREATE TABLE "CreditApplication" (
+CREATE TABLE IF NOT EXISTS "CreditApplication" (
   "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
   "tenantId" TEXT NOT NULL,
   "dealId" TEXT NOT NULL,
@@ -76,10 +76,10 @@ CREATE TABLE "CreditApplication" (
   CONSTRAINT "CreditApplication_dealId_fkey" FOREIGN KEY ("dealId") REFERENCES "DealJacket"("id") ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX "CreditApplication_dealId_key" ON "CreditApplication" ("dealId");
-CREATE INDEX "CreditApplication_tenantId_idx" ON "CreditApplication" ("tenantId");
+CREATE UNIQUE INDEX IF NOT EXISTS "CreditApplication_dealId_key" ON "CreditApplication" ("dealId");
+CREATE INDEX IF NOT EXISTS "CreditApplication_tenantId_idx" ON "CreditApplication" ("tenantId");
 
-CREATE TABLE "LenderSubmission" (
+CREATE TABLE IF NOT EXISTS "LenderSubmission" (
   "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
   "tenantId" TEXT NOT NULL,
   "dealId" TEXT NOT NULL,
@@ -93,10 +93,10 @@ CREATE TABLE "LenderSubmission" (
   CONSTRAINT "LenderSubmission_dealId_fkey" FOREIGN KEY ("dealId") REFERENCES "DealJacket"("id") ON DELETE CASCADE
 );
 
-CREATE INDEX "LenderSubmission_tenantId_idx" ON "LenderSubmission" ("tenantId");
-CREATE INDEX "LenderSubmission_dealId_idx" ON "LenderSubmission" ("dealId");
+CREATE INDEX IF NOT EXISTS "LenderSubmission_tenantId_idx" ON "LenderSubmission" ("tenantId");
+CREATE INDEX IF NOT EXISTS "LenderSubmission_dealId_idx" ON "LenderSubmission" ("dealId");
 
-CREATE TABLE "Contract" (
+CREATE TABLE IF NOT EXISTS "Contract" (
   "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
   "tenantId" TEXT NOT NULL,
   "dealId" TEXT NOT NULL,
@@ -111,11 +111,23 @@ CREATE TABLE "Contract" (
   CONSTRAINT "Contract_dealId_fkey" FOREIGN KEY ("dealId") REFERENCES "DealJacket"("id") ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX "Contract_dealId_contractNumber_key" ON "Contract" ("dealId", "contractNumber");
-CREATE INDEX "Contract_tenantId_idx" ON "Contract" ("tenantId");
-CREATE INDEX "Contract_dealId_idx" ON "Contract" ("dealId");
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = current_schema()
+      AND table_name = 'Contract'
+      AND column_name = 'contractNumber'
+  ) THEN
+    CREATE UNIQUE INDEX IF NOT EXISTS "Contract_dealId_contractNumber_key" ON "Contract" ("dealId", "contractNumber");
+  END IF;
+END
+$$;
+CREATE INDEX IF NOT EXISTS "Contract_tenantId_idx" ON "Contract" ("tenantId");
+CREATE INDEX IF NOT EXISTS "Contract_dealId_idx" ON "Contract" ("dealId");
 
-CREATE TABLE "FundingChecklist" (
+CREATE TABLE IF NOT EXISTS "FundingChecklist" (
   "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
   "tenantId" TEXT NOT NULL,
   "dealId" TEXT NOT NULL,
@@ -130,5 +142,5 @@ CREATE TABLE "FundingChecklist" (
   CONSTRAINT "FundingChecklist_reviewerId_fkey" FOREIGN KEY ("reviewerId") REFERENCES "User"("id") ON DELETE SET NULL
 );
 
-CREATE UNIQUE INDEX "FundingChecklist_dealId_key" ON "FundingChecklist" ("dealId");
-CREATE INDEX "FundingChecklist_tenantId_idx" ON "FundingChecklist" ("tenantId");
+CREATE UNIQUE INDEX IF NOT EXISTS "FundingChecklist_dealId_key" ON "FundingChecklist" ("dealId");
+CREATE INDEX IF NOT EXISTS "FundingChecklist_tenantId_idx" ON "FundingChecklist" ("tenantId");

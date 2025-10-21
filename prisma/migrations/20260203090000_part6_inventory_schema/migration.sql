@@ -1,48 +1,88 @@
--- CreateEnum
-CREATE TYPE "VehicleAcquisitionType" AS ENUM ('TRADE_IN', 'AUCTION', 'PURCHASE', 'FLOOR_PLAN', 'CONSIGNMENT', 'OTHER');
+DO $$
+BEGIN
+  IF to_regtype('"VehicleAcquisitionType"') IS NULL THEN
+    CREATE TYPE "VehicleAcquisitionType" AS ENUM ('TRADE_IN', 'AUCTION', 'PURCHASE', 'FLOOR_PLAN', 'CONSIGNMENT', 'OTHER');
+  END IF;
+END
+$$;
 
--- CreateEnum
-CREATE TYPE "AppraisalStatus" AS ENUM ('DRAFT', 'SUBMITTED', 'IN_REVIEW', 'APPROVED', 'REJECTED');
+DO $$
+BEGIN
+  IF to_regtype('"AppraisalStatus"') IS NULL THEN
+    CREATE TYPE "AppraisalStatus" AS ENUM ('DRAFT', 'SUBMITTED', 'IN_REVIEW', 'APPROVED', 'REJECTED');
+  END IF;
+END
+$$;
 
--- CreateEnum
-CREATE TYPE "AppraisalConditionGrade" AS ENUM ('ROUGH', 'AVERAGE', 'CLEAN', 'EXCELLENT');
+DO $$
+BEGIN
+  IF to_regtype('"AppraisalConditionGrade"') IS NULL THEN
+    CREATE TYPE "AppraisalConditionGrade" AS ENUM ('ROUGH', 'AVERAGE', 'CLEAN', 'EXCELLENT');
+  END IF;
+END
+$$;
 
--- CreateEnum
-CREATE TYPE "ReconItemStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED');
+DO $$
+BEGIN
+  IF to_regtype('"ReconItemStatus"') IS NULL THEN
+    CREATE TYPE "ReconItemStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED');
+  END IF;
+END
+$$;
 
--- CreateEnum
-CREATE TYPE "PriceChangeType" AS ENUM ('MANUAL', 'MARKET', 'AI_RECOMMENDATION', 'FLOOR_PLAN');
+DO $$
+BEGIN
+  IF to_regtype('"PriceChangeType"') IS NULL THEN
+    CREATE TYPE "PriceChangeType" AS ENUM ('MANUAL', 'MARKET', 'AI_RECOMMENDATION', 'FLOOR_PLAN');
+  END IF;
+END
+$$;
 
--- CreateEnum
-CREATE TYPE "AuctionPurchaseStatus" AS ENUM ('PENDING', 'WON', 'LOST', 'CANCELLED');
+DO $$
+BEGIN
+  IF to_regtype('"AuctionPurchaseStatus"') IS NULL THEN
+    CREATE TYPE "AuctionPurchaseStatus" AS ENUM ('PENDING', 'WON', 'LOST', 'CANCELLED');
+  END IF;
+END
+$$;
 
--- CreateEnum
-CREATE TYPE "WholesaleListingStatus" AS ENUM ('DRAFT', 'LISTED', 'UNDER_CONTRACT', 'SOLD', 'WITHDRAWN');
+DO $$
+BEGIN
+  IF to_regtype('"WholesaleListingStatus"') IS NULL THEN
+    CREATE TYPE "WholesaleListingStatus" AS ENUM ('DRAFT', 'LISTED', 'UNDER_CONTRACT', 'SOLD', 'WITHDRAWN');
+  END IF;
+END
+$$;
 
--- CreateEnum
-CREATE TYPE "MarketCompSource" AS ENUM ('RETAIL_LISTING', 'WHOLESALE_LISTING', 'AUCTION_RESULT', 'THIRD_PARTY', 'INTERNAL');
+DO $$
+BEGIN
+  IF to_regtype('"MarketCompSource"') IS NULL THEN
+    CREATE TYPE "MarketCompSource" AS ENUM ('RETAIL_LISTING', 'WHOLESALE_LISTING', 'AUCTION_RESULT', 'THIRD_PARTY', 'INTERNAL');
+  END IF;
+END
+$$;
 
 -- AlterTable
-ALTER TABLE "Vehicle" ADD COLUMN     "acquisitionCost" DECIMAL(18,2),
-ADD COLUMN     "acquisitionDate" TIMESTAMPTZ(6),
-ADD COLUMN     "acquisitionSource" TEXT,
-ADD COLUMN     "acquisitionType" "VehicleAcquisitionType",
-ADD COLUMN     "agingBucket" TEXT,
-ADD COLUMN     "aiPrice" DECIMAL(18,2),
-ADD COLUMN     "appraisalStatus" "AppraisalStatus",
-ADD COLUMN     "floorPrice" DECIMAL(18,2),
-ADD COLUMN     "lastAppraisedAt" TIMESTAMPTZ(6),
-ADD COLUMN     "marketValue" DECIMAL(18,2),
-ADD COLUMN     "nextPriceReviewDate" TIMESTAMPTZ(6),
-ADD COLUMN     "pricingNotes" TEXT,
-ADD COLUMN     "reconActual" DECIMAL(18,2),
-ADD COLUMN     "reconCompletedAt" TIMESTAMPTZ(6),
-ADD COLUMN     "reconEstimate" DECIMAL(18,2),
-ADD COLUMN     "targetPrice" DECIMAL(18,2),
-ADD COLUMN     "wholesaleValue" DECIMAL(18,2);
+ALTER TABLE "Vehicle" ADD COLUMN IF NOT EXISTS     "acquisitionCost" DECIMAL(18,2),
+ADD COLUMN IF NOT EXISTS     "acquisitionDate" TIMESTAMPTZ(6),
+ADD COLUMN IF NOT EXISTS     "acquisitionSource" TEXT,
+ADD COLUMN IF NOT EXISTS     "acquisitionType" "VehicleAcquisitionType",
+ADD COLUMN IF NOT EXISTS     "agingBucket" TEXT,
+ADD COLUMN IF NOT EXISTS     "aiPrice" DECIMAL(18,2),
+ADD COLUMN IF NOT EXISTS     "appraisalStatus" "AppraisalStatus",
+ADD COLUMN IF NOT EXISTS     "floorPrice" DECIMAL(18,2),
+ADD COLUMN IF NOT EXISTS     "lastAppraisedAt" TIMESTAMPTZ(6),
+ADD COLUMN IF NOT EXISTS     "marketValue" DECIMAL(18,2),
+ADD COLUMN IF NOT EXISTS     "nextPriceReviewDate" TIMESTAMPTZ(6),
+ADD COLUMN IF NOT EXISTS     "pricingNotes" TEXT,
+ADD COLUMN IF NOT EXISTS     "reconActual" DECIMAL(18,2),
+ADD COLUMN IF NOT EXISTS     "reconCompletedAt" TIMESTAMPTZ(6),
+ADD COLUMN IF NOT EXISTS     "reconEstimate" DECIMAL(18,2),
+ADD COLUMN IF NOT EXISTS     "targetPrice" DECIMAL(18,2),
+ADD COLUMN IF NOT EXISTS     "wholesaleValue" DECIMAL(18,2);
 
 -- CreateTable
-CREATE TABLE "Appraisal" (
+CREATE TABLE IF NOT EXISTS "Appraisal" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
     "vehicleId" TEXT,
@@ -78,7 +118,7 @@ CREATE TABLE "Appraisal" (
 );
 
 -- CreateTable
-CREATE TABLE "ReconItem" (
+CREATE TABLE IF NOT EXISTS "ReconItem" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
     "vehicleId" TEXT NOT NULL,
@@ -102,7 +142,7 @@ CREATE TABLE "ReconItem" (
 );
 
 -- CreateTable
-CREATE TABLE "PriceHistory" (
+CREATE TABLE IF NOT EXISTS "PriceHistory" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
     "vehicleId" TEXT NOT NULL,
@@ -119,7 +159,7 @@ CREATE TABLE "PriceHistory" (
 );
 
 -- CreateTable
-CREATE TABLE "AuctionPurchase" (
+CREATE TABLE IF NOT EXISTS "AuctionPurchase" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
     "vehicleId" TEXT NOT NULL,
@@ -144,7 +184,7 @@ CREATE TABLE "AuctionPurchase" (
 );
 
 -- CreateTable
-CREATE TABLE "WholesaleListing" (
+CREATE TABLE IF NOT EXISTS "WholesaleListing" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
     "vehicleId" TEXT NOT NULL,
@@ -166,7 +206,7 @@ CREATE TABLE "WholesaleListing" (
 );
 
 -- CreateTable
-CREATE TABLE "MarketComp" (
+CREATE TABLE IF NOT EXISTS "MarketComp" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
     "vehicleId" TEXT NOT NULL,
@@ -189,98 +229,194 @@ CREATE TABLE "MarketComp" (
 );
 
 -- CreateIndex
-CREATE INDEX "Appraisal_tenantId_status_idx" ON "Appraisal"("tenantId", "status");
+CREATE INDEX IF NOT EXISTS "Appraisal_tenantId_status_idx" ON "Appraisal"("tenantId", "status");
 
 -- CreateIndex
-CREATE INDEX "Appraisal_tenantId_vehicleId_idx" ON "Appraisal"("tenantId", "vehicleId");
+CREATE INDEX IF NOT EXISTS "Appraisal_tenantId_vehicleId_idx" ON "Appraisal"("tenantId", "vehicleId");
 
 -- CreateIndex
-CREATE INDEX "Appraisal_tenantId_vin_idx" ON "Appraisal"("tenantId", "vin");
+CREATE INDEX IF NOT EXISTS "Appraisal_tenantId_vin_idx" ON "Appraisal"("tenantId", "vin");
 
 -- CreateIndex
-CREATE INDEX "ReconItem_tenantId_vehicleId_idx" ON "ReconItem"("tenantId", "vehicleId");
+CREATE INDEX IF NOT EXISTS "ReconItem_tenantId_vehicleId_idx" ON "ReconItem"("tenantId", "vehicleId");
 
 -- CreateIndex
-CREATE INDEX "ReconItem_tenantId_status_idx" ON "ReconItem"("tenantId", "status");
+CREATE INDEX IF NOT EXISTS "ReconItem_tenantId_status_idx" ON "ReconItem"("tenantId", "status");
 
 -- CreateIndex
-CREATE INDEX "PriceHistory_tenantId_vehicleId_idx" ON "PriceHistory"("tenantId", "vehicleId");
+CREATE INDEX IF NOT EXISTS "PriceHistory_tenantId_vehicleId_idx" ON "PriceHistory"("tenantId", "vehicleId");
 
 -- CreateIndex
-CREATE INDEX "PriceHistory_tenantId_createdAt_idx" ON "PriceHistory"("tenantId", "createdAt");
+CREATE INDEX IF NOT EXISTS "PriceHistory_tenantId_createdAt_idx" ON "PriceHistory"("tenantId", "createdAt");
 
 -- CreateIndex
-CREATE INDEX "AuctionPurchase_tenantId_vehicleId_idx" ON "AuctionPurchase"("tenantId", "vehicleId");
+CREATE INDEX IF NOT EXISTS "AuctionPurchase_tenantId_vehicleId_idx" ON "AuctionPurchase"("tenantId", "vehicleId");
 
 -- CreateIndex
-CREATE INDEX "AuctionPurchase_tenantId_status_idx" ON "AuctionPurchase"("tenantId", "status");
+CREATE INDEX IF NOT EXISTS "AuctionPurchase_tenantId_status_idx" ON "AuctionPurchase"("tenantId", "status");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "AuctionPurchase_vehicleId_key" ON "AuctionPurchase"("vehicleId");
+CREATE UNIQUE INDEX IF NOT EXISTS "AuctionPurchase_vehicleId_key" ON "AuctionPurchase"("vehicleId");
 
 -- CreateIndex
-CREATE INDEX "WholesaleListing_tenantId_vehicleId_idx" ON "WholesaleListing"("tenantId", "vehicleId");
+CREATE INDEX IF NOT EXISTS "WholesaleListing_tenantId_vehicleId_idx" ON "WholesaleListing"("tenantId", "vehicleId");
 
 -- CreateIndex
-CREATE INDEX "WholesaleListing_tenantId_status_idx" ON "WholesaleListing"("tenantId", "status");
+CREATE INDEX IF NOT EXISTS "WholesaleListing_tenantId_status_idx" ON "WholesaleListing"("tenantId", "status");
 
 -- CreateIndex
-CREATE INDEX "MarketComp_tenantId_vehicleId_idx" ON "MarketComp"("tenantId", "vehicleId");
+CREATE INDEX IF NOT EXISTS "MarketComp_tenantId_vehicleId_idx" ON "MarketComp"("tenantId", "vehicleId");
 
 -- CreateIndex
-CREATE INDEX "MarketComp_tenantId_source_idx" ON "MarketComp"("tenantId", "source");
+CREATE INDEX IF NOT EXISTS "MarketComp_tenantId_source_idx" ON "MarketComp"("tenantId", "source");
 
 -- CreateIndex
-CREATE INDEX "Vehicle_tenantId_acquisitionType_idx" ON "Vehicle"("tenantId", "acquisitionType");
+CREATE INDEX IF NOT EXISTS "Vehicle_tenantId_acquisitionType_idx" ON "Vehicle"("tenantId", "acquisitionType");
 
 -- CreateIndex
-CREATE INDEX "Vehicle_tenantId_appraisalStatus_idx" ON "Vehicle"("tenantId", "appraisalStatus");
+CREATE INDEX IF NOT EXISTS "Vehicle_tenantId_appraisalStatus_idx" ON "Vehicle"("tenantId", "appraisalStatus");
 
 -- AddForeignKey
-ALTER TABLE "Appraisal" ADD CONSTRAINT "Appraisal_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_schema = current_schema() AND table_name = 'Appraisal' AND constraint_name = 'Appraisal_tenantId_fkey') THEN
+    ALTER TABLE "Appraisal" ADD CONSTRAINT "Appraisal_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
 -- AddForeignKey
-ALTER TABLE "Appraisal" ADD CONSTRAINT "Appraisal_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "Vehicle"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_schema = current_schema() AND table_name = 'Appraisal' AND constraint_name = 'Appraisal_vehicleId_fkey') THEN
+    ALTER TABLE "Appraisal" ADD CONSTRAINT "Appraisal_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "Vehicle"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
 -- AddForeignKey
-ALTER TABLE "Appraisal" ADD CONSTRAINT "Appraisal_appraiserId_fkey" FOREIGN KEY ("appraiserId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_schema = current_schema() AND table_name = 'Appraisal' AND constraint_name = 'Appraisal_appraiserId_fkey') THEN
+    ALTER TABLE "Appraisal" ADD CONSTRAINT "Appraisal_appraiserId_fkey" FOREIGN KEY ("appraiserId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
 -- AddForeignKey
-ALTER TABLE "Appraisal" ADD CONSTRAINT "Appraisal_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_schema = current_schema() AND table_name = 'Appraisal' AND constraint_name = 'Appraisal_managerId_fkey') THEN
+    ALTER TABLE "Appraisal" ADD CONSTRAINT "Appraisal_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
 -- AddForeignKey
-ALTER TABLE "ReconItem" ADD CONSTRAINT "ReconItem_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_schema = current_schema() AND table_name = 'ReconItem' AND constraint_name = 'ReconItem_tenantId_fkey') THEN
+    ALTER TABLE "ReconItem" ADD CONSTRAINT "ReconItem_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
 -- AddForeignKey
-ALTER TABLE "ReconItem" ADD CONSTRAINT "ReconItem_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "Vehicle"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_schema = current_schema() AND table_name = 'ReconItem' AND constraint_name = 'ReconItem_vehicleId_fkey') THEN
+    ALTER TABLE "ReconItem" ADD CONSTRAINT "ReconItem_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "Vehicle"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
 -- AddForeignKey
-ALTER TABLE "ReconItem" ADD CONSTRAINT "ReconItem_appraisalId_fkey" FOREIGN KEY ("appraisalId") REFERENCES "Appraisal"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_schema = current_schema() AND table_name = 'ReconItem' AND constraint_name = 'ReconItem_appraisalId_fkey') THEN
+    ALTER TABLE "ReconItem" ADD CONSTRAINT "ReconItem_appraisalId_fkey" FOREIGN KEY ("appraisalId") REFERENCES "Appraisal"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
 -- AddForeignKey
-ALTER TABLE "PriceHistory" ADD CONSTRAINT "PriceHistory_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_schema = current_schema() AND table_name = 'PriceHistory' AND constraint_name = 'PriceHistory_tenantId_fkey') THEN
+    ALTER TABLE "PriceHistory" ADD CONSTRAINT "PriceHistory_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
 -- AddForeignKey
-ALTER TABLE "PriceHistory" ADD CONSTRAINT "PriceHistory_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "Vehicle"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_schema = current_schema() AND table_name = 'PriceHistory' AND constraint_name = 'PriceHistory_vehicleId_fkey') THEN
+    ALTER TABLE "PriceHistory" ADD CONSTRAINT "PriceHistory_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "Vehicle"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
 -- AddForeignKey
-ALTER TABLE "PriceHistory" ADD CONSTRAINT "PriceHistory_changedById_fkey" FOREIGN KEY ("changedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_schema = current_schema() AND table_name = 'PriceHistory' AND constraint_name = 'PriceHistory_changedById_fkey') THEN
+    ALTER TABLE "PriceHistory" ADD CONSTRAINT "PriceHistory_changedById_fkey" FOREIGN KEY ("changedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
 -- AddForeignKey
-ALTER TABLE "AuctionPurchase" ADD CONSTRAINT "AuctionPurchase_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_schema = current_schema() AND table_name = 'AuctionPurchase' AND constraint_name = 'AuctionPurchase_tenantId_fkey') THEN
+    ALTER TABLE "AuctionPurchase" ADD CONSTRAINT "AuctionPurchase_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
 -- AddForeignKey
-ALTER TABLE "AuctionPurchase" ADD CONSTRAINT "AuctionPurchase_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "Vehicle"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_schema = current_schema() AND table_name = 'AuctionPurchase' AND constraint_name = 'AuctionPurchase_vehicleId_fkey') THEN
+    ALTER TABLE "AuctionPurchase" ADD CONSTRAINT "AuctionPurchase_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "Vehicle"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
 -- AddForeignKey
-ALTER TABLE "WholesaleListing" ADD CONSTRAINT "WholesaleListing_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_schema = current_schema() AND table_name = 'WholesaleListing' AND constraint_name = 'WholesaleListing_tenantId_fkey') THEN
+    ALTER TABLE "WholesaleListing" ADD CONSTRAINT "WholesaleListing_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
 -- AddForeignKey
-ALTER TABLE "WholesaleListing" ADD CONSTRAINT "WholesaleListing_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "Vehicle"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_schema = current_schema() AND table_name = 'WholesaleListing' AND constraint_name = 'WholesaleListing_vehicleId_fkey') THEN
+    ALTER TABLE "WholesaleListing" ADD CONSTRAINT "WholesaleListing_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "Vehicle"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
 -- AddForeignKey
-ALTER TABLE "MarketComp" ADD CONSTRAINT "MarketComp_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_schema = current_schema() AND table_name = 'MarketComp' AND constraint_name = 'MarketComp_tenantId_fkey') THEN
+    ALTER TABLE "MarketComp" ADD CONSTRAINT "MarketComp_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
 -- AddForeignKey
-ALTER TABLE "MarketComp" ADD CONSTRAINT "MarketComp_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "Vehicle"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_schema = current_schema() AND table_name = 'MarketComp' AND constraint_name = 'MarketComp_vehicleId_fkey') THEN
+    ALTER TABLE "MarketComp" ADD CONSTRAINT "MarketComp_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "Vehicle"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
