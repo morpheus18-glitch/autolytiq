@@ -16,15 +16,25 @@ export class NotificationService {
   }) {
     try {
       const createdAt = new Date();
-      const expiresAt = data.expiresAt
+      const expiresAtValue = data.expiresAt
         ? (data.expiresAt instanceof Date
             ? data.expiresAt
             : new Date(data.expiresAt))
-        : undefined;
+        : null;
+
+      const expiresAt = expiresAtValue instanceof Date && !Number.isNaN(expiresAtValue.getTime())
+        ? expiresAtValue
+        : null;
 
       const notification = {
         id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        ...data,
+        type: data.type,
+        priority: data.priority,
+        title: data.title,
+        message: data.message,
+        actionUrl: data.actionUrl ?? null,
+        actionData: data.actionData ?? null,
+        userId: data.userId ?? null,
         isRead: false,
         createdAt,
         expiresAt,
