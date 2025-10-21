@@ -1,4 +1,3 @@
--- Safe migration wrapper to support both baseline deployments and in-place upgrades.
 DO $$
 DECLARE
     tenant_exists BOOLEAN := to_regclass('public."Tenant"') IS NOT NULL;
@@ -11,7 +10,7 @@ BEGIN
 
     -- Create Lender master table when upgrading an existing installation.
     IF to_regclass('public."Lender"') IS NULL THEN
-        EXECUTE $$
+        EXECUTE $SQL$
             CREATE TABLE "Lender" (
                 "id" TEXT NOT NULL,
                 "tenantId" TEXT NOT NULL,
@@ -28,16 +27,16 @@ BEGIN
                 "applicationFee" DECIMAL(18, 2),
                 CONSTRAINT "Lender_pkey" PRIMARY KEY ("id")
             )
-        $$;
+        $SQL$;
 
-        EXECUTE 'CREATE INDEX "Lender_tenantId_idx" ON "Lender"("tenantId")';
+        EXECUTE $SQL$ CREATE INDEX "Lender_tenantId_idx" ON "Lender"("tenantId") $SQL$;
 
-        EXECUTE $$
+        EXECUTE $SQL$
             ALTER TABLE "Lender"
-            ADD CONSTRAINT "Lender_tenantId_fkey"
-            FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id")
-            ON DELETE CASCADE ON UPDATE CASCADE
-        $$;
+                ADD CONSTRAINT "Lender_tenantId_fkey"
+                FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id")
+                ON DELETE CASCADE ON UPDATE CASCADE
+        $SQL$;
     END IF;
 
     -- Extend lender submissions with decision tracking when the legacy table exists.
@@ -48,10 +47,10 @@ BEGIN
               AND table_name = 'LenderSubmission'
               AND column_name = 'submittedBy'
         ) THEN
-            EXECUTE $$
+            EXECUTE format($SQL$
                 ALTER TABLE "LenderSubmission"
-                    ADD COLUMN "submittedBy" TEXT NOT NULL DEFAULT 'system',
-                    ADD COLUMN "requestPayload" JSONB NOT NULL DEFAULT '{}'::jsonb,
+                    ADD COLUMN "submittedBy" TEXT NOT NULL DEFAULT %L,
+                    ADD COLUMN "requestPayload" JSONB NOT NULL DEFAULT %L::jsonb,
                     ADD COLUMN "respondedAt" TIMESTAMP(3),
                     ADD COLUMN "responsePayload" JSONB,
                     ADD COLUMN "amountApproved" DECIMAL(18, 2),
@@ -67,7 +66,7 @@ BEGIN
                     ADD COLUMN "isSelected" BOOLEAN NOT NULL DEFAULT false,
                     ADD COLUMN "selectedAt" TIMESTAMP(3),
                     ADD COLUMN "expiresAt" TIMESTAMP(3)
-            $$;
+            $SQL$, 'system', '{}');
         END IF;
 
         IF EXISTS (
@@ -76,8 +75,8 @@ BEGIN
               AND table_name = 'LenderSubmission'
               AND column_name = 'response'
         ) THEN
-            EXECUTE 'UPDATE "LenderSubmission" SET "responsePayload" = "response"';
-            EXECUTE 'ALTER TABLE "LenderSubmission" DROP COLUMN "response"';
+            EXECUTE $SQL$ UPDATE "LenderSubmission" SET "responsePayload" = "response" $SQL$;
+            EXECUTE $SQL$ ALTER TABLE "LenderSubmission" DROP COLUMN "response" $SQL$;
         END IF;
 
         IF EXISTS (
@@ -86,28 +85,13 @@ BEGIN
               AND table_name = 'LenderSubmission'
               AND column_name = 'submittedAt'
         ) THEN
-            EXECUTE 'UPDATE "LenderSubmission" SET "submittedAt" = COALESCE("submittedAt", NOW())';
-            EXECUTE 'ALTER TABLE "LenderSubmission" ALTER COLUMN "submittedAt" SET NOT NULL';
-            EXECUTE 'ALTER TABLE "LenderSubmission" ALTER COLUMN "submittedAt" SET DEFAULT CURRENT_TIMESTAMP';
+            EXECUTE $SQL$ UPDATE "LenderSubmission" SET "submittedAt" = COALESCE("submittedAt", NOW()) $SQL$;
+            EXECUTE $SQL$ ALTER TABLE "LenderSubmission" ALTER COLUMN "submittedAt" SET NOT NULL $SQL$;
+            EXECUTE $SQL$ ALTER TABLE "LenderSubmission" ALTER COLUMN "submittedAt" SET DEFAULT CURRENT_TIMESTAMP $SQL$;
         END IF;
 
-        IF EXISTS (
-            SELECT 1 FROM information_schema.columns
-            WHERE table_schema = 'public'
-              AND table_name = 'LenderSubmission'
-              AND column_name = 'createdAt'
-        ) THEN
-            EXECUTE 'ALTER TABLE "LenderSubmission" DROP COLUMN "createdAt"';
-        END IF;
-
-        IF EXISTS (
-            SELECT 1 FROM information_schema.columns
-            WHERE table_schema = 'public'
-              AND table_name = 'LenderSubmission'
-              AND column_name = 'updatedAt'
-        ) THEN
-            EXECUTE 'ALTER TABLE "LenderSubmission" DROP COLUMN "updatedAt"';
-        END IF;
+        EXECUTE $SQL$ ALTER TABLE "LenderSubmission" DROP COLUMN IF EXISTS "createdAt" $SQL$;
+        EXECUTE $SQL$ ALTER TABLE "LenderSubmission" DROP COLUMN IF EXISTS "updatedAt" $SQL$;
 
         IF EXISTS (
             SELECT 1 FROM information_schema.columns
@@ -115,7 +99,7 @@ BEGIN
               AND table_name = 'LenderSubmission'
               AND column_name = 'submittedBy'
         ) THEN
-            EXECUTE 'ALTER TABLE "LenderSubmission" ALTER COLUMN "submittedBy" DROP DEFAULT';
+            EXECUTE $SQL$ ALTER TABLE "LenderSubmission" ALTER COLUMN "submittedBy" DROP DEFAULT $SQL$;
         END IF;
 
         IF EXISTS (
@@ -124,12 +108,10 @@ BEGIN
               AND table_name = 'LenderSubmission'
               AND column_name = 'requestPayload'
         ) THEN
-            EXECUTE 'ALTER TABLE "LenderSubmission" ALTER COLUMN "requestPayload" DROP DEFAULT';
+            EXECUTE $SQL$ ALTER TABLE "LenderSubmission" ALTER COLUMN "requestPayload" DROP DEFAULT $SQL$;
         END IF;
 
-        IF to_regclass('public."LenderSubmission_status_idx"') IS NULL THEN
-            EXECUTE 'CREATE INDEX "LenderSubmission_status_idx" ON "LenderSubmission"("status")';
-        END IF;
+        EXECUTE $SQL$ CREATE INDEX IF NOT EXISTS "LenderSubmission_status_idx" ON "LenderSubmission"("status") $SQL$;
     END IF;
 
     -- Link deal jackets to lenders when both tables are present.
@@ -141,12 +123,12 @@ BEGIN
               AND table_name = 'DealJacket'
               AND constraint_name = 'DealJacket_lenderId_fkey'
         ) THEN
-        EXECUTE $$
+        EXECUTE $SQL$
             ALTER TABLE "DealJacket"
                 ADD CONSTRAINT "DealJacket_lenderId_fkey"
                 FOREIGN KEY ("lenderId") REFERENCES "Lender"("id")
                 ON DELETE SET NULL ON UPDATE CASCADE
-        $$;
+        $SQL$;
     END IF;
-END
+END;
 $$;
