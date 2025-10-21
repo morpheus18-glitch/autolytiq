@@ -1,57 +1,87 @@
+import { FormEvent, useMemo, useState } from "react";
+import { useLocation, Link } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Link } from "wouter";
-import {
-  ArrowLeft,
-  Apple,
-  Chrome,
-  Github,
-  Lock,
-  ShieldCheck,
-  Sparkles,
-} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth, type AuthUser } from "@/hooks/useAuth";
+
+const STORE_DIRECTORY = [
+  { id: "MAIN", label: "AutolytiQ Flagship Store" },
+];
+
+interface LoginResponse extends AuthUser {}
 
 export default function Login() {
-  const handleProviderLogin = (provider: string) => {
-    console.log(`Redirecting to: /api/auth/${provider}`);
-    
-    // For Google OAuth, use direct URL construction to bypass any routing issues
-    if (provider === 'google') {
-      const clientId = '579226933513-3n3a1nd8c8ev3eafl1q9vr1f4aa7684v.apps.googleusercontent.com';
-      const redirectUri = encodeURIComponent('https://autolytiq.com/api/auth/google/callback');
-      const googleOAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&redirect_uri=${redirectUri}&scope=profile%20email&client_id=${clientId}`;
-      console.log('Direct Google OAuth redirect:', googleOAuthUrl);
-      window.location.href = googleOAuthUrl;
-      return;
+  const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  const defaultStoreId = useMemo(() => STORE_DIRECTORY[0]?.id ?? "", []);
+  const [storeId, setStoreId] = useState(defaultStoreId);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    setIsSubmitting(true);
+    try {
+      const response = await apiRequest("POST", "/api/auth/login", {
+        storeId: storeId.trim(),
+        username: username.trim(),
+        password,
+      });
+
+      const data = (await response.json()) as LoginResponse;
+
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+
+      toast({
+        title: "Welcome back",
+        description: `Signed in as ${data.firstName} ${data.lastName}`,
+      });
+
+      const target = data.access?.homePath ?? "/dashboard";
+      navigate(target, { replace: true });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to sign in";
+      toast({
+        title: "Sign in failed",
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    window.location.href = `/api/auth/${provider}`;
   };
 
   return (
-    <div className="landing-surface px-4 py-10 text-foreground">
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-10 lg:flex-row lg:items-start lg:justify-between">
-        <div className="absolute inset-x-10 top-10 h-[420px] rounded-full blur-3xl hero-spotlight" aria-hidden="true" />
+    <div className="landing-surface px-4 py-12 text-foreground">
+      <div className="relative mx-auto flex w-full max-w-5xl flex-col items-center gap-10 lg:flex-row lg:items-start lg:justify-between">
+        <div className="absolute inset-x-8 top-10 h-[420px] rounded-full blur-3xl hero-spotlight" aria-hidden="true" />
         <div className="absolute inset-0 grid-overlay opacity-60 dark:opacity-40" aria-hidden="true" />
 
-        <div className="relative z-10 max-w-xl space-y-6 text-center lg:text-left">
+        <div className="relative z-10 flex-1 space-y-6 text-center lg:text-left">
           <div className="inline-flex items-center gap-3 rounded-full border border-primary/25 bg-primary/8 px-4 py-2 text-primary">
-            <Sparkles className="h-4 w-4" />
             <span className="text-xs font-semibold uppercase tracking-[0.3em]">AutolytiQ Secure Access</span>
           </div>
           <h1 className="text-3xl font-semibold leading-snug sm:text-4xl lg:text-5xl">
-            Step back into your <span className="text-brand-gradient">AutolytiQ command center</span>
+            Log in to your <span className="text-brand-gradient">AutolytiQ workspace</span>
           </h1>
           <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Enterprise-grade authentication protects every workflow—from desking to analytics—so your teams can operate with
-            confidence.
+            Use your store identifier along with your AutolytiQ username and password. Access is tailored per tenant so only the pages you need are loaded.
           </p>
-          <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground/80 lg:justify-start">
-            <ShieldCheck className="h-4 w-4 text-primary" />
-            SOC 2 Type II, GDPR, and CCPA aligned security controls.
+          <div className="flex flex-col gap-2 text-sm text-muted-foreground/80 lg:flex-row lg:items-center">
+            <span className="font-semibold text-primary">Need help?</span>
+            <span>Contact support@autolytiq.com to reset credentials or add stores.</span>
           </div>
         </div>
 
@@ -60,90 +90,81 @@ export default function Login() {
             <ThemeToggle />
           </div>
           <Card className="glass-card rounded-3xl border-none shadow-card-xl">
-            <CardHeader className="space-y-4 pb-6 text-center">
-              <div className="flex flex-col items-center gap-3">
-                <img src="/aiq-logo.png" alt="AutolytiQ" className="h-10 w-10" />
-                <CardTitle className="text-2xl font-semibold">Welcome back to AutolytiQ</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Choose a secure OAuth partner to continue
-                </p>
-              </div>
+            <CardHeader className="space-y-4 pb-4 text-center">
+              <CardTitle className="text-2xl font-semibold">Tenant login</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Authenticate with your store ID, username, and password.
+              </p>
+              {user && (
+                <div className="rounded-xl border border-border/50 bg-surface-base/80 px-3 py-2 text-xs text-muted-foreground">
+                  Already signed in as {user.firstName} {user.lastName}. Signing in again will switch tenants.
+                </div>
+              )}
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-3">
+            <CardContent>
+              <form className="space-y-5" onSubmit={handleSubmit}>
+                <div className="space-y-2">
+                  <Label htmlFor="storeId">Store identifier</Label>
+                  <Input
+                    id="storeId"
+                    autoComplete="organization"
+                    value={storeId}
+                    onChange={(event) => setStoreId(event.target.value.toUpperCase())}
+                    placeholder="MAIN"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {STORE_DIRECTORY.map((store) => store.id).join(", ")} accepted.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    autoComplete="username"
+                    value={username}
+                    onChange={(event) => setUsername(event.target.value)}
+                    placeholder="sarah.johnson"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="••••••••"
+                    required
+                  />
+                </div>
                 <Button
-                  onClick={() => handleProviderLogin('replit')}
+                  type="submit"
                   className="btn-aiq-primary w-full rounded-xl py-3 text-base font-semibold"
-                  size="lg"
+                  disabled={isSubmitting}
                 >
-                  <span className="mr-3 flex h-6 w-6 items-center justify-center rounded-md bg-white text-[#F26207]">
-                    R
-                  </span>
-                  Continue with Replit
+                  {isSubmitting ? "Signing in…" : "Sign in"}
                 </Button>
-
-                <Button
-                  onClick={() => handleProviderLogin('google')}
-                  variant="outline"
-                  className="w-full rounded-xl border-border/70 py-3 text-base font-semibold hover:border-primary/35 hover:text-primary"
-                  size="lg"
-                >
-                  <Chrome className="mr-3 h-5 w-5 text-red-500" />
-                  Continue with Google
-                </Button>
-
-                <Button
-                  onClick={() => handleProviderLogin('github')}
-                  variant="outline"
-                  className="w-full rounded-xl border-border/70 py-3 text-base font-semibold hover:border-primary/35 hover:text-primary"
-                  size="lg"
-                >
-                  <Github className="mr-3 h-5 w-5" />
-                  Continue with GitHub
-                </Button>
-
-                <Button
-                  onClick={() => handleProviderLogin('apple')}
-                  variant="outline"
-                  className="w-full rounded-xl border-border/70 py-3 text-base font-semibold hover:border-primary/35 hover:text-primary"
-                  size="lg"
-                >
-                  <Apple className="mr-3 h-5 w-5" />
-                  Continue with Apple
-                </Button>
-              </div>
+              </form>
 
               <Separator className="my-6" />
 
-              <div className="space-y-4">
-                <Badge className="rounded-full border border-border/60 bg-white/75 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground/80 dark:bg-white/10">
-                  Legacy access
-                </Badge>
-                <Button
-                  onClick={() => (window.location.href = '/api/login')}
-                  variant="ghost"
-                  className="w-full justify-center gap-2 rounded-xl py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-                >
-                  <Lock className="h-4 w-4" />
-                  Staff login (master credentials)
-                </Button>
+              <div className="space-y-2 text-center text-sm text-muted-foreground">
+                <p>Looking for a different tenant or store?</p>
+                <p>Provide the store ID assigned during onboarding (for example: MAIN).</p>
               </div>
 
               <div className="pt-4 text-center">
                 <Link href="/">
                   <Button variant="ghost" size="sm" className="rounded-full text-muted-foreground hover:text-foreground">
-                    <ArrowLeft className="mr-1 h-4 w-4" />
                     Back to experience
                   </Button>
                 </Link>
               </div>
             </CardContent>
           </Card>
-
-              <div className="fine-print mt-6 space-y-1.5 text-center">
-                <p>Secure OAuth authentication with zero-trust posture enforcement.</p>
-                <p>© 2025 AutolytiQ. All rights reserved.</p>
-              </div>
         </div>
       </div>
     </div>

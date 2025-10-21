@@ -6,10 +6,14 @@ import { z } from 'zod';
 
 const router = express.Router();
 
+function getSessionUserId(req: any): string | undefined {
+  return req.session?.user?.id ?? req.user?.id;
+}
+
 // Get user notifications
 router.get('/', async (req: any, res) => {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = getSessionUserId(req);
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -36,7 +40,7 @@ router.get('/', async (req: any, res) => {
 // Mark notification as read
 router.patch('/:id/read', async (req: any, res) => {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = getSessionUserId(req);
     const { id } = req.params;
 
     if (!userId) {
@@ -66,7 +70,7 @@ router.patch('/:id/read', async (req: any, res) => {
 // Mark all notifications as read
 router.patch('/read-all', async (req: any, res) => {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = getSessionUserId(req);
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -94,7 +98,7 @@ router.patch('/read-all', async (req: any, res) => {
 // Get unread count
 router.get('/unread-count', async (req: any, res) => {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = getSessionUserId(req);
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -131,7 +135,7 @@ const createNotificationSchema = z.object({
 
 router.post('/', async (req: any, res) => {
   try {
-    const currentUserId = req.user?.claims?.sub;
+    const currentUserId = getSessionUserId(req);
     if (!currentUserId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -180,7 +184,7 @@ router.get('/templates', async (req, res) => {
 // Get user notification preferences
 router.get('/preferences', async (req: any, res) => {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = getSessionUserId(req);
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -208,7 +212,7 @@ const preferencesSchema = z.object({
 
 router.put('/preferences/:type', async (req: any, res) => {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = getSessionUserId(req);
     const { type } = req.params;
     
     if (!userId) {
