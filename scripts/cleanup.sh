@@ -18,8 +18,8 @@ if [ -d "${ROOT_DIR}/migrations" ]; then
 fi
 
 if [ -d "${ROOT_DIR}/ml_backend" ]; then
-  echo "[Cleanup] Renaming ml_backend -> ml-service"
-  mv "${ROOT_DIR}/ml_backend" "${ROOT_DIR}/ml-service"
+  echo "[Cleanup] Renaming ml_backend -> ml_service"
+  mv "${ROOT_DIR}/ml_backend" "${ROOT_DIR}/ml_service"
 fi
 
 echo "[Cleanup] Complete."

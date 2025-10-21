@@ -50,62 +50,154 @@ export const dailyReports = pgTable(
 export const insertBackupSchema = createInsertSchema(backups).omit({ id: true, createdAt: true });
 export const insertDailyReportSchema = createInsertSchema(dailyReports).omit({ id: true, createdAt: true });
 
+export const tenants = pgTable(
+  "tenants",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    subdomain: varchar("subdomain", { length: 255 }).notNull(),
+    plan: varchar("plan", { length: 64 }).notNull().default("BASIC"),
+    status: varchar("status", { length: 64 }).notNull().default("ACTIVE"),
+    settings: jsonb("settings").$type<Record<string, unknown>>().default({}).notNull(),
+    billingEmail: varchar("billing_email", { length: 320 }).notNull(),
+    subscriptionEndsAt: timestamp("subscription_ends_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    subdomainUnique: unique("tenants_subdomain_unique").on(table.subdomain),
+    nameUnique: unique("tenants_name_unique").on(table.name),
+  }),
+);
+
 // Departments table
-export const departments = pgTable("departments", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull().unique(),
-  description: text("description"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const departments = pgTable(
+  "departments",
+  {
+    id: serial("id").primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    tenantNameUnique: unique("departments_tenant_name_unique").on(
+      table.tenantId,
+      table.name,
+    ),
+    tenantIdx: index("idx_departments_tenant").on(table.tenantId),
+  }),
+);
 
 // Roles table
-export const roles = pgTable("roles", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull().unique(),
-  description: text("description"),
-  departmentId: integer("department_id").references(() => departments.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const roles = pgTable(
+  "roles",
+  {
+    id: serial("id").primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description"),
+    departmentId: integer("department_id").references(() => departments.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    tenantNameUnique: unique("roles_tenant_name_unique").on(
+      table.tenantId,
+      table.name,
+    ),
+    tenantIdx: index("idx_roles_tenant").on(table.tenantId),
+  }),
+);
 
 // Permissions table
-export const permissions = pgTable("permissions", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull().unique(),
-  description: text("description"),
-  resource: text("resource").notNull(), // vehicles, customers, leads, sales, reports, etc.
-  action: text("action").notNull(), // create, read, update, delete, export, etc.
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const permissions = pgTable(
+  "permissions",
+  {
+    id: serial("id").primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description"),
+    resource: text("resource").notNull(), // vehicles, customers, leads, sales, reports, etc.
+    action: text("action").notNull(), // create, read, update, delete, export, etc.
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    tenantNameUnique: unique("permissions_tenant_name_unique").on(
+      table.tenantId,
+      table.name,
+    ),
+    tenantResourceActionUnique: unique("permissions_tenant_resource_action_unique").on(
+      table.tenantId,
+      table.resource,
+      table.action,
+    ),
+    tenantIdx: index("idx_permissions_tenant").on(table.tenantId),
+  }),
+);
 
 // Role permissions junction table
-export const rolePermissions = pgTable("role_permissions", {
-  roleId: integer("role_id").references(() => roles.id).notNull(),
-  permissionId: integer("permission_id").references(() => permissions.id).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (table) => ({
-  pk: primaryKey({ columns: [table.roleId, table.permissionId] }),
-}));
+export const rolePermissions = pgTable(
+  "role_permissions",
+  {
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    roleId: integer("role_id")
+      .references(() => roles.id, { onDelete: "cascade" })
+      .notNull(),
+    permissionId: integer("permission_id")
+      .references(() => permissions.id, { onDelete: "cascade" })
+      .notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.tenantId, table.roleId, table.permissionId] }),
+    tenantIdx: index("idx_role_permissions_tenant").on(table.tenantId),
+  }),
+);
 
 // Updated users table for Multi-Provider OAuth Auth compatibility
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().notNull(), // Changed to varchar for OAuth Auth
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
-  provider: varchar("provider").default("replit"), // oauth provider: replit, google, github, apple
-  // Legacy fields for backward compatibility
-  username: text("username").unique(),
-  password: text("password"),
-  name: text("name"),
-  phone: text("phone"),
-  roleId: integer("role_id").references(() => roles.id),
-  departmentId: integer("department_id").references(() => departments.id),
-  isActive: boolean("is_active").default(true).notNull(),
-  lastLogin: timestamp("last_login"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+export const users = pgTable(
+  "users",
+  {
+    id: varchar("id").primaryKey().notNull(), // Changed to varchar for OAuth Auth
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    email: varchar("email"),
+    firstName: varchar("first_name"),
+    lastName: varchar("last_name"),
+    profileImageUrl: varchar("profile_image_url"),
+    provider: varchar("provider").default("replit"), // oauth provider: replit, google, github, apple
+    // Legacy fields for backward compatibility
+    username: text("username"),
+    password: text("password"),
+    name: text("name"),
+    phone: text("phone"),
+    roleId: integer("role_id").references(() => roles.id),
+    departmentId: integer("department_id").references(() => departments.id),
+    isActive: boolean("is_active").default(true).notNull(),
+    lastLogin: timestamp("last_login"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    tenantEmailUnique: unique("users_tenant_email_unique").on(table.tenantId, table.email),
+    tenantUsernameUnique: unique("users_tenant_username_unique").on(
+      table.tenantId,
+      table.username,
+    ),
+    tenantIdx: index("idx_users_tenant").on(table.tenantId),
+  }),
+);
 
 export const vehicles = pgTable("vehicles", {
   id: serial("id").primaryKey(),
@@ -956,11 +1048,23 @@ export const fiAuditLog = pgTable("fi_audit_log", {
 });
 
 // Insert schemas
-export const insertDepartmentSchema = createInsertSchema(departments).omit({ id: true, createdAt: true });
-export const insertRoleSchema = createInsertSchema(roles).omit({ id: true, createdAt: true });
-export const insertPermissionSchema = createInsertSchema(permissions).omit({ id: true, createdAt: true });
-export const insertRolePermissionSchema = createInsertSchema(rolePermissions).omit({ createdAt: true });
-export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertTenantSchema = createInsertSchema(tenants)
+  .omit({ id: true, createdAt: true, updatedAt: true });
+export const insertDepartmentSchema = createInsertSchema(departments)
+  .omit({ id: true, createdAt: true })
+  .extend({ tenantId: z.string().uuid().optional() });
+export const insertRoleSchema = createInsertSchema(roles)
+  .omit({ id: true, createdAt: true, updatedAt: true })
+  .extend({ tenantId: z.string().uuid().optional() });
+export const insertPermissionSchema = createInsertSchema(permissions)
+  .omit({ id: true, createdAt: true, updatedAt: true })
+  .extend({ tenantId: z.string().uuid().optional() });
+export const insertRolePermissionSchema = createInsertSchema(rolePermissions)
+  .omit({ createdAt: true })
+  .extend({ tenantId: z.string().uuid().optional() });
+export const insertUserSchema = createInsertSchema(users)
+  .omit({ id: true, createdAt: true, updatedAt: true })
+  .extend({ tenantId: z.string().uuid().optional() });
 export const insertEmployeeSchema = createInsertSchema(employees).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertServicePartSchema = createInsertSchema(serviceParts).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertServiceOrderSchema = createInsertSchema(serviceOrders).omit({ id: true, createdAt: true, updatedAt: true });
@@ -1400,6 +1504,8 @@ export type MarketTrends = typeof marketTrends.$inferSelect;
 
 export type InsertBackup = z.infer<typeof insertBackupSchema>;
 export type InsertDailyReport = z.infer<typeof insertDailyReportSchema>;
+export type Tenant = typeof tenants.$inferSelect;
+export type InsertTenant = z.infer<typeof insertTenantSchema>;
 export type InsertDepartment = z.infer<typeof insertDepartmentSchema>;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
 export type InsertPermission = z.infer<typeof insertPermissionSchema>;
