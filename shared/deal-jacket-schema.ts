@@ -117,7 +117,7 @@ export const dealStructures = pgTable("deal_structures", {
     taxMethod?: string;
     rebateTaxable?: boolean;
     tradeCreditLogic?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   }>(),
   auditId: integer("audit_id").default(1),
   
@@ -403,11 +403,11 @@ export const storePageSettings = pgTable("store_page_settings", {
   storeId: uuid("store_id").references(() => stores.id).notNull(),
   pageName: varchar("page_name", { length: 100 }).notNull(), // deal-desk, inventory, showroom-manager, etc.
   settings: jsonb("settings").$type<{
-    defaultValues?: Record<string, any>;
+    defaultValues?: Record<string, unknown>;
     visibleFields?: string[];
     requiredFields?: string[];
     layout?: string;
-    customizations?: Record<string, any>;
+    customizations?: Record<string, unknown>;
   }>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

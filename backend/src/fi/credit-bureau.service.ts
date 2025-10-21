@@ -882,7 +882,7 @@ export class CreditBureauService {
         pdfUrl = upload.url;
       }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
+      if (env.NODE_ENV === 'development') {
         console.warn('Unable to upload credit report PDF', error);
       }
     }
@@ -945,7 +945,7 @@ export class CreditBureauService {
     sgMail.setApiKey(env.SENDGRID_API_KEY);
     await sgMail.send({
       to: recipients,
-      from: env.SENDGRID_FROM,
+      from: env.SENDGRID_FROM_EMAIL,
       subject,
       html,
     });

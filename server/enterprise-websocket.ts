@@ -27,9 +27,11 @@ export class EnterpriseWebSocketManager {
   private clients: Map<string, WebSocketClient> = new Map();
   private channels: Map<string, Set<string>> = new Map();
   private heartbeatInterval!: NodeJS.Timeout;
+  private allowedOrigins: Set<string>;
 
   constructor(server: any) {
-    this.wss = new WebSocketServer({ 
+    this.allowedOrigins = this.initializeAllowedOrigins();
+    this.wss = new WebSocketServer({
       server,
       path: '/ws',
       verifyClient: this.verifyClient.bind(this)
@@ -41,10 +43,33 @@ export class EnterpriseWebSocketManager {
     console.log('🔌 Enterprise WebSocket server initialized');
   }
 
+  private initializeAllowedOrigins(): Set<string> {
+    const origins = new Set<string>(['https://autolytiq.com']);
+
+    const activePort = process.env.PORT || '5000';
+    origins.add(`http://localhost:${activePort}`);
+    origins.add(`http://127.0.0.1:${activePort}`);
+
+    const extraOrigins = process.env.WS_ALLOWED_ORIGINS
+      ? process.env.WS_ALLOWED_ORIGINS.split(',')
+        .map((origin) => origin.trim())
+        .filter((origin) => origin.length > 0)
+      : [];
+
+    for (const origin of extraOrigins) {
+      origins.add(origin);
+    }
+
+    return origins;
+  }
+
   private verifyClient(info: { origin: string; secure: boolean; req: IncomingMessage }): boolean {
     // Add origin verification, rate limiting, etc.
-    const allowedOrigins = ['https://autolytiq.com', 'http://localhost:5000'];
-    return allowedOrigins.includes(info.origin) || process.env.NODE_ENV === 'development';
+    if (!info.origin) {
+      return process.env.NODE_ENV === 'development';
+    }
+
+    return this.allowedOrigins.has(info.origin) || process.env.NODE_ENV === 'development';
   }
 
   private handleConnection(socket: WebSocket, request: IncomingMessage) {

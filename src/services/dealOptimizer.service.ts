@@ -1,6 +1,7 @@
 import { Prisma, RetailDealStatus } from '@prisma/client';
 import { prisma, toInputJson } from '../lib/prisma.js';
 import { mlService } from './ml.service.js';
+import { getScoringConfig, type ScoringConfig } from '../config/scoring.js';
 import {
   competitiveRange,
   getMarketData,
@@ -25,6 +26,7 @@ import type {
   CounterAnalysisRequest,
   CounterAnalysisResponse,
   CounterOption,
+  CreditTier,
   DealStructure,
   GrossCalculation,
   LenderCriteriaEntry,
@@ -50,6 +52,18 @@ const RETAIL_CLOSED_STATUSES: RetailDealStatus[] = [
   RetailDealStatus.DELIVERED,
 ];
 
+const CREDIT_TIER_VALUES: readonly CreditTier[] = [
+  'TIER_1',
+  'TIER_2',
+  'TIER_3',
+  'TIER_4',
+  'TIER_5',
+  'TIER_6',
+];
+
+const toCreditTier = (value: string): CreditTier =>
+  CREDIT_TIER_VALUES.includes(value as CreditTier) ? (value as CreditTier) : 'TIER_1';
+
 const roundToCents = (value: number): number => Math.round((value + Number.EPSILON) * 100) / 100;
 
 const decimalToNumber = (value: DecimalLike): number | null => {
@@ -64,6 +78,82 @@ const decimalToNumber = (value: DecimalLike): number | null => {
 };
 
 const sum = (values: number[]): number => values.reduce((total, value) => total + value, 0);
+
+const isJsonObject = (value: Prisma.JsonValue | null): value is Prisma.JsonObject =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const parseWorksheetSnapshot = (
+  value: Prisma.JsonValue | null,
+): { structure: DealStructure; payment: PaymentCalculation; totals?: WorksheetTotalsSnapshot } | null => {
+  if (!isJsonObject(value)) {
+    return null;
+  }
+  if (!('structure' in value) || !('payment' in value)) {
+    return null;
+  }
+  return value as unknown as {
+    structure: DealStructure;
+    payment: PaymentCalculation;
+    totals?: WorksheetTotalsSnapshot;
+  };
+};
+
+const parseGrossSnapshot = (value: Prisma.JsonValue | null): GrossCalculation | undefined => {
+  if (!isJsonObject(value)) {
+    return undefined;
+  }
+  return value as unknown as GrossCalculation;
+};
+
+function normalizeObjectiveWeights(
+  base: ScoringConfig['objectives'],
+  override?: Partial<ScoringConfig['objectives']> | null,
+): ScoringConfig['objectives'] {
+  const merged: ScoringConfig['objectives'] = {
+    gross_weight: base.gross_weight,
+    close_weight: base.close_weight,
+    approval_weight: base.approval_weight,
+    payment_weight: base.payment_weight,
+  };
+
+  if (override) {
+    for (const [key, value] of Object.entries(override)) {
+      if (value == null || Number.isNaN(value)) {
+        continue;
+      }
+      switch (key) {
+        case 'gross_weight':
+          merged.gross_weight = value;
+          break;
+        case 'close_weight':
+          merged.close_weight = value;
+          break;
+        case 'approval_weight':
+          merged.approval_weight = value;
+          break;
+        case 'payment_weight':
+          merged.payment_weight = value;
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  const total =
+    merged.gross_weight + merged.close_weight + merged.approval_weight + merged.payment_weight;
+  if (total <= 0) {
+    return merged;
+  }
+
+  const normalize = (value: number) => value / total;
+  return {
+    gross_weight: normalize(merged.gross_weight),
+    close_weight: normalize(merged.close_weight),
+    approval_weight: normalize(merged.approval_weight),
+    payment_weight: normalize(merged.payment_weight),
+  };
+}
 
 interface StructureFinancials {
   basePrice: number;
@@ -342,9 +432,7 @@ function parseLenderProfiles(
     name: string;
     apiCredentials: Prisma.JsonValue;
     isActive: boolean;
-    maxReserve?: DecimalLike;
     maxLtv?: DecimalLike;
-    maxPti?: DecimalLike;
     maxTerm?: number;
     minCreditScore?: number | null;
     maxCreditScore?: number | null;
@@ -368,9 +456,9 @@ function parseLenderProfiles(
             name: record.name,
             status: record.isActive ? 'active' : 'inactive',
             rateSheets: [],
-            maxReserve: decimalToNumber(record.maxReserve) ?? undefined,
+            maxReserve: undefined,
             maxLtv: decimalToNumber(record.maxLtv) ?? undefined,
-            maxPti: decimalToNumber(record.maxPti) ?? undefined,
+            maxPti: undefined,
             maxTermMonths: record.maxTerm ?? undefined,
             minCreditScore: record.minCreditScore ?? undefined,
             maxCreditScore: record.maxCreditScore ?? undefined,
@@ -389,10 +477,12 @@ function parseLenderProfiles(
       name: record.name,
       status: record.isActive ? 'active' : 'inactive',
       rateSheets: sheets,
-      maxReserve: decimalToNumber(record.maxReserve) ?? undefined,
+      maxReserve: undefined,
       maxLtv: decimalToNumber(record.maxLtv) ?? undefined,
-      maxPti: decimalToNumber(record.maxPti) ?? undefined,
+      maxPti: undefined,
       maxTermMonths: record.maxTerm ?? undefined,
+      minCreditScore: record.minCreditScore ?? undefined,
+      maxCreditScore: record.maxCreditScore ?? undefined,
     } satisfies LenderProfile;
   });
 }
@@ -418,9 +508,7 @@ async function buildLenderCriteria(
       name: true,
       apiCredentials: true,
       isActive: true,
-      maxReserve: true,
       maxLtv: true,
-      maxPti: true,
       maxTerm: true,
       minCreditScore: true,
       maxCreditScore: true,
@@ -472,7 +560,7 @@ async function buildLenderCriteria(
       maxPti: lender.maxPti,
       tiers: lender.activeRateSheets.map((tier) => ({
         id: tier.id,
-        tier: tier.tier,
+        tier: toCreditTier(tier.tier),
         minScore: tier.minScore,
         maxScore: tier.maxScore,
         buyRate: tier.buyRate,
@@ -571,16 +659,16 @@ export async function optimizeDeal(params: {
   userId: string;
   request: OptimizationRequest;
   requestId?: string;
+  scoringOverride?: Partial<ScoringConfig['objectives']> | null;
 }): Promise<{
   optimization: OptimizationView;
   recommendation: OptimizationResponse;
   version?: VersionView | null;
   traceId?: string;
 }> {
-  const { tenantId, dealId, userId, request, requestId } = params;
+  const { tenantId, dealId, userId, request, requestId, scoringOverride } = params;
 
   const vehicleContext = {
-    id: request.vehicle.id,
     vin: request.vehicle.vin,
     year: request.vehicle.year,
     make: request.vehicle.make,
@@ -663,11 +751,18 @@ export async function optimizeDeal(params: {
   const structureMetrics = deriveStructureFinancials(request.structure);
   const lenderCriteria = await buildLenderCriteria(tenantId, request, structureMetrics);
 
+  const scoringConfig = getScoringConfig();
+  const effectiveObjectives = normalizeObjectiveWeights(scoringConfig.objectives, scoringOverride ?? undefined);
+  const scoringSnapshot = structuredClone(scoringConfig) as ScoringConfig;
+  scoringSnapshot.objectives = effectiveObjectives;
+
   const payload: OptimizationPayload = {
     ...request,
+    ...(scoringOverride ? { scoringOverride: scoringSnapshot.objectives } : {}),
     marketData,
     similarDeals,
     lenderCriteria,
+    scoringConfig: scoringSnapshot,
   };
 
   const { result, traceId } = await mlService.optimizeDeal(payload, { tenantId, requestId });
@@ -751,11 +846,10 @@ export async function analyzeCounter(params: {
     throw new Error('Base version not found for counter analysis.');
   }
 
-  const snapshot = version.snapshot as {
-    structure: DealStructure;
-    payment: PaymentCalculation;
-    totals?: WorksheetTotalsSnapshot;
-  };
+  const snapshot = parseWorksheetSnapshot(version.snapshot);
+  if (!snapshot) {
+    throw new Error('Stored version snapshot is missing desking data.');
+  }
 
   const worksheet = request.worksheetId
     ? await prisma.dealWorksheet.findFirst({
@@ -843,7 +937,7 @@ export async function analyzeCounter(params: {
     ...request,
     originalStructure: snapshot.structure,
     originalPayment: snapshot.payment,
-    originalGross: version.grossBreakdown as GrossCalculation | undefined,
+    originalGross: parseGrossSnapshot(version.grossBreakdown),
     marketData: marketSummary,
     similarDeals: similarContext,
   };

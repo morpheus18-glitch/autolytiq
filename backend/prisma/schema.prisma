@@ -5,7 +5,6 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 enum TenantPlan {
@@ -406,6 +405,7 @@ model Tenant {
   vehicleWorkflows     VehicleWorkflow[]
   workflowTasks        WorkflowTask[]
   transportOrders      TransportOrder[]
+  stageTransitions     StageTransition[]
   pipelineAggregates   PipelineAggregate[]
 }
 
@@ -485,7 +485,7 @@ model Customer {
   createdAt              DateTime                 @default(now()) @db.Timestamptz(6)
   updatedAt              DateTime                 @updatedAt @db.Timestamptz(6)
   deletedAt              DateTime?                @db.Timestamptz(6)
-  searchVector           Unsupported("tsvector")? @default(dbgenerated("to_tsvector('english', coalesce(\"firstName\",'') || ' ' || coalesce(\"lastName\",'') || ' ' || coalesce(\"email\",'') || ' ' || coalesce(\"phone\",''))")) @map("search_vector")
+  searchVector           String?                  @db.Text @map("search_vector")
 
   tenant         Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   assignedToUser User?                 @relation("CustomerAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
@@ -500,7 +500,8 @@ model Customer {
 
   @@index([tenantId, leadStatus])
   @@index([tenantId, assignedToUserId])
-  @@index([searchVector], type: Gin)
+  @@index([tenantId])
+  @@index([tenantId, searchVector])
   @@index([tenantId, lastName, firstName])
 }
 
@@ -837,7 +838,7 @@ model Vehicle {
   createdAt             DateTime                 @default(now()) @db.Timestamptz(6)
   updatedAt             DateTime                 @updatedAt @db.Timestamptz(6)
   deletedAt             DateTime?                @db.Timestamptz(6)
-  searchVector          Unsupported("tsvector")? @default(dbgenerated("to_tsvector('english', coalesce(\"vin\",'') || ' ' || coalesce(\"make\",'') || ' ' || coalesce(\"model\",''))")) @map("search_vector")
+  searchVector          String?                 @db.Text @map("search_vector")
 
   tenant            Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   deals             Deal[]
@@ -860,7 +861,8 @@ model Vehicle {
   @@index([tenantId, make, model])
   @@index([tenantId, acquisitionType])
   @@index([tenantId, appraisalStatus])
-  @@index([searchVector], type: Gin)
+  @@index([tenantId])
+  @@index([tenantId, searchVector])
 }
 
 model VehicleHistory {

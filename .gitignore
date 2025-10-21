@@ -1,6 +1,30 @@
-node_modules
-dist
+# Build artifacts
+/dist
+/build
+node_modules/
 .DS_Store
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Python caches
+__pycache__/
+*.py[cod]
+ml_service/.pytest_cache/
+pytest_cache/
+
+# Environment files
+.env
+.env.local
+.env.*
+!.env.*.example
+
+# Secrets & runtime state
+var/secrets/
+.sops/
+*.agekey
+*.pem
+
+# Reports and generated docs should be committed explicitly
+!var/
+var/bin/

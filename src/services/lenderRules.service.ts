@@ -24,6 +24,8 @@ export interface LenderProfile {
   maxLtv?: number;
   maxPti?: number;
   maxTermMonths?: number;
+  minCreditScore?: number;
+  maxCreditScore?: number;
 }
 
 export interface CustomerProfile {

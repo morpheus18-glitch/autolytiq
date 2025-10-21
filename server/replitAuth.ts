@@ -121,14 +121,14 @@ function setupAuthRoutes(app: Express) {
   // Replit OAuth routes
   if (process.env.REPLIT_DOMAINS && process.env.REPL_ID) {
     app.get("/api/auth/replit", (req, res, next) => {
-      passport.authenticate(`replitauth:${req.hostname}`, {
+      passport.authenticate("replitauth", {
         prompt: "login consent",
         scope: ["openid", "email", "profile", "offline_access"],
       })(req, res, next);
     });
 
     app.get("/api/auth/replit/callback", (req, res, next) => {
-      passport.authenticate(`replitauth:${req.hostname}`, {
+      passport.authenticate("replitauth", {
         successReturnToOrRedirect: "/",
         failureRedirect: "/login",
       })(req, res, next);
@@ -280,18 +280,17 @@ export async function setupAuth(app: Express) {
         }
       };
 
-      for (const domain of process.env.REPLIT_DOMAINS.split(",")) {
-        const strategy = new Strategy(
-          {
-            name: `replitauth:${domain}`,
-            config,
-            scope: "openid email profile offline_access",
-            callbackURL: `https://${domain}/api/auth/replit/callback`,
-          },
-          verify,
-        );
-        passport.use(strategy);
-      }
+      const firstDomain = process.env.REPLIT_DOMAINS.split(",")[0];
+      const strategy = new Strategy(
+        {
+          name: "replitauth",
+          config,
+          scope: "openid email profile offline_access",
+          callbackURL: `https://${firstDomain}/api/auth/replit/callback`,
+        },
+        verify,
+      );
+      passport.use(strategy);
     } catch (error) {
       console.warn("Replit OAuth setup failed:", (error as Error).message);
     }

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import os
 from functools import lru_cache
 from time import perf_counter
 from typing import Any, Dict, List, Optional
@@ -10,14 +9,17 @@ from uuid import uuid4
 import numpy as np
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
+
+from config.env import ENV
 
 LOGGER = logging.getLogger("ml_service")
 logging.basicConfig(
-    level=os.environ.get("LOG_LEVEL", "INFO"),
+    level=ENV.LOG_LEVEL,
     format="%(asctime)s | %(levelname)s | %(message)s",
 )
 
-SERVICE_TOKEN = os.environ.get("ML_SERVICE_TOKEN")
+SERVICE_TOKEN = ENV.ML_SERVICE_TOKEN
 if not SERVICE_TOKEN:
     LOGGER.warning("ML_SERVICE_TOKEN not set, defaulting to development token")
     SERVICE_TOKEN = "dev-ml-token"
@@ -177,6 +179,18 @@ class LeadSnapshot(BaseModel):
 
 LEAD_CACHE: Dict[str, LeadSnapshot] = {}
 
+REQUEST_COUNTER = Counter(
+    'ml_service_requests_total',
+    'Total HTTP requests served by the ML service',
+    ['method', 'route', 'status_code'],
+)
+REQUEST_DURATION = Histogram(
+    'ml_service_request_duration_seconds',
+    'Latency of ML service HTTP requests',
+    ['method', 'route', 'status_code'],
+    buckets=[0.05, 0.1, 0.3, 0.5, 1, 2, 5, 10],
+)
+
 
 def _resolve_request_id(request: Request) -> str:
     header_request_id = request.headers.get("x-request-id") or request.headers.get("X-Request-ID")
@@ -270,7 +284,7 @@ class PredictiveModel:
     def __init__(self) -> None:
         self.model = None
         self.model_ready = False
-        model_path = os.environ.get("ML_MODEL_PATH")
+        model_path = ENV.MODEL_PATH
         if model_path:
             try:
                 from joblib import load  # type: ignore
@@ -392,10 +406,34 @@ def get_scorer() -> HeuristicLeadScorer:
     return HeuristicLeadScorer()
 
 
+from .config.scoring import start_watcher as start_scoring_watcher
 from .routers.desking import router as desking_router
 
 
 app = FastAPI(title="Autolytiq ML Service", version="1.0.0")
+
+
+@app.middleware("http")
+async def instrument_requests(request: Request, call_next):  # type: ignore[override]
+    if request.url.path == "/metrics":
+        return await call_next(request)
+
+    start = perf_counter()
+    response = await call_next(request)
+    elapsed = perf_counter() - start
+
+    route = request.scope.get("route")
+    route_path = getattr(route, "path", request.url.path)
+    labels = {
+        "method": request.method,
+        "route": route_path,
+        "status_code": str(response.status_code),
+    }
+    REQUEST_COUNTER.labels(**labels).inc()
+    REQUEST_DURATION.labels(**labels).observe(elapsed)
+    response.headers["X-Process-Time"] = f"{elapsed:.6f}"
+    return response
+start_scoring_watcher()
 
 app.include_router(desking_router, dependencies=[Depends(verify_token)])
 
@@ -691,7 +729,12 @@ async def healthcheck() -> Dict[str, Any]:
     return {"ok": True}
 
 
+@app.get("/metrics")
+async def metrics_endpoint() -> Response:
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
 if __name__ == "__main__":  # pragma: no cover
     import uvicorn
 
-    uvicorn.run("app.main:app", host="0.0.0.0", port=int(os.getenv("PORT", "8000")), reload=False)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=ENV.PORT, reload=False)

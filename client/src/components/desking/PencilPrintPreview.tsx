@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { ApprovalPredictions, DeskingDeal, PaymentScenario, SimilarDealSummary } from '@/features/desking/types';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ interface PencilPrintPreviewProps {
   predictions?: ApprovalPredictions;
   similarDeals?: SimilarDealSummary[];
   formatCurrency: (value: number) => string;
+  onSaveToDeal?: () => void;
 }
 
 export function PencilPrintPreview({
@@ -21,20 +23,62 @@ export function PencilPrintPreview({
   predictions,
   similarDeals,
   formatCurrency,
+  onSaveToDeal,
 }: PencilPrintPreviewProps) {
   const handlePrint = () => {
     window.print();
   };
 
+  const amountFinanced = useMemo(() => {
+    if (!scenario) {
+      return undefined;
+    }
+    const monthlyRate = scenario.apr / 1200;
+    if (monthlyRate === 0) {
+      return scenario.monthlyPayment * scenario.termMonths;
+    }
+    const denominator = 1 - (1 + monthlyRate) ** -scenario.termMonths;
+    if (denominator === 0) {
+      return scenario.monthlyPayment * scenario.termMonths;
+    }
+    return (scenario.monthlyPayment * denominator) / monthlyRate;
+  }, [scenario]);
+
+  const paymentTable = useMemo(() => {
+    if (!scenario || !amountFinanced) {
+      return [] as Array<{ month: number; principal: number; interest: number; balance: number }>;
+    }
+    const monthlyRate = scenario.apr / 1200;
+    let balance = amountFinanced;
+    const rows: Array<{ month: number; principal: number; interest: number; balance: number }> = [];
+    for (let month = 1; month <= Math.min(6, scenario.termMonths); month += 1) {
+      const interest = monthlyRate === 0 ? 0 : balance * monthlyRate;
+      const principal = Math.max(0, scenario.monthlyPayment - interest);
+      balance = Math.max(0, balance - principal);
+      rows.push({ month, principal, interest, balance });
+    }
+    return rows;
+  }, [amountFinanced, scenario]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl overflow-hidden bg-white print:max-w-none print:w-full print:rounded-none print:border-0 print:p-0">
+      <DialogContent
+        className="max-w-5xl overflow-hidden bg-white print:max-w-none print:w-full print:rounded-none print:border-0 print:p-0"
+        data-testid="print-preview-modal"
+      >
         <DialogHeader className="no-print">
           <DialogTitle>Pencil Print Preview</DialogTitle>
           <DialogDescription>Review the pencil summary before generating a printable worksheet.</DialogDescription>
         </DialogHeader>
         <div className="no-print flex justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} data-testid="modal-close">
+            Close
+          </Button>
+          {onSaveToDeal && (
+            <Button variant="secondary" onClick={onSaveToDeal} data-testid="pencil-save-to-deal">
+              Save to deal
+            </Button>
+          )}
           <Button onClick={handlePrint}>Print</Button>
         </div>
         <div className="print-container print:bg-white">
@@ -88,6 +132,14 @@ export function PencilPrintPreview({
                     <p className="text-xs uppercase tracking-wide text-slate-500">Cash down</p>
                     <p className="text-slate-700">{formatCurrency(scenario.cashDown)}</p>
                   </div>
+                  {typeof amountFinanced === 'number' && Number.isFinite(amountFinanced) && (
+                    <div className="col-span-2">
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Amount financed</p>
+                      <p className="text-slate-700" data-testid="print-amount-financed">
+                        {formatCurrency(amountFinanced)}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </section>
 
@@ -138,6 +190,34 @@ export function PencilPrintPreview({
                   </div>
                 </div>
               </section>
+
+              {paymentTable.length > 0 && (
+                <section>
+                  <h3 className="text-sm font-semibold text-slate-900">Payment schedule snapshot</h3>
+                  <div className="mt-2 overflow-hidden rounded-lg border border-slate-200">
+                    <table className="w-full text-left text-xs" data-testid="print-payment-table">
+                      <thead className="bg-slate-50 text-slate-600">
+                        <tr>
+                          <th className="px-3 py-2 font-medium">Month</th>
+                          <th className="px-3 py-2 font-medium">Principal</th>
+                          <th className="px-3 py-2 font-medium">Interest</th>
+                          <th className="px-3 py-2 font-medium">Balance</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paymentTable.map(row => (
+                          <tr key={row.month} className="odd:bg-white even:bg-slate-50">
+                            <td className="px-3 py-2">{row.month}</td>
+                            <td className="px-3 py-2">{formatCurrency(row.principal)}</td>
+                            <td className="px-3 py-2">{formatCurrency(row.interest)}</td>
+                            <td className="px-3 py-2">{formatCurrency(row.balance)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              )}
 
               {predictions && (
                 <section>

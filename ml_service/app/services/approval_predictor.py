@@ -13,6 +13,7 @@ from lightgbm import LGBMClassifier
 from numpy.random import default_rng
 from sklearn.linear_model import LogisticRegression
 
+from ..config.scoring import get_config
 from ..schemas.desking import (
     ApprovalPrediction,
     ApprovalPredictionRequest,
@@ -269,6 +270,11 @@ class ApprovalPredictor:
             raise RuntimeError("Approval model has not been initialized")
         base_probability = float(self._model.predict_proba(features.reshape(1, -1))[0, 1])
         calibrated = self._calibrate(base_probability)
+        config = get_config()
+        clip_cfg = config.get("normalization", {}).get("approval_probability", {})
+        clip_min = float(clip_cfg.get("clip_min", 0.0)) / 100.0
+        clip_max = float(clip_cfg.get("clip_max", 100.0)) / 100.0
+        calibrated = float(np.clip(calibrated, clip_min, clip_max))
 
         estimated_rate = max(2.49, request.payment.apr * (1.0 + (1 - calibrated) * 0.25))
         estimated_reserve = float(max(request.payment.monthly_payment * 0.03 * calibrated, 0.0))

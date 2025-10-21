@@ -1,0 +1,28 @@
+title = "Autolytiq gitleaks configuration"
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API key or secret"
+regex = '''(?i)(api[_-]?key|secret|token|auth)["'`\s:=]{0,6}[0-9a-zA-Z\-_.]{20,}'''
+entropy = 3.5
+allowlist = { regexes = ['''(?i)test|example|dummy|sample'''] }
+
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key ID"
+regex = '''AKIA[0-9A-Z]{16}'''
+
+[[rules]]
+id = "aws-secret-key"
+description = "AWS Secret Key"
+regex = '''(?i)aws(.{0,20})?(secret|access)["'`\s:=]{0,6}[0-9A-Za-z/+]{40}'''
+
+[[rules]]
+id = "private-key"
+description = "Private key block"
+regex = '''-----BEGIN (?:RSA|EC|DSA|OPENSSH|PGP) PRIVATE KEY-----'''
+
+[allowlist]
+description = "Allowlisted development artifacts"
+files = [".*\\.example$", "docs/.*", "var/reports/.*"]
+regexes = ['''(?i)localhost''', '''(?i)example\\.com''']

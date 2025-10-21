@@ -1,4 +1,4 @@
-import { 
+import {
   users, vehicles, customers, leads, sales, activities, visitorSessions, pageViews, customerInteractions, competitorAnalytics, competitivePricing, pricingInsights, merchandisingStrategies, marketTrends, deals, creditApplications, coApplicants, tradeVehicles, showroomVisits, salespersonNotes, showroomSessions,
   // User Management Tables
   systemUsers, userSessions, systemRoles, activityLog,
@@ -32,6 +32,7 @@ import {
 } from "@shared/deal-jacket-schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
+import { DatabaseStorage } from "./database-storage";
 
 export interface IStorage {
   // User operations (OAuth users)
@@ -4325,7 +4326,7 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage: IStorage = new DatabaseStorage();
 
 // Initialize sample notifications
 setTimeout(async () => {

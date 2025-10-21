@@ -8,6 +8,7 @@ import {
   appointmentUpdateSchema,
 } from '../validations/appointment.validation.js';
 import * as appointmentService from '../services/appointment.service.js';
+import { resolveHttpError } from '../utils/http-errors.js';
 
 function ensureTenant(req: Request, res: Response): string | undefined {
   const tenantId = req.context?.tenantId;
@@ -18,12 +19,10 @@ function ensureTenant(req: Request, res: Response): string | undefined {
   return tenantId;
 }
 
+const DEFAULT_ERROR_MESSAGE = 'Unexpected error';
+
 function extractError(error: unknown): { status: number; message: string } {
-  if (error instanceof Error) {
-    const status = typeof (error as any).status === 'number' ? (error as any).status : 500;
-    return { status, message: error.message };
-  }
-  return { status: 500, message: 'Unexpected error' };
+  return resolveHttpError(error, 500, DEFAULT_ERROR_MESSAGE);
 }
 
 export async function listAppointments(req: Request, res: Response) {

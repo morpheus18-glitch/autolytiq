@@ -11,11 +11,14 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt ./
+COPY requirements.txt requirements-worker.txt ./
 RUN pip install --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir -r requirements.txt -r requirements-worker.txt
 
 COPY app ./app
+COPY config ./config
+COPY workers ./workers
+COPY scripts ./scripts
 
 EXPOSE 8000
 

@@ -1,82 +1,184 @@
-# AutolytiQ - Dealership Management System
+# AutolytiQ
 
 ## Overview
 
-AutolytiQ is an enterprise-grade dealership management system providing a complete solution for managing vehicle inventory, sales, customer relationships, analytics, and competitive pricing intelligence for automotive dealerships. Key capabilities include web scraping, machine learning-powered pricing analysis, automated merchandising strategies, pixel tracking for customer insights, and a mobile-optimized deal desk. The system is built with a cloud-native microservices architecture approach, aimed at providing a professional dealership software experience.
+AutolytiQ is an enterprise-grade retail automotive platform that consolidates CRM, inventory management, deal desking, F&I operations, and analytics into a unified dealership operations hub. The system combines React/TypeScript frontends with Node.js/Express APIs, Python-based ML services, and PostgreSQL as the source of truth. It serves multi-tenant dealerships with tenant-aware data isolation, role-based access control, and real-time workflow orchestration.
+
+The platform replaces fragmented workflows found in traditional DMS systems (CDK, Reynolds & Reynolds, DealerSocket) with modern cloud-native architecture, ML-driven intelligence, and integrated third-party services for credit bureaus, lenders, OEM data sources, and market intelligence.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 
-### Standard Format
-When referring to layout, format, or styling, use the term **"Standard"** which means:
-- **Layout**: UniformPage wrapper component for consistent page structure
-- **Styling**: Tailwind CSS utility classes (inline, no separate CSS files)
-- **UI Components**: shadcn/ui library (Card, Table, Dialog, Button, etc.)
-- **Icons**: Lucide React
-- **Mobile-First**: Responsive breakpoints (mobile → sm: → md: → lg:)
-- **Spacing**: Mobile padding `px-4 py-4`, desktop `lg:px-8 lg:py-8`
-- **Colors**: Gray neutrals, blue primary, green success, amber/orange warnings, with dark mode variants
-- **Locked Pages**: Home = `/` (Dashboard with tabs), Inventory = `/inventory` (vehicle list with ML pricing)
-
 ## System Architecture
 
-### Frontend Architecture
-- **Framework**: React 18 with TypeScript
-- **Build Tool**: Vite
-- **UI Framework**: Tailwind CSS with shadcn/ui components
-- **State Management**: TanStack React Query for server state
-- **Routing**: Wouter
-- **Form Handling**: React Hook Form with Zod validation
-- **UI/UX Decisions**: Professional top navbar with dropdowns, mobile-optimized interfaces, responsive design system, and a brand-consistent color scheme (blue, green, dark charcoal).
+### Monorepo Structure
 
-### Backend Architecture
-- **Runtime**: Node.js with Express.js
-- **Language**: TypeScript with ES modules
-- **Database**: PostgreSQL with Drizzle ORM (using Neon Database)
-- **API Pattern**: RESTful API with JSON responses
-- **Session Management**: PostgreSQL-backed sessions
-- **ML Backend**: Python-based modular ML system with autonomous scraping and XGBoost models, integrated via a TypeScript layer.
-- **Architectural Principles**: Cloud-native, microservices-ready, event-driven patterns, and scalable technology stack.
+**Client Layer** (`client/`)
+- React 18 + Vite SPA with shadcn/ui design system built on Radix UI primitives
+- TanStack Query for server state synchronization and caching
+- TypeScript throughout with strict type safety
+- Responsive layouts using Tailwind CSS with custom automotive design tokens
+- Component library follows canonical single-source-of-truth pattern—extensions over duplicates
 
-### Key Features & Design Choices
-- **Dashboard**: Centralized overview with metrics, inventory, competitive insights, and activity feed.
-- **Inventory Management**: CRUD operations with search, filtering, ML-powered pricing insights, and VIN→Stock auto-generation.
-- **Sales & Leads**: Tracking and management with status progression.
-- **Customer Management**: CRM functionalities including lifecycle tracking and behavioral analytics.
-- **Analytics**: Performance metrics, data visualization, and comprehensive reporting.
-- **Competitive Pricing**: ML-powered analysis, market trends, and automated merchandising.
-- **Pixel Tracking**: Customer behavior and visitor insights for online journey mapping.
-- **Professional Deal Desk**: Full-featured VinSolutions-grade desking tool with vehicle/customer selection, payment calculator, backend product management, tax/payment calculations, and deal persistence. Supports trade-in tax credit and negative equity handling. Features include: payment scenarios, lender matching, AI optimization, autosave, and print capability.
-- **VIN Services**: Auto-generates stock numbers from VIN with manual override and audit logging.
-- **Tax & Fee Engine**: Production database architecture for jurisdiction resolution, state-specific tax rules, DMV fee catalogs, and calculation versioning.
-- **AI Negotiation Assistant**: OpenAI-powered deal analysis providing deal scoring, close probability, strategic recommendations, and objection handlers.
-- **Security**: SSL certificates, HTTPS redirection, security headers, and authentication middleware.
-- **Navigation Pattern**: All navigation uses client-side routing (wouter's setLocation or Link component) with `asChild` pattern for accessibility.
-- **Data Flow**: Client (React Query) -> API (Express) -> Business Logic -> Data Layer (Drizzle ORM) -> PostgreSQL.
-- **Multi-Tenant Dealer Configuration**: Comprehensive dealer management system at `/admin/dealer-config` with tabs for General Settings, Lead Management, Finance & Products, Tax Configuration, User Management, Inventory Settings, Service Settings, and Parts Settings. Integrates with the deal desk for dealer-specific defaults. (Note: Multi-tenant implementation for user authentication is pending and currently poses a security risk).
-- **Showroom Manager**: Live floor manager at `/showroom-manager` for tracking active customers, real-time session management, and quick actions, integrated with the professional deal desk and CRM.
-- **Mobile Optimization**: Comprehensive mobile/tablet support with scroll lock system (prevents background scrolling when overlays open), dynamic viewport units (h-[100dvh] for proper mobile viewport handling), responsive breakpoints, and touch-optimized interfaces. All menus, sidebars, and modals implement independent scrolling with locked backgrounds.
+**Primary API Service** (`src/`)
+- Express.js REST API with Prisma ORM for PostgreSQL
+- Domain-driven service layer organizing CRM, deals, inventory, finance, and compliance logic
+- BullMQ-powered job queues for background tasks (email, notifications, batch processing)
+- Authentication/authorization with JWT and role-based permissions
+- Integration adapters for OpenAI, Stripe, SendGrid, Twilio, and DMS connectors
+
+**Legacy Gateway** (`server/`)
+- Drizzle-based Express service maintaining backward compatibility
+- Schema-driven routes exposing shared data structures
+- Bridges legacy integrations while core services migrate to Prisma
+
+**Modular Backend Service** (`backend/`)
+- Separate TypeScript + Prisma service for tenant provisioning and maintenance operations
+- Long-running migrations, data seeders, and batch jobs
+- Isolated from main API to prevent resource contention
+
+**ML Services**
+- `ml_service/`: FastAPI application exposing real-time ML endpoints (price prediction, deal optimization, lead scoring, inventory recommendations)
+- `ml_backend/`: Offline Python pipelines for web scraping (CarGurus, AutoTrader), feature engineering, and model retraining
+- Celery workers with Redis broker for async ML tasks and scheduled model updates
+- Supports continuous retraining with live scraped market data
+
+**Tracking & Analytics** (`tracking-service/`)
+- Dedicated pixel tracking ingestion service for session analytics and attribution
+- WebSocket-based real-time event streaming
+- Webhook fan-out for integrating analytics across modules
+
+### Data Architecture
+
+**Primary Database: PostgreSQL**
+- Multi-tenant schema with organization/dealer hierarchy
+- Comprehensive domain models: customers, vehicles, deals, finance contracts, service records, inventory, users/roles
+- Audit logging with JSONB columns for change tracking (who/when/before/after)
+- Full-text search capabilities and JSONB indexing for flexible querying
+- Supports both Prisma (primary) and Drizzle (legacy) ORMs
+
+**Caching & Queuing: Redis**
+- BullMQ job queues for email, notifications, and nightly rollups
+- Celery broker for Python ML workers
+- Session storage and frequently-accessed data caching
+
+**Object Storage: S3-Compatible**
+- Document exports, vehicle photos, contract PDFs
+- ML model artifacts and training datasets
+
+### Key Architectural Decisions
+
+**Multi-Tenancy**
+- Organization-scoped data isolation enforced at database and API layers
+- Hierarchical tenant structure supporting dealer groups with multiple rooftops
+- Row-level security and query-level tenant filtering
+
+**Domain Service Pattern**
+- Business logic centralized in domain services (CRM, deals, inventory, finance, compliance)
+- Controllers remain thin, delegating to services
+- Clear separation of concerns enables testing and reuse
+
+**Event-Driven Workflows**
+- Background jobs handle async operations (credit pulls, lender submissions, notifications)
+- Queue-based architecture prevents blocking on long-running tasks
+- Supports distributed processing and horizontal scaling
+
+**API-First Integration Layer**
+- Third-party integrations abstracted behind adapters
+- Supports RouteOne, DealerTrack, credit bureaus, OEM APIs
+- Webhook handlers for real-time external events
+
+**ML Pipeline Separation**
+- Python ML services isolated from Node.js transactional APIs
+- FastAPI for low-latency inference endpoints
+- Celery for compute-intensive training jobs
+- Enables independent scaling and technology choices
+
+**Mobile-First UX**
+- Responsive design with touch-optimized controls
+- Progressive Web App capabilities for offline tolerance
+- Sticky context panels and single-screen workflows mirror native apps
+
+### Infrastructure Patterns
+
+**Containerization**
+- Docker Compose for local/self-hosted deployments (`infrastructure/docker/`)
+- Kubernetes manifests for production clusters (`infrastructure/k8s/`)
+- Each service packaged independently with health checks
+
+**Observability**
+- Comprehensive audit logging for compliance
+- Application monitoring with structured logging (Pino)
+- Performance metrics via prom-client
+- Error tracking and reporting
+
+**Security**
+- JWT-based authentication with role-based access control (RBAC)
+- Field-level security for sensitive data (SSN, deal gross, commissions)
+- Audit trails on all critical operations
+- Encryption at rest and in transit
 
 ## External Dependencies
 
-### Core Dependencies
-- **@neondatabase/serverless**: Serverless PostgreSQL connection
-- **drizzle-orm**: Type-safe database ORM
-- **drizzle-zod**: Schema validation integration
-- **@tanstack/react-query**: Server state management
-- **@radix-ui/***: Headless UI components
-- **tailwindcss**: Utility-first CSS framework
-- **react-hook-form**: Form state management
-- **zod**: Runtime type validation
+### Third-Party Services
 
-### ML Backend Dependencies
-- **pandas**: Data manipulation
-- **numpy**: Numerical computing
-- **scikit-learn**: Machine learning library
-- **xgboost**: Gradient boosting framework
-- **selenium**: Web browser automation
-- **undetected-chromedriver**: Stealth browser automation
-- **flask**: Web framework for ML API
-- **NHTSA vPIC**: Free VIN decoder API
-- **VinCheck.info**: Free market pricing API
+**Communication**
+- SendGrid: Transactional email delivery
+- Twilio: SMS notifications and voice calls
+
+**Payments & Billing**
+- Stripe: Subscription management and payment processing
+
+**AI/ML**
+- OpenAI: LLM-powered features (deal advisor, compliance checking, semantic search)
+- Vector databases (pgvector or Pinecone): Semantic search and recommendations
+
+**Automotive Data**
+- KBB, Black Book, MMR, J.D. Power: Vehicle valuations and market data
+- OEM DMS connectors: Inventory syndication and service integration
+- CarGurus, AutoTrader scrapers: Competitive pricing intelligence
+
+**Credit & Lending**
+- RouteOne, DealerTrack: Credit bureau pulls and lender submissions
+- Direct integrations: Experian, Equifax, TransUnion
+- 700Credit: Credit report gateway
+
+**Cloud Infrastructure**
+- AWS S3 (or compatible): Object storage for documents and media
+- Neon or PostgreSQL-compatible serverless: Database hosting
+- Redis Cloud or compatible: Caching and job queues
+
+### Development Dependencies
+
+**Build & Tooling**
+- Vite: Frontend build tool and dev server
+- TypeScript: Type safety across Node.js and React codebases
+- tsup: API service bundler
+- Playwright: End-to-end testing
+- Vitest: Unit and integration testing
+
+**Frontend Libraries**
+- React 18 with React Router (wouter)
+- TanStack Query (React Query): Server state management
+- Radix UI: Accessible component primitives
+- Tailwind CSS: Utility-first styling
+- dnd-kit: Drag-and-drop interactions
+- Zod + React Hook Form: Form validation
+
+**Backend Libraries**
+- Prisma: ORM with type-safe database access
+- Drizzle: Legacy ORM for migration compatibility
+- BullMQ: Redis-based job queues
+- Express: HTTP server framework
+- Helmet, CORS: Security middleware
+
+**Python Stack**
+- FastAPI: ML inference API framework
+- Celery: Distributed task queue for ML workers
+- Selenium/undetected-chromedriver: Web scraping
+- scikit-learn, pandas, numpy: ML/data processing
+
+**Database**
+- PostgreSQL 14+: Primary relational database
+- Redis 6+: Cache and message broker

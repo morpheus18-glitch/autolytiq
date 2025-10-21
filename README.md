@@ -1,137 +1,154 @@
-# AutolytiQ - Dealership Management System
+# AutolytiQ
 
-🚀 **Live Demo**: [autolytiq.com](https://autolytiq.com)
+AutolytiQ is an end-to-end retail automotive platform that unifies CRM, inventory, desking, F&I, and analytics workflows into a
+single operations hub. The monorepo packages a production React front end, multiple Node/TypeScript services, Python machine
+learning pipelines, and auxiliary workers so dealerships can price inventory, structure deals, and manage customer journeys with
+real-time intelligence.
 
-## Overview
+## Feature Highlights
 
-AutolytiQ is a comprehensive dealership management system built with modern web technologies. It provides automotive dealerships with advanced CRM capabilities, AI-powered analytics, competitive pricing intelligence, and streamlined operations management.
+- **Deal Desk & Desking** – Multi-structure worksheets with automated tax/fee lookup, trade handling, finance & lease options,
+  printable jackets, and AI-assisted negotiation flows.
+- **Customer & Lead Management** – Tenant-scoped CRM with activity timelines, lead scoring, appointment automation, and
+  omnichannel communication tracking.
+- **Inventory Intelligence** – Pricing history, competitive market scraping, recon tracking, appraisal workflows, and pipeline
+  analytics for each rooftop.
+- **Finance & Compliance** – Credit apps, credit bureau pulls, funding/compliance checklists, lender submissions, GL integration,
+  and commission accounting.
+- **Machine Learning Services** – Python services for pricing predictions, deal optimization, lead prioritization, and inventory
+  recommendations backed by automated retraining pipelines.
+- **Observability & Tracking** – Pixel tracking service, notification center, audit logging, and report generation for retail
+  operations teams.
 
-## Features
+## Repository Layout
 
-### Core Management
-- **Vehicle Inventory Management** - Complete vehicle lifecycle tracking with pricing insights
-- **Customer Relationship Management** - Advanced CRM with customer analytics and lead tracking
-- **Sales & Lead Management** - Comprehensive sales pipeline and deal desk functionality
-- **Service Department** - Service scheduling and customer management
+| Path | Purpose |
+| --- | --- |
+| `client/` | React 18 + Vite front end with shadcn/ui component system and TanStack Query data layer. |
+| `src/` | Primary Express API using Prisma, background queues, domain services, and integrations. |
+| `server/` | Legacy Drizzle/Express gateway that exposes shared schema driven routes. |
+| `backend/` | Additional TypeScript service with its own Prisma schema for modular deployments. |
+| `ml_service/` | FastAPI + Celery service that powers realtime ML scoring and async jobs. |
+| `ml_backend/` | Offline Python pipelines for scraping, feature engineering, and model retraining. |
+| `tracking-service/` | Dedicated event ingestion and analytics service. |
+| `infrastructure/` | Docker, Kubernetes, and monitoring manifests for self-hosted deployments. |
+| `prisma/` | Canonical Prisma schema, migrations, and data seed scripts for the core service. |
+| `docs/`, `attached_assets/`, and other legacy markdown files were consolidated into this README and `ARCHITECTURE.md`. |
 
-### Advanced Analytics
-- **AI-Powered Pricing Intelligence** - Machine learning-based competitive pricing analysis
-- **Web Scraping Integration** - Real-time competitor data collection from AutoTrader, Cars.com, CarGurus
-- **Performance Analytics** - Comprehensive reporting and business intelligence
-- **Customer Behavior Tracking** - Pixel tracking and session analytics
+## Prerequisites
 
-### Professional Features
-- **Showroom Manager** - Customer session tracking with real-time status monitoring
-- **Deal Desk** - Professional deal structuring and negotiation tools
-- **Financial Analytics** - Revenue tracking and profitability analysis
-- **Mobile-Optimized** - Responsive design for all devices
+- Node.js 20+
+- pnpm 9 (npm and yarn work, but pnpm matches the lockfile)
+- Python 3.11+ for ML services
+- PostgreSQL 14+ (Neon or compatible serverless deployment)
+- Redis (for BullMQ queues and Celery broker; locally you can point services at `redis://localhost:6379`)
+- Optional: Docker/Compose if using the self-hosted stack described in `ARCHITECTURE.md`
 
-## Technology Stack
+## Getting Started
 
-### Frontend
-- **React 18** with TypeScript
-- **Tailwind CSS** with shadcn/ui components
-- **TanStack React Query** for state management
-- **Wouter** for routing
-- **Recharts** for data visualization
-
-### Backend
-- **Node.js** with Express.js
-- **PostgreSQL** with Drizzle ORM
-- **Python ML Backend** with scikit-learn and XGBoost
-- **WebSocket** support for real-time updates
-
-### Machine Learning
-- **Autonomous Vehicle Scraping** - Headless browser automation with bot detection bypass
-- **XGBoost Price Prediction** - ML models for pricing recommendations
-- **Data Pipeline** - Automated data cleaning and validation
-- **Model Retraining** - Intelligent model updates with performance monitoring
-
-## Quick Start
-
-1. **Install Dependencies**
+1. **Install JavaScript dependencies**
    ```bash
-   npm install
+   pnpm install
    ```
 
-2. **Set up Database**
+2. **Generate Prisma client and push the schema**
    ```bash
-   npm run db:push
+   pnpm prisma:generate
+   pnpm db:push
+   pnpm db:seed   # optional sample data
    ```
 
-3. **Start Development Server**
+3. **Install Python dependencies for the ML services**
    ```bash
-   npm run dev
+   cd ml_service
+   pip install -r requirements.txt
+   cd ..
+   cd ml_backend
+   pip install -r requirements.txt
+   cd ..
    ```
 
-4. **Access the Application**
-   - Frontend: `http://localhost:5000`
-   - ML Dashboard: `http://localhost:8501` (Streamlit)
+4. **Set required environment variables** (`.env` at repository root)
+   ```env
+   DATABASE_URL=postgresql://user:password@localhost:5432/autolytiq
+   SESSION_SECRET=super-secret-session-key
+   VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+   REDIS_URL=redis://localhost:6379
+   OPENAI_API_KEY=sk-...
+   STRIPE_SECRET_KEY=sk_test_...
+   SENDGRID_API_KEY=...
+   ```
+   See `ARCHITECTURE.md` for optional credentials (OAuth providers, S3, Twilio, etc.).
 
-## Environment Variables
+## Running Locally
 
-```env
-DATABASE_URL=your_postgresql_connection_string
-SESSION_SECRET=your_session_secret
-VITE_GA_MEASUREMENT_ID=your_google_analytics_id
+- **API only**
+  ```bash
+  pnpm dev
+  ```
+
+- **Frontend**
+  ```bash
+  pnpm dev:frontend
+  ```
+
+- **Legacy gateway**
+  ```bash
+  pnpm dev:backend
+  ```
+
+- **ML scoring API & workers**
+  ```bash
+  pnpm dev:ml          # FastAPI service on :8000
+  pnpm dev:worker:hp   # High-priority Celery worker
+  pnpm dev:worker:ml   # ML job worker
+  pnpm dev:beat        # Celery beat scheduler
+  ```
+
+- **Full Replit-style stack (backend + frontend + ML services + workers)**
+  ```bash
+  pnpm dev:replit
+  ```
+
+The frontend expects the API on port `5000` and the ML service on `8000`. When running locally, ensure CORS and env variables
+match your chosen ports.
+
+## Testing & Quality
+
+```bash
+pnpm lint          # ESLint checks
+pnpm typecheck     # TypeScript project references
+pnpm test          # Vitest unit/integration suite
+pnpm test:e2e      # Playwright end-to-end tests
+pnpm ml:test       # Python ML unit tests
+pnpm ci            # Full CI pipeline (generate client, typecheck, lint, test, build, ML tests)
 ```
 
-## Project Structure
+## Database Operations
 
-```
-├── client/                 # React frontend
-│   ├── src/
-│   │   ├── components/     # Reusable UI components
-│   │   ├── pages/         # Application pages
-│   │   ├── hooks/         # Custom React hooks
-│   │   └── lib/           # Utility functions
-├── server/                # Express.js backend
-│   ├── routes.ts          # API routes
-│   ├── storage.ts         # Database operations
-│   └── services/          # Business logic
-├── ml_backend/            # Python ML system
-│   ├── scraping/          # Web scraping modules
-│   ├── training/          # ML model training
-│   └── api/               # Flask API endpoints
-├── shared/                # Shared TypeScript types
-└── docs/                  # Documentation
+```bash
+pnpm prisma:migrate    # Development migrations
+pnpm db:push           # Sync schema without migrations (non-prod)
+pnpm db:seed           # Seed baseline data
 ```
 
-## Key Features
+## Deployment Summary
 
-### Enhanced Search & Filtering
-- Multi-criteria search across all modules
-- Real-time filtering with advanced operators
-- Summary statistics and data visualization
-- Persistent filter state management
+- **Production**: Replit Deployments serving the built Express app on port 5000 with automatic SSL, Neon PostgreSQL, and Redis
+  for queues. Build command `pnpm run build` (tsup + vite) and start command `pnpm start`.
+- **Self-hosted**: Docker Compose stack under `infrastructure/docker` (`make up`) orchestrates API, client, ML services, Redis,
+  and Postgres. Kubernetes manifests are in `infrastructure/k8s` for clustered installs.
 
-### Professional Table Layouts
-- Responsive design with smart column hiding
-- Mobile-first approach with touch-friendly interfaces
-- Consistent styling across all administrative modules
-- Hover effects and clickable actions
-
-### ML-Powered Insights
-- Automated competitive pricing analysis
-- Market trend predictions
-- Customer behavior analytics
-- Performance optimization recommendations
+Detailed architecture, infrastructure, and operational runbooks now live in [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## License
-
-MIT License - see LICENSE file for details
+1. Fork and clone the repository
+2. Create a branch from `main`
+3. Follow the canonical component guidelines in `ARCHITECTURE.md`
+4. Ensure tests and linters pass before submitting a pull request
 
 ## Support
 
-For support and questions, visit [autolytiq.com](https://autolytiq.com)
-
----
-
-**AutolytiQ** - Transforming automotive dealership management with AI-powered analytics and intelligent automation.
+Questions or production issues? Reach the AutolytiQ engineering team at [autolytiq.com](https://autolytiq.com) or the internal
+Slack channel.

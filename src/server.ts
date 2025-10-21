@@ -3,7 +3,9 @@ import { toApiError } from './lib/errors.js';
 import { initializeContext } from './middleware/context.js';
 import { registerRoutes } from './routes/index.js';
 import { initializeDomainIntegrations } from './integrations/index.js';
+import { watchScoringConfig } from './config/scoring.js';
 
+watchScoringConfig();
 initializeDomainIntegrations();
 
 export function createApp() {

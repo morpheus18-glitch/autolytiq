@@ -1,12 +1,12 @@
 import { z } from 'zod';
 import {
-  approvalPredictionRequestSchema,
-  counterAnalysisRequestSchema,
-  dealStructureSchema,
-  dealWorksheetStatusSchema,
-  grossCalculationSchema,
-  optimizationRequestSchema,
-  paymentCalculationSchema,
+  ApprovalPredictionRequest,
+  CounterAnalysisRequest,
+  DealStatus,
+  DealStructure,
+  GrossCalculation,
+  OptimizationRequest,
+  PaymentCalculation,
 } from '../domain/desking/schemas.js';
 
 export const worksheetTotalsSchema = z.object({
@@ -31,15 +31,15 @@ export const worksheetSaveSchema = z.object({
   customerId: z.string().min(1),
   vehicleId: z.string().min(1),
   salespersonId: z.string().min(1).optional(),
-  status: dealWorksheetStatusSchema.default('WORKING'),
-  structure: dealStructureSchema,
+  status: DealStatus.default('WORKING'),
+  structure: DealStructure,
   totals: worksheetTotalsSchema,
-  payment: paymentCalculationSchema,
+  payment: PaymentCalculation,
   aiScore: z.number().min(0).max(1).optional(),
   commitVersion: z
     .object({
       label: z.string().optional(),
-      grossBreakdown: grossCalculationSchema.optional(),
+      grossBreakdown: GrossCalculation.optional(),
       closeProbability: z.number().min(0).max(1).optional(),
       approvalProbability: z.number().min(0).max(1).optional(),
       aiScore: z.number().min(0).max(1).optional(),
@@ -57,11 +57,22 @@ export const versionSelectSchema = z.object({
   versionId: z.string().min(1),
 });
 
-export const optimizeDealSchema = optimizationRequestSchema;
+const scoringOverrideSchema = z
+  .object({
+    gross_weight: z.number().min(0).max(100).optional(),
+    close_weight: z.number().min(0).max(100).optional(),
+    approval_weight: z.number().min(0).max(100).optional(),
+    payment_weight: z.number().min(0).max(100).optional(),
+  })
+  .partial();
 
-export const counterAnalysisSchema = counterAnalysisRequestSchema;
+export const optimizeDealSchema = OptimizationRequest.extend({
+  scoringOverride: scoringOverrideSchema.optional(),
+});
 
-export const approvalRefreshSchema = approvalPredictionRequestSchema;
+export const counterAnalysisSchema = CounterAnalysisRequest;
+
+export const approvalRefreshSchema = ApprovalPredictionRequest;
 
 export type WorksheetSaveInput = z.infer<typeof worksheetSaveSchema>;
 export type WorksheetPrintInput = z.infer<typeof worksheetPrintSchema>;

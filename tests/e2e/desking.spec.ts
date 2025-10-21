@@ -1,168 +1,95 @@
-import { test, expect, request as playwrightRequest } from '@playwright/test';
-import crypto from 'node:crypto';
+import { test, expect } from "@playwright/test";
 
-const baseApiUrl = process.env.PLAYWRIGHT_API_URL;
-const authToken = process.env.PLAYWRIGHT_AUTH_TOKEN;
-const tenantId = process.env.PLAYWRIGHT_TENANT_ID;
-const dealId = process.env.PLAYWRIGHT_DEAL_ID;
-const customerId = process.env.PLAYWRIGHT_CUSTOMER_ID;
-const vehicleId = process.env.PLAYWRIGHT_VEHICLE_ID;
-const salespersonId = process.env.PLAYWRIGHT_SALESPERSON_ID;
+test.describe("Desking happy path", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("http://localhost:3000/login");
+    await page.fill('[data-testid="login-email"]', "mike@deal.com");
+    await page.fill('[data-testid="login-password"]', "password123!");
+    await page.click('[data-testid="login-submit"]');
+    await page.waitForURL("**/dashboard");
+  });
 
-const shouldSkip = !baseApiUrl || !authToken || !tenantId || !dealId || !customerId || !vehicleId;
+  test("Create initial pencil → optimize → select scenario → print", async ({ page }) => {
+    // Navigate to a seeded working deal
+    await page.goto("http://localhost:3000/desking/deals/D-2025-4567");
 
-test.describe('Desking end-to-end', () => {
-  test.skip(shouldSkip, 'Playwright e2e requires API, auth, and seeded deal context');
+    // Initial pencil
+    await page.click('[data-testid="action-generate-initial-pencil"]');
+    await page.waitForSelector('[data-testid="pencil-form"]');
 
-  test('pencil optimize select print counter flow', async () => {
-    const api = await playwrightRequest.newContext({
-      baseURL: `${baseApiUrl}/api/desking/${dealId}`,
-      extraHTTPHeaders: {
-        Authorization: `Bearer ${authToken}`,
-        'x-tenant-id': tenantId!,
-      },
-    });
+    // Fill minimal fields (assumes defaults for seed)
+    await page.fill('[data-testid="selling-price-input"]', "27995");
+    await page.fill('[data-testid="cash-down-input"]', "2000");
+    await page.fill('[data-testid="trade-allow-input"]', "8500");
+    await page.fill('[data-testid="trade-payoff-input"]', "7200");
 
-    const worksheetId = `pw-${crypto.randomUUID()}`;
-    const structure = {
-      pricing: {
-        salePrice: 42000,
-        dealerDiscounts: [{ label: 'Spring savings', amount: 500 }],
-        accessories: [{ label: 'All-weather mats', amount: 199 }],
-      },
-      fees: [
-        { code: 'doc', label: 'Documentation', amount: 495 },
-        { code: 'dmv', label: 'DMV', amount: 325 },
-      ],
-      taxes: [{ jurisdiction: 'CA', rate: 0.0825, amount: 3350 }],
-      cashDown: { total: 2500, customerCash: 2000, tradeEquity: 500 },
-      backendProducts: [{ code: 'GAP', name: 'GAP Coverage', price: 895, cost: 350 }],
-    };
+    // Debounced AI panel appears
+    await expect(page.getByTestId("ai-optimal-price")).toBeVisible();
 
-    const payment = {
-      amountFinanced: 36000,
-      apr: 6.25,
-      termMonths: 72,
-      monthlyPayment: 598.32,
-      dueAtSigning: 2500,
-    };
+    // Generate and preview
+    await page.click('[data-testid="pencil-generate"]');
+    await page.waitForSelector('[data-testid="print-preview-modal"]');
+    await expect(page.getByTestId("print-amount-financed")).toContainText("$");
 
-    const totals = {
-      salePrice: structure.pricing.salePrice,
-      tradeAllowance: 0,
-      tradePayoff: 0,
-      tradeEquity: 500,
-      cashDown: 2500,
-      fees: 820,
-      backendProducts: 895,
-      taxes: 3350,
-      amountFinanced: payment.amountFinanced,
-      dueAtSigning: payment.dueAtSigning,
-      frontEndGross: 2800,
-      backEndGross: 1100,
-      financeReserve: 450,
-      totalGross: 4350,
-    };
+    // Save to deal & close preview
+    await page.click('[data-testid="pencil-save-to-deal"]');
+    await page.click('[data-testid="modal-close"]');
 
-    const saveResponse = await api.post('/worksheet', {
-      data: {
-        worksheetId,
-        customerId,
-        vehicleId,
-        salespersonId,
-        status: 'PENCILED',
-        structure,
-        totals,
-        payment,
-        aiScore: 0.78,
-        commitVersion: {
-          label: 'Manager Pencil',
-          grossBreakdown: {
-            frontEnd: totals.frontEndGross!,
-            backEnd: totals.backEndGross!,
-            financeReserve: totals.financeReserve,
-            docFee: 495,
-            pack: 300,
-            total: totals.totalGross!,
-          },
-          closeProbability: 0.62,
-          approvalProbability: 0.71,
-          aiScore: 0.78,
-        },
-      },
-    });
-    expect(saveResponse.ok()).toBeTruthy();
-    const saveJson = await saveResponse.json();
-    const worksheetVersionId: string = saveJson.data.version?.id ?? saveJson.data.worksheet.currentVersionId;
-    expect(worksheetVersionId).toBeTruthy();
+    // Run optimization
+    await page.click('[data-testid="ai-optimize-deal"]');
+    await page.waitForSelector('[data-testid="optimization-results"]');
+    await expect(page.getByTestId("scenario-card-0")).toBeVisible();
 
-    const optimizePayload = {
-      dealId,
-      worksheetId,
-      versionId: worksheetVersionId,
-      structure,
-      customerProfile: {
-        firstName: 'Alex',
-        lastName: 'Rivera',
-        creditScore: 710,
-        creditTier: 'TIER_2',
-        residenceType: 'RENT',
-        monthlyIncome: 6500,
-      },
-      vehicle: {
-        vin: '1HGBH41JXMN109186',
-        year: 2023,
-        make: 'Honda',
-        model: 'Accord',
-      },
-      currentPayment: payment,
-      goals: {
-        targetPayment: 575,
-        minimumGross: 3500,
-      },
-      constraints: {
-        maxTerm: 84,
-        minCashDown: 1500,
-      },
-    };
+    // Select recommended scenario
+    await page.click('[data-testid="scenario-card-recommended"] >> [data-testid="select-scenario"]');
+    await expect(page.getByTestId("version-current-badge")).toHaveText(/CURRENT/i);
 
-    const optimizeResponse = await api.post('/optimize', { data: optimizePayload });
-    expect(optimizeResponse.ok()).toBeTruthy();
-    const optimizeJson = await optimizeResponse.json();
-    const optimizedVersionId: string = optimizeJson.data.version?.id ?? worksheetVersionId;
+    // Print final worksheet
+    await page.click('[data-testid="header-print"]');
+    await page.waitForSelector('[data-testid="print-preview-modal"]');
+    await expect(page.getByTestId("print-payment-table")).toBeVisible();
+  });
+});
 
-    const selectResponse = await api.post('/version/select', {
-      data: {
-        worksheetId,
-        versionId: optimizedVersionId,
-      },
-    });
-    expect(selectResponse.ok()).toBeTruthy();
+test.describe("Customer counter flow", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("http://localhost:3000/login");
+    await page.fill('[data-testid="login-email"]', "mike@deal.com");
+    await page.fill('[data-testid="login-password"]', "password123!");
+    await page.click('[data-testid="login-submit"]');
+    await page.waitForURL("**/dashboard");
+  });
 
-    const printResponse = await api.post('/worksheet/print', {
-      data: {
-        worksheetId,
-        versionId: optimizedVersionId,
-      },
-    });
-    expect(printResponse.ok()).toBeTruthy();
+  test("Counter → AI options → choose → new version in history", async ({ page }) => {
+    await page.goto("http://localhost:3000/desking/deals/D-2025-4567");
 
-    const counterResponse = await api.post('/counter', {
-      data: {
-        dealId,
-        worksheetId,
-        versionId: optimizedVersionId,
-        customerInput: {
-          customerConcern: 'Need lower monthly payment to fit budget',
-          requestedPayment: 560,
-          requestedCashDown: 2000,
-        },
-      },
-    });
-    expect(counterResponse.ok()).toBeTruthy();
-    const counterJson = await counterResponse.json();
-    expect(counterJson.data.counter.id).toBeTruthy();
+    // Open counter page
+    await page.click('[data-testid="action-customer-counter"]');
+    await page.waitForSelector('[data-testid="counter-form"]');
 
-    await api.dispose();
+    // Capture customer ask
+    await page.check('[data-testid="obj-selling-price"]');
+    await page.fill('[data-testid="counter-selling-price"]', "26500");
+    await page.fill('[data-testid="counter-notes"]',
+      "Has competing quote at 26800; wants sub-$400/month; spouse hesitant."
+    );
+    await page.selectOption('[data-testid="urgency-level"]', "HIGH");
+
+    // Run AI analysis
+    await page.click('[data-testid="counter-run-analysis"]');
+    await page.waitForSelector('[data-testid="counter-options-grid"]');
+    await expect(page.getByTestId("counter-option-recommended")).toBeVisible();
+
+    // Choose AI recommended
+    await page.click('[data-testid="counter-option-recommended"] >> [data-testid="select-option"]');
+
+    // Verify version history updated
+    await page.click('[data-testid="panel-history-open"]');
+    await expect(page.getByTestId("history-version-latest")).toContainText(/AI Optimized/i);
+
+    // Generate new pencil and preview
+    await page.click('[data-testid="generate-new-pencil"]');
+    await page.waitForSelector('[data-testid="print-preview-modal"]');
+    await expect(page.getByTestId("print-payment-table")).toBeVisible();
   });
 });

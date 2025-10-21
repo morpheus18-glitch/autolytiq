@@ -113,11 +113,11 @@ export default function DeskingWorkspace() {
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" className="gap-2" onClick={handleSaveWorkspace}>
+          <Button variant="outline" className="gap-2" onClick={handleSaveWorkspace} data-testid="save-deal">
             <Save className="h-4 w-4" />
             Save
           </Button>
-          <Button className="gap-2" onClick={() => setPrintPreviewOpen(true)}>
+          <Button className="gap-2" onClick={() => setPrintPreviewOpen(true)} data-testid="header-print">
             <Printer className="h-4 w-4" />
             Print Worksheet
           </Button>
@@ -232,27 +232,33 @@ export default function DeskingWorkspace() {
                   className="gap-2"
                   onClick={() => triggerOptimization('run-deal')}
                   disabled={optimizeDeal.isPending}
+                  data-testid="ai-optimize-deal"
                 >
                   <GaugeCircle className="h-4 w-4" />
                   Run Deal
                 </Button>
               </div>
             </div>
-            <div className="grid gap-4 xl:grid-cols-2">
+            <div className="grid gap-4 xl:grid-cols-2" data-testid="optimization-results">
               {dealLoading && (
                 <div className="rounded-lg border border-dashed border-border/70 p-6 text-center text-sm text-muted-foreground">
                   Loading scenarios…
                 </div>
               )}
-              {deal?.scenarios.map(scenario => (
-                <PaymentScenarioCard
-                  key={scenario.id}
-                  scenario={scenario}
-                  isActive={scenario.id === activeScenario?.id}
-                  onSelect={handleSelectScenario}
-                  formatCurrency={formatCurrency}
-                />
-              ))}
+              {deal?.scenarios.map((scenario, index) => {
+                const isRecommended = scenario.badges?.some((badge) => badge.toLowerCase() === 'recommended');
+                return (
+                  <PaymentScenarioCard
+                    key={scenario.id}
+                    scenario={scenario}
+                    isActive={scenario.id === activeScenario?.id}
+                    onSelect={handleSelectScenario}
+                    formatCurrency={formatCurrency}
+                    dataTestId={`scenario-card-${index}`}
+                    recommendedTestId={isRecommended ? 'scenario-card-recommended' : undefined}
+                  />
+                );
+              })}
             </div>
             {optimizeDeal.isPending && (
               <p className="text-sm text-muted-foreground">AI is optimizing the deal…</p>
@@ -325,11 +331,19 @@ export default function DeskingWorkspace() {
               <div className="space-y-3">
                 {deal.versions.map(version => {
                   const scenario = deal.scenarios.find(s => s.id === version.scenarioId);
+                  const isCurrent = scenario?.id === activeScenario?.id;
                   return (
                     <div key={version.id} className="rounded-lg border border-border/60 bg-muted/30 p-3">
                       <div className="flex items-center justify-between text-sm">
                         <span className="font-medium text-foreground">{scenario?.label ?? 'Scenario'}</span>
-                        <span className="text-xs text-muted-foreground">{new Date(version.createdAt).toLocaleString()}</span>
+                        <div className="flex items-center gap-2">
+                          {isCurrent && (
+                            <Badge variant="secondary" data-testid="version-current-badge" className="text-xs">
+                              Current
+                            </Badge>
+                          )}
+                          <span className="text-xs text-muted-foreground">{new Date(version.createdAt).toLocaleString()}</span>
+                        </div>
                       </div>
                       <p className="mt-2 text-sm text-muted-foreground">{version.summary}</p>
                       <p className="mt-1 text-xs text-muted-foreground">Created by {version.createdBy}</p>

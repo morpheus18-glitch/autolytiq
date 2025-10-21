@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dms-production
+  labels:
+    name: dms-production
+    environment: production

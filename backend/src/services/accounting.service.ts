@@ -9,6 +9,7 @@ import {
 } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import type { TransportOptions } from 'nodemailer';
+import { env } from '../config/env.js';
 import prisma from '../lib/prisma.js';
 import { BadRequest, NotFound } from '../lib/errors.js';
 import {
@@ -759,10 +760,10 @@ export async function importStandardCOA(tenantId: string): Promise<ChartOfAccoun
 }
 
 function getSmtpTransportOptions(): TransportOptions {
-  const host = process.env.SMTP_HOST;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-  const port = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587;
+  const host = env.SMTP_HOST;
+  const user = env.SMTP_USER || undefined;
+  const pass = env.SMTP_PASS || undefined;
+  const port = env.SMTP_PORT;
   if (!host || !user || !pass) {
     throw BadRequest('SMTP settings are not configured');
   }

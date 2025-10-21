@@ -14,6 +14,7 @@ register({
 });
 
 import express, { type Request, Response, NextFunction } from "express";
+import net from "net";
 import session from 'express-session';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
@@ -94,6 +95,68 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  async function isPortAvailable(port: number, host: string = "0.0.0.0"): Promise<boolean> {
+    return new Promise((resolve) => {
+      const tester = net.createServer();
+
+      tester.once("error", (err: NodeJS.ErrnoException) => {
+        if (err.code === "EADDRINUSE" || err.code === "EACCES") {
+          resolve(false);
+        } else {
+          console.error(`Unexpected error while checking port ${port}:`, err);
+          resolve(false);
+        }
+      });
+
+      tester.once("listening", () => {
+        tester.close(() => resolve(true));
+      });
+
+      tester.listen(port, host);
+    });
+  }
+
+  async function findAvailablePort(preferredPort: number, host: string = "0.0.0.0"): Promise<number> {
+    if (await isPortAvailable(preferredPort, host)) {
+      return preferredPort;
+    }
+
+    console.warn(`Port ${preferredPort} is already in use. Searching for an available port…`);
+
+    const maxAttempts = 10;
+    for (let offset = 1; offset <= maxAttempts; offset++) {
+      const candidate = preferredPort + offset;
+      if (await isPortAvailable(candidate, host)) {
+        console.warn(`Falling back to port ${candidate}.`);
+        return candidate;
+      }
+    }
+
+    // As a last resort, ask the OS for any available port.
+    console.warn(`Unable to secure a port between ${preferredPort} and ${preferredPort + maxAttempts}. Requesting an ephemeral port.`);
+
+    return new Promise<number>((resolve, reject) => {
+      const ephemeralServer = net.createServer();
+
+      ephemeralServer.once("error", (err) => {
+        ephemeralServer.close();
+        reject(err);
+      });
+
+      ephemeralServer.once("listening", () => {
+        const address = ephemeralServer.address();
+        if (typeof address === "object" && address) {
+          const port = address.port;
+          ephemeralServer.close(() => resolve(port));
+        } else {
+          ephemeralServer.close(() => reject(new Error("Failed to acquire an ephemeral port")));
+        }
+      });
+
+      ephemeralServer.listen(0, host);
+    });
+  }
+
   // CRITICAL: Register API routes with absolute priority before static serving
   if (process.env.NODE_ENV !== "development") {
     // Add API route protection middleware FIRST in production
@@ -104,13 +167,17 @@ app.use((req, res, next) => {
     });
   }
 
+  const desiredPort = parseInt(process.env.PORT || "5000", 10);
+  const port = await findAvailablePort(desiredPort);
+  process.env.PORT = String(port);
+
   const server = await registerRoutes(app);
   
-  // Seed default data on startup
-  await seedDefaultData();
+  // Seed default data on startup - DISABLED due to Drizzle/Prisma table mismatch
+  // await seedDefaultData();
   
-  // Initialize comprehensive sample data
-  await initializeComprehensiveSampleData(storage as any);
+  // Initialize comprehensive sample data - DISABLED due to Drizzle/Prisma table mismatch  
+  // await initializeComprehensiveSampleData(storage as any);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -140,7 +207,6 @@ app.use((req, res, next) => {
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
   server.listen({
     port,
     host: "0.0.0.0",

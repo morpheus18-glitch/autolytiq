@@ -1,5 +1,4 @@
 import { pgTable, text, varchar, timestamp, integer, real, vector, index } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 
 // Vector embeddings table for semantic search
 export const customerEmbeddings = pgTable(
@@ -10,7 +9,7 @@ export const customerEmbeddings = pgTable(
     contentType: varchar("content_type", { length: 50 }).notNull(), // 'profile', 'notes', 'conversation'
     content: text("content").notNull(),
     embedding: vector("embedding", { dimensions: 1536 }), // OpenAI ada-002 dimensions
-    metadata: text("metadata").$type<Record<string, any>>(), // JSON for additional context
+    metadata: text("metadata").$type<Record<string, unknown>>(), // JSON for additional context
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   },
@@ -30,7 +29,7 @@ export const leadEmbeddings = pgTable(
     contentType: varchar("content_type", { length: 50 }).notNull(),
     content: text("content").notNull(),
     embedding: vector("embedding", { dimensions: 1536 }),
-    metadata: text("metadata").$type<Record<string, any>>(),
+    metadata: text("metadata").$type<Record<string, unknown>>(),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   },
@@ -50,7 +49,7 @@ export const inventoryEmbeddings = pgTable(
     contentType: varchar("content_type", { length: 50 }).notNull(), // 'specs', 'description', 'features'
     content: text("content").notNull(),
     embedding: vector("embedding", { dimensions: 1536 }),
-    metadata: text("metadata").$type<Record<string, any>>(),
+    metadata: text("metadata").$type<Record<string, unknown>>(),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   },
@@ -69,7 +68,7 @@ export const mlPredictions = pgTable("ml_predictions", {
   modelType: varchar("model_type", { length: 50 }).notNull(), // 'lead_score', 'price_prediction', 'churn_risk'
   prediction: real("prediction").notNull(),
   confidence: real("confidence").notNull(),
-  features: text("features").$type<Record<string, any>>(),
+  features: text("features").$type<Record<string, unknown>>(),
   modelVersion: varchar("model_version", { length: 20 }).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   expiresAt: timestamp("expires_at"), // For cache invalidation

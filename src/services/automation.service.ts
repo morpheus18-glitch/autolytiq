@@ -146,8 +146,6 @@ const automationDefinitionSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-type AutomationUpsertInput = z.infer<typeof automationDefinitionSchema>;
-
 const manualExecutionSchema = z.object({
   automationId: z.string().optional(),
   trigger: automationTriggerTypeSchema,

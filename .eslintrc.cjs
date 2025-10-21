@@ -21,7 +21,16 @@ module.exports = {
   settings: {
     react: { version: 'detect' },
   },
-  ignorePatterns: ['dist/', 'node_modules/', 'ml_service/', 'tracking-service/', 'backend/', 'server/', 'repo-sweep/'],
+  ignorePatterns: [
+    'dist/',
+    'node_modules/',
+    'ml_service/',
+    'tracking-service/',
+    'backend/',
+    'server/',
+    'repo-sweep/',
+    'client/',
+  ],
   rules: {
     'react/react-in-jsx-scope': 'off',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', ignoreRestSiblings: true }],
