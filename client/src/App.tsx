@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Switch, Route } from 'wouter';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
@@ -16,7 +17,20 @@ import { appRoutes } from '@/routes';
 function Router() {
   usePixelTracker();
 
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  const allowedRouteSet = useMemo(() => {
+    const allowed = user?.access?.allowedRoutes ?? [];
+    return new Set(allowed.length > 0 ? allowed : ['*']);
+  }, [user?.access?.allowedRoutes]);
+
+  const filteredRoutes = useMemo(() => {
+    if (allowedRouteSet.has('*')) {
+      return appRoutes;
+    }
+
+    return appRoutes.filter((route) => allowedRouteSet.has(route.path));
+  }, [allowedRouteSet]);
 
   if (isLoading) {
     return (
@@ -42,7 +56,7 @@ function Router() {
   return (
     <AppShell>
       <Switch>
-        {appRoutes.map((route) => (
+        {filteredRoutes.map((route) => (
           <Route key={route.path} path={route.path} component={route.component} />
         ))}
         <Route component={NotFound} />
