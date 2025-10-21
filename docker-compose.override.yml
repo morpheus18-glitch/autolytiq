@@ -37,6 +37,14 @@ services:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
+  pg-router:
+    image: nginx:1.27-alpine
+    depends_on:
+      - db
+    ports:
+      - "80:80"
+    volumes:
+      - ./infrastructure/docker/nginx/postgres-stream.conf:/etc/nginx/nginx.conf:ro
   s3:
     image: minio/minio:RELEASE.2024-10-13T03-09-05Z
     environment:
