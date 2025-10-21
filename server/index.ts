@@ -158,7 +158,8 @@ app.use((req, res, next) => {
   }
 
   // CRITICAL: Register API routes with absolute priority before static serving
-  if (process.env.NODE_ENV !== "development") {
+  const isProduction = process.env.NODE_ENV === "production";
+  if (isProduction) {
     // Add API route protection middleware FIRST in production
     app.use('/api/*', (req, res, next) => {
       console.log(`Production API route intercepted: ${req.method} ${req.path}`);
@@ -190,7 +191,8 @@ app.use((req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
+  const isDevelopment = process.env.NODE_ENV !== "production";
+  if (isDevelopment) {
     await setupVite(app, server);
   } else {
     // Add explicit API route logging before static serving
