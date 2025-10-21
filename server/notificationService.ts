@@ -12,15 +12,22 @@ export class NotificationService {
     message: string;
     actionUrl?: string;
     actionData?: any;
-    expiresAt?: Date;
+    expiresAt?: Date | string;
   }) {
     try {
+      const createdAt = new Date();
+      const expiresAt = data.expiresAt
+        ? (data.expiresAt instanceof Date
+            ? data.expiresAt
+            : new Date(data.expiresAt))
+        : undefined;
+
       const notification = {
         id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         ...data,
         isRead: false,
-        createdAt: new Date().toISOString(),
-        expiresAt: data.expiresAt ? data.expiresAt.toISOString() : undefined,
+        createdAt,
+        expiresAt,
       };
 
       // In a real system, this would save to database
