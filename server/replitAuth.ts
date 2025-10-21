@@ -6,7 +6,7 @@ import { Strategy as AppleStrategy } from "passport-apple";
 
 import passport from "passport";
 import session from "express-session";
-import type { Express, RequestHandler } from "express";
+import type { Express, Request, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
@@ -61,6 +61,39 @@ export function getSession() {
       maxAge: sessionTtl,
     },
   });
+}
+
+const REPLIT_STRATEGY_NAME = "replitauth";
+
+function resolvePrimaryDomain() {
+  const configured = process.env.REPLIT_DOMAINS?.split(",").map((domain) => domain.trim()).filter(Boolean);
+  if (configured?.length) {
+    return configured[0];
+  }
+  if (process.env.APP_DOMAIN) {
+    return process.env.APP_DOMAIN;
+  }
+  if (process.env.GOOGLE_OAUTH_DOMAIN) {
+    return process.env.GOOGLE_OAUTH_DOMAIN;
+  }
+  return undefined;
+}
+
+function resolveAuthBaseUrl(req?: Request) {
+  const domain = process.env.REPLIT_AUTH_DOMAIN ?? resolvePrimaryDomain();
+  if (domain) {
+    const trimmed = domain.trim();
+    const protocol = trimmed.includes("localhost") ? "http" : "https";
+    return `${protocol}://${trimmed}`;
+  }
+  if (req) {
+    const host = req.get("host");
+    if (host) {
+      const protocol = req.protocol === "http" || req.protocol === "https" ? req.protocol : "https";
+      return `${protocol}://${host}`;
+    }
+  }
+  return undefined;
 }
 
 function updateUserSession(
@@ -121,14 +154,14 @@ function setupAuthRoutes(app: Express) {
   // Replit OAuth routes
   if (process.env.REPLIT_DOMAINS && process.env.REPL_ID) {
     app.get("/api/auth/replit", (req, res, next) => {
-      passport.authenticate("replitauth", {
+      passport.authenticate(REPLIT_STRATEGY_NAME, {
         prompt: "login consent",
         scope: ["openid", "email", "profile", "offline_access"],
       })(req, res, next);
     });
 
     app.get("/api/auth/replit/callback", (req, res, next) => {
-      passport.authenticate("replitauth", {
+      passport.authenticate(REPLIT_STRATEGY_NAME, {
         successReturnToOrRedirect: "/",
         failureRedirect: "/login",
       })(req, res, next);
@@ -211,7 +244,7 @@ function setupAuthRoutes(app: Express) {
 
   app.get("/api/callback", (req, res, next) => {
     if (process.env.REPLIT_DOMAINS && process.env.REPL_ID) {
-      return passport.authenticate(`replitauth:${req.hostname}`, {
+      return passport.authenticate(REPLIT_STRATEGY_NAME, {
         successReturnToOrRedirect: "/",
         failureRedirect: "/login",
       })(req, res, next);
@@ -225,19 +258,23 @@ function setupAuthRoutes(app: Express) {
     req.logout(() => {
       if (user?.provider === 'replit' && process.env.REPLIT_DOMAINS && process.env.REPL_ID) {
         // Redirect to Replit logout
-        client.discovery(
-          new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-          process.env.REPL_ID!
-        ).then(config => {
+        client
+          .discovery(
+            new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
+            process.env.REPL_ID!
+          )
+          .then((config) => {
+            const baseUrl = resolveAuthBaseUrl(req) ?? `${req.protocol}://${req.get("host") ?? req.hostname}`;
           res.redirect(
             client.buildEndSessionUrl(config, {
               client_id: process.env.REPL_ID!,
-              post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
+              post_logout_redirect_uri: baseUrl,
             }).href
           );
-        }).catch(() => {
-          res.redirect("/");
-        });
+          })
+          .catch(() => {
+            res.redirect("/");
+          });
       } else {
         res.redirect("/");
       }
@@ -283,7 +320,7 @@ export async function setupAuth(app: Express) {
       const firstDomain = process.env.REPLIT_DOMAINS.split(",")[0];
       const strategy = new Strategy(
         {
-          name: "replitauth",
+          name: REPLIT_STRATEGY_NAME,
           config,
           scope: "openid email profile offline_access",
           callbackURL: `https://${firstDomain}/api/auth/replit/callback`,
