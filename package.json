@@ -28,6 +28,7 @@
     "dev:worker:ml": "cd ml_service && celery -A workers.celery_app worker --queues=ml_jobs --loglevel=info --concurrency=1",
     "dev:beat": "cd ml_service && celery -A workers.celery_app beat --loglevel=info",
     "dev:replit": "concurrently -k -n BE,FE,ML,HP,MLQ,BEAT \"npm:dev:backend\" \"npm:dev:frontend\" \"npm:dev:ml\" \"npm:dev:worker:hp\" \"npm:dev:worker:ml\" \"npm:dev:beat\"",
+    "setup:local": "tsx scripts/setup-local.ts",
     "prepare": "husky"
   },
   "dependencies": {
