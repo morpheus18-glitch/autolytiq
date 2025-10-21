@@ -12,15 +12,32 @@ export class NotificationService {
     message: string;
     actionUrl?: string;
     actionData?: any;
-    expiresAt?: Date;
+    expiresAt?: Date | string;
   }) {
     try {
+      const createdAt = new Date();
+      const expiresAtValue = data.expiresAt
+        ? (data.expiresAt instanceof Date
+            ? data.expiresAt
+            : new Date(data.expiresAt))
+        : null;
+
+      const expiresAt = expiresAtValue instanceof Date && !Number.isNaN(expiresAtValue.getTime())
+        ? expiresAtValue
+        : null;
+
       const notification = {
         id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        ...data,
+        type: data.type,
+        priority: data.priority,
+        title: data.title,
+        message: data.message,
+        actionUrl: data.actionUrl ?? null,
+        actionData: data.actionData ?? null,
+        userId: data.userId ?? null,
         isRead: false,
-        createdAt: new Date().toISOString(),
-        expiresAt: data.expiresAt ? data.expiresAt.toISOString() : undefined,
+        createdAt,
+        expiresAt,
       };
 
       // In a real system, this would save to database
