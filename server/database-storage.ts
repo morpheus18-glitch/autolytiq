@@ -1,17 +1,19 @@
+import { randomUUID } from "node:crypto";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
-import { 
+import { eq, and, desc } from "drizzle-orm";
+import {
   departments, roles, permissions, rolePermissions,
-  users, employees, serviceParts, serviceOrders, 
+  users, employees, serviceParts, serviceOrders,
   payroll, financialTransactions, vehicles, customers,
   leads, sales, activities, visitorSessions, pageViews,
   customerInteractions, competitorAnalytics,
   competitivePricing, pricingInsights, merchandisingStrategies,
-  marketTrends, showroomSessions, parts, notifications, lotPositions
+  marketTrends, showroomSessions, parts, notifications, lotPositions,
+  systemUsers, userSessions, systemRoles, activityLog
 } from "@shared/schema";
-import type { 
-  User, InsertUser, 
-  Vehicle, InsertVehicle, 
+import type {
+  User, InsertUser,
+  Vehicle, InsertVehicle,
   Customer, InsertCustomer, 
   Lead, InsertLead, 
   Sale, InsertSale, 
@@ -35,7 +37,11 @@ import type {
   FinancialTransaction, InsertFinancialTransaction,
   Part, InsertPart,
   Notification, InsertNotification,
-  LotPosition, InsertLotPosition
+  LotPosition, InsertLotPosition,
+  SystemUser, InsertSystemUser,
+  UserSession,
+  SystemRole, InsertSystemRole,
+  ActivityLogEntry, InsertActivityLogEntry
 } from "@shared/schema";
 import type { IStorage } from "./storage";
 
@@ -167,6 +173,207 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUser(id: string): Promise<void> {
     await db.delete(users).where(eq(users.id, id));
+  }
+
+  async getAllSystemUsers(): Promise<SystemUser[]> {
+    const records = await db.select().from(systemUsers);
+    return records.map((user) => this.sanitizeSystemUser(user));
+  }
+
+  async getSystemUserById(id: string): Promise<SystemUser | undefined> {
+    const [user] = await db.select().from(systemUsers).where(eq(systemUsers.id, id));
+    return user ? this.sanitizeSystemUser(user) : undefined;
+  }
+
+  async getSystemUserByEmail(email: string): Promise<SystemUser | undefined> {
+    const [user] = await db
+      .select()
+      .from(systemUsers)
+      .where(eq(systemUsers.email, email));
+    return user ? this.sanitizeSystemUser(user) : undefined;
+  }
+
+  async createSystemUser(userData: InsertSystemUser & { passwordHash: string; id?: string }): Promise<SystemUser> {
+    const { id: providedId, password: _password, ...rest } = userData as InsertSystemUser & {
+      passwordHash: string;
+      id?: string;
+      password?: string;
+    };
+
+    const now = new Date();
+    const [user] = await db
+      .insert(systemUsers)
+      .values({
+        id: providedId ?? randomUUID(),
+        ...rest,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning();
+
+    return this.sanitizeSystemUser(user);
+  }
+
+  async updateSystemUser(id: string, updates: Partial<SystemUser>): Promise<SystemUser | undefined> {
+    if (!updates || Object.keys(updates).length === 0) {
+      return this.getSystemUserById(id);
+    }
+
+    const sanitizedUpdates: Partial<SystemUser> = { ...updates };
+    delete sanitizedUpdates.id;
+    delete sanitizedUpdates.createdAt;
+    if (sanitizedUpdates.passwordHash === undefined) {
+      delete sanitizedUpdates.passwordHash;
+    }
+    sanitizedUpdates.updatedAt = new Date();
+
+    const [user] = await db
+      .update(systemUsers)
+      .set(sanitizedUpdates)
+      .where(eq(systemUsers.id, id))
+      .returning();
+
+    return user ? this.sanitizeSystemUser(user) : undefined;
+  }
+
+  async deleteSystemUser(id: string): Promise<void> {
+    await db.delete(systemUsers).where(eq(systemUsers.id, id));
+  }
+
+  async updateSystemUserLastLogin(id: string): Promise<void> {
+    await db
+      .update(systemUsers)
+      .set({
+        lastLogin: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(systemUsers.id, id));
+  }
+
+  async createUserSession(userId: string, token: string): Promise<string> {
+    const sessionId = randomUUID();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await db.insert(userSessions).values({
+      id: sessionId,
+      userId,
+      sessionToken: token,
+      expiresAt,
+    });
+
+    return sessionId;
+  }
+
+  async getUserSession(token: string): Promise<UserSession | undefined> {
+    const [session] = await db
+      .select()
+      .from(userSessions)
+      .where(eq(userSessions.sessionToken, token));
+    return session ?? undefined;
+  }
+
+  async invalidateUserSession(token: string): Promise<void> {
+    await db.delete(userSessions).where(eq(userSessions.sessionToken, token));
+  }
+
+  async getAllRoles(): Promise<SystemRole[]> {
+    return await db.select().from(systemRoles);
+  }
+
+  async getRoleById(id: string): Promise<SystemRole | undefined> {
+    const [role] = await db.select().from(systemRoles).where(eq(systemRoles.id, id));
+    return role;
+  }
+
+  async createRole(roleData: InsertSystemRole & { id?: string }): Promise<SystemRole> {
+    const { id: providedId, ...rest } = roleData as InsertSystemRole & { id?: string };
+    const now = new Date();
+    const [role] = await db
+      .insert(systemRoles)
+      .values({
+        id: providedId ?? randomUUID(),
+        ...rest,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning();
+    return role;
+  }
+
+  async updateRole(id: string, updates: Partial<SystemRole>): Promise<SystemRole | undefined> {
+    if (!updates || Object.keys(updates).length === 0) {
+      return this.getRoleById(id);
+    }
+
+    const sanitizedUpdates: Partial<SystemRole> = { ...updates, updatedAt: new Date() };
+    delete (sanitizedUpdates as Partial<SystemRole>).id;
+    delete (sanitizedUpdates as Partial<SystemRole>).createdAt;
+
+    const [role] = await db
+      .update(systemRoles)
+      .set(sanitizedUpdates)
+      .where(eq(systemRoles.id, id))
+      .returning();
+    return role ?? undefined;
+  }
+
+  async deleteRole(id: string): Promise<void> {
+    await db.delete(systemRoles).where(eq(systemRoles.id, id));
+  }
+
+  async logActivity(activityData: InsertActivityLogEntry & { id?: string; details?: string | Record<string, unknown> }): Promise<ActivityLogEntry> {
+    const { id: providedId, details, ...rest } = activityData as InsertActivityLogEntry & {
+      id?: string;
+      details?: string | Record<string, unknown>;
+    };
+
+    const [entry] = await db
+      .insert(activityLog)
+      .values({
+        id: providedId ?? randomUUID(),
+        ...rest,
+        details: this.normalizeActivityDetails(details ?? activityData.details),
+        timestamp: new Date(),
+      })
+      .returning();
+
+    return entry;
+  }
+
+  async getActivityLog(filters: { userId?: string; limit?: number; offset?: number }): Promise<ActivityLogEntry[]> {
+    const limit = filters.limit ?? 50;
+    const offset = filters.offset ?? 0;
+
+    let query = db.select().from(activityLog);
+
+    if (filters.userId) {
+      query = query.where(eq(activityLog.userId, filters.userId));
+    }
+
+    return await query
+      .orderBy(desc(activityLog.timestamp))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  private sanitizeSystemUser(user: SystemUser): SystemUser {
+    return { ...user, passwordHash: undefined } as SystemUser;
+  }
+
+  private normalizeActivityDetails(details: unknown): string {
+    if (typeof details === 'string') {
+      return details;
+    }
+
+    if (details == null) {
+      return '';
+    }
+
+    try {
+      return JSON.stringify(details);
+    } catch {
+      return String(details);
+    }
   }
 
   async upsertUser(userData: any): Promise<User> {
