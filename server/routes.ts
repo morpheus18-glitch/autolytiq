@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { registerUserRoutes } from "./userRoutes";
@@ -47,13 +48,8 @@ import { InMemoryEventBus, ModuleRegistry } from "./core";
 import { crmModule } from "./modules/crm";
 import { deskingModule } from "./modules/desking";
 import { fiModule } from "./modules/fi";
-import {
-  authenticateWithTenantCredentials,
-  issueTenantPasswordResetToken,
-  resetPasswordWithTenantToken,
-  validateTenantPasswordResetToken,
-} from "./services/auth-service-singleton";
-import { requireSessionAuth } from "./session-auth";
+import { findTenantUser } from "./auth-config";
+import { requireSessionAuth, type SessionUser } from "./session-auth";
 
 // XML Lead parsing utility
 function parseXmlLead(xmlString: string) {
@@ -395,36 +391,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication routes
   const loginSchema = z.object({
-    tenantId: z.string().min(1, 'Tenant ID is required'),
+    storeId: z.string().min(1, 'Store ID is required'),
     username: z.string().min(1, 'Username is required'),
     password: z.string().min(1, 'Password is required'),
   });
-  const forgotPasswordSchema = z.object({
-    tenantId: z.string().min(1, 'Tenant ID is required'),
-    username: z.string().min(1, 'Username or email is required'),
-  });
-  const resetPasswordSchema = z.object({
-    password: z
-      .string()
-      .min(8, 'Password must be at least 8 characters')
-      .max(128, 'Password must be less than 128 characters'),
-  });
 
-  app.post('/api/auth/login', async (req, res) => {
+  app.post("/api/auth/login", async (req, res) => {
     try {
       const credentials = loginSchema.parse(req.body);
-      const sessionUser = await authenticateWithTenantCredentials({
-        tenantIdentifier: credentials.tenantId,
-        username: credentials.username,
-        password: credentials.password,
-      });
+      const resolved = findTenantUser(credentials.storeId, credentials.username);
+
+      if (!resolved) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      const { tenant, user: profile } = resolved;
+      const passwordValid = await bcrypt.compare(credentials.password, profile.passwordHash);
+
+      if (!passwordValid) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      const allowedRoutesSource = profile.access.allowedRoutes?.length
+        ? profile.access.allowedRoutes
+        : tenant.defaultAccess.allowedRoutes;
+      const navigationSource = profile.access.navigationSections?.length
+        ? profile.access.navigationSections
+        : tenant.defaultAccess.navigationSections;
+      const quickActionsSource = profile.access.quickActions?.length
+        ? profile.access.quickActions
+        : tenant.defaultAccess.quickActions;
+
+      const allowedRoutes = Array.from(new Set(allowedRoutesSource ?? []));
+      if (!allowedRoutes.includes('/')) {
+        allowedRoutes.unshift('/');
+      }
+
+      const sessionUser: SessionUser = {
+        id: profile.userId,
+        userId: profile.userId,
+        username: profile.username,
+        email: profile.email,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        role: profile.role,
+        permissions: profile.permissions,
+        featureFlags: profile.featureFlags ?? [],
+        tenantId: tenant.tenantId,
+        store: {
+          id: tenant.store.id,
+          code: tenant.store.code,
+          name: tenant.store.name,
+          timezone: tenant.store.timezone,
+        },
+        access: {
+          homePath: profile.access.homePath ?? tenant.defaultAccess.homePath ?? '/dashboard',
+          allowedRoutes,
+          navigationSections: Array.from(new Set(navigationSource ?? [])),
+          quickActions: Array.from(new Set(quickActionsSource ?? [])),
+        },
+      };
 
       req.session.user = sessionUser;
       req.session.loginTime = new Date().toISOString();
       req.session.authToken = jwt.sign(
         {
           userId: sessionUser.id,
-          storeId: sessionUser.tenant.id,
+          storeId: sessionUser.store.id,
           tenantId: sessionUser.tenantId,
         },
         process.env.JWT_SECRET || 'AutolytiQ-session-secret',
@@ -442,79 +475,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: error.errors[0]?.message ?? 'Invalid request' });
       }
 
-      if (error instanceof Error && error.message === 'Invalid credentials') {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-
       console.error('Login error:', error);
-      res.status(500).json({ message: 'Authentication failed' });
-    }
-  });
-
-  app.post('/api/auth/forgot-password', async (req, res) => {
-    try {
-      const payload = forgotPasswordSchema.parse(req.body);
-      const record = await issueTenantPasswordResetToken({
-        tenantIdentifier: payload.tenantId,
-        username: payload.username,
-        ttlMinutes: process.env.NODE_ENV === 'production' ? 30 : 60,
-      });
-
-      const response: Record<string, unknown> = {
-        message: 'If the account exists, a reset link has been generated.',
-      };
-
-      if (process.env.NODE_ENV !== 'production') {
-        response.debugToken = record.token;
-      }
-
-      res.json(response);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors[0]?.message ?? 'Invalid request' });
-      }
-
-      console.warn('Password reset request error', error);
-      res.json({ message: 'If the account exists, a reset link has been generated.' });
-    }
-  });
-
-  app.get('/api/auth/password-reset/:token', async (req, res) => {
-    try {
-      const record = await validateTenantPasswordResetToken(req.params.token);
-      res.json({
-        token: record.token,
-        expiresAt: record.expiresAt,
-        user: {
-          email: record.user.email,
-          firstName: record.user.firstName,
-          lastName: record.user.lastName,
-        },
-        tenant: {
-          id: record.tenant.id,
-          name: record.tenant.name,
-          subdomain: record.tenant.subdomain,
-        },
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Invalid or expired reset link';
-      res.status(400).json({ message });
-    }
-  });
-
-  app.post('/api/auth/password-reset/:token', async (req, res) => {
-    try {
-      const payload = resetPasswordSchema.parse(req.body);
-      await resetPasswordWithTenantToken(req.params.token, payload.password);
-      res.json({ message: 'Password updated successfully' });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors[0]?.message ?? 'Invalid request' });
-      }
-
-      const message = error instanceof Error ? error.message : 'Unable to reset password';
-      console.error('Password reset error', error);
-      res.status(400).json({ message });
+      res.status(500).json({ message: "Authentication failed" });
     }
   });
 

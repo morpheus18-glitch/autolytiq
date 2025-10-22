@@ -7,6 +7,13 @@ export interface SessionUserAccess {
   quickActions: string[];
 }
 
+export interface SessionStoreInfo {
+  id: string;
+  code: string;
+  name: string;
+  timezone: string;
+}
+
 export interface SessionUser {
   id: string;
   userId: string;
@@ -18,11 +25,7 @@ export interface SessionUser {
   permissions: string[];
   featureFlags: string[];
   tenantId: string;
-  tenant: {
-    id: string;
-    name: string;
-    subdomain: string;
-  };
+  store: SessionStoreInfo;
   access: SessionUserAccess;
 }
 

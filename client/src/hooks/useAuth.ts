@@ -5,17 +5,18 @@ export interface AuthTokens {
   realtime: string | null;
 }
 
+export interface AuthStore {
+  id: string;
+  code: string;
+  name: string;
+  timezone: string;
+}
+
 export interface AuthAccess {
   homePath?: string;
   allowedRoutes: string[];
   navigationSections: string[];
   quickActions: string[];
-}
-
-export interface AuthTenant {
-  id: string;
-  name: string;
-  subdomain: string;
 }
 
 export interface AuthUser {
@@ -29,7 +30,7 @@ export interface AuthUser {
   permissions: string[];
   featureFlags: string[];
   tenantId: string;
-  tenant: AuthTenant;
+  store: AuthStore;
   access: AuthAccess;
   tokens?: AuthTokens;
 }
