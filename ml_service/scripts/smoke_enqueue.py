@@ -9,7 +9,7 @@ from workers.celery_app import celery_app
 
 
 def main() -> int:
-    task_name = 'workers.tasks.smoke_check'
+    task_name = sys.argv[1] if len(sys.argv) > 1 else 'workers.tasks.smoke_check'
     job = celery_app.send_task(task_name)
     print(f"Queued {task_name} with id={job.id}")
 
