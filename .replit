@@ -8,8 +8,8 @@ packages = ["glibcLocales", "libxcrypt", "nano", "nvidia-container-toolkit", "pm
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["npm", "run", "build"]
-run = ["npm", "run", "start"]
+build = ["npm", "run", "build:prod"]
+run = ["npm", "run", "start:prod"]
 
 [[ports]]
 localPort = 5000
