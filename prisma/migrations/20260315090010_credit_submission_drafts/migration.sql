@@ -1,5 +1,5 @@
 -- Domain events integration - credit submission drafts
-CREATE TABLE "CreditSubmissionDraft" (
+CREATE TABLE IF NOT EXISTS "CreditSubmissionDraft" (
   "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
   "tenantId" TEXT NOT NULL,
   "dealId" TEXT NOT NULL,
@@ -15,8 +15,8 @@ CREATE TABLE "CreditSubmissionDraft" (
   CONSTRAINT "CreditSubmissionDraft_version_fkey" FOREIGN KEY ("versionId") REFERENCES "DealVersion"("id") ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX "CreditSubmissionDraft_tenant_version_unique"
+CREATE UNIQUE INDEX IF NOT EXISTS "CreditSubmissionDraft_tenant_version_unique"
   ON "CreditSubmissionDraft" ("tenantId", "versionId");
 
-CREATE INDEX "CreditSubmissionDraft_tenant_deal_idx"
+CREATE INDEX IF NOT EXISTS "CreditSubmissionDraft_tenant_deal_idx"
   ON "CreditSubmissionDraft" ("tenantId", "dealId");

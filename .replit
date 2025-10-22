@@ -13,8 +13,10 @@ run = ["npm", "run", "start"]
 
 [[ports]]
 localPort = 5000
-name = "web"
-onOpen = "open-url"
+
+[[ports]]
+localPort = 5001
+externalPort = 80
 
 [env]
 PORT = "5000"
