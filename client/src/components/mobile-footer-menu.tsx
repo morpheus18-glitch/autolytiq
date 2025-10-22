@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Building, X } from 'lucide-react';
@@ -9,10 +9,61 @@ import {
   type MobileNavItem
 } from '@/config/navigation';
 import { isHomePath } from '@/lib/userHomePath';
+import { useAuth } from '@/hooks/useAuth';
 
 export function MobileFooterMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [location] = useLocation();
+  const { user } = useAuth();
+
+  const allowedRouteSet = useMemo(() => {
+    const allowed = user?.access?.allowedRoutes ?? [];
+    return new Set(allowed.length > 0 ? allowed : ['*']);
+  }, [user?.access?.allowedRoutes]);
+
+  const primaryNavItems = useMemo(() => {
+    return MOBILE_PRIMARY_NAV_ITEMS.filter((item) => {
+      if (item.isMenu) {
+        return true;
+      }
+
+      if (allowedRouteSet.has('*')) {
+        return true;
+      }
+
+      if (allowedRouteSet.has(item.href)) {
+        return true;
+      }
+
+      return item.matchPaths?.some((candidate) => allowedRouteSet.has(candidate)) ?? false;
+    });
+  }, [allowedRouteSet]);
+
+  const allNavItems = useMemo(() => {
+    if (allowedRouteSet.has('*')) {
+      return MOBILE_ALL_NAV_ITEMS;
+    }
+
+    return MOBILE_ALL_NAV_ITEMS.filter((item) => {
+      if (item.isMenu) {
+        return true;
+      }
+
+      if (allowedRouteSet.has(item.href)) {
+        return true;
+      }
+
+      return item.matchPaths?.some((candidate) => allowedRouteSet.has(candidate)) ?? false;
+    });
+  }, [allowedRouteSet]);
+
+  const quickActions = useMemo(() => {
+    if (allowedRouteSet.has('*')) {
+      return MOBILE_QUICK_ACTIONS;
+    }
+
+    return MOBILE_QUICK_ACTIONS.filter((action) => allowedRouteSet.has(action.href));
+  }, [allowedRouteSet]);
 
   const normalizePath = (value: string) => {
     if (value === '/') {
@@ -54,7 +105,7 @@ export function MobileFooterMenu() {
       {/* Sticky Bottom Mobile Footer - Only visible on mobile */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 mobile-glass-nav z-sticky safe-area-pb">
         <div className="grid grid-cols-4 gap-0">
-          {MOBILE_PRIMARY_NAV_ITEMS.map((item) => {
+          {primaryNavItems.map((item) => {
             const isActive = isPathActive(item);
             const Icon = item.icon;
 
@@ -113,7 +164,7 @@ export function MobileFooterMenu() {
             {/* Navigation Grid */}
             <div className="p-5">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {MOBILE_ALL_NAV_ITEMS.map((item) => {
+                {allNavItems.map((item) => {
                   const isActive = isPathActive(item);
                   const Icon = item.icon;
                   return (
@@ -157,7 +208,7 @@ export function MobileFooterMenu() {
               <div className="mt-6 pt-4 border-t border-border/55">
                 <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Quick Actions</h4>
                 <div className="grid grid-cols-2 gap-2">
-                  {MOBILE_QUICK_ACTIONS.map((action) => {
+                  {quickActions.map((action) => {
                     const ActionIcon = action.icon;
                     return (
                       <Link

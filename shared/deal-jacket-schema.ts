@@ -13,28 +13,9 @@ import {
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import { users, vehicles } from "./schema";
+import { stores, users, vehicles } from "./schema";
 
-// Multi-Store/Dealership Support
-export const stores = pgTable("stores", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: varchar("name", { length: 255 }).notNull(),
-  code: varchar("code", { length: 50 }).unique().notNull(), // Unique store identifier
-  address: text("address"),
-  phone: varchar("phone", { length: 50 }),
-  email: varchar("email", { length: 255 }),
-  settings: jsonb("settings").$type<{
-    timezone: string;
-    currency: string;
-    dealerLicense: string;
-    taxRate: number;
-    features: string[];
-  }>(),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
+export { stores };
 // Digital Deal Jackets - Main container for all customer/deal related data
 export const dealJackets = pgTable("deal_jackets", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -446,7 +427,11 @@ export const storePageSettingsRelations = relations(storePageSettings, ({ one })
 }));
 
 // Zod Schemas
-export const insertStoreSchema = createInsertSchema(stores);
+export const insertStoreSchema = createInsertSchema(stores).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 export const selectStoreSchema = createSelectSchema(stores);
 export type InsertStore = z.infer<typeof insertStoreSchema>;
 export type Store = z.infer<typeof selectStoreSchema>;

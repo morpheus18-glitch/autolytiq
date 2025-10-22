@@ -1,7 +1,6 @@
 import type { Express } from "express";
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { storage } from "./storage";
 import { 
   insertSystemUserSchema, 
@@ -12,29 +11,29 @@ import {
   type InsertSystemRole,
   type InsertActivityLogEntry
 } from "@shared/schema";
-
-// Authentication middleware
-const authenticateToken = (req: any, res: any, next: any) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ message: 'Access token required' });
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err: any, user: any) => {
-    if (err) return res.status(403).json({ message: 'Invalid token' });
-    req.user = user;
-    next();
-  });
-};
+import { requireSessionAuth, isSuperUser } from "./session-auth";
 
 // Permission check middleware
 const requirePermission = (permission: string) => {
   return (req: any, res: any, next: any) => {
-    if (!req.user.permissions.includes(permission)) {
+    const sessionUser = req.session?.user;
+    if (!sessionUser) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const permissions = Array.isArray(sessionUser.permissions) ? sessionUser.permissions : [];
+
+    const hasPermission =
+      isSuperUser(sessionUser) ||
+      permissions.includes('*') ||
+      permissions.includes(permission) ||
+      permissions.some((value) => value.endsWith('.*') && permission.startsWith(value.replace('.*', ''))) ||
+      permissions.some((value) => permission.startsWith(`${value}:`));
+
+    if (!hasPermission) {
       return res.status(403).json({ message: 'Insufficient permissions' });
     }
+
     next();
   };
 };
@@ -157,78 +156,8 @@ export function registerUserRoutes(app: Express): void {
     }
   });
 
-  // User authentication
-  app.post('/api/auth/login', async (req, res) => {
-    try {
-      const { email, password } = req.body;
-      
-      const user = await storage.getSystemUserByEmail(email);
-      if (!user) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-
-      const isValidPassword = await bcrypt.compare(password, user.passwordHash);
-      if (!isValidPassword) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-
-      // Update last login
-      await storage.updateSystemUserLastLogin(user.id);
-
-      // Generate JWT token
-      const token = jwt.sign(
-        { 
-          userId: user.id, 
-          email: user.email,
-          role: user.role,
-          permissions: user.permissions 
-        },
-        process.env.JWT_SECRET || 'your-secret-key',
-        { expiresIn: '24h' }
-      );
-
-      // Create session
-      const sessionId = await storage.createUserSession(user.id, token);
-
-      res.json({
-        token,
-        sessionId,
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          username: user.username,
-          role: user.role,
-          department: user.department,
-          permissions: user.permissions,
-          preferences: user.preferences
-        }
-      });
-    } catch (error) {
-      console.error('Login error:', error);
-      res.status(500).json({ message: 'Internal server error' });
-    }
-  });
-
-  app.post('/api/auth/logout', authenticateToken, async (req, res) => {
-    try {
-      const authHeader = req.headers['authorization'];
-      const token = authHeader && authHeader.split(' ')[1];
-      
-      if (token) {
-        await storage.invalidateUserSession(token);
-      }
-      
-      res.json({ message: 'Logged out successfully' });
-    } catch (error) {
-      console.error('Logout error:', error);
-      res.status(500).json({ message: 'Internal server error' });
-    }
-  });
-
   // User management endpoints
-  app.get('/api/users', authenticateToken, requirePermission('admin.users'), async (req, res) => {
+  app.get('/api/users', requireSessionAuth, requirePermission('admin.users'), async (req, res) => {
     try {
       const users = await storage.getAllSystemUsers();
       res.json(users);
@@ -238,7 +167,7 @@ export function registerUserRoutes(app: Express): void {
     }
   });
 
-  app.get('/api/users/:id', authenticateToken, async (req, res) => {
+  app.get('/api/users/:id', requireSessionAuth, async (req, res) => {
     try {
       const { id } = req.params;
       
@@ -259,7 +188,7 @@ export function registerUserRoutes(app: Express): void {
     }
   });
 
-  app.post('/api/users', authenticateToken, requirePermission('admin.users'), async (req, res) => {
+  app.post('/api/users', requireSessionAuth, requirePermission('admin.users'), async (req, res) => {
     try {
       const userData = insertSystemUserSchema.parse(req.body);
       
@@ -290,7 +219,7 @@ export function registerUserRoutes(app: Express): void {
     }
   });
 
-  app.put('/api/users/:id', authenticateToken, async (req, res) => {
+  app.put('/api/users/:id', requireSessionAuth, async (req, res) => {
     try {
       const { id } = req.params;
       
@@ -327,7 +256,7 @@ export function registerUserRoutes(app: Express): void {
     }
   });
 
-  app.delete('/api/users/:id', authenticateToken, requirePermission('admin.users'), async (req, res) => {
+  app.delete('/api/users/:id', requireSessionAuth, requirePermission('admin.users'), async (req, res) => {
     try {
       const { id } = req.params;
       
@@ -359,7 +288,7 @@ export function registerUserRoutes(app: Express): void {
   });
 
   // Role management endpoints
-  app.get('/api/roles', authenticateToken, requirePermission('admin.users'), async (req, res) => {
+  app.get('/api/roles', requireSessionAuth, requirePermission('admin.users'), async (req, res) => {
     try {
       const roles = await storage.getAllRoles();
       res.json(roles);
@@ -369,7 +298,7 @@ export function registerUserRoutes(app: Express): void {
     }
   });
 
-  app.post('/api/roles', authenticateToken, requirePermission('admin.users'), async (req, res) => {
+  app.post('/api/roles', requireSessionAuth, requirePermission('admin.users'), async (req, res) => {
     try {
       const roleData = insertSystemRoleSchema.parse(req.body);
       
@@ -397,7 +326,7 @@ export function registerUserRoutes(app: Express): void {
   });
 
   // Activity log endpoint
-  app.get('/api/activity', authenticateToken, requirePermission('admin.audit'), async (req, res) => {
+  app.get('/api/activity', requireSessionAuth, requirePermission('admin.audit'), async (req, res) => {
     try {
       const { userId, limit = 50, offset = 0 } = req.query;
       
@@ -415,7 +344,7 @@ export function registerUserRoutes(app: Express): void {
   });
 
   // User profile endpoint
-  app.get('/api/profile', authenticateToken, async (req, res) => {
+  app.get('/api/profile', requireSessionAuth, async (req, res) => {
     try {
       const user = await storage.getSystemUserById(req.user.userId);
       if (!user) {
@@ -445,7 +374,7 @@ export function registerUserRoutes(app: Express): void {
     }
   });
 
-  app.put('/api/profile', authenticateToken, async (req, res) => {
+  app.put('/api/profile', requireSessionAuth, async (req, res) => {
     try {
       const updates = req.body;
       

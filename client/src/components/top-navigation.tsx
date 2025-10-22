@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import {
   ArrowRight,
@@ -35,15 +35,55 @@ export default function TopNavigation() {
   const [location] = useLocation();
   const { user } = useAuth();
 
-  const resolveActiveTab = (pathname: string) => {
-    const matched = WORKFLOW_SECTIONS.find((tab) =>
+  const allowedRouteSet = useMemo(() => {
+    const allowed = user?.access?.allowedRoutes ?? [];
+    return new Set(allowed.length > 0 ? allowed : ['*']);
+  }, [user?.access?.allowedRoutes]);
+
+  const allowedSectionSet = useMemo(() => {
+    const allowed = user?.access?.navigationSections ?? [];
+    return new Set(allowed.length > 0 ? allowed : ['*']);
+  }, [user?.access?.navigationSections]);
+
+  const navigationSections = useMemo(() => {
+    const allowAllRoutes = allowedRouteSet.has('*');
+    const allowAllSections = allowedSectionSet.has('*');
+
+    return WORKFLOW_SECTIONS
+      .map((section) => {
+        const sectionAllowed = allowAllSections || allowedSectionSet.has(section.id);
+        if (!sectionAllowed) {
+          return null;
+        }
+
+        const subItems = section.subItems?.filter((item) => {
+          if (allowAllRoutes) {
+            return true;
+          }
+          if (allowedRouteSet.has(item.path)) {
+            return true;
+          }
+          return item.matchPaths?.some((candidate) => allowedRouteSet.has(candidate)) ?? false;
+        }) ?? [];
+
+        if (!allowAllRoutes && subItems.length === 0) {
+          return null;
+        }
+
+        return { ...section, subItems };
+      })
+      .filter((section): section is typeof WORKFLOW_SECTIONS[number] => section !== null);
+  }, [allowedRouteSet, allowedSectionSet]);
+
+  const resolveActiveTab = useCallback((pathname: string) => {
+    const matched = navigationSections.find((tab) =>
       pathname.startsWith(tab.path) ||
       tab.subItems?.some((item) =>
         pathname.startsWith(item.path) || item.matchPaths?.some((match) => pathname.startsWith(match))
       )
     );
-    return matched?.id ?? "inventory";
-  };
+    return matched?.id ?? navigationSections[0]?.id ?? "inventory";
+  }, [navigationSections]);
 
   const [activeTab, setActiveTab] = useState(() => resolveActiveTab(location));
   const [searchQuery, setSearchQuery] = useState("");
@@ -90,7 +130,7 @@ export default function TopNavigation() {
     if (resolved !== activeTab) {
       setActiveTab(resolved);
     }
-  }, [location, activeTab]);
+  }, [location, activeTab, resolveActiveTab]);
 
   return (
     <>
@@ -128,7 +168,7 @@ export default function TopNavigation() {
               </div>
 
               <nav className="hidden flex-1 items-center justify-center gap-1 lg:flex">
-                {WORKFLOW_SECTIONS.map((tab) => {
+                {navigationSections.map((tab) => {
                   const isActive = activeTab === tab.id;
                   const Icon = tab.icon;
 
