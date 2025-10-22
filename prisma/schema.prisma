@@ -61,6 +61,7 @@ model Tenant {
   reports              Report[]
   smsTemplates         SMSTemplate[]
   stageTransitions     StageTransition[]
+  stores               Store[]
   systemSettings       SystemSetting[]
   transportOrders      TransportOrder[]
   users                User[]
@@ -71,20 +72,43 @@ model Tenant {
   workflowDefinitions  WorkflowDefinition[]
   workflowStages       WorkflowStage[]
   workflowTasks        WorkflowTask[]
+  passwordResetTokens  PasswordResetToken[]
 
   @@map("tenants")
+}
+
+model Store {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  code      String
+  name      String
+  timezone  String   @default("UTC")
+  aliases   String[] @default([])
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  users     User[]
+
+  @@unique([code])
+  @@index([tenantId])
+  @@map("stores")
 }
 
 model User {
   id                        String                @id @default(cuid())
   tenantId                  String                @map("tenant_id")
+  storeId                   String?               @map("store_id")
   email                     String
   password                  String
+  username                  String?               @map("username")
   firstName                 String                @map("first_name")
   lastName                  String                @map("last_name")
   phone                     String?
   role                      UserRole              @default(SALES)
   permissions               Json                  @default(dbgenerated("jsonb_build_array()"))
+  featureFlags              String[]              @default([]) @map("feature_flags")
+  accessOverrides           Json?                 @map("access_overrides")
   status                    UserStatus            @default(ACTIVE)
   isSuperAdmin              Boolean               @default(false) @map("is_super_admin")
   lastLoginAt               DateTime?             @map("last_login_at") @db.Timestamptz(6)
@@ -118,12 +142,31 @@ model User {
   stageTransitions          StageTransition[]     @relation("StageTransitionActor")
   systemSettings            SystemSetting[]
   tenant                    Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  store                     Store?                @relation(fields: [storeId], references: [id])
   assignedWorkflowTasks     WorkflowTask[]        @relation("WorkflowTaskAssignee")
+  passwordResetTokens       PasswordResetToken[]
 
   @@unique([tenantId, email])
+  @@unique([tenantId, username])
   @@index([tenantId])
   @@index([isSuperAdmin])
   @@map("users")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  tenantId  String   @map("tenant_id")
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 model Customer {

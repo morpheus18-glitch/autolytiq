@@ -70,6 +70,37 @@ export const tenants = pgTable(
   }),
 );
 
+export const stores = pgTable(
+  "stores",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 255 }).notNull(),
+    code: varchar("code", { length: 50 }).notNull(),
+    aliases: text("aliases").array().$type<string[]>().default(sql`ARRAY[]::text[]`),
+    address: text("address"),
+    phone: varchar("phone", { length: 50 }),
+    email: varchar("email", { length: 255 }),
+    timezone: varchar("timezone", { length: 100 }).default("UTC").notNull(),
+    settings: jsonb("settings").$type<{
+      timezone?: string;
+      currency?: string;
+      dealerLicense?: string;
+      taxRate?: number;
+      features?: string[];
+    }>(),
+    isActive: boolean("is_active").default(true),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    tenantIdx: index("stores_tenant_idx").on(table.tenantId),
+    codeIdx: index("stores_code_idx").on(table.code),
+  }),
+);
+
 // Departments table
 export const departments = pgTable(
   "departments",
@@ -172,6 +203,7 @@ export const users = pgTable(
     tenantId: uuid("tenant_id")
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
+    storeId: uuid("store_id").references(() => stores.id, { onDelete: "set null" }),
     email: varchar("email"),
     firstName: varchar("first_name"),
     lastName: varchar("last_name"),
@@ -182,6 +214,8 @@ export const users = pgTable(
     password: text("password"),
     name: text("name"),
     phone: text("phone"),
+    featureFlags: text("feature_flags").array().$type<string[]>().default(sql`ARRAY[]::text[]`),
+    accessOverrides: jsonb("access_overrides"),
     roleId: integer("role_id").references(() => roles.id),
     departmentId: integer("department_id").references(() => departments.id),
     isActive: boolean("is_active").default(true).notNull(),
@@ -196,6 +230,28 @@ export const users = pgTable(
       table.username,
     ),
     tenantIdx: index("idx_users_tenant").on(table.tenantId),
+  }),
+);
+
+export const passwordResetTokens = pgTable(
+  "password_reset_tokens",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    token: varchar("token", { length: 256 }).notNull(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    tenantIdx: index("password_reset_tokens_tenant_idx").on(table.tenantId),
+    userIdx: index("password_reset_tokens_user_idx").on(table.userId),
+    tokenUnique: unique("password_reset_tokens_token_unique").on(table.token),
   }),
 );
 
@@ -1050,6 +1106,8 @@ export const fiAuditLog = pgTable("fi_audit_log", {
 // Insert schemas
 export const insertTenantSchema = createInsertSchema(tenants)
   .omit({ id: true, createdAt: true, updatedAt: true });
+export const insertStoreSchema = createInsertSchema(stores)
+  .omit({ id: true, createdAt: true, updatedAt: true });
 export const insertDepartmentSchema = createInsertSchema(departments)
   .omit({ id: true, createdAt: true })
   .extend({ tenantId: z.string().uuid().optional() });
@@ -1064,7 +1122,9 @@ export const insertRolePermissionSchema = createInsertSchema(rolePermissions)
   .extend({ tenantId: z.string().uuid().optional() });
 export const insertUserSchema = createInsertSchema(users)
   .omit({ id: true, createdAt: true, updatedAt: true })
-  .extend({ tenantId: z.string().uuid().optional() });
+  .extend({ tenantId: z.string().uuid().optional(), storeId: z.string().uuid().optional() });
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens)
+  .omit({ id: true, createdAt: true });
 export const insertEmployeeSchema = createInsertSchema(employees).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertServicePartSchema = createInsertSchema(serviceParts).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertServiceOrderSchema = createInsertSchema(serviceOrders).omit({ id: true, createdAt: true, updatedAt: true });
@@ -1506,12 +1566,16 @@ export type InsertBackup = z.infer<typeof insertBackupSchema>;
 export type InsertDailyReport = z.infer<typeof insertDailyReportSchema>;
 export type Tenant = typeof tenants.$inferSelect;
 export type InsertTenant = z.infer<typeof insertTenantSchema>;
+export type Store = typeof stores.$inferSelect;
+export type InsertStore = z.infer<typeof insertStoreSchema>;
 export type InsertDepartment = z.infer<typeof insertDepartmentSchema>;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
 export type InsertPermission = z.infer<typeof insertPermissionSchema>;
 export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpsertUser = typeof users.$inferInsert;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
 
 // System User Management Schema (Enhanced with password auth)
 export const systemUsers = pgTable("system_users", {

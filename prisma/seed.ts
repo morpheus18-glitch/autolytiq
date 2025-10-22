@@ -60,6 +60,33 @@ const DEALERSHIP_SUBDOMAIN = 'sunrise-motors';
 const DEVELOPER_EMAIL = 'developer@sunrisemotors.demo';
 const DEVELOPER_PASSWORD = 'DevAccess!2024';
 
+const DEFAULT_ALLOWED_ROUTES = [
+  '/',
+  '/dashboard',
+  '/inventory',
+  '/inventory/pricing',
+  '/inventory/lot-management',
+  '/inventory/:id',
+  '/sales',
+  '/deals',
+  '/crm',
+  '/customers',
+  '/leads',
+  '/trade-appraisals',
+  '/finance',
+  '/finance/lenders',
+  '/finance/rates',
+  '/finance/compliance',
+  '/reports',
+  '/reports/sales',
+  '/reports/inventory',
+  '/workflow-assistant',
+];
+
+const DEFAULT_NAVIGATION_SECTIONS = ['inventory', 'crm', 'sales', 'finance', 'reports'];
+const DEFAULT_QUICK_ACTIONS = ['/customers', '/inventory', '/deals'];
+const DEFAULT_HOME_PATH = '/dashboard';
+
 const glAccounts = [
   {
     accountNumber: '1000',
@@ -201,11 +228,41 @@ async function main() {
         currency: 'USD',
         inventoryAgingThreshold: 90,
         defaultDocFee: 489,
+        auth: {
+          defaultAccess: {
+            homePath: DEFAULT_HOME_PATH,
+            allowedRoutes: DEFAULT_ALLOWED_ROUTES,
+            navigationSections: DEFAULT_NAVIGATION_SECTIONS,
+            quickActions: DEFAULT_QUICK_ACTIONS,
+          },
+        },
       },
     },
   });
 
   const passwordHash = await bcrypt.hash(DEVELOPER_PASSWORD, 12);
+
+  const store = await prisma.store.upsert({
+    where: { code: 'MAIN' },
+    update: {
+      tenantId: tenant.id,
+      name: 'Sunrise Motors Flagship',
+      timezone: 'America/Chicago',
+      aliases: ['MAIN', '001'],
+      isActive: true,
+    },
+    create: {
+      tenantId: tenant.id,
+      code: 'MAIN',
+      name: 'Sunrise Motors Flagship',
+      timezone: 'America/Chicago',
+      aliases: ['MAIN', '001'],
+      settings: {
+        dealerLicense: 'SUN12345',
+        features: ['realtime_analytics', 'sales_assistant'],
+      },
+    },
+  });
 
   const rateSheetEffectiveFrom = subDays(new Date(), 14);
   const rateSheetEffectiveTo = addMonths(new Date(), 2);
@@ -348,28 +405,58 @@ async function main() {
   const userSeed = [
     {
       email: DEVELOPER_EMAIL,
+      username: 'dana.reeves',
       firstName: 'Dana',
       lastName: 'Reeves',
       role: UserRole.ADMIN,
       isSuperAdmin: true,
       phone: faker.helpers.replaceSymbols('+1-###-###-####'),
+      featureFlags: ['developer_portal', 'realtime_analytics'],
+      permissions: ['*'],
+      accessOverrides: {
+        homePath: '/ml-developer-admin',
+        allowedRoutes: ['*'],
+        navigationSections: ['*'],
+        quickActions: ['*'],
+      },
     },
     {
       email: 'sales.manager@sunrisemotors.demo',
+      username: 'jordan.parker',
       firstName: 'Jordan',
       lastName: 'Parker',
       role: UserRole.MANAGER,
       phone: faker.helpers.replaceSymbols('+1-###-###-####'),
+      featureFlags: ['sales_assistant'],
     },
     {
       email: 'finance.manager@sunrisemotors.demo',
+      username: 'avery.nguyen',
       firstName: 'Avery',
       lastName: 'Nguyen',
       role: UserRole.FINANCE,
       phone: faker.helpers.replaceSymbols('+1-###-###-####'),
+      featureFlags: ['finance_dashboard'],
+      accessOverrides: {
+        homePath: '/finance',
+        navigationSections: ['finance', 'reports'],
+        quickActions: ['/finance', '/reports'],
+        allowedRoutes: [
+          '/',
+          '/dashboard',
+          '/finance',
+          '/finance/lenders',
+          '/finance/rates',
+          '/finance/compliance',
+          '/reports',
+          '/reports/sales',
+          '/reports/inventory',
+        ],
+      },
     },
     {
       email: 'sales1@sunrisemotors.demo',
+      username: 'taylor.stone',
       firstName: 'Taylor',
       lastName: 'Stone',
       role: UserRole.SALES,
@@ -377,6 +464,7 @@ async function main() {
     },
     {
       email: 'sales2@sunrisemotors.demo',
+      username: 'morgan.lee',
       firstName: 'Morgan',
       lastName: 'Lee',
       role: UserRole.SALES,
@@ -384,10 +472,26 @@ async function main() {
     },
     {
       email: 'bdc@sunrisemotors.demo',
+      username: 'reese.howard',
       firstName: 'Reese',
       lastName: 'Howard',
       role: UserRole.BDC,
       phone: faker.helpers.replaceSymbols('+1-###-###-####'),
+      accessOverrides: {
+        homePath: '/crm',
+        navigationSections: ['crm', 'sales'],
+        quickActions: ['/leads', '/customers'],
+        allowedRoutes: [
+          '/',
+          '/crm',
+          '/leads',
+          '/leads/:id',
+          '/customers',
+          '/customers/:id',
+          '/sales',
+          '/sales-mobile',
+        ],
+      },
     },
   ];
 
@@ -396,13 +500,17 @@ async function main() {
       prisma.user.create({
         data: {
           tenantId: tenant.id,
+          storeId: store.id,
           email: user.email,
+          username: user.username ?? user.email.split('@')[0],
           password: passwordHash,
           firstName: user.firstName,
           lastName: user.lastName,
           phone: user.phone,
           role: user.role,
-          permissions: user.role === UserRole.ADMIN ? ['*'] : ['deals:read', 'customers:read'],
+          permissions: user.permissions ?? (user.role === UserRole.ADMIN ? ['*'] : ['deals:read', 'customers:read']),
+          featureFlags: user.featureFlags ?? [],
+          accessOverrides: user.accessOverrides ?? null,
           status: UserStatus.ACTIVE,
           isSuperAdmin: user.isSuperAdmin ?? false,
         },
