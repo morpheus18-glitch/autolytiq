@@ -71,14 +71,15 @@ real-time intelligence.
 4. **Set required environment variables** (`.env` at repository root)
    ```env
    DATABASE_URL=postgresql://user:password@localhost:5432/autolytiq
-   SESSION_SECRET=super-secret-session-key
+   SESSION_SECRET=local-development-session-secret-please-change
    VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
    REDIS_URL=redis://localhost:6379
    OPENAI_API_KEY=sk-...
    STRIPE_SECRET_KEY=sk_test_...
    SENDGRID_API_KEY=...
-   ```
-   See `ARCHITECTURE.md` for optional credentials (OAuth providers, S3, Twilio, etc.).
+  ```
+  `SESSION_SECRET` must be at least 32 characters long to satisfy runtime validation.
+  See `ARCHITECTURE.md` for optional credentials (OAuth providers, S3, Twilio, etc.).
 
 ## Running Locally
 
