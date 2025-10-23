@@ -75,7 +75,7 @@ npm run db:migrate:production
 
 **Option B: Deploy migrations directly**
 ```bash
-npm run db:migrate:deploy
+npm run db:migrate:deploy:safe
 ```
 
 **Verify migrations:**
@@ -169,6 +169,8 @@ curl -I http://your-domain.com
    build = ["npm", "install", "&&", "npm", "run", "build:prod"]
    run = ["npm", "run", "start:prod"]
    ```
+
+`start:prod` runs `scripts/start-production.sh`, which triggers `npm run db:migrate:deploy:safe` to baseline existing schemas before the server boots. You can still run the safe deploy script manually for extra assurance before triggering a deploy.
 
 3. **Deploy:**
    - Click "Deploy" in Replit
