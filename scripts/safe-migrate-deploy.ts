@@ -112,7 +112,11 @@ async function baselineExistingMigrations() {
 async function runMigrateDeploy(): Promise<boolean> {
   log('\n🚀 Running prisma migrate deploy...', 'blue');
 
-  const result = execute('npx prisma migrate deploy', { silent: false });
+  const result = execute('npx prisma migrate deploy', { silent: true });
+
+  if (result.output) {
+    process.stdout.write(result.output);
+  }
 
   if (result.success) {
     log('✅ Migration deploy successful', 'green');
