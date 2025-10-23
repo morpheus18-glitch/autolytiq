@@ -176,7 +176,7 @@ localPort = 5000
 externalPort = 80
 ```
 
-### Step 3: Deploy and Test
+### Step 3: Prepare and Deploy
 
 1. **Merge your branch to main:**
    ```bash
@@ -189,16 +189,11 @@ externalPort = 80
    ```bash
    npm install
    npm run build:prod
-   npm run start:prod
    ```
 
-3. **Verify the deployment:**
-   - Check that the app starts without errors
-   - Test loading different routes (they should lazy load)
-   - Verify database connectivity
-   - Run health checks
-
 ### Step 4: Run Database Migrations
+
+> ⚠️ Run migrations before starting the server. For existing databases, baseline migrations first using `prisma migrate resolve --applied "<migration_name>"` as needed.
 
 ```bash
 # Deploy migrations to production database
@@ -208,7 +203,19 @@ npm run db:migrate:deploy
 npm run db:push
 ```
 
-### Step 5: Verify All Features
+### Step 5: Start and Verify
+
+```bash
+npm run start:prod
+```
+
+**Verify the deployment:**
+- Check that the app starts without errors
+- Test loading different routes (they should lazy load)
+- Verify database connectivity
+- Run health checks
+
+### Step 6: Verify All Features
 
 Test these key features:
 - [ ] User authentication works

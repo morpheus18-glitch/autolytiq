@@ -267,7 +267,7 @@ npm run build:client           # Build client
 
 # Production
 npm run build:prod             # Full production build
-npm run start:prod             # Start with migrations
+npm run start:prod             # Start production server
 npm run db:migrate:production  # Safe production migrations
 
 # Health & Monitoring
