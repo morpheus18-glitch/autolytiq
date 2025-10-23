@@ -161,10 +161,11 @@ npm run build:prod
 ```bash
 npm run start:prod
 ```
-1. ✅ Apply database migrations
-2. ✅ Start production server on port 5000
-3. ✅ Serve API at `/api/*`
-4. ✅ Serve frontend at `/`
+> ⚠️ Run `npm run db:migrate:deploy` (or baseline existing migrations) before starting the app in production.
+
+1. ✅ Start production server on port 5000
+2. ✅ Serve API at `/api/*`
+3. ✅ Serve frontend at `/`
 
 ---
 

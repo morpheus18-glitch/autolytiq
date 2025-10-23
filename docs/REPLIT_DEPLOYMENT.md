@@ -186,9 +186,10 @@ On deployment start, Replit runs:
 npm run start:prod
 ```
 
+> ⚠️ Apply migrations separately before starting the server. For existing databases, baseline each migration with `prisma migrate resolve --applied "<migration_name>"` so Prisma knows the state.
+
 **This command does:**
-1. ✅ Apply database migrations (`prisma migrate deploy`)
-2. ✅ Start production server (`node dist/index.js`)
+1. ✅ Start production server (`node dist/index.js`)
 
 **The server will:**
 - Listen on port 5000

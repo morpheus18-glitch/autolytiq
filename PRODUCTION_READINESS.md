@@ -170,6 +170,8 @@ curl -I http://your-domain.com
    run = ["npm", "run", "start:prod"]
    ```
 
+> ⚠️ Run Prisma migrations separately (for example, `npm run db:migrate:deploy`) before starting the production server. Baseline existing databases with `prisma migrate resolve --applied "<migration_name>"` as needed.
+
 3. **Deploy:**
    - Click "Deploy" in Replit
    - Monitor build logs
