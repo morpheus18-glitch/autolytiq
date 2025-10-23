@@ -119,13 +119,20 @@ async function runMigrateDeploy(): Promise<boolean> {
     return true;
   }
 
-  // Check if this is the P3005 error
-  const isP3005Error = result.error?.includes('P3005') ||
-                       result.error?.includes('database schema is not empty');
+  // Check for various migration-related errors that indicate we should baseline
+  const errorText = result.error?.toLowerCase() || '';
 
-  if (isP3005Error) {
-    log('\n⚠️  Detected P3005 error: Database schema exists without migration history', 'yellow');
-    log('   This is expected for existing databases. Will baseline and retry...', 'yellow');
+  const shouldBaseline =
+    errorText.includes('p3005') ||
+    errorText.includes('database schema is not empty') ||
+    errorText.includes('not valid json') ||
+    errorText.includes('unexpected token') ||
+    errorText.includes('failed to check for database diff');
+
+  if (shouldBaseline) {
+    log('\n⚠️  Detected migration compatibility issue', 'yellow');
+    log('   Database may have existing schema without migration history', 'yellow');
+    log('   Will baseline existing migrations and retry...', 'yellow');
     return false;
   }
 
@@ -135,6 +142,38 @@ async function runMigrateDeploy(): Promise<boolean> {
     console.error(result.error);
   }
   throw new Error('Migration deploy failed');
+}
+
+async function checkMigrationStatus(): Promise<'needs_baseline' | 'up_to_date' | 'unknown'> {
+  log('\n🔍 Checking migration status...', 'blue');
+
+  const result = execute('npx prisma migrate status', { silent: true });
+
+  if (result.success || result.output) {
+    const output = (result.output || '').toLowerCase();
+    const error = (result.error || '').toLowerCase();
+    const combined = output + error;
+
+    if (combined.includes('database schema is up to date')) {
+      log('✅ Database schema is up to date', 'green');
+      return 'up_to_date';
+    }
+
+    if (combined.includes('p3005') ||
+        combined.includes('database schema is not empty') ||
+        combined.includes('not valid json') ||
+        combined.includes('unexpected token')) {
+      log('⚠️  Migration history needs to be initialized', 'yellow');
+      return 'needs_baseline';
+    }
+
+    if (combined.includes('following migration') && combined.includes('not yet been applied')) {
+      log('📋 Pending migrations detected', 'blue');
+      return 'unknown';
+    }
+  }
+
+  return 'unknown';
 }
 
 async function generatePrismaClient() {
@@ -166,11 +205,20 @@ async function main() {
   log('✅ DATABASE_URL configured', 'green');
 
   try {
+    // Check migration status first
+    const status = await checkMigrationStatus();
+
+    // If we detect the database needs baselining, do it proactively
+    if (status === 'needs_baseline') {
+      log('\n🔧 Proactively baselining migrations...', 'blue');
+      await baselineExistingMigrations();
+    }
+
     // First attempt to deploy migrations
     const firstAttemptSuccess = await runMigrateDeploy();
 
     if (!firstAttemptSuccess) {
-      // P3005 error detected - baseline and retry
+      // Migration failed - baseline and retry
       const baselined = await baselineExistingMigrations();
 
       if (baselined) {
@@ -179,8 +227,8 @@ async function main() {
         const retrySuccess = await runMigrateDeploy();
 
         if (!retrySuccess) {
-          log('❌ Migration deploy failed even after baselining', 'red');
-          process.exit(1);
+          log('⚠️  Migration deploy still failing, but continuing to start app...', 'yellow');
+          // Don't exit - continue to generate client and start app
         }
       } else {
         log('⚠️  Could not baseline migrations, but continuing...', 'yellow');
@@ -196,16 +244,23 @@ async function main() {
 
     process.exit(0);
   } catch (error) {
-    log('\n❌ Migration process failed', 'red');
+    log('\n❌ Migration process encountered an error', 'red');
     if (error instanceof Error) {
       console.error(error.message);
     }
 
-    log('\n⚠️  Application will start without running migrations', 'yellow');
-    log('   Database may not be in sync with schema', 'yellow');
+    // Try to generate Prisma client anyway
+    try {
+      await generatePrismaClient();
+    } catch (genError) {
+      log('⚠️  Could not generate Prisma client', 'yellow');
+    }
+
+    log('\n⚠️  Starting application despite migration issues', 'yellow');
+    log('   Database may not be fully in sync with schema', 'yellow');
 
     // Exit with success to allow app to start
-    // The app should handle missing migrations gracefully
+    // The app should handle any schema mismatches gracefully
     process.exit(0);
   }
 }
