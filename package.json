@@ -23,6 +23,7 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:deploy:safe": "tsx scripts/safe-migrate-deploy.ts",
     "db:migrate:production": "tsx scripts/db-migrate-production.ts",
+    "db:migrate:ensure": "node scripts/run-migrations.mjs",
     "prisma:generate": "PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "health:check": "tsx scripts/health-check.ts",
