@@ -4,19 +4,76 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["glibcLocales", "libxcrypt", "nano", "nvidia-container-toolkit", "pm2"]
+packages = ["glibcLocales", "libxcrypt"]
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["npm", "run", "build:prod"]
-run = ["npm", "run", "start:prod"]
+build = ["sh", "-c", "npm run build:prod"]
+run = ["sh", "-c", "npm run start:prod"]
 
 [[ports]]
 localPort = 5000
+externalPort = 80
 
 [[ports]]
-localPort = 5001
-externalPort = 80
+localPort = 34165
+externalPort = 3002
+
+[[ports]]
+localPort = 36305
+externalPort = 8080
+
+[[ports]]
+localPort = 38367
+externalPort = 8000
+
+[[ports]]
+localPort = 39233
+externalPort = 3001
+
+[[ports]]
+localPort = 39249
+externalPort = 6000
+
+[[ports]]
+localPort = 40615
+externalPort = 3000
+
+[[ports]]
+localPort = 41739
+externalPort = 4200
+
+[[ports]]
+localPort = 42375
+externalPort = 8008
+
+[[ports]]
+localPort = 43321
+externalPort = 5000
+
+[[ports]]
+localPort = 43487
+externalPort = 9000
+
+[[ports]]
+localPort = 43967
+externalPort = 8081
+
+[[ports]]
+localPort = 44257
+externalPort = 3003
+
+[[ports]]
+localPort = 45109
+externalPort = 5173
+
+[[ports]]
+localPort = 45313
+externalPort = 8099
+
+[[ports]]
+localPort = 46077
+externalPort = 6800
 
 [env]
 PORT = "5000"

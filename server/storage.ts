@@ -329,9 +329,8 @@ export interface IStorage {
   updateVehicleCosts(vehicleId: string, costs: any): Promise<any>;
   updateVehiclePricing(vehicleId: string, pricing: any): Promise<any>;
   markVehicleSold(vehicleId: string, saleData: any): Promise<any>;
-  
+
   // CRM Integration
-  getCustomerInteractions(customerId: string): Promise<any[]>;
   getCustomerDeals(customerId: string): Promise<any[]>;
   
   // Trial Balance & Reports
@@ -4183,13 +4182,6 @@ export class MemStorage implements IStorage {
 
   async markVehicleSold(vehicleId: string, saleData: any) {
     return { vehicleId, status: 'sold', ...saleData, soldAt: new Date() };
-  }
-
-  async getCustomerInteractions(customerId: string) {
-    return [
-      { id: 1, type: 'phone_call', date: '2025-01-20', notes: 'Discussed financing options' },
-      { id: 2, type: 'showroom_visit', date: '2025-01-22', notes: 'Test drove 2024 Camry' }
-    ];
   }
 
   async getCustomerDeals(customerId: string) {
