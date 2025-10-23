@@ -131,14 +131,19 @@ pnpm ci            # Full CI pipeline (generate client, typecheck, lint, test, b
 pnpm prisma:migrate    # Development migrations
 pnpm db:push           # Sync schema without migrations (non-prod)
 pnpm db:seed           # Seed baseline data
+pnpm db:migrate:ensure # Production-safe deploy (auto baselines & generates client)
 ```
+
+Set `SKIP_DB_MIGRATIONS=1` in environments where another job is responsible for applying migrations (for example, read-only
+application replicas).
 
 ## Deployment Summary
 
 - **Production**: Replit Deployments serving the built Express app on port 5000 with automatic SSL, Neon PostgreSQL, and Redis
   for queues. Build command `pnpm run build` (tsup + vite) and start command `pnpm start`.
-- **Self-hosted**: Docker Compose stack under `infrastructure/docker` (`make up`) orchestrates API, client, ML services, Redis,
-  and Postgres. Kubernetes manifests are in `infrastructure/k8s` for clustered installs.
+- **Self-hosted**: Docker Compose stack (`docker-compose.yml`) now provisions Postgres, MinIO, ML scoring service, and automatic
+  Prisma migrations during backend startup. `make up` or `docker compose up --build` orchestrates API, client, ML services,
+  Redis, and Postgres. Kubernetes manifests are in `infrastructure/k8s` for clustered installs.
 
 Detailed architecture, infrastructure, and operational runbooks now live in [`ARCHITECTURE.md`](ARCHITECTURE.md).
 

@@ -75,7 +75,7 @@ npm run db:migrate:production
 
 **Option B: Deploy migrations directly**
 ```bash
-npm run db:migrate:deploy
+npm run db:migrate:deploy:safe
 ```
 
 **Verify migrations:**
@@ -169,6 +169,8 @@ curl -I http://your-domain.com
    build = ["npm", "install", "&&", "npm", "run", "build:prod"]
    run = ["npm", "run", "start:prod"]
    ```
+
+> ⚠️ Run Prisma migrations separately (for example, `npm run db:migrate:deploy`) before starting the production server. Baseline existing databases with `prisma migrate resolve --applied "<migration_name>"` as needed.
 
 3. **Deploy:**
    - Click "Deploy" in Replit

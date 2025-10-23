@@ -14,6 +14,8 @@
 - ✅ Configured all npm scripts to handle engine downloads
 - ✅ Created comprehensive setup documentation
 - ✅ Added automated setup scripts for Linux/Mac/Windows
+- ✅ Added production-safe migration runner (`npm run db:migrate:ensure`)
+- ✅ Docker images now execute migrations on startup and fail fast if they cannot be applied
 
 ### 3. Testing
 - ✅ All 24 tests passing
@@ -36,6 +38,10 @@ npm install
 
 # Generate Prisma Client
 npm run prisma:generate
+
+# Optionally verify migrations
+npm run db:migrate:ensure -- --dry-run
+# Tip: add `--skip-generate` when another job already generated Prisma client artifacts
 
 # Verify it worked
 ls -la node_modules/.prisma/client
@@ -171,12 +177,14 @@ PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING = "1"
 build = ["npm", "install", "&&", "npm", "run", "build:prod"]
 run = ["npm", "run", "start:prod"]
 
+"start:prod" executes `scripts/start-production.sh`, which triggers the safe migration deploy before launching the server.
+
 [[ports]]
 localPort = 5000
 externalPort = 80
 ```
 
-### Step 3: Deploy and Test
+### Step 3: Prepare and Deploy
 
 1. **Merge your branch to main:**
    ```bash
@@ -189,26 +197,33 @@ externalPort = 80
    ```bash
    npm install
    npm run build:prod
-   npm run start:prod
    ```
-
-3. **Verify the deployment:**
-   - Check that the app starts without errors
-   - Test loading different routes (they should lazy load)
-   - Verify database connectivity
-   - Run health checks
 
 ### Step 4: Run Database Migrations
 
-```bash
-# Deploy migrations to production database
-npm run db:migrate:deploy
+> ⚠️ Run migrations before starting the server. For existing databases, baseline migrations first using `prisma migrate resolve --applied "<migration_name>"` as needed.
 
-# Or push schema directly (development)
+```bash
+# Deploy migrations (handles baselining automatically)
+npm run db:migrate:deploy:safe
+
+# Or push schema directly during development
 npm run db:push
 ```
 
-### Step 5: Verify All Features
+### Step 5: Start and Verify
+
+```bash
+npm run start:prod
+```
+
+**Verify the deployment:**
+- Check that the app starts without errors
+- Test loading different routes (they should lazy load)
+- Verify database connectivity
+- Run health checks
+
+### Step 6: Verify All Features
 
 Test these key features:
 - [ ] User authentication works
@@ -286,6 +301,7 @@ Your deployment is ready when:
 - ✅ Main bundle < 300 KB
 - ✅ App starts successfully
 - ✅ Database connections work
+- ✅ Container startup automatically applies pending migrations
 - ✅ Routes lazy load correctly
 
 ## 📞 Additional Resources
@@ -306,6 +322,9 @@ npm run prisma:generate
 
 # Create new migration
 npm run prisma:migrate
+
+# Apply migrations in production / container environments
+npm run db:migrate:ensure
 
 # Rebuild application
 npm run build:prod

@@ -132,7 +132,7 @@ npm run prisma:generate
 npm run prisma:migrate
 
 # Deploy migrations (production)
-npm run db:migrate:deploy
+npm run db:migrate:deploy:safe
 
 # Sync schema without migrations
 npm run db:push

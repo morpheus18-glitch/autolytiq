@@ -50,6 +50,7 @@ import { deskingModule } from "./modules/desking";
 import { fiModule } from "./modules/fi";
 import { findTenantUser } from "./auth-config";
 import { requireSessionAuth, type SessionUser } from "./session-auth";
+import metaRouter from "./routes/meta";
 
 // XML Lead parsing utility
 function parseXmlLead(xmlString: string) {
@@ -120,6 +121,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await moduleRegistry.registerModule(app, crmModule);
   await moduleRegistry.registerModule(app, deskingModule);
   await moduleRegistry.registerModule(app, fiModule);
+  
+  // Meta routes (health, version)
+  app.use('/api', metaRouter);
   
   // System user management routes
   registerUserRoutes(app);
