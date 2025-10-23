@@ -14,6 +14,8 @@
 - ✅ Configured all npm scripts to handle engine downloads
 - ✅ Created comprehensive setup documentation
 - ✅ Added automated setup scripts for Linux/Mac/Windows
+- ✅ Added production-safe migration runner (`npm run db:migrate:ensure`)
+- ✅ Docker images now execute migrations on startup and fail fast if they cannot be applied
 
 ### 3. Testing
 - ✅ All 24 tests passing
@@ -36,6 +38,10 @@ npm install
 
 # Generate Prisma Client
 npm run prisma:generate
+
+# Optionally verify migrations
+npm run db:migrate:ensure -- --dry-run
+# Tip: add `--skip-generate` when another job already generated Prisma client artifacts
 
 # Verify it worked
 ls -la node_modules/.prisma/client
@@ -295,6 +301,7 @@ Your deployment is ready when:
 - ✅ Main bundle < 300 KB
 - ✅ App starts successfully
 - ✅ Database connections work
+- ✅ Container startup automatically applies pending migrations
 - ✅ Routes lazy load correctly
 
 ## 📞 Additional Resources
@@ -315,6 +322,9 @@ npm run prisma:generate
 
 # Create new migration
 npm run prisma:migrate
+
+# Apply migrations in production / container environments
+npm run db:migrate:ensure
 
 # Rebuild application
 npm run build:prod
