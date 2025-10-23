@@ -21,13 +21,14 @@ import { setupVite, serveStatic, log } from "./vite";
 import { seedDefaultData } from "./seed-data";
 import { storage } from "./storage";
 import { initializeComprehensiveSampleData } from "./comprehensive-sample-data";
+import { env } from "./config/env";
 
 const app = express();
 
 // Security middleware - SSL and security headers
 app.use((req, res, next) => {
   // Force HTTPS in production
-  if (process.env.NODE_ENV === 'production' && req.header('x-forwarded-proto') !== 'https') {
+  if (env.NODE_ENV === 'production' && req.header('x-forwarded-proto') !== 'https') {
     return res.redirect(`https://${req.header('host')}${req.url}`);
   }
   
@@ -54,11 +55,11 @@ app.use(express.urlencoded({ extended: false }));
 
 // Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'AutolytiQ-dev-secret-2025',
+  secret: env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: env.NODE_ENV === 'production',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
@@ -158,7 +159,7 @@ app.use((req, res, next) => {
   }
 
   // CRITICAL: Register API routes with absolute priority before static serving
-  const isProduction = process.env.NODE_ENV === "production";
+  const isProduction = env.NODE_ENV === "production";
   if (isProduction) {
     // Add API route protection middleware FIRST in production
     app.use('/api/*', (req, res, next) => {
@@ -191,7 +192,7 @@ app.use((req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  const isDevelopment = process.env.NODE_ENV !== "production";
+  const isDevelopment = env.NODE_ENV !== "production";
   if (isDevelopment) {
     await setupVite(app, server);
   } else {

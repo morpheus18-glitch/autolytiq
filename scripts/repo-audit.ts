@@ -2,16 +2,28 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { globby } from 'globby';
 
+process.on('uncaughtException', (error) => {
+  console.error('[repo-audit] Uncaught exception', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[repo-audit] Unhandled rejection', reason);
+  process.exit(1);
+});
+
 const ROOT = process.cwd();
 const REPORT_DIR = path.join(ROOT, 'var', 'reports');
 
-const EXPECTED_PORTS: Record<string, number> = {
+const EXPECTED_PORTS: Record<'frontend' | 'backend' | 'ml', number> = {
   frontend: 3000,
   backend: 5000,
   ml: 8000,
 };
 
-const ENV_VARS = [
+const ENV_CONTRACT = [
+  'NODE_ENV',
+  'DEPLOY_MODE',
   'DATABASE_URL',
   'REDIS_URL',
   'JWT_SECRET',
@@ -37,6 +49,24 @@ const ENV_VARS = [
   'CLICKHOUSE_PASSWORD',
 ];
 
+type ServiceName = 'frontend' | 'backend' | 'ml';
+
+const SERVICE_FILE_GLOBS: Record<ServiceName, string[]> = {
+  frontend: ['client/src/**/*.{ts,tsx,js,jsx}', 'src/**/*.{ts,tsx,js,jsx}', 'vite.config.*'],
+  backend: ['backend/src/**/*.{ts,tsx,js,jsx}'],
+  ml: ['ml_service/**/*.py'],
+};
+
+const SERVICE_ENTRY_GLOBS: Record<
+  'vite' | 'express' | 'fastapi' | 'celery',
+  string[]
+> = {
+  vite: ['client/vite.config.*', 'vite.config.*'],
+  express: ['backend/src/server.ts', 'backend/src/app.ts', 'server/**/*.ts', 'server/**/*.js'],
+  fastapi: ['ml_service/app/main.py', 'ml_service/main.py', 'ml_service/src/main.py'],
+  celery: ['ml_service/workers/**/*.{py}', 'ml_service/**/celery*.py'],
+};
+
 function toPosix(filePath: string): string {
   return filePath.split(path.sep).join('/');
 }
@@ -49,23 +79,36 @@ async function readFileSafe(filePath: string): Promise<string> {
   }
 }
 
-async function detectPorts(label: string, patterns: string[], port: number) {
+async function collectFiles(patterns: string[], options: { dot?: boolean } = {}) {
+  const matches = await globby(patterns, {
+    cwd: ROOT,
+    gitignore: true,
+    dot: options.dot ?? false,
+  });
+  return matches.map(toPosix);
+}
+
+async function detectPorts(label: ServiceName, patterns: string[], port: number) {
   const files = await globby(patterns, { cwd: ROOT, gitignore: true, dot: false });
   const hits: string[] = [];
 
   for (const relativePath of files) {
     const absolutePath = path.join(ROOT, relativePath);
     const content = await readFileSafe(absolutePath);
-    if (content.includes(port.toString())) {
+    const regex = new RegExp(`[^0-9]${port}(?![0-9])`);
+    if (regex.test(content)) {
       hits.push(toPosix(relativePath));
     }
   }
+
+  const verdict = hits.length > 0;
 
   return {
     expectedPort: port,
     observedIn: hits,
     filesScanned: files.map(toPosix),
-    verdict: hits.length > 0,
+    verdict,
+    blocker: verdict ? null : `${label} port ${port} was not detected in codebase`,
   };
 }
 
@@ -77,69 +120,154 @@ async function detectHealthEndpoints(patterns: string[]) {
   for (const relativePath of files) {
     const absolutePath = path.join(ROOT, relativePath);
     const content = await readFileSafe(absolutePath);
-    if (/\/health\b/.test(content)) {
+    if (/\b\/health\b/.test(content)) {
       health.push(toPosix(relativePath));
     }
-    if (/\/metrics\b/.test(content)) {
+    if (/\b\/metrics\b/.test(content)) {
       metrics.push(toPosix(relativePath));
     }
   }
 
-  return { health, metrics };
+  return { health: [...new Set(health)].sort(), metrics: [...new Set(metrics)].sort() };
+}
+
+type EnvScanResult = {
+  usages: Record<string, string[]>;
+  present: string[];
+  missing: string[];
+  extras: string[];
+};
+
+function scanEnvVariables(service: ServiceName, fileContents: Map<string, string>): EnvScanResult {
+  const usages: Record<string, string[]> = {};
+  const seen = new Set<string>();
+  const extras = new Set<string>();
+
+  const regexes: Record<ServiceName, RegExp[]> = {
+    frontend: [
+      /import\.meta\.env\.([A-Z0-9_]+)/g,
+      /process\.env(?:\[['"])?([A-Z0-9_]+)(?:['"])?/g,
+    ],
+    backend: [/process\.env(?:\[['"])?([A-Z0-9_]+)(?:['"])?/g],
+    ml: [/os\.(?:environ\.get|getenv)\(['"]([A-Z0-9_]+)['"]\)/g, /env=['"]([A-Z0-9_]+)['"]/g],
+  };
+
+  for (const [file, content] of fileContents.entries()) {
+    const hits: string[] = [];
+    for (const pattern of regexes[service]) {
+      const matches = content.matchAll(pattern);
+      for (const match of matches) {
+        const variable = match[1];
+        if (!variable) continue;
+        hits.push(variable);
+        if (ENV_CONTRACT.includes(variable)) {
+          seen.add(variable);
+        } else {
+          extras.add(variable);
+        }
+      }
+    }
+
+    if (hits.length > 0) {
+      for (const variable of hits) {
+        const current = usages[variable] ?? [];
+        current.push(file);
+        usages[variable] = [...new Set(current)].sort();
+      }
+    }
+  }
+
+  const present = ENV_CONTRACT.filter((name) => seen.has(name));
+  const missing = ENV_CONTRACT.filter((name) => !seen.has(name));
+
+  return {
+    usages,
+    present,
+    missing,
+    extras: [...extras].filter((name) => !ENV_CONTRACT.includes(name)).sort(),
+  };
 }
 
 async function detectEnvVarUsage() {
-  const files = await globby(
-    [
-      'backend/src/**/*.{ts,js}',
-      'client/src/**/*.{ts,tsx,js,jsx}',
-      'ml_service/**/*.{py}',
-      'ml-service/**/*.{py}',
-      '*.config.*',
-    ],
-    { cwd: ROOT, gitignore: true },
-  );
+  const result: Record<ServiceName, EnvScanResult> = {
+    frontend: { usages: {}, present: [], missing: [...ENV_CONTRACT], extras: [] },
+    backend: { usages: {}, present: [], missing: [...ENV_CONTRACT], extras: [] },
+    ml: { usages: {}, present: [], missing: [...ENV_CONTRACT], extras: [] },
+  };
 
-  const cache = new Map<string, string>();
-  const usages: Record<string, string[]> = {};
+  for (const service of Object.keys(SERVICE_FILE_GLOBS) as ServiceName[]) {
+    const patterns = SERVICE_FILE_GLOBS[service];
+    const files = await globby(patterns, { cwd: ROOT, gitignore: true });
+    const cache = new Map<string, string>();
 
-  for (const relativePath of files) {
-    const absolutePath = path.join(ROOT, relativePath);
-    const content = await readFileSafe(absolutePath);
-    cache.set(relativePath, content);
-  }
-
-  for (const variable of ENV_VARS) {
-    const hits: string[] = [];
-    for (const [relativePath, content] of cache.entries()) {
-      if (content.includes(variable)) {
-        hits.push(toPosix(relativePath));
-      }
+    for (const relativePath of files) {
+      const absolutePath = path.join(ROOT, relativePath);
+      const content = await readFileSafe(absolutePath);
+      cache.set(toPosix(relativePath), content);
     }
-    usages[variable] = hits.sort();
+
+    result[service] = scanEnvVariables(service, cache);
   }
 
-  return usages;
+  return result;
 }
 
 async function detectServiceFiles() {
-  const frontend = await globby(['client/vite.config.*', 'vite.config.*'], { cwd: ROOT, gitignore: true });
-  const backend = await globby(['backend/src/server.ts', 'backend/src/app.ts', 'server/src/server.ts'], {
-    cwd: ROOT,
-    gitignore: true,
-  });
-  const ml = await globby(['ml_service/app/main.py', 'ml_service/main.py', 'ml_service/src/main.py'], {
-    cwd: ROOT,
-    gitignore: true,
-  });
-  const celery = await globby(['ml_service/workers/**/*', 'ml_service/celery*.py'], { cwd: ROOT, gitignore: true });
+  const entries: Record<string, string[]> = {};
+  for (const [key, patterns] of Object.entries(SERVICE_ENTRY_GLOBS)) {
+    const matches = await collectFiles(patterns);
+    entries[key] = matches.sort();
+  }
+  return entries;
+}
+
+async function detectEnvFiles() {
+  const envFiles = await collectFiles(['**/.env*', '!node_modules/**', '!**/*.example'], { dot: true });
+  const dotenvUsage = await collectFiles([
+    '**/*.{ts,tsx,js,jsx,py}',
+    '!node_modules/**',
+    '!backend/node_modules/**',
+    '!**/dist/**',
+  ]);
+
+  const references: string[] = [];
+
+  for (const file of dotenvUsage) {
+    const content = await readFileSafe(path.join(ROOT, file));
+    if (/(dotenv|load_dotenv|\.env)/.test(content)) {
+      references.push(file);
+    }
+  }
 
   return {
-    frontend: frontend.map(toPosix),
-    backend: backend.map(toPosix),
-    ml: ml.map(toPosix),
-    celery: celery.map(toPosix),
+    envFiles: envFiles.sort(),
+    references: [...new Set(references)].sort(),
   };
+}
+
+async function detectHardcodedUrls() {
+  const files = await globby(
+    ['**/*.{ts,tsx,js,jsx,py}', '!node_modules/**', '!backend/node_modules/**', '!**/dist/**'],
+    { cwd: ROOT, gitignore: true },
+  );
+  const urls: Record<string, string[]> = {};
+
+  for (const file of files) {
+    const absolutePath = path.join(ROOT, file);
+    const content = await readFileSafe(absolutePath);
+    const matches = content.match(/https?:\/\/[^\s'"`]+/g);
+    if (matches && matches.length > 0) {
+      const sanitized = [...new Set(matches)]
+        .map((value) => value.replace(/[;,]+$/, ''))
+        .filter((value) => value.length > 0 && !value.includes('${'))
+        .sort();
+      if (sanitized.length > 0) {
+        urls[toPosix(file)] = sanitized;
+      }
+    }
+  }
+
+  return urls;
 }
 
 async function writeJsonReport(fileName: string, data: unknown) {
@@ -156,42 +284,56 @@ async function writePlan(remediation: string[]) {
 }
 
 async function main() {
-  const services = await detectServiceFiles();
+  const serviceEntries = await detectServiceFiles();
 
   const portFacts = {
-    frontend: await detectPorts('frontend', ['client/src/**/*.{ts,tsx,js,jsx}', 'vite.config.*'], EXPECTED_PORTS.frontend),
-    backend: await detectPorts('backend', ['backend/src/**/*.{ts,js}', 'server/src/**/*.{ts,js}'], EXPECTED_PORTS.backend),
-    ml: await detectPorts('ml', ['ml_service/**/*.py'], EXPECTED_PORTS.ml),
+    frontend: await detectPorts('frontend', SERVICE_FILE_GLOBS.frontend, EXPECTED_PORTS.frontend),
+    backend: await detectPorts('backend', SERVICE_FILE_GLOBS.backend, EXPECTED_PORTS.backend),
+    ml: await detectPorts('ml', SERVICE_FILE_GLOBS.ml, EXPECTED_PORTS.ml),
   } as const;
 
   const endpoints = await detectHealthEndpoints([
     'backend/src/**/*.{ts,js}',
     'ml_service/**/*.py',
-    'ml-service/**/*.py',
   ]);
 
-  const envUsages = await detectEnvVarUsage();
+  const envUsage = await detectEnvVarUsage();
+  const envArtifacts = await detectEnvFiles();
+  const hardcodedUrls = await detectHardcodedUrls();
+
+  const blockers = Object.values(portFacts)
+    .map((fact) => fact.blocker)
+    .filter((item): item is string => Boolean(item));
 
   const facts = {
     generatedAt: new Date().toISOString(),
-    services,
+    serviceEntries,
     ports: portFacts,
     endpoints,
-    envUsages,
+    envContract: ENV_CONTRACT,
+    envUsage,
+    envArtifacts,
+    hardcodedUrls,
+    blockers,
   };
 
   await writeJsonReport('infra-audit.json', facts);
 
   const remediation: string[] = [];
 
-  remediation.push('Enforce a shared environment contract across backend and ML services with strict validation.');
-  remediation.push('Introduce feature flags to gate Docker/K8s self-hosted assets while keeping Replit defaults.');
-  remediation.push('Ensure Redis-backed caching and Celery worker topology share a unified REDIS_URL configuration.');
-  remediation.push('Add health and metrics endpoints for backend and ML services aligned with Prometheus conventions.');
-  remediation.push('Harden secret management with gitleaks scans and pre-commit enforcement.');
-  remediation.push('Document Replit development workflow, secrets management, and cloud provider setup.');
+  remediation.push('Implement strict environment validation shared across backend and ML services, aligned with ENV contract.');
+  remediation.push('Add deployment flags (replit vs self_hosted) to gate Docker/K8s assets and monitoring features.');
+  remediation.push('Wire Redis REDIS_URL into backend cache and Celery broker/result, including smoke scripts.');
+  remediation.push('Expose /health and /metrics endpoints in backend and ML services instrumented for Prometheus.');
+  remediation.push('Harden secrets handling with gitleaks scanning and pre-commit hook enforcement.');
+  remediation.push('Author Replit-first dev docs plus provider onboarding guides with smoke tests and rotation policies.');
+  remediation.push('Ship self-host orchestration (Docker & K8s) guarded behind feature flags, with CI coverage.');
 
   await writePlan(remediation);
+
+  if (blockers.length > 0) {
+    console.warn('[repo-audit] Blockers detected:', blockers);
+  }
 }
 
 main().catch((error) => {

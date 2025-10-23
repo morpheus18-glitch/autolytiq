@@ -10,6 +10,7 @@ import type { Express, Request, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
+import { env } from "./config/env";
 
 if (!process.env.REPLIT_DOMAINS) {
   console.warn("REPLIT_DOMAINS not provided - Replit Auth may not work");
@@ -34,10 +35,10 @@ export function getSession() {
   
   let sessionStore;
   try {
-    if (process.env.DATABASE_URL) {
+    if (env.DATABASE_URL) {
       const pgStore = connectPg(session);
       sessionStore = new pgStore({
-        conString: process.env.DATABASE_URL,
+        conString: env.DATABASE_URL,
         createTableIfMissing: true,
         ttl: sessionTtl / 1000, // Convert to seconds
         tableName: "sessions",
@@ -51,7 +52,7 @@ export function getSession() {
   }
 
   return session({
-    secret: process.env.SESSION_SECRET!,
+    secret: env.SESSION_SECRET,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,

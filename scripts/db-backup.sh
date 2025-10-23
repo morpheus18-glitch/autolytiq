@@ -2,6 +2,15 @@
 set -euo pipefail
 
 if [[ -z "${DATABASE_URL:-}" ]]; then
+  if [[ -f .env ]]; then
+    # shellcheck disable=SC1091
+    set -a
+    source .env
+    set +a
+  fi
+fi
+
+if [[ -z "${DATABASE_URL:-}" ]]; then
   echo "DATABASE_URL is not set"
   exit 1
 fi

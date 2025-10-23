@@ -5,9 +5,15 @@ const DEFAULT_HOME_PATH = '/dashboard';
 type MaybeString = string | null | undefined;
 type MaybeStringArray = Array<string | null | undefined> | null | undefined;
 
+type AccessAware = {
+  access?: {
+    homePath?: string | null;
+  };
+};
+
 type RoleAwareShape = Pick<PermissionedUser, 'role' | 'permissions' | 'featureFlags' | 'developer'>;
 
-export type RoleAwareUser = RoleAwareShape | null | undefined;
+export type RoleAwareUser = (RoleAwareShape & AccessAware) | null | undefined;
 
 function normalizeRole(role: MaybeString): string {
   if (typeof role === 'string') {
@@ -50,6 +56,11 @@ function hasPermissionPrefix(permissions: string[], prefix: string): boolean {
 export function getUserLandingPath(user: RoleAwareUser): string {
   if (!user) {
     return DEFAULT_HOME_PATH;
+  }
+
+  const explicitHome = user.access?.homePath;
+  if (explicitHome && typeof explicitHome === 'string') {
+    return explicitHome;
   }
 
   const normalizedRole = normalizeRole(user.role ?? null);

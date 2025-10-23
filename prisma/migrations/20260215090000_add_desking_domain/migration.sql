@@ -2,14 +2,50 @@
 -- Part 8.1 - Deal worksheets, versions, optimization, counter offers, approval predictions
 
 -- Rename existing deal status enum so new worksheet status can reuse original name
-ALTER TYPE "DealStatus" RENAME TO "RetailDealStatus";
+DO $$
+BEGIN
+  IF to_regtype('"RetailDealStatus"') IS NULL AND to_regtype('"DealStatus"') IS NOT NULL THEN
+    EXECUTE 'ALTER TYPE "DealStatus" RENAME TO "RetailDealStatus"';
+  END IF;
+END
+$$;
 
 -- Core enums for desking workflows
-CREATE TYPE "DealStatus" AS ENUM ('WORKING', 'PENCILED', 'SUBMITTED', 'CLOSED', 'LOST');
-CREATE TYPE "CreditTier" AS ENUM ('TIER_1', 'TIER_2', 'TIER_3', 'TIER_4', 'TIER_5', 'TIER_6');
-CREATE TYPE "ResidenceType" AS ENUM ('OWN', 'RENT', 'LEASE', 'FAMILY', 'MILITARY', 'OTHER');
-CREATE TYPE "Recommendation" AS ENUM ('STRONG', 'MODERATE', 'WEAK', 'DO_NOT_SUBMIT');
-CREATE TYPE "CounterOfferOutcome" AS ENUM ('PENDING', 'ACCEPTED', 'DECLINED');
+DO $$
+BEGIN
+  IF to_regtype('"DealStatus"') IS NULL THEN
+    CREATE TYPE "DealStatus" AS ENUM ('WORKING', 'PENCILED', 'SUBMITTED', 'CLOSED', 'LOST');
+  END IF;
+END
+$$;
+DO $$
+BEGIN
+  IF to_regtype('"CreditTier"') IS NULL THEN
+    CREATE TYPE "CreditTier" AS ENUM ('TIER_1', 'TIER_2', 'TIER_3', 'TIER_4', 'TIER_5', 'TIER_6');
+  END IF;
+END
+$$;
+DO $$
+BEGIN
+  IF to_regtype('"ResidenceType"') IS NULL THEN
+    CREATE TYPE "ResidenceType" AS ENUM ('OWN', 'RENT', 'LEASE', 'FAMILY', 'MILITARY', 'OTHER');
+  END IF;
+END
+$$;
+DO $$
+BEGIN
+  IF to_regtype('"Recommendation"') IS NULL THEN
+    CREATE TYPE "Recommendation" AS ENUM ('STRONG', 'MODERATE', 'WEAK', 'DO_NOT_SUBMIT');
+  END IF;
+END
+$$;
+DO $$
+BEGIN
+  IF to_regtype('"CounterOfferOutcome"') IS NULL THEN
+    CREATE TYPE "CounterOfferOutcome" AS ENUM ('PENDING', 'ACCEPTED', 'DECLINED');
+  END IF;
+END
+$$;
 
 -- Ensure existing deals continue to default to draft status using renamed enum
 ALTER TABLE "Deal"
@@ -18,7 +54,7 @@ ALTER TABLE "Deal"
   ALTER COLUMN "status" SET DEFAULT 'DRAFT';
 
 -- Worksheet snapshots for deal structuring
-CREATE TABLE "DealWorksheet" (
+CREATE TABLE IF NOT EXISTS "DealWorksheet" (
   "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
   "tenantId" TEXT NOT NULL,
   "dealId" TEXT NOT NULL,
@@ -45,7 +81,7 @@ CREATE TABLE "DealWorksheet" (
 );
 
 -- Versioned worksheet history
-CREATE TABLE "DealVersion" (
+CREATE TABLE IF NOT EXISTS "DealVersion" (
   "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
   "tenantId" TEXT NOT NULL,
   "dealId" TEXT NOT NULL,
@@ -64,11 +100,23 @@ CREATE TABLE "DealVersion" (
   CONSTRAINT "DealVersion_createdBy_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE SET NULL
 );
 
-ALTER TABLE "DealWorksheet"
-  ADD CONSTRAINT "DealWorksheet_versionPointer_fkey" FOREIGN KEY ("versionPointerId") REFERENCES "DealVersion"("id") ON DELETE SET NULL;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.table_constraints
+    WHERE constraint_schema = current_schema()
+      AND table_name = 'DealWorksheet'
+      AND constraint_name = 'DealWorksheet_versionPointer_fkey'
+  ) THEN
+    ALTER TABLE "DealWorksheet"
+      ADD CONSTRAINT "DealWorksheet_versionPointer_fkey" FOREIGN KEY ("versionPointerId") REFERENCES "DealVersion"("id") ON DELETE SET NULL;
+  END IF;
+END
+$$;
 
 -- Optimization runs capturing goals/constraints and AI output
-CREATE TABLE "DealOptimization" (
+CREATE TABLE IF NOT EXISTS "DealOptimization" (
   "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
   "tenantId" TEXT NOT NULL,
   "dealId" TEXT NOT NULL,
@@ -93,7 +141,7 @@ CREATE TABLE "DealOptimization" (
 );
 
 -- Counter offer conversations with customers
-CREATE TABLE "CounterOffer" (
+CREATE TABLE IF NOT EXISTS "CounterOffer" (
   "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
   "tenantId" TEXT NOT NULL,
   "dealId" TEXT NOT NULL,
@@ -115,7 +163,7 @@ CREATE TABLE "CounterOffer" (
 );
 
 -- Lender approval predictions
-CREATE TABLE "ApprovalPrediction" (
+CREATE TABLE IF NOT EXISTS "ApprovalPrediction" (
   "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
   "tenantId" TEXT NOT NULL,
   "dealId" TEXT NOT NULL,
@@ -141,44 +189,44 @@ CREATE TABLE "ApprovalPrediction" (
 );
 
 -- Worksheet indexes for common filters and JSON search
-CREATE INDEX "DealWorksheet_tenant_deal_idx" ON "DealWorksheet" ("tenantId", "dealId");
-CREATE INDEX "DealWorksheet_tenant_customer_idx" ON "DealWorksheet" ("tenantId", "customerId");
-CREATE INDEX "DealWorksheet_tenant_vehicle_idx" ON "DealWorksheet" ("tenantId", "vehicleId");
-CREATE INDEX "DealWorksheet_tenant_status_idx" ON "DealWorksheet" ("tenantId", "status");
-CREATE INDEX "DealWorksheet_deal_createdAt_idx" ON "DealWorksheet" ("dealId", "createdAt" DESC);
-CREATE INDEX "DealWorksheet_tenant_version_idx" ON "DealWorksheet" ("tenantId", "versionPointerId");
-CREATE INDEX "DealWorksheet_structure_gin" ON "DealWorksheet" USING GIN ("structure");
-CREATE INDEX "DealWorksheet_totals_gin" ON "DealWorksheet" USING GIN ("totals");
-CREATE INDEX "DealWorksheet_active_working_idx" ON "DealWorksheet" ("tenantId") WHERE "status" = 'WORKING';
+CREATE INDEX IF NOT EXISTS "DealWorksheet_tenant_deal_idx" ON "DealWorksheet" ("tenantId", "dealId");
+CREATE INDEX IF NOT EXISTS "DealWorksheet_tenant_customer_idx" ON "DealWorksheet" ("tenantId", "customerId");
+CREATE INDEX IF NOT EXISTS "DealWorksheet_tenant_vehicle_idx" ON "DealWorksheet" ("tenantId", "vehicleId");
+CREATE INDEX IF NOT EXISTS "DealWorksheet_tenant_status_idx" ON "DealWorksheet" ("tenantId", "status");
+CREATE INDEX IF NOT EXISTS "DealWorksheet_deal_createdAt_idx" ON "DealWorksheet" ("dealId", "createdAt" DESC);
+CREATE INDEX IF NOT EXISTS "DealWorksheet_tenant_version_idx" ON "DealWorksheet" ("tenantId", "versionPointerId");
+CREATE INDEX IF NOT EXISTS "DealWorksheet_structure_gin" ON "DealWorksheet" USING GIN ("structure");
+CREATE INDEX IF NOT EXISTS "DealWorksheet_totals_gin" ON "DealWorksheet" USING GIN ("totals");
+CREATE INDEX IF NOT EXISTS "DealWorksheet_active_working_idx" ON "DealWorksheet" ("tenantId") WHERE "status" = 'WORKING';
 
 -- Version indexes for retrieval
-CREATE INDEX "DealVersion_tenant_deal_idx" ON "DealVersion" ("tenantId", "dealId");
-CREATE INDEX "DealVersion_tenant_worksheet_idx" ON "DealVersion" ("tenantId", "worksheetId");
-CREATE INDEX "DealVersion_deal_createdAt_idx" ON "DealVersion" ("dealId", "createdAt" DESC);
-CREATE INDEX "DealVersion_worksheet_createdAt_idx" ON "DealVersion" ("worksheetId", "createdAt" DESC);
-CREATE INDEX "DealVersion_snapshot_gin" ON "DealVersion" USING GIN ("snapshot");
-CREATE INDEX "DealVersion_gross_gin" ON "DealVersion" USING GIN ("grossBreakdown");
+CREATE INDEX IF NOT EXISTS "DealVersion_tenant_deal_idx" ON "DealVersion" ("tenantId", "dealId");
+CREATE INDEX IF NOT EXISTS "DealVersion_tenant_worksheet_idx" ON "DealVersion" ("tenantId", "worksheetId");
+CREATE INDEX IF NOT EXISTS "DealVersion_deal_createdAt_idx" ON "DealVersion" ("dealId", "createdAt" DESC);
+CREATE INDEX IF NOT EXISTS "DealVersion_worksheet_createdAt_idx" ON "DealVersion" ("worksheetId", "createdAt" DESC);
+CREATE INDEX IF NOT EXISTS "DealVersion_snapshot_gin" ON "DealVersion" USING GIN ("snapshot");
+CREATE INDEX IF NOT EXISTS "DealVersion_gross_gin" ON "DealVersion" USING GIN ("grossBreakdown");
 
 -- Optimization indexes for analytics
-CREATE INDEX "DealOptimization_tenant_deal_idx" ON "DealOptimization" ("tenantId", "dealId");
-CREATE INDEX "DealOptimization_deal_createdAt_idx" ON "DealOptimization" ("dealId", "createdAt" DESC);
-CREATE INDEX "DealOptimization_tenant_worksheet_idx" ON "DealOptimization" ("tenantId", "worksheetId");
-CREATE INDEX "DealOptimization_tenant_version_idx" ON "DealOptimization" ("tenantId", "versionId");
-CREATE INDEX "DealOptimization_tenant_trace_idx" ON "DealOptimization" ("tenantId", "mlTraceId");
-CREATE INDEX "DealOptimization_goals_gin" ON "DealOptimization" USING GIN ("goals");
-CREATE INDEX "DealOptimization_recommended_gin" ON "DealOptimization" USING GIN ("recommendedStructure");
-CREATE INDEX "DealOptimization_alternatives_gin" ON "DealOptimization" USING GIN ("alternatives");
+CREATE INDEX IF NOT EXISTS "DealOptimization_tenant_deal_idx" ON "DealOptimization" ("tenantId", "dealId");
+CREATE INDEX IF NOT EXISTS "DealOptimization_deal_createdAt_idx" ON "DealOptimization" ("dealId", "createdAt" DESC);
+CREATE INDEX IF NOT EXISTS "DealOptimization_tenant_worksheet_idx" ON "DealOptimization" ("tenantId", "worksheetId");
+CREATE INDEX IF NOT EXISTS "DealOptimization_tenant_version_idx" ON "DealOptimization" ("tenantId", "versionId");
+CREATE INDEX IF NOT EXISTS "DealOptimization_tenant_trace_idx" ON "DealOptimization" ("tenantId", "mlTraceId");
+CREATE INDEX IF NOT EXISTS "DealOptimization_goals_gin" ON "DealOptimization" USING GIN ("goals");
+CREATE INDEX IF NOT EXISTS "DealOptimization_recommended_gin" ON "DealOptimization" USING GIN ("recommendedStructure");
+CREATE INDEX IF NOT EXISTS "DealOptimization_alternatives_gin" ON "DealOptimization" USING GIN ("alternatives");
 
 -- Counter offer indexes
-CREATE INDEX "CounterOffer_tenant_deal_idx" ON "CounterOffer" ("tenantId", "dealId");
-CREATE INDEX "CounterOffer_tenant_outcome_idx" ON "CounterOffer" ("tenantId", "outcome");
-CREATE INDEX "CounterOffer_deal_createdAt_idx" ON "CounterOffer" ("dealId", "createdAt" DESC);
-CREATE INDEX "CounterOffer_input_gin" ON "CounterOffer" USING GIN ("input");
-CREATE INDEX "CounterOffer_aiResponse_gin" ON "CounterOffer" USING GIN ("aiResponse");
+CREATE INDEX IF NOT EXISTS "CounterOffer_tenant_deal_idx" ON "CounterOffer" ("tenantId", "dealId");
+CREATE INDEX IF NOT EXISTS "CounterOffer_tenant_outcome_idx" ON "CounterOffer" ("tenantId", "outcome");
+CREATE INDEX IF NOT EXISTS "CounterOffer_deal_createdAt_idx" ON "CounterOffer" ("dealId", "createdAt" DESC);
+CREATE INDEX IF NOT EXISTS "CounterOffer_input_gin" ON "CounterOffer" USING GIN ("input");
+CREATE INDEX IF NOT EXISTS "CounterOffer_aiResponse_gin" ON "CounterOffer" USING GIN ("aiResponse");
 
 -- Approval prediction indexes
-CREATE INDEX "ApprovalPrediction_tenant_deal_idx" ON "ApprovalPrediction" ("tenantId", "dealId");
-CREATE INDEX "ApprovalPrediction_tenant_lender_idx" ON "ApprovalPrediction" ("tenantId", "lenderId");
-CREATE INDEX "ApprovalPrediction_tenant_recommendation_idx" ON "ApprovalPrediction" ("tenantId", "recommendation");
-CREATE INDEX "ApprovalPrediction_deal_createdAt_idx" ON "ApprovalPrediction" ("dealId", "createdAt" DESC);
-CREATE INDEX "ApprovalPrediction_stipulations_gin" ON "ApprovalPrediction" USING GIN ("stipulations");
+CREATE INDEX IF NOT EXISTS "ApprovalPrediction_tenant_deal_idx" ON "ApprovalPrediction" ("tenantId", "dealId");
+CREATE INDEX IF NOT EXISTS "ApprovalPrediction_tenant_lender_idx" ON "ApprovalPrediction" ("tenantId", "lenderId");
+CREATE INDEX IF NOT EXISTS "ApprovalPrediction_tenant_recommendation_idx" ON "ApprovalPrediction" ("tenantId", "recommendation");
+CREATE INDEX IF NOT EXISTS "ApprovalPrediction_deal_createdAt_idx" ON "ApprovalPrediction" ("dealId", "createdAt" DESC);
+CREATE INDEX IF NOT EXISTS "ApprovalPrediction_stipulations_gin" ON "ApprovalPrediction" USING GIN ("stipulations");

@@ -15,57 +15,56 @@ export const designTokens = {
   // ═════════════════════════════════════════════════════════════════════════
 
   colors: {
-    // Primary: Professional Blue (trust, automotive industry standard)
-    // Inspired by LinkedIn, Microsoft, Chase
+    // Primary: Luminous electric blue inspired by automotive digital cockpits
     primary: {
-      50: '#EFF6FF',
-      100: '#DBEAFE',
-      200: '#BFDBFE',
-      300: '#93C5FD',
-      400: '#60A5FA',
-      500: '#3B82F6',
-      600: '#2563EB',
-      700: '#1D4ED8',
-      800: '#1E40AF',
-      900: '#1E3A8A',
-      950: '#172554',
+      50: '#E6F6FF',
+      100: '#C8EAFF',
+      200: '#9AD9FF',
+      300: '#5BC0FF',
+      400: '#26A5FA',
+      500: '#0EA5E9',
+      600: '#0284C7',
+      700: '#0369A1',
+      800: '#075985',
+      900: '#0C4A6E',
+      950: '#082F49',
     },
 
-    // Secondary: Sophisticated Slate (professional gray-blue)
+    // Secondary: Vibrant ultraviolet for depth and premium contrast
     secondary: {
-      50: '#F8FAFC',
-      100: '#F1F5F9',
-      200: '#E2E8F0',
-      300: '#CBD5E1',
-      400: '#94A3B8',
-      500: '#64748B',
-      600: '#475569',
-      700: '#334155',
-      800: '#1E293B',
-      900: '#0F172A',
-      950: '#020617',
+      50: '#F5F3FF',
+      100: '#EDE9FE',
+      200: '#DDD6FE',
+      300: '#C4B5FD',
+      400: '#A78BFA',
+      500: '#8B5CF6',
+      600: '#7C3AED',
+      700: '#6D28D9',
+      800: '#5B21B6',
+      900: '#4C1D95',
+      950: '#2E1065',
     },
 
-    // Neutrals: Pure grays for text and backgrounds
+    // Neutrals: Cool gray neutrals with subtle blue undertones for HDR contrast
     neutral: {
       0: '#FFFFFF',
-      50: '#FAFAFA',
-      100: '#F5F5F5',
-      200: '#E5E5E5',
-      300: '#D4D4D4',
-      400: '#A3A3A3',
-      500: '#737373',
-      600: '#525252',
-      700: '#404040',
-      800: '#262626',
-      900: '#171717',
-      950: '#0A0A0A',
+      50: '#F4F7FB',
+      100: '#E9EEF6',
+      200: '#D6DEEB',
+      300: '#B9C4D5',
+      400: '#94A5BC',
+      500: '#6E7F96',
+      600: '#51607A',
+      700: '#3A475B',
+      800: '#252F3D',
+      900: '#0F172A',
+      950: '#070B13',
     },
 
     // Semantic Colors (status indicators)
     success: {
-      50: '#F0FDF4',
-      100: '#DCFCE7',
+      50: '#ECFDF5',
+      100: '#D1FAE5',
       500: '#22C55E',
       600: '#16A34A',
       700: '#15803D',
@@ -75,36 +74,62 @@ export const designTokens = {
     error: {
       50: '#FEF2F2',
       100: '#FEE2E2',
-      500: '#EF4444',
-      600: '#DC2626',
-      700: '#B91C1C',
+      500: '#F87171',
+      600: '#EF4444',
+      700: '#DC2626',
       900: '#7F1D1D',
     },
 
     warning: {
-      50: '#FFFBEB',
-      100: '#FEF3C7',
-      500: '#F59E0B',
-      600: '#D97706',
-      700: '#B45309',
-      900: '#78350F',
+      50: '#FFF7ED',
+      100: '#FFEDD5',
+      500: '#F97316',
+      600: '#EA580C',
+      700: '#C2410C',
+      900: '#7C2D12',
     },
 
     info: {
-      50: '#EFF6FF',
-      100: '#DBEAFE',
-      500: '#3B82F6',
-      600: '#2563EB',
-      700: '#1D4ED8',
-      900: '#1E3A8A',
+      50: '#E8F5FF',
+      100: '#CCE8FF',
+      500: '#38BDF8',
+      600: '#0EA5E9',
+      700: '#0284C7',
+      900: '#0F4C75',
     },
 
-    // Automotive Specific (optional accents)
+    // Automotive accents for storytelling moments
     automotive: {
-      gold: '#D4AF37',
-      steel: '#71797E',
-      racing: '#DC0000',
+      gold: '#F5C453',
+      steel: '#718196',
+      racing: '#F22F46',
       electric: '#00D4AA',
+      midnight: '#101733',
+    },
+  },
+
+  // Brand gradients and glows for premium surfaces
+  gradients: {
+    brand: 'linear-gradient(135deg, #0EA5E9 0%, #8B5CF6 55%, #F97316 100%)',
+    aurora: 'linear-gradient(145deg, rgba(14,165,233,0.85), rgba(139,92,246,0.85))',
+    glass: 'linear-gradient(135deg, rgba(255,255,255,0.82), rgba(244,247,251,0.66))',
+    depth: 'radial-gradient(circle at top, rgba(14,165,233,0.18), rgba(17,24,39,0.92))',
+  },
+
+  surface: {
+    light: {
+      base: '#F4F7FB',
+      elevated: '#FFFFFF',
+      subtle: '#E9EEF6',
+      outline: 'rgba(148, 165, 188, 0.35)',
+      glow: 'rgba(14, 165, 233, 0.35)',
+    },
+    dark: {
+      base: '#050914',
+      elevated: 'rgba(15, 23, 42, 0.92)',
+      subtle: 'rgba(37, 47, 61, 0.68)',
+      outline: 'rgba(100, 116, 139, 0.35)',
+      glow: 'rgba(139, 92, 246, 0.35)',
     },
   },
 
@@ -192,13 +217,15 @@ export const designTokens = {
 
   shadows: {
     none: 'none',
-    sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-    base: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
-    md: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-    lg: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-    xl: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-    '2xl': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
-    inner: 'inset 0 2px 4px 0 rgb(0 0 0 / 0.05)',
+    sm: '0 1px 2px 0 rgb(15 23 42 / 0.05)',
+    base: '0 1px 3px 0 rgb(15 23 42 / 0.12), 0 1px 2px -1px rgb(15 23 42 / 0.08)',
+    md: '0 8px 16px -6px rgb(15 23 42 / 0.14), 0 4px 8px -4px rgb(15 23 42 / 0.12)',
+    lg: '0 16px 32px -12px rgb(8 47 73 / 0.22), 0 6px 14px -4px rgb(15 23 42 / 0.14)',
+    xl: '0 24px 48px -20px rgb(8 47 73 / 0.25), 0 8px 24px -8px rgb(76 29 149 / 0.2)',
+    '2xl': '0 35px 65px -25px rgb(8 47 73 / 0.3), 0 20px 35px -15px rgb(15 23 42 / 0.28)',
+    inner: 'inset 0 2px 6px 0 rgb(255 255 255 / 0.12)',
+    glow: '0 0 0 1px rgba(14,165,233,0.45), 0 18px 35px -15px rgba(139,92,246,0.45)',
+    'pixel-emboss': '0 0 0 1px rgba(8,47,73,0.45), 0 6px 0 0 rgba(8,47,73,0.35), inset 0 1px 0 0 rgba(255,255,255,0.6)',
   },
 
   // ═════════════════════════════════════════════════════════════════════════
@@ -224,9 +251,9 @@ export const designTokens = {
       full: '9999px',
     },
     color: {
-      light: 'rgb(229 231 235)',
-      base: 'rgb(209 213 219)',
-      dark: 'rgb(156 163 175)',
+      light: 'rgba(213, 221, 233, 0.9)',
+      base: 'rgba(148, 165, 188, 0.65)',
+      dark: 'rgba(82, 96, 122, 0.75)',
     },
   },
 

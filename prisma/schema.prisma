@@ -61,6 +61,7 @@ model Tenant {
   reports              Report[]
   smsTemplates         SMSTemplate[]
   stageTransitions     StageTransition[]
+  stores               Store[]
   systemSettings       SystemSetting[]
   transportOrders      TransportOrder[]
   users                User[]
@@ -71,20 +72,85 @@ model Tenant {
   workflowDefinitions  WorkflowDefinition[]
   workflowStages       WorkflowStage[]
   workflowTasks        WorkflowTask[]
+  passwordResetTokens  PasswordResetToken[]
+  // Enterprise CRM Extension relations
+  campaigns            Campaign[]
+  campaignMembers      CampaignMember[]
+  campaignSegments     CampaignSegment[]
+  campaignAnalytics    CampaignAnalytics[]
+  emailSequences       EmailSequence[]
+  sequenceSteps        SequenceStep[]
+  sequenceEnrollments  SequenceEnrollment[]
+  messageTemplates     MessageTemplate[]
+  tickets              Ticket[]
+  ticketComments       TicketComment[]
+  ticketCategories     TicketCategory[]
+  knowledgeBases       KnowledgeBase[]
+  kbCategories         KBCategory[]
+  kbArticles           KBArticle[]
+  satisfactionScores   SatisfactionScore[]
+  projects             Project[]
+  projectTasks         ProjectTask[]
+  projectMilestones    ProjectMilestone[]
+  projectTimeEntries   ProjectTimeEntry[]
+  projectExpenses      ProjectExpense[]
+  projectResources     ProjectResource[]
+  integrations         Integration[]
+  integrationSyncLogs  IntegrationSyncLog[]
+  integrationFieldMappings IntegrationFieldMapping[]
+  webhookEndpoints     WebhookEndpoint[]
+  webhookDeliveries    WebhookDelivery[]
+  documentFolders      DocumentFolder[]
+  documents            Document[]
+  documentVersions     DocumentVersion[]
+  documentShares       DocumentShare[]
+  digitalSignatureRequests DigitalSignatureRequest[]
+  digitalSignatureEvents DigitalSignatureEvent[]
+  dashboards           Dashboard[]
+  dashboardWidgets     DashboardWidget[]
+  dashboardShares      DashboardShare[]
+  customReports        CustomReport[]
+  reportSchedules      ReportSchedule[]
+  dataExports          DataExport[]
+  userPreferences      UserPreference[]
+  savedSearches        SavedSearch[]
+  favoriteRecords      FavoriteRecord[]
 
   @@map("tenants")
+}
+
+model Store {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  code      String
+  name      String
+  timezone  String   @default("UTC")
+  aliases   String[] @default([])
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  users     User[]
+
+  @@unique([code])
+  @@index([tenantId])
+  @@map("stores")
 }
 
 model User {
   id                        String                @id @default(cuid())
   tenantId                  String                @map("tenant_id")
+  storeId                   String?               @map("store_id")
   email                     String
   password                  String
+  username                  String?               @map("username")
   firstName                 String                @map("first_name")
   lastName                  String                @map("last_name")
   phone                     String?
   role                      UserRole              @default(SALES)
   permissions               Json                  @default(dbgenerated("jsonb_build_array()"))
+  featureFlags              String[]              @default([]) @map("feature_flags")
+  accessOverrides           Json?                 @map("access_overrides")
   status                    UserStatus            @default(ACTIVE)
   isSuperAdmin              Boolean               @default(false) @map("is_super_admin")
   lastLoginAt               DateTime?             @map("last_login_at") @db.Timestamptz(6)
@@ -118,12 +184,31 @@ model User {
   stageTransitions          StageTransition[]     @relation("StageTransitionActor")
   systemSettings            SystemSetting[]
   tenant                    Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  store                     Store?                @relation(fields: [storeId], references: [id])
   assignedWorkflowTasks     WorkflowTask[]        @relation("WorkflowTaskAssignee")
+  passwordResetTokens       PasswordResetToken[]
 
   @@unique([tenantId, email])
+  @@unique([tenantId, username])
   @@index([tenantId])
   @@index([isSuperAdmin])
   @@map("users")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  tenantId  String   @map("tenant_id")
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 model Customer {
@@ -2053,4 +2138,1190 @@ enum AuditAction {
   UPDATE
   DELETE
   VIEW
+}
+
+// ============================================================================
+// ENTERPRISE CRM EXTENSION
+// Added: 2025-10-22
+// ============================================================================
+
+model Campaign {
+  id                String             @id @default(uuid())
+  tenantId          String
+  name              String
+  description       String?
+  type              CampaignType
+  status            CampaignStatus     @default(DRAFT)
+  startDate         DateTime?          @db.Timestamptz(6)
+  endDate           DateTime?          @db.Timestamptz(6)
+  budget            Decimal?           @db.Decimal(18, 2)
+  actualCost        Decimal?           @db.Decimal(18, 2)
+  expectedRevenue   Decimal?           @db.Decimal(18, 2)
+  actualRevenue     Decimal?           @db.Decimal(18, 2)
+  targetAudience    Json?
+  goals             Json?
+  tags              String[]           @default([])
+  createdBy         String
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  creator           User               @relation("CampaignCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  members           CampaignMember[]
+  sequences         EmailSequence[]
+  analytics         CampaignAnalytics[]
+  segments          CampaignSegment[]
+
+  @@index([tenantId, status])
+  @@index([tenantId, startDate])
+  @@index([tenantId, type])
+}
+
+model CampaignMember {
+  id                String             @id @default(uuid())
+  tenantId          String
+  campaignId        String
+  customerId        String?
+  leadId            String?
+  status            CampaignMemberStatus @default(PENDING)
+  addedAt           DateTime           @default(now()) @db.Timestamptz(6)
+  respondedAt       DateTime?          @db.Timestamptz(6)
+  convertedAt       DateTime?          @db.Timestamptz(6)
+  metadata          Json?
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  campaign          Campaign           @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  customer          Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  lead              Lead?              @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@unique([campaignId, customerId])
+  @@unique([campaignId, leadId])
+  @@index([tenantId, campaignId])
+  @@index([tenantId, status])
+}
+
+model EmailSequence {
+  id                String             @id @default(uuid())
+  tenantId          String
+  campaignId        String?
+  name              String
+  description       String?
+  isActive          Boolean            @default(true)
+  startCondition    Json?
+  exitCondition     Json?
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  campaign          Campaign?          @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  steps             SequenceStep[]
+  enrollments       SequenceEnrollment[]
+
+  @@index([tenantId, isActive])
+  @@index([tenantId, campaignId])
+}
+
+model SequenceStep {
+  id                String             @id @default(uuid())
+  tenantId          String
+  sequenceId        String
+  stepNumber        Int
+  name              String
+  type              SequenceStepType
+  delayDays         Int                @default(0)
+  delayHours        Int                @default(0)
+  templateId        String?
+  content           Json?
+  conditions        Json?
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sequence          EmailSequence      @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  template          MessageTemplate?   @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  @@unique([sequenceId, stepNumber])
+  @@index([tenantId, sequenceId])
+}
+
+model SequenceEnrollment {
+  id                String             @id @default(uuid())
+  tenantId          String
+  sequenceId        String
+  customerId        String?
+  leadId            String?
+  status            SequenceEnrollmentStatus @default(ACTIVE)
+  currentStep       Int                @default(0)
+  enrolledAt        DateTime           @default(now()) @db.Timestamptz(6)
+  completedAt       DateTime?          @db.Timestamptz(6)
+  exitedAt          DateTime?          @db.Timestamptz(6)
+  exitReason        String?
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sequence          EmailSequence      @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  customer          Customer?          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  lead              Lead?              @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, sequenceId, status])
+  @@index([tenantId, customerId])
+  @@index([tenantId, leadId])
+}
+
+model MessageTemplate {
+  id                String             @id @default(uuid())
+  tenantId          String
+  name              String
+  description       String?
+  type              MessageTemplateType
+  category          String?
+  subject           String?
+  body              String
+  variables         Json?
+  isActive          Boolean            @default(true)
+  tags              String[]           @default([])
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sequenceSteps     SequenceStep[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId, type])
+  @@index([tenantId, category])
+}
+
+model CampaignSegment {
+  id                String             @id @default(uuid())
+  tenantId          String
+  campaignId        String
+  name              String
+  description       String?
+  criteria          Json
+  memberCount       Int                @default(0)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  campaign          Campaign           @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, campaignId])
+}
+
+model CampaignAnalytics {
+  id                String             @id @default(uuid())
+  tenantId          String
+  campaignId        String
+  date              DateTime           @db.Date
+  sent              Int                @default(0)
+  delivered         Int                @default(0)
+  opened            Int                @default(0)
+  clicked           Int                @default(0)
+  bounced           Int                @default(0)
+  unsubscribed      Int                @default(0)
+  converted         Int                @default(0)
+  revenue           Decimal?           @db.Decimal(18, 2)
+  cost              Decimal?           @db.Decimal(18, 2)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  campaign          Campaign           @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, campaignId, date])
+  @@index([tenantId, date])
+}
+
+// ============================================================================
+// SECTION 2: SUPPORT & TICKETING
+// ============================================================================
+
+model Ticket {
+  id                String             @id @default(uuid())
+  tenantId          String
+  ticketNumber      String
+  customerId        String?
+  leadId            String?
+  assignedToId      String?
+  categoryId        String?
+  priority          TicketPriority     @default(MEDIUM)
+  status            TicketStatus       @default(OPEN)
+  subject           String
+  description       String?
+  channel           TicketChannel      @default(WEB)
+  tags              String[]           @default([])
+  firstResponseAt   DateTime?          @db.Timestamptz(6)
+  resolvedAt        DateTime?          @db.Timestamptz(6)
+  closedAt          DateTime?          @db.Timestamptz(6)
+  dueDate           DateTime?          @db.Timestamptz(6)
+  metadata          Json?
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer          Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  lead              Lead?              @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  assignedTo        User?              @relation("TicketAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  category          TicketCategory?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  comments          TicketComment[]
+  satisfactionScores SatisfactionScore[]
+
+  @@unique([tenantId, ticketNumber])
+  @@index([tenantId, status])
+  @@index([tenantId, assignedToId])
+  @@index([tenantId, customerId])
+  @@index([tenantId, priority])
+}
+
+model TicketComment {
+  id                String             @id @default(uuid())
+  tenantId          String
+  ticketId          String
+  userId            String?
+  authorName        String?
+  authorEmail       String?
+  content           String
+  isInternal        Boolean            @default(false)
+  attachments       Json?
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ticket            Ticket             @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user              User?              @relation("TicketCommentAuthor", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, ticketId])
+  @@index([tenantId, createdAt])
+}
+
+model TicketCategory {
+  id                String             @id @default(uuid())
+  tenantId          String
+  name              String
+  description       String?
+  parentId          String?
+  defaultPriority   TicketPriority     @default(MEDIUM)
+  defaultAssigneeId String?
+  slaMinutes        Int?
+  isActive          Boolean            @default(true)
+  displayOrder      Int                @default(0)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  parent            TicketCategory?    @relation("TicketCategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children          TicketCategory[]   @relation("TicketCategoryHierarchy")
+  defaultAssignee   User?              @relation("TicketCategoryDefaultAssignee", fields: [defaultAssigneeId], references: [id], onDelete: SetNull)
+  tickets           Ticket[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId, parentId])
+}
+
+model KnowledgeBase {
+  id                String             @id @default(uuid())
+  tenantId          String
+  name              String
+  description       String?
+  isPublic          Boolean            @default(false)
+  settings          Json?
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  categories        KBCategory[]
+  articles          KBArticle[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model KBCategory {
+  id                String             @id @default(uuid())
+  tenantId          String
+  knowledgeBaseId   String
+  name              String
+  description       String?
+  parentId          String?
+  displayOrder      Int                @default(0)
+  isPublished       Boolean            @default(false)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  knowledgeBase     KnowledgeBase      @relation(fields: [knowledgeBaseId], references: [id], onDelete: Cascade)
+  parent            KBCategory?        @relation("KBCategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children          KBCategory[]       @relation("KBCategoryHierarchy")
+  articles          KBArticle[]
+
+  @@unique([knowledgeBaseId, name])
+  @@index([tenantId, knowledgeBaseId])
+}
+
+model KBArticle {
+  id                String             @id @default(uuid())
+  tenantId          String
+  knowledgeBaseId   String
+  categoryId        String?
+  title             String
+  content           String
+  summary           String?
+  authorId          String
+  status            KBArticleStatus    @default(DRAFT)
+  viewCount         Int                @default(0)
+  helpfulCount      Int                @default(0)
+  notHelpfulCount   Int                @default(0)
+  tags              String[]           @default([])
+  publishedAt       DateTime?          @db.Timestamptz(6)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  knowledgeBase     KnowledgeBase      @relation(fields: [knowledgeBaseId], references: [id], onDelete: Cascade)
+  category          KBCategory?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  author            User               @relation("KBArticleAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, knowledgeBaseId])
+  @@index([tenantId, status])
+  @@index([tenantId, categoryId])
+}
+
+model SatisfactionScore {
+  id                String             @id @default(uuid())
+  tenantId          String
+  ticketId          String?
+  dealId            String?
+  customerId        String?
+  surveyType        SurveyType
+  score             Int
+  maxScore          Int                @default(10)
+  feedback          String?
+  tags              String[]           @default([])
+  metadata          Json?
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ticket            Ticket?            @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+  deal              Deal?              @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  customer          Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, surveyType])
+  @@index([tenantId, customerId])
+  @@index([tenantId, createdAt])
+}
+
+// ============================================================================
+// SECTION 3: PROJECT MANAGEMENT
+// ============================================================================
+
+model Project {
+  id                String             @id @default(uuid())
+  tenantId          String
+  customerId        String?
+  name              String
+  description       String?
+  status            ProjectStatus      @default(PLANNING)
+  priority          ProjectPriority    @default(MEDIUM)
+  startDate         DateTime?          @db.Date
+  endDate           DateTime?          @db.Date
+  actualStartDate   DateTime?          @db.Date
+  actualEndDate     DateTime?          @db.Date
+  budget            Decimal?           @db.Decimal(18, 2)
+  actualCost        Decimal?           @db.Decimal(18, 2)
+  managerId         String?
+  tags              String[]           @default([])
+  metadata          Json?
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer          Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  manager           User?              @relation("ProjectManager", fields: [managerId], references: [id], onDelete: SetNull)
+  tasks             ProjectTask[]
+  milestones        ProjectMilestone[]
+  timeEntries       ProjectTimeEntry[]
+  expenses          ProjectExpense[]
+  resources         ProjectResource[]
+
+  @@index([tenantId, status])
+  @@index([tenantId, customerId])
+  @@index([tenantId, managerId])
+}
+
+model ProjectTask {
+  id                String             @id @default(uuid())
+  tenantId          String
+  projectId         String
+  milestoneId       String?
+  name              String
+  description       String?
+  status            ProjectTaskStatus  @default(TODO)
+  priority          ProjectPriority    @default(MEDIUM)
+  assignedToId      String?
+  startDate         DateTime?          @db.Date
+  dueDate           DateTime?          @db.Date
+  completedAt       DateTime?          @db.Timestamptz(6)
+  estimatedHours    Decimal?           @db.Decimal(10, 2)
+  actualHours       Decimal?           @db.Decimal(10, 2)
+  parentTaskId      String?
+  displayOrder      Int                @default(0)
+  tags              String[]           @default([])
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  project           Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone         ProjectMilestone?  @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  assignedTo        User?              @relation("ProjectTaskAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  parentTask        ProjectTask?       @relation("TaskHierarchy", fields: [parentTaskId], references: [id], onDelete: SetNull)
+  subtasks          ProjectTask[]      @relation("TaskHierarchy")
+  timeEntries       ProjectTimeEntry[]
+
+  @@index([tenantId, projectId])
+  @@index([tenantId, assignedToId])
+  @@index([tenantId, status])
+}
+
+model ProjectMilestone {
+  id                String             @id @default(uuid())
+  tenantId          String
+  projectId         String
+  name              String
+  description       String?
+  status            MilestoneStatus    @default(PENDING)
+  dueDate           DateTime           @db.Date
+  completedAt       DateTime?          @db.Timestamptz(6)
+  displayOrder      Int                @default(0)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  project           Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks             ProjectTask[]
+
+  @@index([tenantId, projectId])
+  @@index([tenantId, dueDate])
+}
+
+model ProjectTimeEntry {
+  id                String             @id @default(uuid())
+  tenantId          String
+  projectId         String
+  taskId            String?
+  userId            String
+  date              DateTime           @db.Date
+  hours             Decimal            @db.Decimal(10, 2)
+  description       String?
+  billable          Boolean            @default(true)
+  billableRate      Decimal?           @db.Decimal(18, 2)
+  costRate          Decimal?           @db.Decimal(18, 2)
+  invoiceId         String?
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  project           Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task              ProjectTask?       @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  user              User               @relation("TimeEntryUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, projectId])
+  @@index([tenantId, userId])
+  @@index([tenantId, date])
+}
+
+model ProjectExpense {
+  id                String             @id @default(uuid())
+  tenantId          String
+  projectId         String
+  userId            String
+  date              DateTime           @db.Date
+  category          String
+  description       String
+  amount            Decimal            @db.Decimal(18, 2)
+  billable          Boolean            @default(true)
+  receipt           String?
+  invoiceId         String?
+  approvedBy        String?
+  approvedAt        DateTime?          @db.Timestamptz(6)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  project           Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user              User               @relation("ExpenseUser", fields: [userId], references: [id], onDelete: Cascade)
+  approver          User?              @relation("ExpenseApprover", fields: [approvedBy], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, projectId])
+  @@index([tenantId, userId])
+  @@index([tenantId, date])
+}
+
+model ProjectResource {
+  id                String             @id @default(uuid())
+  tenantId          String
+  projectId         String
+  userId            String
+  role              String?
+  allocation        Decimal            @db.Decimal(5, 2) // Percentage
+  startDate         DateTime           @db.Date
+  endDate           DateTime?          @db.Date
+  hourlyRate        Decimal?           @db.Decimal(18, 2)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  project           Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user              User               @relation("ProjectResourceUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([tenantId, projectId])
+  @@index([tenantId, userId])
+}
+
+// ============================================================================
+// SECTION 4: INTEGRATION HUB
+// ============================================================================
+
+model Integration {
+  id                String             @id @default(uuid())
+  tenantId          String
+  name              String
+  provider          String
+  category          String
+  description       String?
+  isActive          Boolean            @default(true)
+  configuration     Json
+  webhookUrl        String?
+  apiKey            String?
+  lastSyncAt        DateTime?          @db.Timestamptz(6)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  syncLogs          IntegrationSyncLog[]
+  fieldMappings     IntegrationFieldMapping[]
+
+  @@unique([tenantId, provider])
+  @@index([tenantId, category])
+}
+
+model IntegrationSyncLog {
+  id                String             @id @default(uuid())
+  tenantId          String
+  integrationId     String
+  direction         SyncDirection
+  entity            String
+  recordsProcessed  Int                @default(0)
+  recordsSucceeded  Int                @default(0)
+  recordsFailed     Int                @default(0)
+  status            SyncStatus
+  startedAt         DateTime           @default(now()) @db.Timestamptz(6)
+  completedAt       DateTime?          @db.Timestamptz(6)
+  errorMessage      String?
+  metadata          Json?
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  integration       Integration        @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, integrationId])
+  @@index([tenantId, startedAt])
+}
+
+model IntegrationFieldMapping {
+  id                String             @id @default(uuid())
+  tenantId          String
+  integrationId     String
+  localEntity       String
+  remoteEntity      String
+  localField        String
+  remoteField       String
+  direction         MappingDirection
+  transformation    Json?
+  isRequired        Boolean            @default(false)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  integration       Integration        @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@unique([integrationId, localEntity, localField])
+  @@index([tenantId, integrationId])
+}
+
+model WebhookEndpoint {
+  id                String             @id @default(uuid())
+  tenantId          String
+  name              String
+  url               String
+  secret            String?
+  events            String[]           @default([])
+  isActive          Boolean            @default(true)
+  retryOnFailure    Boolean            @default(true)
+  maxRetries        Int                @default(3)
+  lastTriggeredAt   DateTime?          @db.Timestamptz(6)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deliveries        WebhookDelivery[]
+
+  @@index([tenantId, isActive])
+}
+
+model WebhookDelivery {
+  id                String             @id @default(uuid())
+  tenantId          String
+  webhookId         String
+  event             String
+  payload           Json
+  attemptCount      Int                @default(0)
+  status            WebhookDeliveryStatus
+  responseCode      Int?
+  responseBody      String?
+  error             String?
+  deliveredAt       DateTime?          @db.Timestamptz(6)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  webhook           WebhookEndpoint    @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, webhookId])
+  @@index([tenantId, createdAt])
+}
+
+// ============================================================================
+// SECTION 5: ENHANCED DOCUMENT MANAGEMENT
+// ============================================================================
+
+model DocumentFolder {
+  id                String             @id @default(uuid())
+  tenantId          String
+  name              String
+  description       String?
+  parentId          String?
+  isShared          Boolean            @default(false)
+  permissions       Json?
+  createdBy         String
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  parent            DocumentFolder?    @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children          DocumentFolder[]   @relation("FolderHierarchy")
+  creator           User               @relation("FolderCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  documents         Document[]
+
+  @@index([tenantId, parentId])
+}
+
+model Document {
+  id                String             @id @default(uuid())
+  tenantId          String
+  folderId          String?
+  name              String
+  description       String?
+  type              String
+  size              Int
+  mimeType          String
+  storageKey        String
+  url               String?
+  version           Int                @default(1)
+  status            DocumentStatus     @default(DRAFT)
+  tags              String[]           @default([])
+  metadata          Json?
+  uploadedBy        String
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  folder            DocumentFolder?    @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  uploader          User               @relation("DocumentUploader", fields: [uploadedBy], references: [id], onDelete: Restrict)
+  versions          DocumentVersion[]
+  shares            DocumentShare[]
+  signatures        DigitalSignatureRequest[]
+
+  @@index([tenantId, folderId])
+  @@index([tenantId, uploadedBy])
+  @@index([tenantId, status])
+}
+
+model DocumentVersion {
+  id                String             @id @default(uuid())
+  tenantId          String
+  documentId        String
+  version           Int
+  storageKey        String
+  url               String?
+  size              Int
+  changes           String?
+  createdBy         String
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  document          Document           @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  creator           User               @relation("DocumentVersionCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+
+  @@unique([documentId, version])
+  @@index([tenantId, documentId])
+}
+
+model DocumentShare {
+  id                String             @id @default(uuid())
+  tenantId          String
+  documentId        String
+  sharedWith        String?            // User ID
+  shareType         DocumentShareType
+  permissions       Json
+  expiresAt         DateTime?          @db.Timestamptz(6)
+  accessCount       Int                @default(0)
+  lastAccessedAt    DateTime?          @db.Timestamptz(6)
+  sharedBy          String
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  document          Document           @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user              User?              @relation("DocumentSharedWith", fields: [sharedWith], references: [id], onDelete: Cascade)
+  sharer            User               @relation("DocumentSharer", fields: [sharedBy], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, documentId])
+  @@index([tenantId, sharedWith])
+}
+
+model DigitalSignatureRequest {
+  id                String             @id @default(uuid())
+  tenantId          String
+  documentId        String
+  requestedBy       String
+  signers           Json               // Array of signer details
+  status            SignatureStatus    @default(PENDING)
+  completedAt       DateTime?          @db.Timestamptz(6)
+  expiresAt         DateTime?          @db.Timestamptz(6)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  document          Document           @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  requester         User               @relation("SignatureRequester", fields: [requestedBy], references: [id], onDelete: Restrict)
+  signatures        DigitalSignatureEvent[]
+
+  @@index([tenantId, documentId])
+  @@index([tenantId, status])
+}
+
+model DigitalSignatureEvent {
+  id                String             @id @default(uuid())
+  tenantId          String
+  requestId         String
+  signerEmail       String
+  signerName        String
+  signedAt          DateTime?          @db.Timestamptz(6)
+  ipAddress         String?
+  userAgent         String?
+  signatureData     String?
+  status            String
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  request           DigitalSignatureRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, requestId])
+}
+
+// ============================================================================
+// SECTION 6: ENHANCED ANALYTICS
+// ============================================================================
+
+model Dashboard {
+  id                String             @id @default(uuid())
+  tenantId          String
+  name              String
+  description       String?
+  isDefault         Boolean            @default(false)
+  isPublic          Boolean            @default(false)
+  layout            Json
+  refreshInterval   Int?               // in minutes
+  createdBy         String
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  creator           User               @relation("DashboardCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  widgets           DashboardWidget[]
+  shares            DashboardShare[]
+
+  @@index([tenantId, isDefault])
+}
+
+model DashboardWidget {
+  id                String             @id @default(uuid())
+  tenantId          String
+  dashboardId       String
+  name              String
+  type              WidgetType
+  dataSource        String
+  query             Json?
+  visualization     Json
+  position          Json
+  size              Json
+  refreshInterval   Int?
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  dashboard         Dashboard          @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, dashboardId])
+}
+
+model DashboardShare {
+  id                String             @id @default(uuid())
+  tenantId          String
+  dashboardId       String
+  sharedWith        String
+  permissions       Json
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  dashboard         Dashboard          @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  user              User               @relation("DashboardSharedWith", fields: [sharedWith], references: [id], onDelete: Cascade)
+
+  @@unique([dashboardId, sharedWith])
+  @@index([tenantId, sharedWith])
+}
+
+model CustomReport {
+  id                String             @id @default(uuid())
+  tenantId          String
+  name              String
+  description       String?
+  category          String?
+  dataSource        String
+  query             Json
+  columns           Json
+  filters           Json?
+  groupBy           Json?
+  sortBy            Json?
+  visualization     Json?
+  isPublic          Boolean            @default(false)
+  createdBy         String
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  creator           User               @relation("CustomReportCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  schedules         ReportSchedule[]
+
+  @@index([tenantId, category])
+}
+
+model ReportSchedule {
+  id                String             @id @default(uuid())
+  tenantId          String
+  reportId          String
+  name              String
+  frequency         ScheduleFrequency
+  dayOfWeek         Int?
+  dayOfMonth        Int?
+  time              String             // HH:MM format
+  recipients        String[]           @default([])
+  format            ReportFormat       @default(PDF)
+  isActive          Boolean            @default(true)
+  lastRunAt         DateTime?          @db.Timestamptz(6)
+  nextRunAt         DateTime?          @db.Timestamptz(6)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  report            CustomReport       @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, reportId])
+  @@index([tenantId, nextRunAt])
+}
+
+model DataExport {
+  id                String             @id @default(uuid())
+  tenantId          String
+  entity            String
+  filters           Json?
+  format            ExportFormat
+  status            ExportStatus       @default(PENDING)
+  fileUrl           String?
+  recordCount       Int?
+  requestedBy       String
+  startedAt         DateTime?          @db.Timestamptz(6)
+  completedAt       DateTime?          @db.Timestamptz(6)
+  expiresAt         DateTime?          @db.Timestamptz(6)
+  error             String?
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  requester         User               @relation("DataExportRequester", fields: [requestedBy], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, requestedBy])
+  @@index([tenantId, status])
+}
+
+// ============================================================================
+// SECTION 7: USER PREFERENCES & PERSONALIZATION
+// ============================================================================
+
+model UserPreference {
+  id                String             @id @default(uuid())
+  tenantId          String
+  userId            String
+  category          String
+  key               String
+  value             Json
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user              User               @relation("UserPreferences", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category, key])
+  @@index([tenantId, userId])
+}
+
+model SavedSearch {
+  id                String             @id @default(uuid())
+  tenantId          String
+  userId            String
+  name              String
+  entity            String
+  criteria          Json
+  isDefault         Boolean            @default(false)
+  isGlobal          Boolean            @default(false)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user              User               @relation("UserSavedSearches", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entity, name])
+  @@index([tenantId, userId])
+}
+
+model FavoriteRecord {
+  id                String             @id @default(uuid())
+  tenantId          String
+  userId            String
+  entity            String
+  recordId          String
+  displayOrder      Int                @default(0)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user              User               @relation("UserFavorites", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entity, recordId])
+  @@index([tenantId, userId])
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum CampaignType {
+  EMAIL
+  SMS
+  SOCIAL
+  DIRECT_MAIL
+  WEBINAR
+  EVENT
+  MULTI_CHANNEL
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum CampaignMemberStatus {
+  PENDING
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
+  UNSUBSCRIBED
+  CONVERTED
+}
+
+enum SequenceStepType {
+  EMAIL
+  SMS
+  TASK
+  WAIT
+  CONDITION
+  WEBHOOK
+}
+
+enum SequenceEnrollmentStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  EXITED
+}
+
+enum MessageTemplateType {
+  EMAIL
+  SMS
+  PUSH
+  IN_APP
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING
+  RESOLVED
+  CLOSED
+}
+
+enum TicketChannel {
+  WEB
+  EMAIL
+  PHONE
+  CHAT
+  SOCIAL
+  API
+}
+
+enum KBArticleStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum SurveyType {
+  NPS
+  CSAT
+  CES
+  CUSTOM
+}
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum ProjectPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ProjectTaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  BLOCKED
+  DONE
+}
+
+enum MilestoneStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  DELAYED
+}
+
+enum SyncDirection {
+  INBOUND
+  OUTBOUND
+  BIDIRECTIONAL
+}
+
+enum SyncStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+  PARTIAL
+}
+
+enum MappingDirection {
+  TO_EXTERNAL
+  FROM_EXTERNAL
+  BIDIRECTIONAL
+}
+
+enum WebhookDeliveryStatus {
+  PENDING
+  DELIVERED
+  FAILED
+  RETRYING
+}
+
+enum DocumentStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+enum DocumentShareType {
+  VIEW
+  EDIT
+  FULL
+  CUSTOM
+}
+
+enum SignatureStatus {
+  PENDING
+  PARTIALLY_SIGNED
+  COMPLETED
+  EXPIRED
+  CANCELLED
+}
+
+enum WidgetType {
+  CHART
+  TABLE
+  METRIC
+  GAUGE
+  MAP
+  FUNNEL
+  TIMELINE
+  CUSTOM
+}
+
+enum ScheduleFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+}
+
+enum ReportFormat {
+  PDF
+  EXCEL
+  CSV
+}
+
+enum ExportFormat {
+  CSV
+  EXCEL
+  JSON
+}
+
+enum ExportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  EXPIRED
 }

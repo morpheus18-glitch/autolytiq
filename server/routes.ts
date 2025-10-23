@@ -1,14 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { Session } from "express-session";
-
-// Extend session types
-declare module "express-session" {
-  interface SessionData {
-    user?: any;
-    loginTime?: string;
-  }
-}
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { z } from "zod";
 import { registerUserRoutes } from "./userRoutes";
 import { storage } from "./storage";
 import { insertVehicleSchema, insertCustomerSchema, insertLeadSchema, insertSaleSchema, insertVisitorSessionSchema, insertPageViewSchema, insertCustomerInteractionSchema, insertCompetitorAnalyticsSchema, insertCompetitivePricingSchema, insertPricingInsightsSchema, insertMerchandisingStrategiesSchema, insertMarketTrendsSchema, insertMarketLeadSchema } from "@shared/schema";
@@ -37,7 +31,6 @@ import { mlPricingService } from "./ml-integration";
 import { valuationService } from './services/valuation-service';
 import { photoService } from './services/photo-service';
 import { aiDealOptimizer } from './ai-deal-optimizer';
-import { setupAuth, isAuthenticated } from "./replitAuth";
 import { registerUserManagementRoutes } from "./user-management";
 import { registerMLDashboardRoutes } from "./ml-dashboard-routes";
 import { registerContinuousMLRoutes } from "./continuous-ml";
@@ -55,6 +48,8 @@ import { InMemoryEventBus, ModuleRegistry } from "./core";
 import { crmModule } from "./modules/crm";
 import { deskingModule } from "./modules/desking";
 import { fiModule } from "./modules/fi";
+import { findTenantUser } from "./auth-config";
+import { requireSessionAuth, type SessionUser } from "./session-auth";
 
 // XML Lead parsing utility
 function parseXmlLead(xmlString: string) {
@@ -96,8 +91,13 @@ function parseXmlLead(xmlString: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
+  // Attach session user to request for downstream handlers
+  app.use((req, _res, next) => {
+    if (req.session?.user) {
+      (req as any).user = req.session.user;
+    }
+    next();
+  });
 
   const eventBus = new InMemoryEventBus();
   const moduleRegistry = new ModuleRegistry({
@@ -125,82 +125,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerUserRoutes(app);
 
   // Auth routes
-  app.get('/api/auth/user', async (req: any, res) => {
-    try {
-      // Check both Passport authentication and direct session
-      const passportUser = req.user;
-      const sessionUser = (req.session as any)?.user;
-      
-      const user = passportUser || sessionUser;
-      
-      if (!user) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
-      // Handle different authentication formats
-      let userId: string;
-      let userData: any;
-      
-      if (sessionUser) {
-        // Direct session authentication (like our Google OAuth)
-        userId = sessionUser.id;
-        userData = sessionUser;
-      } else if (user.provider === 'replit') {
-        userId = user.claims?.sub;
-        userData = user;
-      } else {
-        userId = user.id || user.claims?.sub;
-        userData = user;
-      }
-
-      if (!userId) {
-        return res.status(401).json({ message: "User ID not found" });
-      }
-
-      // Try to get user from storage, if not found use session data
-      let dbUser;
-      try {
-        dbUser = await storage.getUser(userId);
-      } catch (error) {
-        console.log("User not in storage, using session data");
-      }
-      
-      if (!dbUser && sessionUser) {
-        // Return session user data directly for OAuth users not yet in storage
-        res.json({
-          id: sessionUser.id,
-          email: sessionUser.email,
-          firstName: sessionUser.firstName,
-          lastName: sessionUser.lastName,
-          profileImageUrl: sessionUser.profileImageUrl,
-          provider: sessionUser.provider
-        });
-        return;
-      }
-      
-      if (!dbUser) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const existingPermissions = Array.isArray((dbUser as any).permissions)
-        ? (dbUser as any).permissions.filter((permission: unknown): permission is string => typeof permission === 'string')
-        : [];
-      const permissions = Array.from(new Set([...existingPermissions, '*']));
-      const featureFlags = Array.isArray((dbUser as any).featureFlags)
-        ? Array.from(new Set([...(dbUser as any).featureFlags, 'developer_portal']))
-        : ['developer_portal'];
-
-      res.json({
-        ...dbUser,
-        role: 'SUPER_ADMIN',
-        developer: true,
-        permissions,
-        featureFlags
-      });
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
+  app.get('/api/auth/user', (req, res) => {
+    const sessionUser = req.session?.user;
+    if (!sessionUser) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
+
+    res.json({
+      ...sessionUser,
+      tokens: {
+        realtime: req.session?.authToken ?? null,
+      },
+    });
   });
   // Vehicle routes
   app.get("/api/vehicles", async (req, res) => {
@@ -454,83 +390,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Authentication routes
+  const loginSchema = z.object({
+    storeId: z.string().min(1, 'Store ID is required'),
+    username: z.string().min(1, 'Username is required'),
+    password: z.string().min(1, 'Password is required'),
+  });
+
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { username, password, twoFactorCode } = req.body;
+      const credentials = loginSchema.parse(req.body);
+      const resolved = findTenantUser(credentials.storeId, credentials.username);
 
-      if (!username || !password) {
-        return res.status(400).json({ message: "Username and password are required" });
-      }
-
-      // Master account bypass (for initial setup)
-      if (username === "master_admin" && password === "AutolytiQ2025!Master") {
-        const masterUser = {
-          id: 0,
-          username: "master_admin",
-          role: "super_admin",
-          permissions: ["all"],
-          isMaster: true
-        };
-
-        // Set session
-        req.session.user = masterUser;
-        req.session.loginTime = new Date().toISOString();
-        
-        // Save session explicitly
-        console.log('🔑 Master account login successful');
-        return res.json({
-          success: true,
-          user: masterUser,
-          requiresTwoFactor: false,
-          message: "Master account authenticated"
-        });
-      }
-
-      // Regular user authentication
-      const user = await storage.getUserByUsername(username);
-      if (!user) {
+      if (!resolved) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // Check password (in production, use bcrypt)
-      if (user.password !== password) {
+      const { tenant, user: profile } = resolved;
+      const passwordValid = await bcrypt.compare(credentials.password, profile.passwordHash);
+
+      if (!passwordValid) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // Check if 2FA is required (placeholder - not implemented in schema)
-      const twoFactorEnabled = false; // user.twoFactorEnabled would go here if added to schema
-      if (twoFactorEnabled && !twoFactorCode) {
-        return res.json({
-          success: false,
-          requiresTwoFactor: true,
-          message: "Two-factor authentication required"
-        });
+      const allowedRoutesSource = profile.access.allowedRoutes?.length
+        ? profile.access.allowedRoutes
+        : tenant.defaultAccess.allowedRoutes;
+      const navigationSource = profile.access.navigationSections?.length
+        ? profile.access.navigationSections
+        : tenant.defaultAccess.navigationSections;
+      const quickActionsSource = profile.access.quickActions?.length
+        ? profile.access.quickActions
+        : tenant.defaultAccess.quickActions;
+
+      const allowedRoutes = Array.from(new Set(allowedRoutesSource ?? []));
+      if (!allowedRoutes.includes('/')) {
+        allowedRoutes.unshift('/');
       }
 
-      // Verify 2FA if provided
-      if (twoFactorEnabled && twoFactorCode) {
-        // In production, verify against actual 2FA secret
-        if (twoFactorCode !== "123456") { // Demo code
-          return res.status(401).json({ message: "Invalid 2FA code" });
-        }
-      }
-
-      // Set session
-      req.session.user = {
-        id: user.id,
-        username: user.username || user.email || '',
-        role: "user", // Default role - extend schema to add user.roleId lookup if needed
-        permissions: [] // Default permissions - extend schema to add permissions lookup if needed
+      const sessionUser: SessionUser = {
+        id: profile.userId,
+        userId: profile.userId,
+        username: profile.username,
+        email: profile.email,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        role: profile.role,
+        permissions: profile.permissions,
+        featureFlags: profile.featureFlags ?? [],
+        tenantId: tenant.tenantId,
+        store: {
+          id: tenant.store.id,
+          code: tenant.store.code,
+          name: tenant.store.name,
+          timezone: tenant.store.timezone,
+        },
+        access: {
+          homePath: profile.access.homePath ?? tenant.defaultAccess.homePath ?? '/dashboard',
+          allowedRoutes,
+          navigationSections: Array.from(new Set(navigationSource ?? [])),
+          quickActions: Array.from(new Set(quickActionsSource ?? [])),
+        },
       };
-      req.session.loginTime = new Date().toISOString();
 
-      console.log(`🔑 User login successful: ${username}`);
+      req.session.user = sessionUser;
+      req.session.loginTime = new Date().toISOString();
+      req.session.authToken = jwt.sign(
+        {
+          userId: sessionUser.id,
+          storeId: sessionUser.store.id,
+          tenantId: sessionUser.tenantId,
+        },
+        process.env.JWT_SECRET || 'AutolytiQ-session-secret',
+        { expiresIn: '2h' },
+      );
+
       res.json({
-        success: true,
-        user: req.session.user,
-        requiresTwoFactor: false
+        ...sessionUser,
+        tokens: {
+          realtime: req.session.authToken,
+        },
       });
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message ?? 'Invalid request' });
+      }
+
       console.error('Login error:', error);
       res.status(500).json({ message: "Authentication failed" });
     }
@@ -3018,7 +2962,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Import and use notification routes
   const notificationRoutes = (await import('./notificationRoutes')).default;
-  app.use('/api/notifications', isAuthenticated, notificationRoutes);
+  app.use('/api/notifications', requireSessionAuth, notificationRoutes);
 
   // Communication API Routes - Text Messages
   app.get('/api/customers/:id/messages', async (req, res) => {

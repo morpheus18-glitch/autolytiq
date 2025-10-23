@@ -1,17 +1,18 @@
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
-import { 
+import {
+  tenants,
   departments, roles, permissions, rolePermissions,
-  users, employees, serviceParts, serviceOrders, 
+  users, employees, serviceParts, serviceOrders,
   payroll, financialTransactions, vehicles, customers,
   leads, sales, activities, visitorSessions, pageViews,
   customerInteractions, competitorAnalytics,
   competitivePricing, pricingInsights, merchandisingStrategies,
   marketTrends, showroomSessions, parts, notifications, lotPositions
 } from "@shared/schema";
-import type { 
-  User, InsertUser, 
-  Vehicle, InsertVehicle, 
+import type {
+  User, InsertUser,
+  Vehicle, InsertVehicle,
   Customer, InsertCustomer, 
   Lead, InsertLead, 
   Sale, InsertSale, 
@@ -39,85 +40,188 @@ import type {
 } from "@shared/schema";
 import type { IStorage } from "./storage";
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const DEFAULT_TENANT_ID = process.env.DEFAULT_TENANT_ID ?? "00000000-0000-0000-0000-000000000000";
+const DEFAULT_TENANT_NAME = process.env.DEFAULT_TENANT_NAME ?? "AutolytiQ Default Tenant";
+const DEFAULT_TENANT_SUBDOMAIN = process.env.DEFAULT_TENANT_SUBDOMAIN ?? "default";
+const DEFAULT_TENANT_BILLING_EMAIL = process.env.DEFAULT_TENANT_BILLING_EMAIL ?? "ops@autolytiq.local";
+
+const normalizeTenantId = (tenantId: string | undefined): string => {
+  const candidate = tenantId?.trim().toLowerCase() ?? DEFAULT_TENANT_ID;
+  if (!UUID_REGEX.test(candidate)) {
+    throw new Error(
+      `Invalid tenant id "${tenantId}" provided to DatabaseStorage. ` +
+      "Tenant identifiers must be UUIDs so multi-tenant scoping can be enforced.",
+    );
+  }
+  return candidate;
+};
+
 export class DatabaseStorage implements IStorage {
+  private readonly tenantId: string;
+  private tenantReady?: Promise<void>;
+
+  constructor(tenantId?: string) {
+    this.tenantId = normalizeTenantId(tenantId);
+  }
+
+  private async ensureTenant(): Promise<void> {
+    if (!this.tenantReady) {
+      this.tenantReady = (async () => {
+        await db
+          .insert(tenants)
+          .values({
+            id: this.tenantId,
+            name: DEFAULT_TENANT_NAME,
+            subdomain: DEFAULT_TENANT_SUBDOMAIN,
+            billingEmail: DEFAULT_TENANT_BILLING_EMAIL,
+            settings: {},
+          })
+          .onConflictDoNothing({ target: tenants.id });
+      })();
+    }
+
+    await this.tenantReady;
+  }
+
+  private withTenant<T extends { tenantId?: string }>(payload: T): T & { tenantId: string } {
+    return { ...payload, tenantId: payload.tenantId ?? this.tenantId };
+  }
+
   // Department operations
   async getDepartments(): Promise<Department[]> {
-    return await db.select().from(departments);
+    await this.ensureTenant();
+    return await db.select().from(departments).where(eq(departments.tenantId, this.tenantId));
   }
 
   async getDepartment(id: number): Promise<Department | undefined> {
-    const [department] = await db.select().from(departments).where(eq(departments.id, id));
+    await this.ensureTenant();
+    const [department] = await db
+      .select()
+      .from(departments)
+      .where(and(eq(departments.id, id), eq(departments.tenantId, this.tenantId)));
     return department;
   }
 
   async createDepartment(insertDepartment: InsertDepartment): Promise<Department> {
-    const [department] = await db.insert(departments).values(insertDepartment).returning();
+    await this.ensureTenant();
+    const [department] = await db
+      .insert(departments)
+      .values(this.withTenant(insertDepartment))
+      .returning();
     return department;
   }
 
   async updateDepartment(id: number, updates: Partial<Department>): Promise<Department> {
-    const [department] = await db.update(departments).set(updates).where(eq(departments.id, id)).returning();
+    await this.ensureTenant();
+    const [department] = await db
+      .update(departments)
+      .set(updates)
+      .where(and(eq(departments.id, id), eq(departments.tenantId, this.tenantId)))
+      .returning();
     return department;
   }
 
   async deleteDepartment(id: number): Promise<void> {
-    await db.delete(departments).where(eq(departments.id, id));
+    await this.ensureTenant();
+    await db
+      .delete(departments)
+      .where(and(eq(departments.id, id), eq(departments.tenantId, this.tenantId)));
   }
 
   // Role operations
   async getRoles(): Promise<Role[]> {
-    return await db.select().from(roles);
+    await this.ensureTenant();
+    return await db.select().from(roles).where(eq(roles.tenantId, this.tenantId));
   }
 
   async getRole(id: number): Promise<Role | undefined> {
-    const [role] = await db.select().from(roles).where(eq(roles.id, id));
+    await this.ensureTenant();
+    const [role] = await db
+      .select()
+      .from(roles)
+      .where(and(eq(roles.id, id), eq(roles.tenantId, this.tenantId)));
     return role;
   }
 
   async getRolesByDepartment(departmentId: number): Promise<Role[]> {
-    return await db.select().from(roles).where(eq(roles.departmentId, departmentId));
+    await this.ensureTenant();
+    return await db
+      .select()
+      .from(roles)
+      .where(
+        and(
+          eq(roles.departmentId, departmentId),
+          eq(roles.tenantId, this.tenantId),
+        ),
+      );
   }
 
   async createRole(insertRole: InsertRole): Promise<Role> {
-    const [role] = await db.insert(roles).values(insertRole).returning();
+    await this.ensureTenant();
+    const [role] = await db.insert(roles).values(this.withTenant(insertRole)).returning();
     return role;
   }
 
   async updateRole(id: number, updates: Partial<Role>): Promise<Role> {
-    const [role] = await db.update(roles).set(updates).where(eq(roles.id, id)).returning();
+    await this.ensureTenant();
+    const [role] = await db
+      .update(roles)
+      .set(updates)
+      .where(and(eq(roles.id, id), eq(roles.tenantId, this.tenantId)))
+      .returning();
     return role;
   }
 
   async deleteRole(id: number): Promise<void> {
-    await db.delete(roles).where(eq(roles.id, id));
+    await this.ensureTenant();
+    await db.delete(roles).where(and(eq(roles.id, id), eq(roles.tenantId, this.tenantId)));
   }
 
   // Permission operations
   async getPermissions(): Promise<Permission[]> {
-    return await db.select().from(permissions);
+    await this.ensureTenant();
+    return await db.select().from(permissions).where(eq(permissions.tenantId, this.tenantId));
   }
 
   async getPermission(id: number): Promise<Permission | undefined> {
-    const [permission] = await db.select().from(permissions).where(eq(permissions.id, id));
+    await this.ensureTenant();
+    const [permission] = await db
+      .select()
+      .from(permissions)
+      .where(and(eq(permissions.id, id), eq(permissions.tenantId, this.tenantId)));
     return permission;
   }
 
   async createPermission(insertPermission: InsertPermission): Promise<Permission> {
-    const [permission] = await db.insert(permissions).values(insertPermission).returning();
+    await this.ensureTenant();
+    const [permission] = await db
+      .insert(permissions)
+      .values(this.withTenant(insertPermission))
+      .returning();
     return permission;
   }
 
   async updatePermission(id: number, updates: Partial<Permission>): Promise<Permission> {
-    const [permission] = await db.update(permissions).set(updates).where(eq(permissions.id, id)).returning();
+    await this.ensureTenant();
+    const [permission] = await db
+      .update(permissions)
+      .set(updates)
+      .where(and(eq(permissions.id, id), eq(permissions.tenantId, this.tenantId)))
+      .returning();
     return permission;
   }
 
   async deletePermission(id: number): Promise<void> {
-    await db.delete(permissions).where(eq(permissions.id, id));
+    await this.ensureTenant();
+    await db
+      .delete(permissions)
+      .where(and(eq(permissions.id, id), eq(permissions.tenantId, this.tenantId)));
   }
 
   // Role permission operations
   async getRolePermissions(roleId: number): Promise<Permission[]> {
+    await this.ensureTenant();
     return await db.select({
       id: permissions.id,
       name: permissions.name,
@@ -128,55 +232,87 @@ export class DatabaseStorage implements IStorage {
       updatedAt: permissions.updatedAt
     }).from(permissions)
       .innerJoin(rolePermissions, eq(rolePermissions.permissionId, permissions.id))
-      .where(eq(rolePermissions.roleId, roleId));
+      .where(
+        and(
+          eq(rolePermissions.roleId, roleId),
+          eq(rolePermissions.tenantId, this.tenantId),
+        ),
+      );
   }
 
   async addRolePermission(roleId: number, permissionId: number): Promise<void> {
-    await db.insert(rolePermissions).values({ roleId, permissionId });
+    await this.ensureTenant();
+    await db.insert(rolePermissions).values(this.withTenant({ roleId, permissionId }));
   }
 
   async removeRolePermission(roleId: number, permissionId: number): Promise<void> {
+    await this.ensureTenant();
     await db.delete(rolePermissions)
-      .where(and(eq(rolePermissions.roleId, roleId), eq(rolePermissions.permissionId, permissionId)));
+      .where(
+        and(
+          eq(rolePermissions.roleId, roleId),
+          eq(rolePermissions.permissionId, permissionId),
+          eq(rolePermissions.tenantId, this.tenantId),
+        ),
+      );
   }
 
   // User operations
   async getUsers(): Promise<User[]> {
-    return await db.select().from(users);
+    await this.ensureTenant();
+    return await db.select().from(users).where(eq(users.tenantId, this.tenantId));
   }
 
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+    await this.ensureTenant();
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(and(eq(users.id, id), eq(users.tenantId, this.tenantId)));
     return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    await this.ensureTenant();
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(and(eq(users.username, username), eq(users.tenantId, this.tenantId)));
     return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
+    await this.ensureTenant();
+    const [user] = await db.insert(users).values(this.withTenant(insertUser)).returning();
     return user;
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User> {
-    const [user] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
+    await this.ensureTenant();
+    const [user] = await db
+      .update(users)
+      .set(updates)
+      .where(and(eq(users.id, id), eq(users.tenantId, this.tenantId)))
+      .returning();
     return user;
   }
 
   async deleteUser(id: string): Promise<void> {
-    await db.delete(users).where(eq(users.id, id));
+    await this.ensureTenant();
+    await db.delete(users).where(and(eq(users.id, id), eq(users.tenantId, this.tenantId)));
   }
 
   async upsertUser(userData: any): Promise<User> {
     try {
       console.log('DatabaseStorage: Upserting user with data:', userData);
-      
+
+      await this.ensureTenant();
+
       const [user] = await db
         .insert(users)
         .values({
           id: userData.id,
+          tenantId: userData.tenantId ?? this.tenantId,
           email: userData.email,
           firstName: userData.firstName,
           lastName: userData.lastName,
@@ -195,10 +331,12 @@ export class DatabaseStorage implements IStorage {
             provider: userData.provider,
             updatedAt: new Date(),
             lastLogin: new Date(),
+            tenantId: userData.tenantId ?? this.tenantId,
           },
         })
+        .where(eq(users.tenantId, userData.tenantId ?? this.tenantId))
         .returning();
-        
+
       console.log('DatabaseStorage: User upserted successfully:', user);
       return user;
     } catch (error) {
