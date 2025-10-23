@@ -125,9 +125,9 @@ When deploying to production:
 
 ```bash
 # Apply migrations
-npm run db:migrate:deploy
+npm run db:migrate:deploy:safe
 
-# This runs: prisma migrate deploy
+# This runs: prisma migrate deploy (with automatic baselining)
 ```
 
 The `build:prod` script already includes `prisma:generate`, so Prisma client will be ready.

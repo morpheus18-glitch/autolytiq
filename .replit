@@ -9,6 +9,7 @@ packages = ["glibcLocales", "libxcrypt"]
 [deployment]
 deploymentTarget = "autoscale"
 build = ["sh", "-c", "npm run build:prod"]
+# The start script runs safe migrations via scripts/start-production.sh before launching
 run = ["sh", "-c", "npm run start:prod"]
 
 [[ports]]
