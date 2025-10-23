@@ -187,27 +187,30 @@ model User {
   store                     Store?                @relation(fields: [storeId], references: [id])
   assignedWorkflowTasks     WorkflowTask[]        @relation("WorkflowTaskAssignee")
   passwordResetTokens       PasswordResetToken[]
-  createdCampaigns          Campaign[]
+  createdCampaigns          Campaign[]            @relation("CampaignCreator")
   ticketsAssigned           Ticket[]              @relation("TicketAssignedTo")
-  ticketComments            TicketComment[]
+  ticketComments            TicketComment[]       @relation("TicketCommentAuthor")
   ticketCategoryAssignments TicketCategory[]      @relation("TicketCategoryDefaultAssignee")
-  kbArticles                KBArticle[]
+  kbArticles                KBArticle[]           @relation("KBArticleAuthor")
   managedProjects           Project[]             @relation("ProjectManager")
   assignedProjectTasks      ProjectTask[]         @relation("ProjectTaskAssignedTo")
-  timeEntries               ProjectTimeEntry[]
+  timeEntries               ProjectTimeEntry[]    @relation("ProjectTimeEntryUser")
   projectExpenses           ProjectExpense[]      @relation("ProjectExpenseUser")
   approvedProjectExpenses   ProjectExpense[]      @relation("ProjectExpenseApprover")
-  projectResources          ProjectResource[]
-  createdDocumentFolders    DocumentFolder[]
-  uploadedDocuments         Document[]
-  createdDocumentVersions   DocumentVersion[]
+  projectResources          ProjectResource[]     @relation("ProjectResourceUser")
+  createdDocumentFolders    DocumentFolder[]      @relation("DocumentFolderCreator")
+  uploadedDocuments         Document[]            @relation("DocumentUploader")
+  createdDocumentVersions   DocumentVersion[]     @relation("DocumentVersionCreator")
   sharedDocuments           DocumentShare[]       @relation("DocumentShareUser")
   sharedDocumentsByMe       DocumentShare[]       @relation("DocumentShareSharer")
-  requestedSignatures       DigitalSignatureRequest[]
-  createdDashboards         Dashboard[]
-  sharedDashboards          DashboardShare[]      @relation("DashboardShareUser")
-  createdCustomReports      CustomReport[]
-  requestedDataExports      DataExport[]
+  requestedSignatures       DigitalSignatureRequest[] @relation("SignatureRequester")
+  createdDashboards         Dashboard[]           @relation("DashboardCreator")
+  sharedDashboards          DashboardShare[]      @relation("DashboardSharedWith")
+  createdCustomReports      CustomReport[]        @relation("CustomReportCreator")
+  requestedDataExports      DataExport[]          @relation("DataExportRequester")
+  preferences               UserPreference[]      @relation("UserPreferences")
+  savedSearches             SavedSearch[]         @relation("UserSavedSearches")
+  favoriteRecords           FavoriteRecord[]      @relation("UserFavorites")
 
   @@unique([tenantId, email])
   @@unique([tenantId, username])
@@ -899,6 +902,7 @@ model Deal {
   tradeVehicle        CustomerVehicle?        @relation("TradeVehicleDeal", fields: [tradeVehicleId], references: [id])
   vehicle             Vehicle                 @relation(fields: [vehicleId], references: [id])
   journalEntries      JournalEntry[]
+  satisfactionScores  SatisfactionScore[]
 
   @@unique([tenantId, dealNumber])
   @@index([tenantId, status])
@@ -2386,9 +2390,9 @@ model Ticket {
   updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
 
   tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  customer          Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  lead              Lead?              @relation(fields: [leadId], references: [id], onDelete: SetNull)
-  assignedTo        User?              @relation("TicketAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  customer          Customer?          @relation("TicketCustomer", fields: [customerId], references: [id], onDelete: SetNull)
+  lead              Lead?              @relation("TicketLead", fields: [leadId], references: [id], onDelete: SetNull)
+  assignedTo        User?              @relation("TicketAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
   category          TicketCategory?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   comments          TicketComment[]
   satisfactionScores SatisfactionScore[]
@@ -2562,7 +2566,7 @@ model Project {
   updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
 
   tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  customer          Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customer          Customer?          @relation("ProjectCustomer", fields: [customerId], references: [id], onDelete: SetNull)
   manager           User?              @relation("ProjectManager", fields: [managerId], references: [id], onDelete: SetNull)
   tasks             ProjectTask[]
   milestones        ProjectMilestone[]
@@ -2599,7 +2603,7 @@ model ProjectTask {
   tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   project           Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
   milestone         ProjectMilestone?  @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
-  assignedTo        User?              @relation("ProjectTaskAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  assignedTo        User?              @relation("ProjectTaskAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
   parentTask        ProjectTask?       @relation("TaskHierarchy", fields: [parentTaskId], references: [id], onDelete: SetNull)
   subtasks          ProjectTask[]      @relation("TaskHierarchy")
   timeEntries       ProjectTimeEntry[]
@@ -2649,7 +2653,7 @@ model ProjectTimeEntry {
   tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   project           Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
   task              ProjectTask?       @relation(fields: [taskId], references: [id], onDelete: SetNull)
-  user              User               @relation("TimeEntryUser", fields: [userId], references: [id], onDelete: Cascade)
+  user              User               @relation("ProjectTimeEntryUser", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, projectId])
   @@index([tenantId, userId])
@@ -2675,8 +2679,8 @@ model ProjectExpense {
 
   tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   project           Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user              User               @relation("ExpenseUser", fields: [userId], references: [id], onDelete: Cascade)
-  approver          User?              @relation("ExpenseApprover", fields: [approvedBy], references: [id], onDelete: SetNull)
+  user              User               @relation("ProjectExpenseUser", fields: [userId], references: [id], onDelete: Cascade)
+  approver          User?              @relation("ProjectExpenseApprover", fields: [approvedBy], references: [id], onDelete: SetNull)
 
   @@index([tenantId, projectId])
   @@index([tenantId, userId])
@@ -2835,7 +2839,7 @@ model DocumentFolder {
   tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   parent            DocumentFolder?    @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
   children          DocumentFolder[]   @relation("FolderHierarchy")
-  creator           User               @relation("FolderCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  creator           User               @relation("DocumentFolderCreator", fields: [createdBy], references: [id], onDelete: Restrict)
   documents         Document[]
 
   @@index([tenantId, parentId])
@@ -2907,8 +2911,8 @@ model DocumentShare {
 
   tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   document          Document           @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  user              User?              @relation("DocumentSharedWith", fields: [sharedWith], references: [id], onDelete: Cascade)
-  sharer            User               @relation("DocumentSharer", fields: [sharedBy], references: [id], onDelete: Restrict)
+  user              User?              @relation("DocumentShareUser", fields: [sharedWith], references: [id], onDelete: Cascade)
+  sharer            User               @relation("DocumentShareSharer", fields: [sharedBy], references: [id], onDelete: Restrict)
 
   @@index([tenantId, documentId])
   @@index([tenantId, sharedWith])
