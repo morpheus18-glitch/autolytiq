@@ -187,6 +187,27 @@ model User {
   store                     Store?                @relation(fields: [storeId], references: [id])
   assignedWorkflowTasks     WorkflowTask[]        @relation("WorkflowTaskAssignee")
   passwordResetTokens       PasswordResetToken[]
+  createdCampaigns          Campaign[]
+  ticketsAssigned           Ticket[]              @relation("TicketAssignedTo")
+  ticketComments            TicketComment[]
+  ticketCategoryAssignments TicketCategory[]      @relation("TicketCategoryDefaultAssignee")
+  kbArticles                KBArticle[]
+  managedProjects           Project[]             @relation("ProjectManager")
+  assignedProjectTasks      ProjectTask[]         @relation("ProjectTaskAssignedTo")
+  timeEntries               ProjectTimeEntry[]
+  projectExpenses           ProjectExpense[]      @relation("ProjectExpenseUser")
+  approvedProjectExpenses   ProjectExpense[]      @relation("ProjectExpenseApprover")
+  projectResources          ProjectResource[]
+  createdDocumentFolders    DocumentFolder[]
+  uploadedDocuments         Document[]
+  createdDocumentVersions   DocumentVersion[]
+  sharedDocuments           DocumentShare[]       @relation("DocumentShareUser")
+  sharedDocumentsByMe       DocumentShare[]       @relation("DocumentShareSharer")
+  requestedSignatures       DigitalSignatureRequest[]
+  createdDashboards         Dashboard[]
+  sharedDashboards          DashboardShare[]      @relation("DashboardShareUser")
+  createdCustomReports      CustomReport[]
+  requestedDataExports      DataExport[]
 
   @@unique([tenantId, email])
   @@unique([tenantId, username])
@@ -252,6 +273,11 @@ model Customer {
   dealWorksheets         DealWorksheet[]
   deals                  Deal[]
   leads                  Lead[]
+  campaignMemberships    CampaignMember[]
+  sequenceEnrollments    SequenceEnrollment[]
+  satisfactionScores     SatisfactionScore[]
+  projects               Project[]            @relation("ProjectCustomer")
+  tickets                Ticket[]             @relation("TicketCustomer")
 
   @@index([tenantId, leadStatus])
   @@index([tenantId, assignedToUserId])
@@ -321,6 +347,9 @@ model Lead {
   customer            Customer?       @relation(fields: [customerId], references: [id])
   owner               User?           @relation("LeadOwner", fields: [ownerId], references: [id])
   tenant              Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  campaignMemberships CampaignMember[]
+  sequenceEnrollments SequenceEnrollment[]
+  tickets             Ticket[]        @relation("TicketLead")
 
   @@index([tenantId, status])
   @@index([tenantId, assignedToId])
