@@ -199,7 +199,7 @@ npm run build:prod
 **"Migration failed"**
 ```bash
 # In Shell:
-npx prisma migrate deploy
+npm run db:migrate:deploy:safe
 ```
 
 **"Can't connect to database"**

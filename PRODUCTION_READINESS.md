@@ -75,7 +75,7 @@ npm run db:migrate:production
 
 **Option B: Deploy migrations directly**
 ```bash
-npm run db:migrate:deploy
+npm run db:migrate:deploy:safe
 ```
 
 **Verify migrations:**

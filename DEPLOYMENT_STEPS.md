@@ -171,6 +171,8 @@ PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING = "1"
 build = ["npm", "install", "&&", "npm", "run", "build:prod"]
 run = ["npm", "run", "start:prod"]
 
+"start:prod" executes `scripts/start-production.sh`, which triggers the safe migration deploy before launching the server.
+
 [[ports]]
 localPort = 5000
 externalPort = 80
@@ -196,10 +198,10 @@ externalPort = 80
 > ⚠️ Run migrations before starting the server. For existing databases, baseline migrations first using `prisma migrate resolve --applied "<migration_name>"` as needed.
 
 ```bash
-# Deploy migrations to production database
-npm run db:migrate:deploy
+# Deploy migrations (handles baselining automatically)
+npm run db:migrate:deploy:safe
 
-# Or push schema directly (development)
+# Or push schema directly during development
 npm run db:push
 ```
 

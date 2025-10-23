@@ -402,7 +402,7 @@ To use the full Enterprise CRM extension:
 
 1. **Apply Enterprise Migration**
    ```bash
-   npm run db:migrate:deploy
+   npm run db:migrate:deploy:safe
    ```
    This applies all 41 enterprise tables.
 
@@ -486,7 +486,7 @@ For background job processing:
 - [ ] APP_URL points to Replit domain
 - [ ] Optional services configured (email, SMS, storage)
 - [ ] Build succeeds: `npm run build:prod`
-- [ ] Migrations applied: `npm run db:migrate:deploy`
+- [ ] Migrations applied: `npm run db:migrate:deploy:safe`
 - [ ] Frontend builds: `npm run build:client`
 - [ ] Server starts: `npm run start:prod`
 - [ ] Health check works: `/api/health`
