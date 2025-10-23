@@ -4,12 +4,21 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["glibcLocales", "libxcrypt", "nano", "nvidia-container-toolkit", "pm2"]
+packages = [
+  "glibcLocales",
+  "libxcrypt",
+  "nano",
+  "nvidia-container-toolkit",
+  "pm2",
+]
 
 [deployment]
-deploymentTarget = "autoscale"
-build = ["npm", "run", "build:prod"]
-run = ["npm", "run", "start:prod"]
+build = [
+  "sh",
+  "-c",
+  "PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 npm run build:prod",
+]
+run = ["node", "dist/index.js"]
 
 [[ports]]
 localPort = 5000
@@ -20,6 +29,7 @@ externalPort = 80
 
 [env]
 PORT = "5000"
+PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING = 1
 
 [workflows]
 runButton = "Project"
@@ -43,4 +53,13 @@ args = "npm run dev"
 waitForPort = 5000
 
 [agent]
-integrations = ["javascript_google_analytics==1.0.0", "javascript_sendgrid==1.0.0", "javascript_database==1.0.0", "javascript_stripe==1.0.0", "javascript_log_in_with_replit==1.0.0", "perplexity_v0==1.0.0", "javascript_openai==1.0.0", "javascript_websocket==1.0.0"]
+integrations = [
+  "javascript_google_analytics==1.0.0",
+  "javascript_sendgrid==1.0.0",
+  "javascript_database==1.0.0",
+  "javascript_stripe==1.0.0",
+  "javascript_log_in_with_replit==1.0.0",
+  "perplexity_v0==1.0.0",
+  "javascript_openai==1.0.0",
+  "javascript_websocket==1.0.0",
+]
