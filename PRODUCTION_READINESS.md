@@ -170,7 +170,7 @@ curl -I http://your-domain.com
    run = ["npm", "run", "start:prod"]
    ```
 
-`start:prod` runs `scripts/start-production.sh`, which triggers `npm run db:migrate:deploy:safe` to baseline existing schemas before the server boots. You can still run the safe deploy script manually for extra assurance before triggering a deploy.
+> ⚠️ Run Prisma migrations separately (for example, `npm run db:migrate:deploy`) before starting the production server. Baseline existing databases with `prisma migrate resolve --applied "<migration_name>"` as needed.
 
 3. **Deploy:**
    - Click "Deploy" in Replit

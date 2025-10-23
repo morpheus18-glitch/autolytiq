@@ -161,7 +161,7 @@ npm run build:prod
 ```bash
 npm run start:prod
 ```
-> ✅ `start:prod` executes `scripts/start-production.sh`, which runs the safe Prisma deploy (baselining existing schemas) before launching the server. No separate startup commands needed.
+> ⚠️ Run `npm run db:migrate:deploy` (or baseline existing migrations) before starting the app in production.
 
 1. ✅ Start production server on port 5000
 2. ✅ Serve API at `/api/*`

@@ -186,11 +186,10 @@ On deployment start, Replit runs:
 npm run start:prod
 ```
 
-`start:prod` calls `scripts/start-production.sh`, which executes `npm run db:migrate:deploy:safe` to baseline existing schemas and apply any pending migrations before booting the server.
+> ⚠️ Apply migrations separately before starting the server. For existing databases, baseline each migration with `prisma migrate resolve --applied "<migration_name>"` so Prisma knows the state.
 
 **This command does:**
-1. ✅ Run safe Prisma deploy and generate client
-2. ✅ Start production server (`node dist/index.js`)
+1. ✅ Start production server (`node dist/index.js`)
 
 **The server will:**
 - Listen on port 5000

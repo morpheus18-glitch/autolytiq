@@ -195,9 +195,7 @@ externalPort = 80
 
 ### Step 4: Run Database Migrations
 
-> ✅ The `start:prod` script now runs `npm run db:migrate:deploy:safe` automatically. This helper baselines existing schemas and continues boot even if migrations were already applied.
->
-> ⚠️ For large schema changes, you can still run the safe deploy script manually ahead of time:
+> ⚠️ Run migrations before starting the server. For existing databases, baseline migrations first using `prisma migrate resolve --applied "<migration_name>"` as needed.
 
 ```bash
 # Deploy migrations (handles baselining automatically)
