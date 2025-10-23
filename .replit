@@ -8,8 +8,8 @@ packages = ["glibcLocales", "libxcrypt"]
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["npm", "run", "build"]
-run = ["npm", "run", "start"]
+build = ["sh", "-c", "npm run build:prod"]
+run = ["sh", "-c", "npm run start:prod"]
 
 [[ports]]
 localPort = 5000
