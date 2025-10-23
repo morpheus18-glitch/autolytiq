@@ -149,20 +149,6 @@ export default function Login() {
                 </Button>
               </form>
 
-      const target = data.access?.homePath ?? "/dashboard";
-      navigate(target, { replace: true });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to sign in";
-      toast({
-        title: "Sign in failed",
-        description: message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
               <div className="space-y-2 text-center text-sm text-muted-foreground">
                 <p>Looking for a different tenant or store?</p>
                 <p>Provide the store ID assigned during onboarding (for example: MAIN).</p>
