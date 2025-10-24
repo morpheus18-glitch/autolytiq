@@ -2,9 +2,10 @@
 # ==============================================================================
 # AutolytiQ production startup script
 # ==============================================================================
-# This script wraps the production startup so we can run migrations safely
-# before launching the application. It uses the safe Prisma deployment helper
-# that baselines an existing database and never blocks the server from booting.
+# This script launches the production application and runs safe Prisma migrations.
+# It leverages the db:migrate:deploy:safe helper which can baseline existing
+# schemas (avoiding P3005) and always exits successfully so the app can boot.
+# Set SKIP_DB_MIGRATIONS=1 to bypass the migration step.
 # ==============================================================================
 
 set -o errexit
@@ -17,11 +18,21 @@ ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 cd "$ROOT_DIR"
 
 echo "🚀 AutolytiQ production startup"
-echo "🔄 Ensuring Prisma client and migrations are up to date..."
 
-if ! npm run db:migrate:deploy:safe; then
-  echo "⚠️  Safe migration deploy reported issues. Continuing with startup." >&2
+if [[ "${SKIP_DB_MIGRATIONS:-0}" == "1" ]]; then
+  echo "⚠️  SKIP_DB_MIGRATIONS is set; skipping Prisma migrations"
+else
+  echo "🛠  Running safe Prisma migrations"
+  set +e
+  npm run db:migrate:deploy:safe
+  migrate_exit=$?
+  set -e
+
+  if [[ $migrate_exit -ne 0 ]]; then
+    echo "⚠️  Migration step reported issues (exit code $migrate_exit)"
+    echo "    Continuing startup; check logs for details"
+  fi
 fi
 
-echo "✅ Launching application"
+echo "✅ Launching application server"
 exec npm run start

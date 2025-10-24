@@ -1,7 +1,14 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "tsup";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export default defineConfig({
-  entry: ["server/index.ts"],
+  entry: {
+    index: "server/index.ts",
+  },
   format: ["esm"],
   target: "node20",
   sourcemap: true,
@@ -9,27 +16,27 @@ export default defineConfig({
   minify: false,
   shims: false,
   splitting: false,
-
   bundle: true,
-  skipNodeModulesBundle: true,
+  skipNodeModulesBundle: false,
   treeshake: false,
-
-  external: [/^(?!@shared)[^./]/],
+  external: [
+    "@prisma/client",
+    ".prisma/client/index.js",
+    "better-sqlite3",
+    "lightningcss",
+    "postcss",
+    "autoprefixer",
+    "vite",
+    /@babel\//,
+    /@tailwindcss\//,
+  ],
   noExternal: ["@shared"],
   tsconfig: "tsconfig.api.json",
   esbuildOptions(options) {
-    options.resolveExtensions = [".ts", ".js"];
+    options.resolveExtensions = [".ts", ".js", ".mjs", ".cjs"];
     options.alias = {
-      "@shared": "./shared",
+      "@shared": path.resolve(__dirname, "shared"),
     };
-    options.external = [
-      "lightningcss",
-      "@babel/*",
-      "@tailwindcss/*",
-      "vite",
-      "postcss",
-      "autoprefixer",
-    ];
   },
   env: {
     NODE_ENV: process.env.NODE_ENV ?? "development",
