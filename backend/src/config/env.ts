@@ -5,7 +5,7 @@ import { DEPLOY_MODE, FEATURE_CLICKHOUSE } from './flags.js';
 const ENV = cleanEnv(process.env, {
   NODE_ENV: str({ choices: ['development', 'production', 'test'], default: 'development' }),
   DEPLOY_MODE: str({ choices: ['replit', 'self_hosted'], default: 'replit' }),
-  PORT: num({ default: 5000 }),
+  PORT: num({ default: 80 }),
   DATABASE_URL: str(),
   DIRECT_URL: str({ default: undefined }),
   REDIS_URL: str(),

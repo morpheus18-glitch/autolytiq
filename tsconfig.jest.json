@@ -7,5 +7,5 @@
     "allowSyntheticDefaultImports": true,
     "isolatedModules": false
   },
-  "include": ["server/**/*", "shared/**/*", "tests/**/*"]
+  "include": ["src/**/*", "backend/src/**/*", "tests/**/*"]
 }
