@@ -190,7 +190,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(systemUsers)
       .where(eq(systemUsers.email, email));
-    return user ? this.sanitizeSystemUser(user) : undefined;
+    return user ?? undefined;
   }
 
   async createSystemUser(userData: InsertSystemUser & { passwordHash: string; id?: string }): Promise<SystemUser> {
@@ -276,16 +276,16 @@ export class DatabaseStorage implements IStorage {
     await db.delete(userSessions).where(eq(userSessions.sessionToken, token));
   }
 
-  async getAllRoles(): Promise<SystemRole[]> {
+  async getAllSystemRoles(): Promise<SystemRole[]> {
     return await db.select().from(systemRoles);
   }
 
-  async getRoleById(id: string): Promise<SystemRole | undefined> {
+  async getSystemRoleById(id: string): Promise<SystemRole | undefined> {
     const [role] = await db.select().from(systemRoles).where(eq(systemRoles.id, id));
     return role;
   }
 
-  async createRole(roleData: InsertSystemRole & { id?: string }): Promise<SystemRole> {
+  async createSystemRole(roleData: InsertSystemRole & { id?: string }): Promise<SystemRole> {
     const { id: providedId, ...rest } = roleData as InsertSystemRole & { id?: string };
     const now = new Date();
     const [role] = await db
@@ -300,9 +300,9 @@ export class DatabaseStorage implements IStorage {
     return role;
   }
 
-  async updateRole(id: string, updates: Partial<SystemRole>): Promise<SystemRole | undefined> {
+  async updateSystemRole(id: string, updates: Partial<SystemRole>): Promise<SystemRole | undefined> {
     if (!updates || Object.keys(updates).length === 0) {
-      return this.getRoleById(id);
+      return this.getSystemRoleById(id);
     }
 
     const sanitizedUpdates: Partial<SystemRole> = { ...updates, updatedAt: new Date() };
@@ -317,7 +317,7 @@ export class DatabaseStorage implements IStorage {
     return role ?? undefined;
   }
 
-  async deleteRole(id: string): Promise<void> {
+  async deleteSystemRole(id: string): Promise<void> {
     await db.delete(systemRoles).where(eq(systemRoles.id, id));
   }
 

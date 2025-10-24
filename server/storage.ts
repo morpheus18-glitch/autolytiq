@@ -59,11 +59,11 @@ export interface IStorage {
   invalidateUserSession(token: string): Promise<void>;
 
   // Role operations
-  getAllRoles(): Promise<SystemRole[]>;
-  getRoleById(id: string): Promise<SystemRole | undefined>;
-  createRole(role: InsertSystemRole): Promise<SystemRole>;
-  updateRole(id: string, updates: Partial<SystemRole>): Promise<SystemRole | undefined>;
-  deleteRole(id: string): Promise<void>;
+  getAllSystemRoles(): Promise<SystemRole[]>;
+  getSystemRoleById(id: string): Promise<SystemRole | undefined>;
+  createSystemRole(role: InsertSystemRole): Promise<SystemRole>;
+  updateSystemRole(id: string, updates: Partial<SystemRole>): Promise<SystemRole | undefined>;
+  deleteSystemRole(id: string): Promise<void>;
 
   // Activity logging
   logActivity(activity: InsertActivityLogEntry): Promise<ActivityLogEntry>;
@@ -3963,15 +3963,15 @@ export class MemStorage implements IStorage {
     this.userSessions.delete(token);
   }
 
-  async getAllRoles(): Promise<SystemRole[]> {
+  async getAllSystemRoles(): Promise<SystemRole[]> {
     return Array.from(this.systemRoles.values());
   }
 
-  async getRoleById(id: string): Promise<SystemRole | undefined> {
+  async getSystemRoleById(id: string): Promise<SystemRole | undefined> {
     return this.systemRoles.get(id);
   }
 
-  async createRole(roleData: InsertSystemRole): Promise<SystemRole> {
+  async createSystemRole(roleData: InsertSystemRole): Promise<SystemRole> {
     const role: SystemRole = {
       ...roleData,
       createdAt: new Date(),
@@ -3981,16 +3981,16 @@ export class MemStorage implements IStorage {
     return role;
   }
 
-  async updateRole(id: string, updates: Partial<SystemRole>): Promise<SystemRole | undefined> {
+  async updateSystemRole(id: string, updates: Partial<SystemRole>): Promise<SystemRole | undefined> {
     const role = this.systemRoles.get(id);
     if (!role) return undefined;
-    
+
     const updatedRole = { ...role, ...updates, updatedAt: new Date() };
     this.systemRoles.set(id, updatedRole);
     return updatedRole;
   }
 
-  async deleteRole(id: string): Promise<void> {
+  async deleteSystemRole(id: string): Promise<void> {
     this.systemRoles.delete(id);
   }
 

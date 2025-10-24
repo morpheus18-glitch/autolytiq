@@ -54,7 +54,7 @@ export function registerUserRoutes(app: Express): void {
   // Get all roles - temporarily public for development  
   app.get('/api/roles', async (req, res) => {
     try {
-      const roles = await storage.getAllRoles();
+      const roles = await storage.getAllSystemRoles();
       res.json(roles);
     } catch (error: any) {
       console.error('Error fetching roles:', error);
@@ -361,7 +361,7 @@ export function registerUserRoutes(app: Express): void {
   // Role management endpoints
   app.get('/api/roles', authenticateToken, requirePermission('admin.users'), async (req, res) => {
     try {
-      const roles = await storage.getAllRoles();
+      const roles = await storage.getAllSystemRoles();
       res.json(roles);
     } catch (error) {
       console.error('Get roles error:', error);
@@ -373,7 +373,7 @@ export function registerUserRoutes(app: Express): void {
     try {
       const roleData = insertSystemRoleSchema.parse(req.body);
       
-      const newRole = await storage.createRole({
+      const newRole = await storage.createSystemRole({
         ...roleData,
         id: `role_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       });
