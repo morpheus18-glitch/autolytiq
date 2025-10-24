@@ -120,8 +120,9 @@ function collectMetrics(deals: DealSnapshot[]): DealMetrics {
   );
 }
 
-function buildDealWhere(filters: DashboardFilters): Prisma.DealJacketWhereInput {
+function buildDealWhere(tenantId: string, filters: DashboardFilters): Prisma.DealJacketWhereInput {
   const where: Prisma.DealJacketWhereInput = {
+    tenantId,
     dealDate: {
       gte: startOfDay(filters.start),
       lte: endOfDay(filters.end),
@@ -170,13 +171,14 @@ export const fiDashboardService = {
 
   async getKpis(tenantId: string, filters: DashboardFilters) {
     const currentWhere: Prisma.DealJacketWhereInput = {
-      ...buildDealWhere(filters),
+      ...buildDealWhere(tenantId, filters),
       status: { in: [...CONTRACTED_STATUSES] },
     };
 
     const previousRange = buildPreviousRange(filters);
+    const previousFilters: DashboardFilters = { ...filters, ...previousRange };
     const previousWhere: Prisma.DealJacketWhereInput = {
-      ...buildDealWhere({ ...filters, ...previousRange }),
+      ...buildDealWhere(tenantId, previousFilters),
       status: { in: [...CONTRACTED_STATUSES] },
     };
 
@@ -219,7 +221,7 @@ export const fiDashboardService = {
 
   async getActiveDeals(tenantId: string, filters: DashboardFilters) {
     const where: Prisma.DealJacketWhereInput = {
-      ...buildDealWhere(filters),
+      ...buildDealWhere(tenantId, filters),
       status: { notIn: ['Delivered', 'Cancelled'] },
     };
 
@@ -312,7 +314,7 @@ export const fiDashboardService = {
 
   async getProductPerformance(tenantId: string, filters: DashboardFilters) {
     const where: Prisma.DealJacketWhereInput = {
-      ...buildDealWhere(filters),
+      ...buildDealWhere(tenantId, filters),
       status: { in: [...CONTRACTED_STATUSES] },
     };
 
@@ -376,16 +378,19 @@ export const fiDashboardService = {
   },
 
   async getLenderPerformance(tenantId: string, filters: DashboardFilters) {
+    const submissionDealWhere: Prisma.DealJacketWhereInput = { tenantId };
+    if (filters.salespersonId) {
+      submissionDealWhere.salespersonId = filters.salespersonId;
+    }
+
     const submissionWhere: Prisma.LenderSubmissionWhereInput = {
+      tenantId,
       createdAt: {
         gte: startOfDay(filters.start),
         lte: endOfDay(filters.end),
       },
+      deal: submissionDealWhere,
     };
-
-    if (filters.salespersonId) {
-      submissionWhere.deal = { salespersonId: filters.salespersonId };
-    }
     if (filters.lenderId) {
       submissionWhere.lenderId = filters.lenderId;
     }
@@ -404,7 +409,7 @@ export const fiDashboardService = {
       prisma.dealJacket.groupBy({
         by: ['lenderId'],
         where: {
-          ...buildDealWhere(filters),
+          ...buildDealWhere(tenantId, filters),
           lenderId: { not: null },
           status: { in: [...CONTRACTED_STATUSES] },
         },
@@ -459,7 +464,7 @@ export const fiDashboardService = {
 
   async getCommissionSummary(tenantId: string, filters: DashboardFilters) {
     const where: Prisma.DealJacketWhereInput = {
-      ...buildDealWhere(filters),
+      ...buildDealWhere(tenantId, filters),
       status: { in: [...CONTRACTED_STATUSES] },
     };
 
