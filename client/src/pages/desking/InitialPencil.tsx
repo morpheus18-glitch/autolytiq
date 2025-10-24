@@ -395,6 +395,11 @@ export default function InitialPencil() {
     },
   });
 
+  const activeScenario = useMemo(
+    () => deal?.scenarios.find(scenario => scenario.id === deal.activeScenarioId),
+    [deal?.activeScenarioId, deal?.scenarios],
+  );
+
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if (event.defaultPrevented) {
@@ -428,11 +433,6 @@ export default function InitialPencil() {
   const handleGenerate = (values: InitialPencilFormValues) => {
     generateWorksheet.mutate(values);
   };
-
-  const activeScenario = useMemo(
-    () => deal?.scenarios.find(scenario => scenario.id === deal.activeScenarioId),
-    [deal?.activeScenarioId, deal?.scenarios],
-  );
 
   const analysisStructure = analysis?.structure ?? buildFallbackAnalysis(form.getValues()).structure;
 
