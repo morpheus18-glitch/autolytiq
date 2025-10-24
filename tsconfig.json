@@ -1,8 +1,6 @@
 {
   "include": [
     "client/src/**/*",
-    "shared/**/*",
-    "server/**/*",
     "scripts/**/*.ts"
   ],
   "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
@@ -21,8 +19,7 @@
     "baseUrl": ".",
     "types": ["node", "vite/client", "jest"],
     "paths": {
-      "@/*": ["./client/src/*"],
-      "@shared/*": ["./shared/*"]
+      "@/*": ["./client/src/*"]
     }
   }
 }

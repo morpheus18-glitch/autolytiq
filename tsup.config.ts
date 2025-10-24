@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   entry: {
-    index: "server/index.ts",
+    index: "src/server.ts",
   },
   format: ["esm"],
   target: "node20",
@@ -30,13 +30,9 @@ export default defineConfig({
     /@babel\//,
     /@tailwindcss\//,
   ],
-  noExternal: ["@shared"],
   tsconfig: "tsconfig.api.json",
   esbuildOptions(options) {
     options.resolveExtensions = [".ts", ".js", ".mjs", ".cjs"];
-    options.alias = {
-      "@shared": path.resolve(__dirname, "shared"),
-    };
   },
   env: {
     NODE_ENV: process.env.NODE_ENV ?? "development",
