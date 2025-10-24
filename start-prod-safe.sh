@@ -6,6 +6,11 @@
 set -e
 
 echo "🚀 Starting AutolytiQ Production"
+
+# Change to workspace directory (deployment runs from /home/runner/)
+cd /home/runner/workspace || cd "$(dirname "$0")" || exit 1
+
+echo "📂 Working directory: $(pwd)"
 echo "📦 Database migrations are NOT run by this script"
 echo "✅ Starting application server..."
 
