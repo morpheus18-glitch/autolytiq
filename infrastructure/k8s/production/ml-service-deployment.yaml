@@ -27,9 +27,15 @@ spec:
                 name: dms-secrets
           env:
             - name: DATABASE_URL
-              value: postgresql://$(DB_USER):$(DB_PASSWORD)@postgres-service:5432/$(DB_NAME)
+              valueFrom:
+                secretKeyRef:
+                  name: dms-secrets
+                  key: DATABASE_URL
             - name: REDIS_URL
-              value: redis://:$(REDIS_PASSWORD)@redis-service:6379/0
+              valueFrom:
+                secretKeyRef:
+                  name: dms-secrets
+                  key: REDIS_URL
           volumeMounts:
             - name: models
               mountPath: /models
