@@ -46,13 +46,15 @@ real-time intelligence.
 
 ## Getting Started
 
-1. **Install JavaScript dependencies**
+1. **Bootstrap the local stack**
+   ```bash
+   pnpm setup:local
+   ```
+   This installs dependencies, applies migrations, and seeds the baseline GL data so the API can start without 500 errors.
+
+2. **(Alternative) Run each setup command manually**
    ```bash
    pnpm install
-   ```
-
-2. **Generate Prisma client and push the schema**
-   ```bash
    pnpm prisma:generate
    pnpm db:push
    pnpm db:seed   # optional sample data
