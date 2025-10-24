@@ -331,3 +331,14 @@ export const ApprovalPrediction = z.object({
   recommendation: Recommendation,
 });
 export type ApprovalPrediction = z.infer<typeof ApprovalPrediction>;
+
+/** ─────────────────────────────
+ * Backwards compatibility (camelCase exports)
+ * ───────────────────────────── */
+export const dealStructureSchema = DealStructure;
+export const optimizationRequestSchema = OptimizationRequest;
+export const counterAnalysisRequestSchema = CounterAnalysisRequest;
+export const paymentCalculationSchema = PaymentCalculation;
+export const grossCalculationSchema = GrossCalculation;
+export const approvalPredictionRequestSchema = ApprovalPredictionRequest;
+export const dealWorksheetStatusSchema = DealStatus;
