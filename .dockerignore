@@ -1,0 +1,105 @@
+# Dependencies
+node_modules
+**/node_modules
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Build outputs
+dist
+**/dist
+build
+**/build
+.next
+out
+
+# Environment files
+.env
+.env.*
+!.env.example
+.env.local
+.env.production
+.env.development
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+coverage
+.nyc_output
+*.lcov
+
+# Documentation & misc
+*.md
+!README.md
+docs
+CHANGELOG.md
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
+
+# Replit specific
+.replit
+replit.nix
+.config
+
+# Temporary files
+tmp
+temp
+*.tmp
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Large asset directories (design files, etc.)
+docs/resources/assets
+
+# Backup files
+*.backup
+*.bak
+*.old
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Package manager
+.pnpm-debug.log
+.npm
+.yarn
+
+# Prisma
+# Note: We keep schema.prisma but ignore generated files
+# (they'll be regenerated during build)
+packages/db/migrations/.migration_lock.toml
+
+# Docker
+docker-compose*.yml
+!docker-compose.yml
+Dockerfile*
+!Dockerfile
+
+# Scripts (if they contain sensitive data)
+# scripts/*.sh
+
+# Monitoring & reports
+var/reports
+monitoring
+
+# Misc
+.cache
+.parcel-cache
