@@ -4319,14 +4319,3 @@ export class MemStorage implements IStorage {
 }
 
 export const storage: IStorage = new DatabaseStorage();
-
-// Initialize sample notifications
-setTimeout(async () => {
-  try {
-    const { notificationService } = await import('./notificationService');
-    await notificationService.generateSampleNotifications();
-    console.log('✅ Sample notifications initialized');
-  } catch (error) {
-    console.error('❌ Failed to initialize sample notifications:', error);
-  }
-}, 1000);
