@@ -11,7 +11,7 @@ deploymentTarget = "autoscale"
 run = ["sh", "-c", "./start-prod-safe.sh"]
 
 [[ports]]
-localPort = 5000
+localPort = 80
 externalPort = 80
 
 [[ports]]
