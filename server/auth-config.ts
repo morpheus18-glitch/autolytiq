@@ -84,7 +84,7 @@ export const tenantDirectory: TenantConfig[] = [
         role: 'Administrator',
         permissions: ['*'],
         featureFlags: ['developer_portal', 'realtime_analytics'],
-        passwordHash: '$2b$10$T3rp4DpKAsddBeWdyLVwQOu2K7DFBOfwqP9DLKCtAMSTa1nlbwekC',
+        passwordHash: '$2b$10$56fxHFSbYh/fFGGIuY/MDO3yucxi6Ift8/rvkxt4FO05OR7.a950C',
         access: {
           homePath: '/ml-developer-admin',
           allowedRoutes: ['*'],
@@ -101,7 +101,7 @@ export const tenantDirectory: TenantConfig[] = [
         role: 'Sales Manager',
         permissions: ['sales.manage', 'customers.view', 'leads.view'],
         featureFlags: ['sales_assistant'],
-        passwordHash: '$2b$10$k/tr2mK6zzDwciPuvBpZhe0dJ3UigdoeHvyY3A5xEsn0f5Xwf1kY.',
+        passwordHash: '$2b$10$zUE.atSBKpmGhIS6URcavuvf7Fs3eGhmxqUIIJSzGnQEH8nGikoPe',
         access: {
           homePath: '/sales',
           allowedRoutes: [
