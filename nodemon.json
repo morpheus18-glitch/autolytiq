@@ -1,0 +1,23 @@
+{
+  "watch": ["server", "shared"],
+  "ext": "ts,js,json",
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/.git/**",
+    "**/backend/**",
+    "**/ml_backend/**",
+    "**/ml_service/**",
+    "**/tracking-service/**",
+    "**/infrastructure/**",
+    "**/migrations/**",
+    "**/tests/**",
+    "**/var/**",
+    "**/client/**",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ],
+  "exec": "tsx server/index.ts",
+  "delay": 500
+}
