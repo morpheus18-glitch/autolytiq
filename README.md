@@ -1,160 +1,114 @@
 # AutolytiQ
 
-AutolytiQ is an end-to-end retail automotive platform that unifies CRM, inventory, desking, F&I, and analytics workflows into a
-single operations hub. The monorepo packages a production React front end, multiple Node/TypeScript services, Python machine
-learning pipelines, and auxiliary workers so dealerships can price inventory, structure deals, and manage customer journeys with
-real-time intelligence.
+AutolytiQ is an end-to-end retail automotive platform that unifies CRM, desking, F&I, analytics, and machine-learning driven
+operations. The repository is organised as a pnpm workspace that ships a React front end, a TypeScript/Express API, Python
+services for predictive scoring, and operational tooling needed for production deployments on DigitalOcean.
 
-## Feature Highlights
-
-- **Deal Desk & Desking** – Multi-structure worksheets with automated tax/fee lookup, trade handling, finance & lease options,
-  printable jackets, and AI-assisted negotiation flows.
-- **Customer & Lead Management** – Tenant-scoped CRM with activity timelines, lead scoring, appointment automation, and
-  omnichannel communication tracking.
-- **Inventory Intelligence** – Pricing history, competitive market scraping, recon tracking, appraisal workflows, and pipeline
-  analytics for each rooftop.
-- **Finance & Compliance** – Credit apps, credit bureau pulls, funding/compliance checklists, lender submissions, GL integration,
-  and commission accounting.
-- **Machine Learning Services** – Python services for pricing predictions, deal optimization, lead prioritization, and inventory
-  recommendations backed by automated retraining pipelines.
-- **Observability & Tracking** – Pixel tracking service, notification center, audit logging, and report generation for retail
-  operations teams.
-
-## Repository Layout
+## Monorepo layout
 
 | Path | Purpose |
 | --- | --- |
-| `client/` | React 18 + Vite front end with shadcn/ui component system and TanStack Query data layer. |
-| `src/` | Primary Express API using Prisma, background queues, domain services, and integrations. |
-| `server/` | Legacy Drizzle/Express gateway that exposes shared schema driven routes. |
-| `backend/` | Additional TypeScript service with its own Prisma schema for modular deployments. |
-| `ml_service/` | FastAPI + Celery service that powers realtime ML scoring and async jobs. |
-| `ml_backend/` | Offline Python pipelines for scraping, feature engineering, and model retraining. |
-| `tracking-service/` | Dedicated event ingestion and analytics service. |
-| `infrastructure/` | Docker, Kubernetes, and monitoring manifests for self-hosted deployments. |
-| `prisma/` | Canonical Prisma schema, migrations, and data seed scripts for the core service. |
-| `docs/` (including `docs/resources/assets/`) and other legacy markdown files were consolidated into this README and `ARCHITECTURE.md`. |
+| `apps/client` | React 18 + Vite single page application with shadcn/ui components and TanStack Query. |
+| `apps/server` | Express API, Socket.IO gateway, Prisma access layer, and background schedulers. Builds with `tsup` to `dist/`. |
+| `apps/ml_service` | FastAPI scoring API plus Celery workers for live model inference. |
+| `apps/ml_backend` | Offline training pipelines, scraping jobs, and feature engineering utilities. |
+| `packages/db` | Prisma schema, migrations, and database utilities shared across services. |
+| `packages/shared` | TypeScript utilities, domain types, and client/server shared logic. |
+| `tracking-service` | Event ingestion and analytics microservice. |
+| `infrastructure` | Docker Compose, Kubernetes manifests, and Terraform modules for self-hosting. |
+| `scripts` | Automation for migrations, deployment, health checks, and DigitalOcean provisioning. |
 
 ## Prerequisites
 
 - Node.js 20+
-- pnpm 9 (npm and yarn work, but pnpm matches the lockfile)
-- Python 3.11+ for ML services
-- PostgreSQL 14+ (Neon or compatible serverless deployment)
-- Redis (for BullMQ queues and Celery broker; locally you can point services at `redis://localhost:6379`)
-- Optional: Docker/Compose if using the self-hosted stack described in `ARCHITECTURE.md`
+- pnpm 9+
+- Python 3.11+ (for ML services)
+- PostgreSQL 14+
+- Redis 7+
+- Docker (optional but recommended for production parity)
 
-## Getting Started
+## Environment configuration
 
-1. **Install JavaScript dependencies**
-   ```bash
-   pnpm install
-   ```
+Create a `.env` at the repository root. Start from the template that matches your target platform:
 
-2. **Generate Prisma client and push the schema**
-   ```bash
-   pnpm prisma:generate
-   pnpm db:push
-   pnpm db:seed   # optional sample data
-   ```
+- `.env.example` – minimal local development variables
+- `.env.selfhost.example` – Docker Compose/local server parity
+- `.env.digitalocean.example` – production-ready configuration for the droplet stack
+- `.env.replit.example` – legacy single-port deployment (kept for reference)
 
-3. **Install Python dependencies for the ML services**
-   ```bash
-   cd ml_service
-   pip install -r requirements.txt
-   cd ..
-   cd ml_backend
-   pip install -r requirements.txt
-   cd ..
-   ```
-
-4. **Set required environment variables** (`.env` at repository root)
-   ```env
-   DATABASE_URL=postgresql://user:password@localhost:5432/autolytiq
-   SESSION_SECRET=local-development-session-secret-please-change
-   VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
-   REDIS_URL=redis://localhost:6379
-   OPENAI_API_KEY=sk-...
-   STRIPE_SECRET_KEY=sk_test_...
-   SENDGRID_API_KEY=...
-  ```
-  `SESSION_SECRET` must be at least 32 characters long to satisfy runtime validation.
-  See `ARCHITECTURE.md` for optional credentials (OAuth providers, S3, Twilio, etc.).
-
-## Running Locally
-
-- **API only**
-  ```bash
-  pnpm dev
-  ```
-
-- **Frontend**
-  ```bash
-  pnpm dev:frontend
-  ```
-
-- **Legacy gateway**
-  ```bash
-  pnpm dev:backend
-  ```
-
-- **ML scoring API & workers**
-  ```bash
-  pnpm dev:ml          # FastAPI service on :8000
-  pnpm dev:worker:hp   # High-priority Celery worker
-  pnpm dev:worker:ml   # ML job worker
-  pnpm dev:beat        # Celery beat scheduler
-  ```
-
-- **Full Replit-style stack (backend + frontend + ML services + workers)**
-  ```bash
-  pnpm dev:replit
-  ```
-
-The frontend expects the API on port `5000` and the ML service on `8000`. When running locally, ensure CORS and env variables
-match your chosen ports.
-
-## Testing & Quality
+Generate strong secrets before first deploy:
 
 ```bash
-pnpm lint          # ESLint checks
-pnpm typecheck     # TypeScript project references
-pnpm test          # Vitest unit/integration suite
-pnpm test:e2e      # Playwright end-to-end tests
-pnpm ml:test       # Python ML unit tests
-pnpm ci            # Full CI pipeline (generate client, typecheck, lint, test, build, ML tests)
+openssl rand -base64 32 # SESSION_SECRET
+openssl rand -base64 64 # JWT_SECRET
+openssl rand -hex 32    # CREDIT_ENCRYPTION_KEY
 ```
 
-## Database Operations
+## Install dependencies
 
 ```bash
-pnpm prisma:migrate    # Development migrations
-pnpm db:push           # Sync schema without migrations (non-prod)
-pnpm db:seed           # Seed baseline data
-pnpm db:migrate:ensure # Production-safe deploy (auto baselines & generates client)
+pnpm install
+pnpm db:generate  # Prisma client
 ```
 
-Set `SKIP_DB_MIGRATIONS=1` in environments where another job is responsible for applying migrations (for example, read-only
-application replicas).
+Python services manage their own dependencies:
 
-## Deployment Summary
+```bash
+cd apps/ml_service && pip install -r requirements.txt
+cd ../ml_backend && pip install -r requirements.txt
+```
 
-- **Production**: Replit Deployments serving the built Express app on port 5000 with automatic SSL, Neon PostgreSQL, and Redis
-  for queues. Build command `pnpm run build` (tsup + vite) and start command `pnpm start`.
-- **Self-hosted**: Docker Compose stack (`docker-compose.yml`) now provisions Postgres, MinIO, ML scoring service, and automatic
-  Prisma migrations during backend startup. `make up` or `docker compose up --build` orchestrates API, client, ML services,
-  Redis, and Postgres. Kubernetes manifests are in `infrastructure/k8s` for clustered installs.
+## Run locally
 
-Detailed architecture, infrastructure, and operational runbooks now live in [`ARCHITECTURE.md`](ARCHITECTURE.md).
+- Run the API only: `pnpm dev:server`
+- Run the frontend: `pnpm dev:client`
+- Build shared packages + run the single-port stack (matches Replit/docker image entrypoint): `pnpm dev:replit`
+- Launch ML services: `pnpm --filter @repo/ml_service dev` and `pnpm --filter @repo/ml_backend dev`
 
-## Contributing
+The API listens on `http://localhost:5000` by default and expects PostgreSQL/Redis according to your `.env`.
 
-1. Fork and clone the repository
-2. Create a branch from `main`
-3. Follow the canonical component guidelines in `ARCHITECTURE.md`
-4. Ensure tests and linters pass before submitting a pull request
+## Quality checks
 
-## Support
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm test:e2e
+```
 
-Questions or production issues? Reach the AutolytiQ engineering team at [autolytiq.com](https://autolytiq.com) or the internal
-Slack channel.
+## Database operations
+
+```bash
+pnpm db:migrate:dev      # Prisma migrations for development
+pnpm db:migrate:deploy   # Safe production migrations
+pnpm db:push             # Sync schema without generating a migration (non-production only)
+pnpm db:seed             # Seed baseline tenant + sample data
+```
+
+## Deployment
+
+DigitalOcean is the supported production target. Two deployment paths are maintained:
+
+1. **Droplet with systemd** – Provisioned via `scripts/setup-droplet.sh`, deployed with `scripts/deploy-to-droplet.sh`. The
+   droplet hosts Node.js 22, PostgreSQL 16, Redis, Nginx, and the app managed by `systemd`.
+2. **Docker Compose stack** – Uses the root `Dockerfile` and `docker-compose.yml` for a reproducible multi-service deployment.
+
+Key commands:
+
+```bash
+pnpm build:prod   # Generate Prisma client + build all workspaces
+pnpm start:prod   # Run the compiled server from apps/server/dist/index.js
+```
+
+For complete migration steps, SSL guidance, backups, and troubleshooting, see
+[`DIGITAL_OCEAN_MIGRATION.md`](./DIGITAL_OCEAN_MIGRATION.md). Architecture, module boundaries, and operational checklists are
+covered in [`ARCHITECTURE.md`](./ARCHITECTURE.md).
+
+## Support & additional documentation
+
+- `AGENTS.md` – canonical engineering standards for AI contributors
+- `PRISMA_SETUP.md` / `PRISMA_SETUP_ISSUE.md` – database provisioning notes and historical outage postmortem
+- `PRODUCTION_READINESS.md` – production checklists and guardrails
+- `docs/` – in-depth deployment, infrastructure, and operations references
+
+Questions or incidents? Reach the AutolytiQ engineering team via the internal Slack channel or https://autolytiq.com.

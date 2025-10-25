@@ -1,0 +1,2 @@
+# False positive from historical commit introducing sample AWS keys in DigitalOcean env template.
+b7bd41c2965bf67917ee95f90a83e96927eedff1:.env.digitalocean.example:aws-access-key:80

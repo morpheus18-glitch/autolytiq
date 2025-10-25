@@ -175,6 +175,10 @@ pnpm build:prod
 sudo systemctl enable autolytiq
 sudo systemctl start autolytiq
 sudo systemctl status autolytiq
+
+# The systemd unit executes `pnpm start:prod`, which proxies to
+# `apps/server/dist/index.js` inside the workspace. Ensure
+# `pnpm build:prod` has been run at least once so the dist output exists.
 ```
 
 ### Step 3: Setup SSL (Optional)
