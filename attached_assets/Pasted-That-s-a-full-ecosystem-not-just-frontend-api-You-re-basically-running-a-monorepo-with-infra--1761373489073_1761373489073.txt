@@ -1,0 +1,64 @@
+That’s a full ecosystem, not just “frontend + api.” You’re basically running a monorepo with infra, ML, realtime, and a design system bolted on. Vite (or Rsbuild/Farm) is only touching one slice of that pie, but the way the repo is structured changes how painful each choice feels.
+
+⸻
+
+Where build pain usually comes from in a setup like yours
+	•	Shared/Client/Server coupling: if shared types/models change, Vite/tsc may trigger wide rebuilds across client + backend.
+	•	ML services: often Python with custom deps → slow image builds, not related to Vite but drags on CI/CD.
+	•	WebSockets: force you to run a true backend (can’t go pure serverless easily).
+	•	Infra + migrations: if Prisma/Drizzle migrations or infra files are in the same workspace, the watcher scans too much.
+	•	Dist/scripts: sometimes end up inside the watch path, which causes double builds.
+
+⸻
+
+How to tame it
+
+1. Monorepo discipline
+	•	Use pnpm workspaces or Turborepo so only the web package rebuilds on frontend changes.
+	•	Mark tokens, shared, infra as separate packages. Consumers import compiled outputs, not raw files.
+
+2. Pre-compile heavy layers
+	•	shared: build once into dist/, then import that. Don’t hot-watch it in the client.
+	•	tokens: prebuild as CSS vars + TS constants.
+
+3. Pick a faster bundler
+	•	Stay on Vite + SWC if you optimize tokens/shared.
+	•	Rsbuild is the next jump: faster rebuilds, webpack ecosystem, less memory overhead.
+	•	Farm is bleeding edge fast, but ecosystem thinner.
+
+4. Don’t make the frontend pay for backend/ML
+	•	Frontend shouldn’t import raw backend/infra code.
+	•	If you must share types (e.g. Zod schemas), emit them once and publish them into shared/dist.
+
+⸻
+
+How it looks in a clean repo tree
+
+/apps
+  /client         # frontend (vite/rsbuild)
+  /server         # node backend (express/websockets)
+  /ml_backend     # python backend
+  /ml_service     # model-serving microservice
+/packages
+  /shared         # TS types, Zod schemas → precompiled dist
+  /tokens         # design tokens → dist/css + dist/ts
+  /infrastructure # IaC, k8s manifests, helm
+/migrations
+/scripts
+/dist             # build output, ignored by watcher
+
+Each /apps/* only watches its own source + packages/*/dist. That’s how you keep hot reload fast.
+
+⸻
+
+TL;DR
+
+Your compile speed issue isn’t just “Vite slow.” It’s that the bundler is chewing through shared deps, tokens, and infra it shouldn’t touch.
+	•	Prebuild tokens + shared.
+	•	Keep watch scopes lean.
+	•	If still sluggish, swap Vite → Rsbuild for a real speedup.
+	•	Backend/ML/WebSockets stay separate; don’t let their files bleed into frontend builds.
+
+⸻
+
+Do you want me to sketch out a Turborepo (or pnpm) workspace config that reorganizes your repo so each piece (client, server, ML, shared, tokens) compiles independently and only watches what it should? That’s usually the unlock for speed + sanity.
