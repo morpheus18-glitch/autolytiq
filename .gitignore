@@ -4,8 +4,14 @@
 node_modules/
 .DS_Store
 server/public
+apps/server/public
+apps/**/dist
+apps/**/build
+packages/**/dist
+packages/**/build
 vite.config.ts.*
 *.tar.gz
+*.tsbuildinfo
 
 # Python caches
 __pycache__/
@@ -19,6 +25,7 @@ pytest_cache/
 .env.*
 !.env.*.example
 !prisma/.env
+!packages/db/.env
 
 # Secrets & runtime state
 var/secrets/

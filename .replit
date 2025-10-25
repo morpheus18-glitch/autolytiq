@@ -1,6 +1,6 @@
 modules = ["nodejs-20", "web", "postgresql-16", "python-3.11"]
-run = "npm run dev"
-hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
+run = "pnpm dev:replit"
+hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist", "apps/**/dist", "packages/**/dist", "backend"]
 
 [nix]
 channel = "stable-24_05"
@@ -14,68 +14,13 @@ run = ["sh", "-c", "./start-prod-safe.sh"]
 localPort = 80
 externalPort = 80
 
-[[ports]]
-localPort = 34165
-externalPort = 3002
-
-[[ports]]
-localPort = 36305
-externalPort = 8080
-
-[[ports]]
-localPort = 38367
-externalPort = 8000
-
-[[ports]]
-localPort = 39233
-externalPort = 3001
-
-[[ports]]
-localPort = 39249
-externalPort = 6000
-
-[[ports]]
-localPort = 40615
-externalPort = 3000
-
-[[ports]]
-localPort = 41739
-externalPort = 4200
-
-[[ports]]
-localPort = 42375
-externalPort = 8008
-
-[[ports]]
-localPort = 43321
-externalPort = 5000
-
-[[ports]]
-localPort = 43487
-externalPort = 9000
-
-[[ports]]
-localPort = 43967
-externalPort = 8081
-
-[[ports]]
-localPort = 44257
-externalPort = 3003
-
-[[ports]]
-localPort = 45109
-externalPort = 5173
-
-[[ports]]
-localPort = 45313
-externalPort = 8099
-
-[[ports]]
-localPort = 46077
-externalPort = 6800
-
 [env]
 PORT = "80"
+CHOKIDAR_USEPOLLING = "1"
+WATCHPACK_POLLING = "true"
+NODE_ENV = "development"
+SERVE_STATIC = "true"
+PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING = "1"
 
 [workflows]
 runButton = "Project"
@@ -95,7 +40,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "pnpm dev:replit"
 waitForPort = 80
 
 [agent]
