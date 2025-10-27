@@ -1,7 +1,38 @@
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
-import { logger } from '../logger';
+import { logger } from '../logger.js';
+
+type PriceEnginePackageDefinition = grpc.GrpcObject & {
+  autolytiq: grpc.GrpcObject & {
+    pricing: grpc.GrpcObject & {
+      PriceEngine: grpc.ServiceClientConstructor;
+    };
+  };
+};
+
+type PriceEngineServiceClient = grpc.Client & {
+  GetMarketData(
+    request: MarketDataRequest & { metadata: RequestMetadata },
+    callback: (error: grpc.ServiceError | null, response: any) => void,
+  ): void;
+  CalculateGross(
+    request: GrossRequest & { metadata: RequestMetadata },
+    callback: (error: grpc.ServiceError | null, response: any) => void,
+  ): void;
+  CalculatePayment(
+    request: PaymentRequest & { metadata: RequestMetadata },
+    callback: (error: grpc.ServiceError | null, response: any) => void,
+  ): void;
+  SuggestMarkdown(
+    request: MarkdownRequest & { metadata: RequestMetadata },
+    callback: (error: grpc.ServiceError | null, response: any) => void,
+  ): void;
+  GetHealth(
+    request: { include_dependencies?: boolean },
+    callback: (error: grpc.ServiceError | null, response: any) => void,
+  ): void;
+};
 
 // Load proto definitions
 const PROTO_PATH = path.join(__dirname, '../../../../../services/rust/proto/price_engine.proto');
@@ -16,7 +47,8 @@ const packageDefinition = protoLoader.loadSync([PROTO_PATH, COMMON_PROTO_PATH], 
   includeDirs: [path.join(__dirname, '../../../../../services/rust/proto')],
 });
 
-const priceEngineProto = grpc.loadPackageDefinition(packageDefinition).autolytiq.pricing as any;
+const priceEnginePackage = grpc.loadPackageDefinition(packageDefinition) as PriceEnginePackageDefinition;
+const priceEngineProto = priceEnginePackage.autolytiq.pricing;
 
 export interface MarketDataRequest {
   metadata: RequestMetadata;
@@ -91,15 +123,15 @@ export interface MarkdownRequest {
 }
 
 export class PriceEngineClient {
-  private client: any;
+  private client: PriceEngineServiceClient;
   private url: string;
 
   constructor(url = process.env.PRICE_ENGINE_URL || 'localhost:50051') {
     this.url = url;
     this.client = new priceEngineProto.PriceEngine(
       url,
-      grpc.credentials.createInsecure()
-    );
+      grpc.credentials.createInsecure(),
+    ) as unknown as PriceEngineServiceClient;
     logger.info(`PriceEngine gRPC client connected to ${url}`);
   }
 
@@ -149,7 +181,11 @@ export class PriceEngineClient {
 
       this.client.GetMarketData(fullRequest, (error: any, response: any) => {
         if (error) {
-          logger.error('PriceEngine GetMarketData error', { error, request: fullRequest });
+          logger.error(
+            'PriceEngine GetMarketData error',
+            error instanceof Error ? error : undefined,
+            { request: fullRequest },
+          );
           reject(error);
         } else {
           logger.debug('PriceEngine GetMarketData success', { response });
@@ -174,7 +210,11 @@ export class PriceEngineClient {
 
       this.client.CalculateGross(fullRequest, (error: any, response: any) => {
         if (error) {
-          logger.error('PriceEngine CalculateGross error', { error, request: fullRequest });
+          logger.error(
+            'PriceEngine CalculateGross error',
+            error instanceof Error ? error : undefined,
+            { request: fullRequest },
+          );
           reject(error);
         } else {
           logger.debug('PriceEngine CalculateGross success', { response });
@@ -199,7 +239,11 @@ export class PriceEngineClient {
 
       this.client.CalculatePayment(fullRequest, (error: any, response: any) => {
         if (error) {
-          logger.error('PriceEngine CalculatePayment error', { error, request: fullRequest });
+          logger.error(
+            'PriceEngine CalculatePayment error',
+            error instanceof Error ? error : undefined,
+            { request: fullRequest },
+          );
           reject(error);
         } else {
           logger.debug('PriceEngine CalculatePayment success', { response });
@@ -224,7 +268,11 @@ export class PriceEngineClient {
 
       this.client.SuggestMarkdown(fullRequest, (error: any, response: any) => {
         if (error) {
-          logger.error('PriceEngine SuggestMarkdown error', { error, request: fullRequest });
+          logger.error(
+            'PriceEngine SuggestMarkdown error',
+            error instanceof Error ? error : undefined,
+            { request: fullRequest },
+          );
           reject(error);
         } else {
           logger.debug('PriceEngine SuggestMarkdown success', { response });

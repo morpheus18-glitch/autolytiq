@@ -1,15 +1,11 @@
 import type { Prisma } from '@prisma/client';
 import { prisma, getEffectiveTenantId } from '../../lib/prisma.js';
 import { buildCustomerSearchVector } from '../../shared/search-vector.js';
+import type { CustomerSearchVectorInput } from '../../shared/search-vector.js';
 
 type NullableString = string | null | undefined;
 
-type CustomerSearchFields = {
-  firstName?: NullableString;
-  lastName?: NullableString;
-  email?: NullableString;
-  phone?: NullableString;
-};
+type CustomerSearchFields = Partial<CustomerSearchVectorInput>;
 
 function ensureTenantId(): string {
   const tenantId = getEffectiveTenantId();
@@ -35,7 +31,7 @@ function resolveFieldValue(input: unknown): NullableString {
   return undefined;
 }
 
-function normalizeFields(data: CustomerSearchFields): CustomerSearchFields {
+function normalizeFields(data: CustomerSearchFields): CustomerSearchVectorInput {
   return {
     firstName: data.firstName ?? null,
     lastName: data.lastName ?? null,
@@ -44,7 +40,9 @@ function normalizeFields(data: CustomerSearchFields): CustomerSearchFields {
   };
 }
 
-function extractFieldsFromCreate(data: Prisma.CustomerCreateInput | Prisma.CustomerUncheckedCreateInput): CustomerSearchFields {
+function extractFieldsFromCreate(
+  data: Prisma.CustomerCreateInput | Prisma.CustomerUncheckedCreateInput,
+): CustomerSearchFields {
   return {
     firstName: resolveFieldValue((data as Record<string, unknown>).firstName),
     lastName: resolveFieldValue((data as Record<string, unknown>).lastName),
@@ -55,7 +53,7 @@ function extractFieldsFromCreate(data: Prisma.CustomerCreateInput | Prisma.Custo
 
 function mergeFieldsForUpdate(
   update: Prisma.CustomerUpdateInput | Prisma.CustomerUncheckedUpdateInput,
-  fallback: CustomerSearchFields,
+  fallback: CustomerSearchVectorInput,
 ): CustomerSearchFields {
   const result: CustomerSearchFields = { ...fallback };
   for (const key of ['firstName', 'lastName', 'email', 'phone'] as const) {
@@ -92,7 +90,7 @@ export async function updateCustomerWithSearch(
     select: { firstName: true, lastName: true, email: true, phone: true },
   });
 
-  const baseline: CustomerSearchFields = {
+  const baseline: CustomerSearchVectorInput = {
     firstName: current?.firstName ?? null,
     lastName: current?.lastName ?? null,
     email: current?.email ?? null,

@@ -8,6 +8,8 @@ export function registerSocket(server: SocketIOServer) {
   socketServer = server;
 }
 
+export const registerSocketServer = registerSocket;
+
 export function getSocketServer(): SocketIOServer | undefined {
   return socketServer;
 }
@@ -15,6 +17,8 @@ export function getSocketServer(): SocketIOServer | undefined {
 export function getTenantRoom(tenantId: string): string {
   return `${TENANT_ROOM_PREFIX}${tenantId}`;
 }
+
+export const getTenantRoomName = getTenantRoom;
 
 export function emitTenantEvent<T>(tenantId: string, event: string, payload: T): void {
   socketServer?.to(getTenantRoom(tenantId)).emit(event, payload);

@@ -1,5 +1,14 @@
-import { priceEngineClient } from '../lib/grpc/priceEngineClient';
-import { logger } from '../lib/logger';
+import { priceEngineClient } from '../lib/grpc/priceEngineClient.js';
+import { logger } from '../lib/logger.js';
+
+function logRustServiceError(message: string, error: unknown, metadata: Record<string, unknown>): void {
+  if (error instanceof Error) {
+    logger.error(message, error, metadata);
+    return;
+  }
+
+  logger.error(message, undefined, { ...metadata, error });
+}
 
 /**
  * Rust-powered pricing service
@@ -34,7 +43,7 @@ export class RustPricingService {
 
       return this.transformMarketDataResponse(response);
     } catch (error) {
-      logger.error('Failed to get market data from Rust service', { error, params });
+      logRustServiceError('Failed to get market data from Rust service', error, { params });
       throw new Error('Failed to get market data');
     }
   }
@@ -83,7 +92,7 @@ export class RustPricingService {
 
       return this.transformGrossResponse(response);
     } catch (error) {
-      logger.error('Failed to calculate gross from Rust service', { error, params });
+      logRustServiceError('Failed to calculate gross from Rust service', error, { params });
       throw new Error('Failed to calculate gross');
     }
   }
@@ -114,7 +123,7 @@ export class RustPricingService {
 
       return this.transformPaymentResponse(response);
     } catch (error) {
-      logger.error('Failed to calculate payment from Rust service', { error, params });
+      logRustServiceError('Failed to calculate payment from Rust service', error, { params });
       throw new Error('Failed to calculate payment');
     }
   }
@@ -155,7 +164,7 @@ export class RustPricingService {
 
       return this.transformMarkdownResponse(response);
     } catch (error) {
-      logger.error('Failed to suggest markdown from Rust service', { error, params });
+      logRustServiceError('Failed to suggest markdown from Rust service', error, { params });
       throw new Error('Failed to suggest markdown');
     }
   }

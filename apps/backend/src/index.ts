@@ -29,15 +29,15 @@ async function startServer() {
 
   // Register socket handlers (if they exist)
   try {
-    const { registerSocketServer, getTenantRoomName } = await import('./lib/socket.js');
+    const { registerSocket, getTenantRoom } = await import('./lib/socket.js');
     const { registerLeadChannel } = await import('./sockets/lead.channel.js');
 
-    registerSocketServer(io);
+    registerSocket(io);
 
     io.on('connection', (socket) => {
       const rawTenantId = socket.handshake.query.tenantId;
       const tenantId = typeof rawTenantId === 'string' && rawTenantId.length > 0 ? rawTenantId : undefined;
-      socket.join(getTenantRoomName(tenantId ?? 'public'));
+      socket.join(getTenantRoom(tenantId ?? 'public'));
       registerLeadChannel(socket, tenantId);
 
       socket.on('disconnect', () => {
