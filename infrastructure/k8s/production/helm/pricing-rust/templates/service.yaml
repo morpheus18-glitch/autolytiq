@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "autolytiq-pricing-rust.fullname" . }}
+  labels:
+    {{- include "autolytiq-pricing-rust.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+  selector:
+    {{- include "autolytiq-pricing-rust.selectorLabels" . | nindent 4 }}

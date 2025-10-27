@@ -1,0 +1,16 @@
+{
+  "name": "@repo/worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@prisma/client": "5.22.0",
+    "dotenv": "^16.4.5",
+    "kafkajs": "^2.2.4",
+    "p-retry": "^6.0.1"
+  }
+}

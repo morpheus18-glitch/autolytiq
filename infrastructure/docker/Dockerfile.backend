@@ -1,17 +1,17 @@
 # --- build ---
 FROM node:18-bullseye-slim AS build
 WORKDIR /app
-COPY apps/server/package*.json ./
+COPY apps/backend/package*.json ./
 RUN npm ci
-COPY apps/server/ ./
+COPY apps/backend/ ./
 RUN npm run build  # tsup → dist/
 
 # --- runtime ---
 FROM node:18-bullseye-slim
 ENV NODE_ENV=production
 WORKDIR /app
-COPY apps/server/package*.json ./
+COPY apps/backend/package*.json ./
 RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
-EXPOSE 3000
-CMD ["node","dist/index.js"]
+EXPOSE 5000
+CMD ["node","dist/server.js"]

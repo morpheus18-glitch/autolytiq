@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { mlService } from '../services/ml.service.js';
 import { prisma } from '../lib/prisma.js';
 import { getCacheStats } from '../services/ml-cache.service.js';
+import { checkHealth as checkPricingHealth } from '../services/pricing.service.js';
 
 const router = Router();
 
@@ -32,6 +33,37 @@ router.get('/health', async (req, res) => {
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
       error: (error as Error).message,
+    });
+  }
+});
+
+router.get('/health/pricing', async (_req, res) => {
+  const start = Date.now();
+  try {
+    const health = await checkPricingHealth();
+    const latency = Date.now() - start;
+
+    if (health.healthy) {
+      res.json({
+        status: 'healthy',
+        latency,
+        version: health.version,
+        timestamp: new Date().toISOString(),
+      });
+    } else {
+      res.status(503).json({
+        status: 'unhealthy',
+        latency,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  } catch (error) {
+    const latency = Date.now() - start;
+    res.status(503).json({
+      status: 'unhealthy',
+      latency,
+      error: (error as Error).message,
+      timestamp: new Date().toISOString(),
     });
   }
 });

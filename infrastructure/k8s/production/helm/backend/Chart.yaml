@@ -1,0 +1,6 @@
+apiVersion: v2
+name: autolytiq-backend
+description: AutolytiQ Backend API
+type: application
+version: 0.1.0
+appVersion: "1.0"

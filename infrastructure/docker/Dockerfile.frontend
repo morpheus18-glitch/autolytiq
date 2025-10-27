@@ -1,9 +1,9 @@
 # --- build ---
 FROM node:18-alpine AS build
 WORKDIR /app
-COPY apps/client/package*.json ./
+COPY apps/frontend/package*.json ./
 RUN npm ci
-COPY apps/client/ ./
+COPY apps/frontend/ ./
 RUN npm run build  # yields /app/dist
 
 # --- serve ---

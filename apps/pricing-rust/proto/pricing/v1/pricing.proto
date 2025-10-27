@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+package pricing.v1;
+
+// Pricing calculation service
+service PricingService {
+  // Get market data for vehicle pricing
+  rpc GetMarketData(MarketDataRequest) returns (MarketDataResponse);
+  
+  // Calculate gross profit on a deal
+  rpc CalculateGross(GrossRequest) returns (GrossResponse);
+  
+  // Calculate payment structure
+  rpc CalculatePayments(PaymentRequest) returns (PaymentResponse);
+  
+  // Health check
+  rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+// Market Data Request
+message MarketDataRequest {
+  string tenant_id = 1;
+  int32 year = 2;
+  string make = 3;
+  string model = 4;
+  string trim = 5;
+  int32 mileage = 6;
+  string condition = 7; // EXCELLENT, GOOD, FAIR, POOR
+}
+
+message MarketDataResponse {
+  double kbb_trade_in = 1;
+  double kbb_retail = 2;
+  double nada_clean = 3;
+  double black_book_average = 4;
+  double market_average = 5;
+  double recommended_price = 6;
+  double confidence = 7; // 0.0 - 1.0
+  repeated ComparableVehicle comparables = 8;
+}
+
+message ComparableVehicle {
+  string vin = 1;
+  double price = 2;
+  int32 mileage = 3;
+  int32 days_on_market = 4;
+  double distance_miles = 5;
+}
+
+// Gross Profit Request
+message GrossRequest {
+  string tenant_id = 1;
+  double vehicle_price = 2;
+  double vehicle_cost = 3;
+  double pack = 4; // Dealership pack fee
+  repeated Fee additional_fees = 5;
+  repeated Product fi_products = 6;
+}
+
+message Fee {
+  string name = 1;
+  double amount = 2;
+  bool taxable = 3;
+}
+
+message Product {
+  string name = 1;
+  double cost = 2;
+  double sell_price = 3;
+}
+
+message GrossResponse {
+  double front_gross = 1;
+  double back_gross = 2;
+  double total_gross = 3;
+  double gross_percentage = 4;
+  GrossBreakdown breakdown = 5;
+}
+
+message GrossBreakdown {
+  double vehicle_profit = 1;
+  double pack_profit = 2;
+  double fee_profit = 3;
+  double fi_profit = 4;
+}
+
+// Payment Calculation Request
+message PaymentRequest {
+  string tenant_id = 1;
+  double amount_financed = 2;
+  double apr = 3; // Annual Percentage Rate
+  int32 term_months = 4;
+  double sales_tax_rate = 5;
+  repeated Fee fees = 6;
+}
+
+message PaymentResponse {
+  double monthly_payment = 1;
+  double total_amount = 2;
+  double total_interest = 3;
+  double total_principal = 4;
+  repeated PaymentScheduleItem schedule = 5; // First 3 + last 3
+}
+
+message PaymentScheduleItem {
+  int32 payment_number = 1;
+  double payment_amount = 2;
+  double principal = 3;
+  double interest = 4;
+  double balance = 5;
+}
+
+// Health Check
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  string status = 1; // SERVING, NOT_SERVING
+  string version = 2;
+}

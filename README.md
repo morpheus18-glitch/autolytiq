@@ -9,7 +9,7 @@ services for predictive scoring, and operational tooling for production deployme
 | Path | Purpose |
 | --- | --- |
 | `apps/client` | React 18 + Vite single page application with shadcn/ui components and TanStack Query. |
-| `apps/server` | Express API, Socket.IO gateway, Prisma access layer, and background schedulers. Builds with `tsup` to `dist/`. |
+| `apps/backend` | Express API, Socket.IO gateway, Prisma access layer, and background schedulers. Builds with `tsup` to `dist/`. |
 | `apps/ml_service` | FastAPI scoring API plus Celery workers for live model inference. |
 | `apps/ml_backend` | Offline training pipelines, scraping jobs, and feature engineering utilities. |
 | `packages/db` | Prisma schema, migrations, and database utilities shared across services. |

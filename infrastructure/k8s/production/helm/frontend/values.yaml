@@ -1,0 +1,35 @@
+replicaCount: 2
+
+image:
+  repository: registry.digitalocean.com/autolytiq/frontend
+  pullPolicy: IfNotPresent
+  tag: ""
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 50
+
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+  hosts:
+    - host: frontend.autolytiq.example
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []

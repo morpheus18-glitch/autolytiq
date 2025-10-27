@@ -1,0 +1,13 @@
+version: v1
+plugins:
+  # Rust
+  - plugin: buf.build/community/neoeinstein-prost:v0.2.2
+    out: src/proto
+  - plugin: buf.build/community/neoeinstein-tonic:v0.3.0
+    out: src/proto
+  
+  # TypeScript (for Node backend)
+  - plugin: buf.build/community/timostamm-protobuf-ts:v2.9.0
+    out: ../backend/src/proto
+    opt:
+      - long_type_string
