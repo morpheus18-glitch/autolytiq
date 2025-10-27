@@ -9,7 +9,10 @@
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vitest run"
+    "test": "vitest run",
+    "verify:deal-integrity": "tsx src/scripts/verify-deal-integrity.ts",
+    "benchmark": "tsx src/scripts/benchmark-performance.ts",
+    "ml:cache:cleanup": "tsx -e \"import { cleanupExpiredCache } from './src/services/ml-cache.service.js'; await cleanupExpiredCache(); process.exit(0);\""
   },
   "dependencies": {
     "@prisma/client": "5.22.0",

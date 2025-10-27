@@ -11,25 +11,76 @@ interface TenantContextValue {
 const tenantStorage = new AsyncLocalStorage<TenantContextValue>();
 
 const tenantScopedModels = new Set<Prisma.ModelName>([
+  // Core CRM
   Prisma.ModelName.User,
   Prisma.ModelName.Customer,
+  Prisma.ModelName.CustomerInteraction,
+  Prisma.ModelName.CustomerVehicle,
   Prisma.ModelName.Lead,
+  Prisma.ModelName.LeadScore,
   Prisma.ModelName.Activity,
   Prisma.ModelName.Appointment,
-  Prisma.ModelName.LeadScore,
   Prisma.ModelName.Communication,
+
+  // Templates & Automation
   Prisma.ModelName.EmailTemplate,
   Prisma.ModelName.SMSTemplate,
   Prisma.ModelName.Automation,
   Prisma.ModelName.AutomationExecution,
-  Prisma.ModelName.ComplianceChecklist,
+
+  // Inventory
+  Prisma.ModelName.Vehicle,
+  Prisma.ModelName.VehicleHistory,
+  Prisma.ModelName.Appraisal,
+  Prisma.ModelName.ReconItem,
+  Prisma.ModelName.PriceHistory,
+  Prisma.ModelName.AuctionPurchase,
+  Prisma.ModelName.WholesaleListing,
+  Prisma.ModelName.MarketComp,
+
+  // Deals & F&I
   Prisma.ModelName.Deal,
   Prisma.ModelName.DealWorksheet,
   Prisma.ModelName.DealVersion,
   Prisma.ModelName.DealOptimization,
+  Prisma.ModelName.DealJacket,
   Prisma.ModelName.CounterOffer,
   Prisma.ModelName.ApprovalPrediction,
-  Prisma.ModelName.Vehicle,
+  Prisma.ModelName.CreditSubmissionDraft,
+  Prisma.ModelName.ComplianceChecklist,
+  Prisma.ModelName.CreditApplication,
+  Prisma.ModelName.CreditReport,
+  Prisma.ModelName.Contract,
+  Prisma.ModelName.DealDocument,
+  Prisma.ModelName.FundingChecklist,
+  Prisma.ModelName.FundingRequest,
+
+  // F&I Products & Lenders
+  Prisma.ModelName.FIProduct,
+  Prisma.ModelName.MenuConfiguration,
+  Prisma.ModelName.Lender,
+  Prisma.ModelName.LenderSubmission,
+
+  // Accounting
+  Prisma.ModelName.GLAccount,
+  Prisma.ModelName.JournalEntry,
+  Prisma.ModelName.JournalEntryLine,
+  Prisma.ModelName.Commission,
+
+  // Workflow & Operations
+  Prisma.ModelName.WorkflowDefinition,
+  Prisma.ModelName.WorkflowStage,
+  Prisma.ModelName.VehicleWorkflow,
+  Prisma.ModelName.StageTransition,
+  Prisma.ModelName.WorkflowTask,
+  Prisma.ModelName.TransportOrder,
+
+  // System
+  Prisma.ModelName.Notification,
+  Prisma.ModelName.Report,
+  Prisma.ModelName.PipelineAggregate,
+  Prisma.ModelName.AuditLog,
+  Prisma.ModelName.SystemSetting,
 ]);
 
 type SearchVectorModel = 'Customer' | 'Vehicle';
