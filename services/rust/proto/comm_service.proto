@@ -1,0 +1,173 @@
+syntax = "proto3";
+
+package autolytiq.comm;
+
+import "common.proto";
+
+// CommService provides reliable communication with idempotency and retries
+service CommService {
+  // Forward a request with retry and idempotency logic
+  rpc ForwardRequest(ForwardRequestMessage) returns (ForwardResponseMessage);
+
+  // Get service health
+  rpc GetHealth(common.HealthRequest) returns (common.HealthResponse);
+
+  // Get metrics
+  rpc GetMetrics(MetricsRequest) returns (MetricsResponse);
+
+  // Get circuit breaker status
+  rpc GetCircuitBreakerStatus(CircuitBreakerStatusRequest) returns (CircuitBreakerStatusResponse);
+}
+
+// Forward Request
+message ForwardRequestMessage {
+  common.RequestMetadata metadata = 1;
+
+  // Target service
+  string target_service = 2;  // e.g., "price-engine", "cache-service"
+  string target_method = 3;   // e.g., "GetMarketData"
+
+  // Serialized protobuf request
+  bytes request_payload = 4;
+
+  // Retry configuration (optional, uses defaults if not provided)
+  optional RetryConfig retry_config = 5;
+
+  // Timeout (milliseconds)
+  optional int32 timeout_ms = 6;
+}
+
+message RetryConfig {
+  int32 max_attempts = 1;         // Default: 5
+  int32 initial_backoff_ms = 2;   // Default: 100
+  int32 max_backoff_ms = 3;       // Default: 10000
+  double multiplier = 4;          // Default: 2.0
+  double jitter_factor = 5;       // Default: 0.25 (±25%)
+  repeated string retryable_codes = 6; // Default: ["UNAVAILABLE", "DEADLINE_EXCEEDED"]
+}
+
+message ForwardResponseMessage {
+  common.ResponseMetadata metadata = 1;
+
+  // Response payload
+  bytes response_payload = 2;
+
+  // Execution details
+  ExecutionDetails execution = 3;
+}
+
+message ExecutionDetails {
+  int32 attempts = 1;             // Number of attempts made
+  bool from_cache = 2;            // Was response served from idempotency cache?
+  int32 total_duration_ms = 3;    // Total time including retries
+  repeated RetryAttempt retry_attempts = 4;
+}
+
+message RetryAttempt {
+  int32 attempt_number = 1;
+  int32 duration_ms = 2;
+  string status = 3;              // "success", "retryable_error", "fatal_error"
+  optional string error_code = 4;
+  optional string error_message = 5;
+  int32 backoff_ms = 6;           // Backoff applied after this attempt
+}
+
+// Metrics Request/Response
+message MetricsRequest {
+  common.RequestMetadata metadata = 1;
+  bool include_histograms = 2;
+}
+
+message MetricsResponse {
+  common.ResponseMetadata metadata = 1;
+
+  // Request metrics
+  RequestMetrics requests = 2;
+
+  // Retry metrics
+  RetryMetrics retries = 3;
+
+  // Idempotency cache metrics
+  CacheMetrics cache = 4;
+
+  // Circuit breaker metrics
+  CircuitBreakerMetrics circuit_breaker = 5;
+}
+
+message RequestMetrics {
+  int64 total_requests = 1;
+  int64 successful_requests = 2;
+  int64 failed_requests = 3;
+  double success_rate = 4;
+
+  // Latency percentiles (milliseconds)
+  LatencyHistogram latency = 5;
+}
+
+message LatencyHistogram {
+  double p50 = 1;
+  double p90 = 2;
+  double p95 = 3;
+  double p99 = 4;
+  double max = 5;
+  double mean = 6;
+}
+
+message RetryMetrics {
+  int64 total_retries = 1;
+  int64 requests_with_retries = 2;
+  double average_attempts_per_request = 3;
+
+  // Breakdown by retry count
+  map<int32, int64> retry_count_distribution = 4; // {1: 100, 2: 50, 3: 10, ...}
+}
+
+message CacheMetrics {
+  int64 total_lookups = 1;
+  int64 cache_hits = 2;
+  int64 cache_misses = 3;
+  double hit_rate = 4;
+  int64 cached_entries = 5;
+  int64 cache_size_bytes = 6;
+}
+
+message CircuitBreakerMetrics {
+  enum State {
+    CLOSED = 0;
+    OPEN = 1;
+    HALF_OPEN = 2;
+  }
+
+  State current_state = 1;
+  int32 failure_count = 2;
+  int32 success_count = 3;
+  optional int64 last_failure_time_ms = 4;
+  optional int64 next_retry_time_ms = 5;
+  int32 consecutive_failures = 6;
+}
+
+// Circuit Breaker Status
+message CircuitBreakerStatusRequest {
+  common.RequestMetadata metadata = 1;
+  optional string target_service = 2; // If not provided, returns all services
+}
+
+message CircuitBreakerStatusResponse {
+  common.ResponseMetadata metadata = 1;
+  map<string, CircuitBreakerState> services = 2;
+}
+
+message CircuitBreakerState {
+  enum State {
+    CLOSED = 0;
+    OPEN = 1;
+    HALF_OPEN = 2;
+  }
+
+  State state = 1;
+  int32 failure_count = 2;
+  int32 failure_threshold = 3;
+  int64 opened_at_ms = 4;
+  int64 next_attempt_at_ms = 5;
+  int32 timeout_ms = 6;
+}

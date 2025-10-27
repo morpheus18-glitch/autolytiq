@@ -1,0 +1,20 @@
+[package]
+name = "cache-service"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "cache-service"
+path = "src/main.rs"
+
+[dependencies]
+shared = { path = "../shared" }
+tonic = { workspace = true }
+prost = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }
+
+[build-dependencies]
+tonic-build = { workspace = true }

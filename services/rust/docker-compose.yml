@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  price-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: price-engine
+    container_name: price-engine
+    environment:
+      - PRICE_ENGINE__SERVICE__PORT=50051
+      - PRICE_ENGINE__DATABASE__URL=postgresql://postgres:postgres@postgres:5432/autolytiq
+      - PRICE_ENGINE__REDIS__URL=redis://redis:6379
+      - PRICE_ENGINE__LOGGING__LEVEL=info
+      - PRICE_ENGINE__LOGGING__FORMAT=json
+    ports:
+      - "50051:50051"
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - autolytiq-network
+
+  comm-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: comm-service
+    container_name: comm-service
+    environment:
+      - COMM_SERVICE__SERVICE__PORT=50052
+      - COMM_SERVICE__REDIS__URL=redis://redis:6379
+      - COMM_SERVICE__LOGGING__LEVEL=info
+      - COMM_SERVICE__LOGGING__FORMAT=json
+    ports:
+      - "50052:50052"
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - autolytiq-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=autolytiq
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - autolytiq-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - autolytiq-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  autolytiq-network:
+    driver: bridge

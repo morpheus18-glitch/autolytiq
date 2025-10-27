@@ -1,0 +1,15 @@
+[package]
+name = "rate-limiter"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "rate-limiter"
+path = "src/main.rs"
+
+[dependencies]
+shared = { path = "../shared" }
+tonic = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
