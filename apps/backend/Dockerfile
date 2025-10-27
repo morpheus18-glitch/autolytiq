@@ -40,4 +40,4 @@ USER nodejs
 
 EXPOSE 5000
 
-CMD ["node", "dist/server.js"]
+CMD ["node", "dist/index.js"]

@@ -1,11 +1,33 @@
-import { fileURLToPath } from 'url';
+import { existsSync } from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { logger } from '../lib/logger.js';
 
 const protoDir = path.dirname(fileURLToPath(import.meta.url));
-const PROTO_PATH = path.resolve(protoDir, '../proto/pricing/v1/pricing.proto');
+const protoSegments = ['proto', 'pricing', 'v1', 'pricing.proto'] as const;
+
+const resolveProtoPath = (): string => {
+  const candidatePaths = [
+    path.resolve(protoDir, '..', ...protoSegments),
+    path.resolve(protoDir, ...protoSegments),
+    path.resolve(process.cwd(), ...protoSegments),
+    path.resolve(process.cwd(), 'dist', ...protoSegments),
+  ];
+
+  for (const candidate of candidatePaths) {
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  throw new Error(
+    `Pricing proto definition not found. Checked: ${candidatePaths.join(', ')}`
+  );
+};
+
+const PROTO_PATH = resolveProtoPath();
 const PRICING_SERVICE_URL = process.env.PRICING_GRPC_ADDR || 'localhost:50051';
 const PRICING_TIMEOUT_MS = 40; // 40ms SLA
 

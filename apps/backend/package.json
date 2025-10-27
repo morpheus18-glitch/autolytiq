@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon",
-    "build": "tsup",
+    "build": "tsup && node scripts/postbuild.mjs",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
