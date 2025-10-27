@@ -10,6 +10,7 @@ apps/**/dist
 apps/**/build
 packages/**/dist
 packages/**/build
+v8-compile-cache-0/
 vite.config.ts.*
 *.tar.gz
 *.tsbuildinfo
@@ -37,3 +38,4 @@ var/secrets/
 # Reports and generated docs should be committed explicitly
 !var/
 var/bin/
+services/rust/Cargo.lock
