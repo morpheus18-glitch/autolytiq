@@ -1,0 +1,6 @@
+apiVersion: v2
+name: autolytiq-worker
+description: AutolytiQ Outbox Worker
+type: application
+version: 0.1.0
+appVersion: "1.0"

@@ -1,0 +1,32 @@
+replicaCount: 2
+
+image:
+  repository: registry.digitalocean.com/autolytiq/pricing-rust
+  pullPolicy: IfNotPresent
+  tag: ""
+
+service:
+  type: ClusterIP
+  port: 50051
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 50
+
+env:
+  - name: SERVICE_PORT
+    value: "50051"
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    value: "http://opentelemetry-collector:4317"
+  - name: RUST_LOG
+    value: "info"
