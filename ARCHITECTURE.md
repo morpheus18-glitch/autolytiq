@@ -94,8 +94,8 @@ this context; when calling Prisma directly ensure `tenantScope()` is active or u
 
 ### Legacy Replit
 
-Still supported for testing via `pnpm dev:replit` and `.env.replit.example`, but no longer a production target. Cleanup scripts
-and docs retain references for historical context only.
+`pnpm dev:replit` remains available for troubleshooting single-port behaviour, but the configuration is no longer maintained.
+Replit-specific files were removed to keep the deployment footprint focused on DigitalOcean.
 
 ## 6. Operational checklists
 

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: celery-worker
-          image: ghcr.io/autolytiq/dms-ml-service:latest
+          image: registry.digitalocean.com/autolytiq/ml-service:latest
           command: ["celery", "-A", "workers.celery_app", "worker", "--queues=high_priority,default", "--loglevel=info", "--concurrency=4"]
           envFrom:
             - configMapRef:
@@ -74,7 +74,7 @@ spec:
     spec:
       containers:
         - name: celery-beat
-          image: ghcr.io/autolytiq/dms-ml-service:latest
+          image: registry.digitalocean.com/autolytiq/ml-service:latest
           command: ["celery", "-A", "workers.celery_app", "beat", "--loglevel=info"]
           envFrom:
             - configMapRef:

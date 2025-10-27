@@ -149,42 +149,36 @@ curl -I http://your-domain.com
 
 ## 🚢 Deployment Steps
 
-### For Replit Deployment
+### For DigitalOcean Kubernetes Deployment
 
-1. **Set Environment Variables in Replit Secrets:**
-   ```
-   NODE_ENV=production
-   DATABASE_URL=<your-neon-database-url>
-   SESSION_SECRET=<strong-random-secret>
-   PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
-   ```
-
-2. **Configure `.replit` file:**
-   ```toml
-   [env]
-   NODE_ENV = "production"
-   PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING = "1"
-
-   [deployment]
-   build = ["npm", "install", "&&", "npm", "run", "build:prod"]
-   run = ["npm", "run", "start:prod"]
-   ```
-
-> ⚠️ Run Prisma migrations separately (for example, `npm run db:migrate:deploy`) before starting the production server. Baseline existing databases with `prisma migrate resolve --applied "<migration_name>"` as needed.
-
-3. **Deploy:**
-   - Click "Deploy" in Replit
-   - Monitor build logs
-   - Verify deployment completes successfully
-
-4. **Post-Deployment Verification:**
+1. **Build & push images to DOCR:**
    ```bash
-   # Check health
-   curl https://your-app.repl.co/api/system/health
-
-   # Verify tenant isolation (should require tenant context)
-   curl https://your-app.repl.co/api/customers
+   REGISTRY=registry.digitalocean.com/autolytiq
+   TAG=$(git rev-parse --short HEAD)
+   docker build -f infrastructure/docker/Dockerfile.backend -t $REGISTRY/backend:$TAG .
+   docker build -f infrastructure/docker/Dockerfile.frontend -t $REGISTRY/frontend:$TAG .
+   docker build -f infrastructure/docker/Dockerfile.ml -t $REGISTRY/ml-service:$TAG .
+   docker push $REGISTRY/backend:$TAG
+   docker push $REGISTRY/frontend:$TAG
+   docker push $REGISTRY/ml-service:$TAG
    ```
+
+2. **Update manifests:** set the `image:` fields in `infrastructure/k8s/production/*.yaml` to the new tag and apply:
+   ```bash
+   kubectl apply -f infrastructure/k8s/production/
+   ```
+
+3. **Verify rollout:**
+   ```bash
+   kubectl -n dms-production get pods
+   kubectl -n dms-production get ingress
+   curl https://api.dms.autolytiq.com/api/health/ready
+   ```
+
+4. **Post-deployment checks:**
+   - Confirm Celery workers are consuming queues (`kubectl logs deployment/celery-worker`)
+   - Hit the frontend ingress (`curl https://dms.autolytiq.com/healthz`)
+   - Ensure Prisma migrations ran (logs include `Migration engine finished`)
 
 ### For Traditional Hosting
 

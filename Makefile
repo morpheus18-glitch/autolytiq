@@ -1,16 +1,15 @@
-DOCKER_DIR := infrastructure/docker
-COMPOSE := docker compose -f $(DOCKER_DIR)/docker-compose.yml
+COMPOSE ?= docker compose
 
 .PHONY: up down logs rebuild
 
 up:
-	DEPLOY_MODE=self_hosted $(COMPOSE) up -d
+$(COMPOSE) up -d
 
 down:
-	$(COMPOSE) down
+$(COMPOSE) down
 
 logs:
-	$(COMPOSE) logs -f
+$(COMPOSE) logs -f
 
 rebuild:
-	DEPLOY_MODE=self_hosted $(COMPOSE) up -d --build --force-recreate
+$(COMPOSE) up -d --build --force-recreate

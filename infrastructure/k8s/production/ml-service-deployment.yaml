@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: ml-service
-          image: ghcr.io/autolytiq/dms-ml-service:latest
+          image: registry.digitalocean.com/autolytiq/ml-service:latest
           ports:
             - containerPort: 8000
           envFrom:
