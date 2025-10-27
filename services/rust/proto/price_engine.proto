@@ -1,0 +1,284 @@
+syntax = "proto3";
+
+package autolytiq.pricing;
+
+import "common.proto";
+
+// PriceEngine service for high-performance pricing calculations
+service PriceEngine {
+  // Get market data and competitive pricing range
+  rpc GetMarketData(MarketDataRequest) returns (MarketDataResponse);
+
+  // Calculate gross profit breakdown
+  rpc CalculateGross(GrossRequest) returns (GrossResponse);
+
+  // Calculate payment and amortization
+  rpc CalculatePayment(PaymentRequest) returns (PaymentResponse);
+
+  // Suggest price markdown based on aging
+  rpc SuggestMarkdown(MarkdownRequest) returns (MarkdownResponse);
+
+  // Batch pricing operations (streaming)
+  rpc BatchPrice(BatchPriceRequest) returns (stream BatchPriceResponse);
+
+  // Health check
+  rpc GetHealth(common.HealthRequest) returns (common.HealthResponse);
+}
+
+// Market Data Request
+message MarketDataRequest {
+  common.RequestMetadata metadata = 1;
+
+  // Vehicle identification
+  string vin = 2;
+  int32 year = 3;
+  string make = 4;
+  string model = 5;
+  string trim = 6;
+  int32 mileage = 7;
+  string condition = 8; // "excellent", "good", "fair", "poor"
+
+  // Search parameters
+  int32 radius_miles = 10;
+  string zip_code = 11;
+  int32 time_window_days = 12; // Look back period (default: 90)
+  int32 year_variance = 13;    // ±years to include (default: 2)
+  int32 mileage_variance = 14; // ±miles to include (default: 20000)
+
+  // Filters
+  repeated string excluded_vin = 15;
+  common.Decimal min_price = 16;
+  common.Decimal max_price = 17;
+}
+
+message MarketDataResponse {
+  common.ResponseMetadata metadata = 1;
+
+  // Competitive pricing range
+  CompetitiveRange competitive_range = 2;
+
+  // Comparable sales
+  repeated MarketComp comparables = 3;
+
+  // Market statistics
+  MarketStats statistics = 4;
+}
+
+message CompetitiveRange {
+  common.Money floor_price = 1;      // 25th percentile
+  common.Money target_price = 2;     // 50th percentile (median)
+  common.Money ceiling_price = 3;    // 75th percentile
+  common.Money average_price = 4;    // Mean
+  int32 comp_count = 5;              // Number of comps used
+  int32 days_to_sale_avg = 6;        // Average days on market
+}
+
+message MarketComp {
+  string id = 1;
+  string vin = 2;
+  int32 year = 3;
+  string make = 4;
+  string model = 5;
+  string trim = 6;
+  int32 mileage = 7;
+  common.Money price = 8;
+  int32 days_on_market = 9;
+  string sale_date = 10; // ISO 8601
+  string source = 11;    // "dealer", "auction", "private"
+  double match_score = 12; // 0.0-1.0 similarity score
+}
+
+message MarketStats {
+  int32 total_comps_found = 1;
+  int32 comps_used = 2;
+  double price_std_dev = 3;
+  double mileage_std_dev = 4;
+  common.Money price_per_mile = 5;
+}
+
+// Gross Calculation Request
+message GrossRequest {
+  common.RequestMetadata metadata = 1;
+
+  // Vehicle pricing
+  common.Money vehicle_price = 2;
+  common.Money vehicle_cost = 3;
+  common.Money pack = 4;              // Dealer pack fee
+
+  // Trade-in
+  common.Money trade_value = 5;       // Actual cash value
+  common.Money trade_payoff = 6;      // Amount owed
+  common.Money trade_allowance = 7;   // Amount given to customer
+  common.Money overallow = 8;         // Allowance - ACV
+
+  // Financing
+  common.Decimal rate_markup = 9;     // Rate markup in percentage (e.g., 2.5)
+  int32 term_months = 10;
+  common.Money amount_financed = 11;
+  double participation = 12;          // Lender participation rate (0.0-1.0)
+
+  // Back-end products
+  repeated BackEndProduct products = 13;
+}
+
+message BackEndProduct {
+  string type = 1;        // "warranty", "gap", "maintenance", "insurance"
+  common.Money price = 2; // Selling price
+  common.Money cost = 3;  // Dealer cost
+  double participation = 4; // Dealer participation (0.0-1.0)
+}
+
+message GrossResponse {
+  common.ResponseMetadata metadata = 1;
+
+  // Gross breakdown
+  GrossBreakdown breakdown = 2;
+}
+
+message GrossBreakdown {
+  // Front-end gross
+  common.Money front_end_gross = 1;   // vehicle_price - vehicle_cost - pack
+  common.Money trade_reserve = 2;     // Profit from trade spread
+  common.Money total_front_gross = 3; // front_end + trade_reserve - overallow
+
+  // Finance reserve
+  common.Money finance_reserve = 4;   // Rate markup profit
+
+  // Back-end gross
+  money back_end_gross = 5;         // Sum of product profits
+  repeated ProductProfit product_profits = 6;
+
+  // Total gross
+  common.Money total_gross = 7;       // Sum of all gross profit
+  double gross_percentage = 8;        // (total_gross / vehicle_price) * 100
+}
+
+message ProductProfit {
+  string type = 1;
+  common.Money selling_price = 2;
+  common.Money cost = 3;
+  common.Money profit = 4;            // (selling_price - cost) * participation
+  double participation = 5;
+}
+
+// Payment Calculation Request
+message PaymentRequest {
+  common.RequestMetadata metadata = 1;
+
+  // Loan details
+  common.Money amount_financed = 2;
+  common.Decimal apr = 3;             // Annual percentage rate (e.g., 5.99)
+  int32 term_months = 4;
+
+  // Optional: Calculate ratios
+  common.Money gross_monthly_income = 5;
+  common.Money total_monthly_debt = 6;
+}
+
+message PaymentResponse {
+  common.ResponseMetadata metadata = 1;
+
+  // Payment details
+  common.Money monthly_payment = 2;
+  common.Money total_interest = 3;
+  common.Money total_payment = 4;     // amount_financed + total_interest
+
+  // Ratios (if income provided)
+  optional double pti_ratio = 5;      // Payment-to-income
+  optional double dti_ratio = 6;      // Debt-to-income
+
+  // Amortization schedule (first 12 months)
+  repeated AmortizationEntry amortization_schedule = 7;
+}
+
+message AmortizationEntry {
+  int32 payment_number = 1;
+  common.Money payment_amount = 2;
+  common.Money principal = 3;
+  common.Money interest = 4;
+  common.Money balance = 5;
+}
+
+// Markdown Suggestion Request
+message MarkdownRequest {
+  common.RequestMetadata metadata = 1;
+
+  // Current pricing
+  common.Money current_price = 2;
+  common.Money cost = 3;
+
+  // Aging information
+  int32 days_in_stock = 4;
+  string first_listed_date = 5; // ISO 8601
+
+  // Market context
+  CompetitiveRange market_range = 6;
+
+  // Configuration
+  repeated AgingBand aging_bands = 7; // Custom aging schedule
+}
+
+message AgingBand {
+  int32 days_threshold = 1;
+  double markdown_percentage = 2; // Percentage to reduce (e.g., 3.0 = 3%)
+}
+
+message MarkdownResponse {
+  common.ResponseMetadata metadata = 1;
+
+  // Markdown suggestion
+  common.Money suggested_price = 2;
+  common.Money markdown_amount = 3;
+  double markdown_percentage = 4;
+
+  // Reasoning
+  string aging_band = 5;              // e.g., "46-60 days"
+  double competitive_position = 6;    // Where current price sits in market range (0.0-1.0)
+  string recommendation = 7;           // Human-readable explanation
+
+  // Impact analysis
+  common.Money projected_gross = 8;   // Expected gross at suggested price
+  int32 estimated_days_to_sale = 9;   // Based on market data
+}
+
+// Batch Pricing Request
+message BatchPriceRequest {
+  common.RequestMetadata metadata = 1;
+
+  // Operations to perform
+  repeated BatchOperation operations = 2;
+}
+
+message BatchOperation {
+  enum OperationType {
+    UNKNOWN = 0;
+    MARKET_DATA = 1;
+    GROSS_CALC = 2;
+    PAYMENT_CALC = 3;
+    MARKDOWN = 4;
+  }
+
+  string operation_id = 1;      // Client-provided ID for matching responses
+  OperationType type = 2;
+
+  // One of these will be set based on type
+  oneof request {
+    MarketDataRequest market_data = 3;
+    GrossRequest gross = 4;
+    PaymentRequest payment = 5;
+    MarkdownRequest markdown = 6;
+  }
+}
+
+message BatchPriceResponse {
+  string operation_id = 1;
+
+  // One of these will be set based on operation type
+  oneof response {
+    MarketDataResponse market_data = 2;
+    GrossResponse gross = 3;
+    PaymentResponse payment = 4;
+    MarkdownResponse markdown = 5;
+    common.ErrorDetail error = 6;
+  }
+}

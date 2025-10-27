@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package autolytiq.cache;
+
+import "common.proto";
+
+// CacheService provides high-performance multi-level caching
+service CacheService {
+  // Get a cached value
+  rpc Get(GetRequest) returns (GetResponse);
+
+  // Set a cached value
+  rpc Set(SetRequest) returns (SetResponse);
+
+  // Delete a cached value
+  rpc Delete(DeleteRequest) returns (DeleteResponse);
+
+  // Check if key exists
+  rpc Exists(ExistsRequest) returns (ExistsResponse);
+
+  // Invalidate cache by pattern
+  rpc Invalidate(InvalidateRequest) returns (InvalidateResponse);
+
+  // Get cache statistics
+  rpc GetStats(StatsRequest) returns (StatsResponse);
+
+  // Health check
+  rpc GetHealth(common.HealthRequest) returns (common.HealthResponse);
+}
+
+message GetRequest {
+  common.RequestMetadata metadata = 1;
+  string key = 2;
+  optional string namespace = 3; // Tenant-isolated namespace
+}
+
+message GetResponse {
+  common.ResponseMetadata metadata = 1;
+  optional bytes value = 2;
+  bool found = 3;
+  optional int64 ttl_seconds = 4; // Remaining TTL
+  CacheLevel cache_level = 5;    // Where the value was found
+}
+
+enum CacheLevel {
+  UNKNOWN = 0;
+  MEMORY = 1;  // In-memory LRU cache
+  REDIS = 2;   // Redis cache
+  MISS = 3;    // Cache miss
+}
+
+message SetRequest {
+  common.RequestMetadata metadata = 1;
+  string key = 2;
+  bytes value = 3;
+  optional string namespace = 4;
+  optional int32 ttl_seconds = 5; // Time to live (default: 300 seconds)
+}
+
+message SetResponse {
+  common.ResponseMetadata metadata = 1;
+  bool success = 2;
+}
+
+message DeleteRequest {
+  common.RequestMetadata metadata = 1;
+  string key = 2;
+  optional string namespace = 3;
+}
+
+message DeleteResponse {
+  common.ResponseMetadata metadata = 1;
+  bool deleted = 2;
+}
+
+message ExistsRequest {
+  common.RequestMetadata metadata = 1;
+  string key = 2;
+  optional string namespace = 3;
+}
+
+message ExistsResponse {
+  common.ResponseMetadata metadata = 1;
+  bool exists = 2;
+  CacheLevel cache_level = 3;
+}
+
+message InvalidateRequest {
+  common.RequestMetadata metadata = 1;
+  string pattern = 2;         // Glob pattern (e.g., "market_data:*")
+  optional string namespace = 3;
+}
+
+message InvalidateResponse {
+  common.ResponseMetadata metadata = 1;
+  int32 keys_invalidated = 2;
+}
+
+message StatsRequest {
+  common.RequestMetadata metadata = 1;
+  optional string namespace = 2; // Stats for specific namespace
+}
+
+message StatsResponse {
+  common.ResponseMetadata metadata = 1;
+  CacheStats memory_cache = 2;
+  CacheStats redis_cache = 3;
+}
+
+message CacheStats {
+  int64 hits = 1;
+  int64 misses = 2;
+  double hit_rate = 3;
+  int64 entries = 4;
+  int64 size_bytes = 5;
+  double eviction_count = 6;
+}

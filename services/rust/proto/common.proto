@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package autolytiq.common;
+
+// Common metadata for all requests
+message RequestMetadata {
+  string request_id = 1;
+  string tenant_id = 2;
+  string user_id = 3;
+  string idempotency_key = 4;
+  int64 timestamp_ms = 5;
+  string correlation_id = 6;
+}
+
+// Common response metadata
+message ResponseMetadata {
+  string request_id = 1;
+  int64 timestamp_ms = 2;
+  int32 duration_ms = 3;
+  string server_version = 4;
+}
+
+// Error details
+message ErrorDetail {
+  string code = 1;
+  string message = 2;
+  map<string, string> metadata = 3;
+}
+
+// Money representation (to handle currency precision)
+message Money {
+  // Amount in cents (e.g., $123.45 = 12345)
+  int64 amount_cents = 1;
+  string currency = 2; // ISO 4217 code (e.g., "USD")
+}
+
+// Decimal representation for precise calculations
+message Decimal {
+  // Value as string to preserve precision (e.g., "123.456789")
+  string value = 1;
+}
+
+// Date representation
+message Date {
+  int32 year = 1;
+  int32 month = 2; // 1-12
+  int32 day = 3;   // 1-31
+}
+
+// Pagination request
+message PaginationRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string sort_by = 3;
+  string sort_order = 4; // "asc" or "desc"
+}
+
+// Pagination response
+message PaginationResponse {
+  int32 page = 1;
+  int32 page_size = 2;
+  int32 total_items = 3;
+  int32 total_pages = 4;
+}
+
+// Health check
+message HealthRequest {
+  bool include_dependencies = 1;
+}
+
+message HealthResponse {
+  enum Status {
+    UNKNOWN = 0;
+    HEALTHY = 1;
+    DEGRADED = 2;
+    UNHEALTHY = 3;
+  }
+
+  Status status = 1;
+  string version = 2;
+  int64 uptime_seconds = 3;
+  map<string, DependencyHealth> dependencies = 4;
+}
+
+message DependencyHealth {
+  enum Status {
+    UNKNOWN = 0;
+    UP = 1;
+    DOWN = 2;
+  }
+
+  Status status = 1;
+  string message = 2;
+  int32 latency_ms = 3;
+}
