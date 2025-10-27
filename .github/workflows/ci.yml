@@ -35,14 +35,16 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
+      - name: Prisma generate
+        run: pnpm prisma generate
       - name: Apply migrations
         run: pnpm prisma migrate deploy
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
       - name: Run Node checks
-        run: pnpm ci
+        run: pnpm run ci
       - name: Install ML dependencies
         run: pip install -r ml_service/requirements.txt
       - name: Run ML tests
-        run: pnpm ml:test
+        run: pnpm run ml:test
