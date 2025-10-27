@@ -2,7 +2,7 @@
 
 AutolytiQ is an end-to-end retail automotive platform that unifies CRM, desking, F&I, analytics, and machine-learning driven
 operations. The repository is organised as a pnpm workspace that ships a React front end, a TypeScript/Express API, Python
-services for predictive scoring, and operational tooling needed for production deployments on DigitalOcean.
+services for predictive scoring, and operational tooling for production deployments on DigitalOcean Kubernetes.
 
 ## Monorepo layout
 
@@ -15,7 +15,7 @@ services for predictive scoring, and operational tooling needed for production d
 | `packages/db` | Prisma schema, migrations, and database utilities shared across services. |
 | `packages/shared` | TypeScript utilities, domain types, and client/server shared logic. |
 | `tracking-service` | Event ingestion and analytics microservice. |
-| `infrastructure` | Docker Compose, Kubernetes manifests, and Terraform modules for self-hosting. |
+| `infrastructure` | Dockerfiles, Kubernetes manifests, and Terraform modules for self-hosting. |
 | `scripts` | Automation for migrations, deployment, health checks, and DigitalOcean provisioning. |
 
 ## Prerequisites
@@ -25,7 +25,7 @@ services for predictive scoring, and operational tooling needed for production d
 - Python 3.11+ (for ML services)
 - PostgreSQL 14+
 - Redis 7+
-- Docker (optional but recommended for production parity)
+- Docker (for local Compose + production parity)
 
 ## Environment configuration
 
@@ -33,8 +33,7 @@ Create a `.env` at the repository root. Start from the template that matches you
 
 - `.env.example` – minimal local development variables
 - `.env.selfhost.example` – Docker Compose/local server parity
-- `.env.digitalocean.example` – production-ready configuration for the droplet stack
-- `.env.replit.example` – legacy single-port deployment (kept for reference)
+- `.env.digitalocean.example` – production-ready configuration
 
 Generate strong secrets before first deploy:
 
@@ -62,7 +61,7 @@ cd ../ml_backend && pip install -r requirements.txt
 
 - Run the API only: `pnpm dev:server`
 - Run the frontend: `pnpm dev:client`
-- Build shared packages + run the single-port stack (matches Replit/docker image entrypoint): `pnpm dev:replit`
+- Launch the Docker stack: `docker compose up --build`
 - Launch ML services: `pnpm --filter @repo/ml_service dev` and `pnpm --filter @repo/ml_backend dev`
 
 The API listens on `http://localhost:5000` by default and expects PostgreSQL/Redis according to your `.env`.
@@ -87,22 +86,52 @@ pnpm db:seed             # Seed baseline tenant + sample data
 
 ## Deployment
 
-DigitalOcean is the supported production target. Two deployment paths are maintained:
+DigitalOcean Kubernetes is the supported production target. Container builds for each service live in
+`infrastructure/docker/`:
 
-1. **Droplet with systemd** – Provisioned via `scripts/setup-droplet.sh`, deployed with `scripts/deploy-to-droplet.sh`. The
-   droplet hosts Node.js 22, PostgreSQL 16, Redis, Nginx, and the app managed by `systemd`.
-2. **Docker Compose stack** – Uses the root `Dockerfile` and `docker-compose.yml` for a reproducible multi-service deployment.
+- `Dockerfile.backend`
+- `Dockerfile.frontend`
+- `Dockerfile.ml`
 
-Key commands:
+Typical workflow:
 
 ```bash
-pnpm build:prod   # Generate Prisma client + build all workspaces
-pnpm start:prod   # Run the compiled server from apps/server/dist/index.js
+# Authenticate to DigitalOcean Container Registry (DOCR)
+doctl registry login
+
+# Build images
+REGISTRY=registry.digitalocean.com/autolytiq
+TAG=$(git rev-parse --short HEAD)
+
+docker build -f infrastructure/docker/Dockerfile.backend -t $REGISTRY/backend:$TAG .
+docker build -f infrastructure/docker/Dockerfile.frontend -t $REGISTRY/frontend:$TAG .
+docker build -f infrastructure/docker/Dockerfile.ml -t $REGISTRY/ml-service:$TAG .
+
+docker push $REGISTRY/backend:$TAG
+docker push $REGISTRY/frontend:$TAG
+docker push $REGISTRY/ml-service:$TAG
 ```
 
-For complete migration steps, SSL guidance, backups, and troubleshooting, see
-[`DIGITAL_OCEAN_MIGRATION.md`](./DIGITAL_OCEAN_MIGRATION.md). Architecture, module boundaries, and operational checklists are
-covered in [`ARCHITECTURE.md`](./ARCHITECTURE.md).
+Update the image tags inside `infrastructure/k8s/production` and apply the manifests:
+
+```bash
+kubectl apply -f infrastructure/k8s/production/namespace.yaml
+kubectl apply -f infrastructure/k8s/production/configmap.yaml
+kubectl apply -f infrastructure/k8s/production/secrets.yaml
+kubectl apply -f infrastructure/k8s/production/pvc.yaml
+kubectl apply -f infrastructure/k8s/production/backend-deployment.yaml
+kubectl apply -f infrastructure/k8s/production/frontend-deployment.yaml
+kubectl apply -f infrastructure/k8s/production/ml-service-deployment.yaml
+kubectl apply -f infrastructure/k8s/production/celery-worker-deployment.yaml
+kubectl apply -f infrastructure/k8s/production/hpa.yaml
+kubectl apply -f infrastructure/k8s/production/ingress.yaml
+```
+
+For full runbooks, scaling guidance, and operational checklists see
+[`DIGITAL_OCEAN_MIGRATION.md`](./DIGITAL_OCEAN_MIGRATION.md) and [`ARCHITECTURE.md`](./ARCHITECTURE.md).
+
+Legacy droplet scripts remain available under `scripts/` for disaster recovery but are no longer the primary deployment
+mechanism.
 
 ## Support & additional documentation
 

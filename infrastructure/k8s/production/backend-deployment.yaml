@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ghcr.io/autolytiq/dms-backend:latest
+          image: registry.digitalocean.com/autolytiq/backend:latest
           ports:
             - containerPort: 5000
           envFrom:

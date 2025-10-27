@@ -1,29 +1,22 @@
+version: "3.9"
+
 services:
-  # Main Application (unified frontend + backend)
-  app:
+  backend:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: autolytiq-app
+      dockerfile: infrastructure/docker/Dockerfile.backend
+    container_name: autolytiq-backend
     restart: unless-stopped
     env_file:
       - .env
     environment:
       NODE_ENV: production
       PORT: 5000
-      APP_URL: ${APP_URL:-http://localhost:5000}
-      API_URL: ${API_URL:-http://localhost:5000}
       DATABASE_URL: ${DATABASE_URL:-postgresql://autolytiq:autolytiq@postgres:5432/autolytiq?schema=public}
       DIRECT_URL: ${DIRECT_URL:-postgresql://autolytiq:autolytiq@postgres:5432/autolytiq?schema=public}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
-      SESSION_SECRET: ${SESSION_SECRET:-dev-session-secret-change-in-production}
-      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-in-production}
-      # Optional services
-      ML_SERVICE_URL: ${ML_SERVICE_URL:-http://ml:8000}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-minio}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-minio123}
-      S3_BUCKET: ${S3_BUCKET:-autolytiq-dev}
-      S3_ENDPOINT: ${S3_ENDPOINT:-http://s3:9000}
+      REDIS_URL: ${REDIS_URL:-redis://:autolytiq@redis:6379/0}
+      ML_SERVICE_URL: ${ML_SERVICE_URL:-http://ml-service:8000}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
     ports:
       - "5000:5000"
     depends_on:
@@ -32,25 +25,54 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5000/api/health || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health/ready"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-  # ML Service (optional - uncomment if using AI features)
-  # ml:
-  #   build:
-  #     context: ./apps/ml_service
-  #     dockerfile: Dockerfile
-  #   container_name: autolytiq-ml
-  #   restart: unless-stopped
-  #   environment:
-  #     PORT: 8000
-  #   ports:
-  #     - "8000:8000"
-  #   profiles:
-  #     - ml
-  # PostgreSQL Database
+
+  frontend:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.frontend
+    container_name: autolytiq-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:5000}
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  ml-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.ml
+    container_name: autolytiq-ml
+    restart: unless-stopped
+    environment:
+      PORT: 8000
+      DATABASE_URL: ${DATABASE_URL:-postgresql://autolytiq:autolytiq@postgres:5432/autolytiq?schema=public}
+      REDIS_URL: ${REDIS_URL:-redis://:autolytiq@redis:6379/0}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
   postgres:
     image: postgres:16-alpine
     container_name: autolytiq-postgres
@@ -61,38 +83,37 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-autolytiq}
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
 
-  # Redis (for sessions and background jobs)
   redis:
     image: redis:7-alpine
     container_name: autolytiq-redis
+    command: redis-server --requirepass autolytiq --appendonly yes
     restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "autolytiq", "ping"]
       interval: 10s
-      timeout: 3s
+      timeout: 5s
       retries: 5
-  # MinIO (S3-compatible storage - optional for development)
+
   s3:
     image: minio/minio:RELEASE.2024-10-13T03-09-05Z
     container_name: autolytiq-minio
+    command: server /data --console-address ":9001"
     restart: unless-stopped
     environment:
       MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID:-minio}
       MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY:-minio123}
-    command: server /data --console-address ":9001"
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -103,33 +124,8 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-    profiles:
-      - storage
-
-  # Nginx (optional - for production-like SSL setup)
-  nginx:
-    image: nginx:alpine
-    container_name: autolytiq-nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
-    depends_on:
-      - app
-    profiles:
-      - production
 
 volumes:
   postgres_data:
-    driver: local
   redis_data:
-    driver: local
   s3_data:
-    driver: local
-
-networks:
-  default:
-    name: autolytiq-network
