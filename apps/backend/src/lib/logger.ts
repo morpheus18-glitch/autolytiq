@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import { AsyncLocalStorage } from 'async_hooks';
+import type { NextFunction, Request, Response } from 'express';
 import { getTenantId } from './prisma.js';
 
 /**
@@ -244,9 +245,9 @@ export async function traced<T>(
  * ```
  */
 export function requestTracingMiddleware(
-  req: Express.Request,
-  res: Express.Response,
-  next: Express.NextFunction,
+  req: Request,
+  res: Response,
+  next: NextFunction,
 ): void {
   // Extract trace ID from headers (for distributed tracing)
   const traceId =
@@ -254,7 +255,7 @@ export function requestTracingMiddleware(
     (req.headers['x-request-id'] as string) ??
     randomUUID();
 
-  const userId = (req as Express.Request & { user?: { id?: string } }).user?.id;
+  const userId = (req as Request & { user?: { id?: string } }).user?.id;
 
   // Initialize context for this request
   initializeRequestContext({
@@ -292,8 +293,9 @@ declare global {
   namespace Express {
     interface Request {
       traceId?: string;
+      user?: { id?: string };
     }
-    interface Response {}
-    interface NextFunction {}
   }
 }
+
+export {};

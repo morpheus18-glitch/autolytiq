@@ -101,11 +101,17 @@ export async function getMarketData(data: MarketDataRequest): Promise<any> {
         const duration = Date.now() - start;
 
         if (error) {
-          logger.error('Pricing service getMarketData failed', {
-            error: error.message,
+          const metadata = {
             duration,
-            timeout: error.code === grpc.status.DEADLINE_EXCEEDED,
-          });
+            timeout: (error as grpc.ServiceError).code === grpc.status.DEADLINE_EXCEEDED,
+            errorMessage: error instanceof Error ? error.message : undefined,
+          };
+
+          logger.error(
+            'Pricing service getMarketData failed',
+            error instanceof Error ? error : undefined,
+            metadata,
+          );
 
           resolve(getFallbackMarketData(data));
         } else {
@@ -140,11 +146,17 @@ export async function calculateGross(data: GrossRequest): Promise<any> {
         const duration = Date.now() - start;
 
         if (error) {
-          logger.error('Pricing service calculateGross failed', {
-            error: error.message,
+          const metadata = {
             duration,
-            timeout: error.code === grpc.status.DEADLINE_EXCEEDED,
-          });
+            timeout: (error as grpc.ServiceError).code === grpc.status.DEADLINE_EXCEEDED,
+            errorMessage: error instanceof Error ? error.message : undefined,
+          };
+
+          logger.error(
+            'Pricing service calculateGross failed',
+            error instanceof Error ? error : undefined,
+            metadata,
+          );
 
           resolve(getFallbackGross(data));
         } else {
@@ -179,11 +191,17 @@ export async function calculatePayments(data: PaymentRequest): Promise<any> {
         const duration = Date.now() - start;
 
         if (error) {
-          logger.error('Pricing service calculatePayments failed', {
-            error: error.message,
+          const metadata = {
             duration,
-            timeout: error.code === grpc.status.DEADLINE_EXCEEDED,
-          });
+            timeout: (error as grpc.ServiceError).code === grpc.status.DEADLINE_EXCEEDED,
+            errorMessage: error instanceof Error ? error.message : undefined,
+          };
+
+          logger.error(
+            'Pricing service calculatePayments failed',
+            error instanceof Error ? error : undefined,
+            metadata,
+          );
 
           resolve(getFallbackPayments(data));
         } else {

@@ -11,6 +11,7 @@
  */
 
 import { performance } from 'perf_hooks';
+import { FuelType, VehicleType } from '@prisma/client';
 import { prisma, runWithTenant } from '../lib/prisma.js';
 
 interface BenchmarkResult {
@@ -100,8 +101,9 @@ async function setupTestData(tenantId: string) {
           year: 2024,
           make: 'Test',
           model: 'Benchmark',
-          condition: 'NEW',
-          cost: 20000,
+          type: VehicleType.NEW,
+          fuelType: FuelType.GASOLINE,
+          invoiceCost: 20000,
           listPrice: 25000,
         },
       });
