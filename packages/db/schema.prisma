@@ -71,6 +71,9 @@ model Tenant {
   workflowDefinitions  WorkflowDefinition[]
   workflowStages       WorkflowStage[]
   workflowTasks        WorkflowTask[]
+  outboxEvents         Outbox[]
+  dealEvents           DealEvent[]
+  mlFeatureCaches      MLFeatureCache[]
 
   @@map("tenants")
 }
@@ -119,6 +122,7 @@ model User {
   systemSettings            SystemSetting[]
   tenant                    Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   assignedWorkflowTasks     WorkflowTask[]        @relation("WorkflowTaskAssignee")
+  dealEventsCreated         DealEvent[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -785,6 +789,7 @@ model Deal {
   tradeVehicle        CustomerVehicle?        @relation("TradeVehicleDeal", fields: [tradeVehicleId], references: [id])
   vehicle             Vehicle                 @relation(fields: [vehicleId], references: [id])
   journalEntries      JournalEntry[]
+  events              DealEvent[]
 
   @@unique([tenantId, dealNumber])
   @@index([tenantId, status])
@@ -1673,6 +1678,62 @@ model SystemSetting {
   @@unique([tenantId, key])
   @@index([tenantId])
   @@map("system_settings")
+}
+
+model Outbox {
+  id          String    @id @default(cuid())
+  tenantId    String    @map("tenant_id")
+  topic       String
+  eventType   String    @map("event_type")
+  payload     Json
+  occurredAt  DateTime  @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([publishedAt])
+  @@index([occurredAt])
+  @@map("outbox")
+}
+
+model DealEvent {
+  id         String   @id @default(cuid())
+  tenantId   String   @map("tenant_id")
+  dealId     String   @map("deal_id")
+  eventType  String   @map("event_type")
+  payload    Json
+  prevHash   String?  @map("prev_hash")
+  thisHash   String   @unique @map("this_hash")
+  userId     String?  @map("user_id")
+  occurredAt DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal       Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([dealId])
+  @@index([occurredAt])
+  @@map("deal_events")
+}
+
+model MLFeatureCache {
+  id           String   @id @default(cuid())
+  tenantId     String   @map("tenant_id")
+  entityType   String   @map("entity_type")
+  entityId     String   @map("entity_id")
+  featureType  String   @map("feature_type")
+  features     Json
+  prediction   Json
+  confidence   Decimal? @db.Decimal(5, 4)
+  modelVersion String   @map("model_version")
+  computedAt   DateTime @default(now()) @map("computed_at") @db.Timestamptz(6)
+  expiresAt    DateTime @map("expires_at") @db.Timestamptz(6)
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, entityType, entityId, featureType, modelVersion])
+  @@index([tenantId])
+  @@index([expiresAt])
+  @@map("ml_feature_cache")
 }
 
 enum TenantPlan {

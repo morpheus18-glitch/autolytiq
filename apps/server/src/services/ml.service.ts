@@ -74,7 +74,7 @@ function delay(ms: number) {
 class MLService {
   private readonly client = axios.create({
     baseURL: env.ML_SERVICE_URL,
-    timeout: 10000,
+    timeout: 300, // 300ms - fail fast with fallbacks
     headers: { 'Content-Type': 'application/json' },
   });
 
