@@ -38,6 +38,7 @@ import {
   BarChart3
 } from "lucide-react";
 import { useState } from "react";
+import type { Customer, Lead, Sale, Vehicle } from "@shared/schema";
 
 interface AutomationWorkflow {
   id: string;
@@ -82,10 +83,10 @@ export default function AIWorkflowAutomation() {
   const queryClient = useQueryClient();
 
   // Fetch real data for intelligent automation
-  const { data: vehicles = [] } = useQuery({ queryKey: ['/api/vehicles'] });
-  const { data: sales = [] } = useQuery({ queryKey: ['/api/sales'] });
-  const { data: leads = [] } = useQuery({ queryKey: ['/api/leads'] });
-  const { data: customers = [] } = useQuery({ queryKey: ['/api/customers'] });
+  const { data: vehicles = [] } = useQuery<Vehicle[]>({ queryKey: ['/api/vehicles'] });
+  const { data: sales = [] } = useQuery<Sale[]>({ queryKey: ['/api/sales'] });
+  const { data: leads = [] } = useQuery<Lead[]>({ queryKey: ['/api/leads'] });
+  const { data: customers = [] } = useQuery<Customer[]>({ queryKey: ['/api/customers'] });
 
   // AI-powered automation workflows
   const automationWorkflows: AutomationWorkflow[] = [

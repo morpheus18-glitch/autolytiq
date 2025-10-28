@@ -170,7 +170,7 @@ export function SecuritySettings(): JSX.Element {
         pageSize: auditPageSize,
         ...auditFilters,
       }),
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   });
 
   const updateSecurityMutation = useMutation({
