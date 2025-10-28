@@ -1,0 +1,8 @@
+# Ignore backup directory created during code stripping
+src/_backup/
+
+# Standard ignores
+dist/
+node_modules/
+*.config.js
+*.config.ts
