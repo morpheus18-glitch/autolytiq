@@ -20,6 +20,8 @@ export default defineConfig({
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),
       "@assets": path.resolve(import.meta.dirname, "../../docs/resources/assets"),
+      "@shared/schema": path.resolve(import.meta.dirname, "../../packages/shared/src/schema"),
+      "@shared/settings-schema": path.resolve(import.meta.dirname, "../../packages/shared/src/settings-schema"),
     },
   },
   root: ".",

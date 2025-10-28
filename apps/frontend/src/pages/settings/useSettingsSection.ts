@@ -1,19 +1,19 @@
 import { useEffect } from 'react';
-import { useForm, type DefaultValues } from 'react-hook-form';
+import { useForm, type DefaultValues, type FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ZodType } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { fetchSettingsSection, updateSettingsSection } from '@/lib/settingsApi';
 
-interface UseSettingsSectionOptions<TFormValues> {
+interface UseSettingsSectionOptions<TFormValues extends FieldValues> {
   endpoint: string;
   schema: ZodType<TFormValues>;
   defaultValues: DefaultValues<TFormValues>;
   successMessage: string;
 }
 
-export function useSettingsSection<TFormValues>({
+export function useSettingsSection<TFormValues extends FieldValues>({
   endpoint,
   schema,
   defaultValues,

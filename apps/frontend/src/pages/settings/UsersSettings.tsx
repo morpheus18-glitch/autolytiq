@@ -79,11 +79,19 @@ const userFormSchema = settingsUserInputSchema.extend({
 
 type UserFormValues = z.infer<typeof userFormSchema>;
 
-const createEmptyPermissions = (): SettingsUserInput['permissions'] =>
-  settingsUserPermissionKeys.reduce(
-    (accumulator, key) => ({ ...accumulator, [key]: false }),
-    {} as SettingsUserInput['permissions'],
-  );
+type PermissionKey = Extract<keyof SettingsUserInput['permissions'], string>;
+
+const permissionKeys = settingsUserPermissionKeys as readonly PermissionKey[];
+
+const applyPermissionDefaults = (
+  source?: SettingsUserInput['permissions'],
+): SettingsUserInput['permissions'] =>
+  permissionKeys.reduce<SettingsUserInput['permissions']>((accumulator, key) => {
+    accumulator[key] = source?.[key] ?? false;
+    return accumulator;
+  }, {} as SettingsUserInput['permissions']);
+
+const createEmptyPermissions = (): SettingsUserInput['permissions'] => applyPermissionDefaults();
 
 const defaultValues: UserFormValues = {
   firstName: '',
@@ -162,7 +170,7 @@ export function UsersSettings(): JSX.Element {
   const usersQuery = useQuery({
     queryKey: ['settings', 'users', queryParams],
     queryFn: () => fetchUsers(queryParams),
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   });
 
   const users = usersQuery.data?.data ?? [];
@@ -172,10 +180,7 @@ export function UsersSettings(): JSX.Element {
 
   const upsertMutation = useMutation({
     mutationFn: async (values: UserFormValues) => {
-      const permissions = settingsUserPermissionKeys.reduce(
-        (accumulator, key) => ({ ...accumulator, [key]: values.permissions?.[key] ?? false }),
-        {} as SettingsUserInput['permissions'],
-      );
+      const permissions = applyPermissionDefaults(values.permissions);
 
       if (editingUser) {
         const payload = {
@@ -277,10 +282,7 @@ export function UsersSettings(): JSX.Element {
       phone: user.phone ?? '',
       role: user.role,
       status: user.status,
-      permissions: settingsUserPermissionKeys.reduce(
-        (accumulator, key) => ({ ...accumulator, [key]: user.permissions?.[key] ?? false }),
-        {} as SettingsUserInput['permissions'],
-      ),
+      permissions: applyPermissionDefaults(user.permissions ?? undefined),
       password: undefined,
     });
     setDialogOpen(true);
@@ -595,7 +597,7 @@ export function UsersSettings(): JSX.Element {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {settingsUserRoles.map((role) => (
+                  {settingsUserRoles.map((role) => (
                             <SelectItem key={role} value={role}>
                               {role}
                             </SelectItem>
@@ -646,7 +648,7 @@ export function UsersSettings(): JSX.Element {
                   Choose the capabilities this user should have across the platform.
                 </p>
                 <div className="grid gap-3 md:grid-cols-2">
-                  {settingsUserPermissionKeys.map((permissionKey) => (
+                  {permissionKeys.map((permissionKey) => (
                     <FormField
                       key={permissionKey}
                       control={form.control}
