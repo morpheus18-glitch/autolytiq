@@ -1,0 +1,6 @@
+apiVersion: v2
+name: autolytiq-pricing-rust
+description: High-performance Rust Pricing Service
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

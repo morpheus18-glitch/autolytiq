@@ -1,0 +1,165 @@
+name: Deploy to Production
+
+on:
+  workflow_run:
+    workflows: ["Build and Push Docker Images"]
+    types:
+      - completed
+    branches:
+      - main
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    environment:
+      name: ${{ inputs.environment || 'production' }}
+      url: https://autolytiq.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install doctl (DigitalOcean CLI)
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Save DigitalOcean kubeconfig
+        run: |
+          doctl kubernetes cluster kubeconfig save ${{ secrets.DO_CLUSTER_NAME }}
+          kubectl cluster-info
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: '3.13.0'
+
+      - name: Get commit SHA (short)
+        id: vars
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          else
+            echo "sha_short=$(echo ${{ github.event.workflow_run.head_sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+          fi
+          echo "namespace=${{ inputs.environment || 'production' }}" >> $GITHUB_OUTPUT
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl create namespace ${{ steps.vars.outputs.namespace }} --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Run Prisma Migrations
+        run: |
+          echo "Running database migrations..."
+          kubectl apply -f infrastructure/k8s/production/manifests/prisma-migrate-job.yaml -n ${{ steps.vars.outputs.namespace }}
+
+          # Wait for migration job to complete
+          kubectl wait --for=condition=complete --timeout=300s job -l app=prisma-migrate -n ${{ steps.vars.outputs.namespace }} || {
+            echo "Migration failed or timed out"
+            kubectl logs -l app=prisma-migrate -n ${{ steps.vars.outputs.namespace }} --tail=50
+            exit 1
+          }
+          echo "✅ Database migrations completed"
+
+      - name: Deploy Pricing Rust Service
+        run: |
+          echo "Deploying Pricing Rust Service..."
+          helm upgrade --install pricing-rust \
+            ./infrastructure/k8s/production/helm/pricing-rust \
+            --namespace ${{ steps.vars.outputs.namespace }} \
+            --set image.tag=main-${{ steps.vars.outputs.sha_short }} \
+            --wait \
+            --timeout 5m
+
+      - name: Deploy Backend Service
+        run: |
+          echo "Deploying Backend Service..."
+          helm upgrade --install backend \
+            ./infrastructure/k8s/production/helm/backend \
+            --namespace ${{ steps.vars.outputs.namespace }} \
+            --set image.tag=main-${{ steps.vars.outputs.sha_short }} \
+            --wait \
+            --timeout 5m
+
+      - name: Deploy Frontend Service
+        run: |
+          echo "Deploying Frontend Service..."
+          helm upgrade --install frontend \
+            ./infrastructure/k8s/production/helm/frontend \
+            --namespace ${{ steps.vars.outputs.namespace }} \
+            --set image.tag=main-${{ steps.vars.outputs.sha_short }} \
+            --wait \
+            --timeout 5m
+
+      - name: Check deployment status
+        run: |
+          echo "Checking deployment status..."
+          kubectl get pods -n ${{ steps.vars.outputs.namespace }}
+          kubectl get services -n ${{ steps.vars.outputs.namespace }}
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests..."
+          chmod +x ./scripts/smoke.sh
+          ./scripts/smoke.sh ${{ steps.vars.outputs.namespace }}
+
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "### Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ steps.vars.outputs.namespace }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Tag:** main-${{ steps.vars.outputs.sha_short }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployed Services:**" >> $GITHUB_STEP_SUMMARY
+          echo "  - ✅ Pricing Rust Service" >> $GITHUB_STEP_SUMMARY
+          echo "  - ✅ Backend Service" >> $GITHUB_STEP_SUMMARY
+          echo "  - ✅ Frontend Service" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Pod Status:**" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          kubectl get pods -n ${{ steps.vars.outputs.namespace }} >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+  rollback:
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: failure()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Setup kubectl
+        run: doctl kubernetes cluster kubeconfig save ${{ secrets.DO_CLUSTER_NAME }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: '3.13.0'
+
+      - name: Rollback deployments
+        run: |
+          echo "⚠️ Deployment failed, initiating rollback..."
+          chmod +x ./scripts/rollback.sh
+
+          ./scripts/rollback.sh backend 0 production
+          ./scripts/rollback.sh frontend 0 production
+          ./scripts/rollback.sh pricing-rust 0 production
+
+          echo "✅ Rollback completed"

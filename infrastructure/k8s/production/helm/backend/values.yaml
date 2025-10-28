@@ -1,0 +1,124 @@
+replicaCount: 3
+
+image:
+  repository: registry.digitalocean.com/autolytiq/backend
+  pullPolicy: IfNotPresent
+  tag: "" # Overridden by CI/CD
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 5000
+  targetPort: 5000
+
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: api.autolytiq.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+env:
+  - name: NODE_ENV
+    value: "production"
+  - name: PORT
+    value: "5000"
+  - name: DATABASE_URL
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: database-url
+  - name: JWT_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: jwt-secret
+  - name: PRICING_GRPC_ADDR
+    value: "pricing-rust:50051"
+  - name: REDIS_URL
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: redis-url
+        optional: true
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 5000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 5000
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - autolytiq-backend
+          topologyKey: kubernetes.io/hostname
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "5000"
+  prometheus.io/path: "/metrics"
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""

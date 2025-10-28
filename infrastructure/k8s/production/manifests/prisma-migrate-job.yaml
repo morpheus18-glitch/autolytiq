@@ -1,0 +1,122 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: prisma-migrate-{{ now | date "20060102-150405" }}
+  namespace: production
+  labels:
+    app: prisma-migrate
+    component: database-migration
+  annotations:
+    "helm.sh/hook": pre-upgrade,pre-install
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  ttlSecondsAfterFinished: 3600  # Cleanup after 1 hour
+  backoffLimit: 3
+  template:
+    metadata:
+      name: prisma-migrate
+      labels:
+        app: prisma-migrate
+    spec:
+      restartPolicy: Never
+
+      # Init container: Wait for database
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for PostgreSQL to be ready..."
+              until pg_isready -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER; do
+                echo "PostgreSQL is unavailable - sleeping"
+                sleep 2
+              done
+              echo "PostgreSQL is ready!"
+          env:
+            - name: POSTGRES_HOST
+              value: "postgres-postgresql.database.svc.cluster.local"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_USER
+              value: "autolytiq"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+
+      # Main container: Run migrations
+      containers:
+        - name: prisma-migrate
+          image: registry.digitalocean.com/autolytiq/backend:latest
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+
+              echo "========================================="
+              echo "Running Prisma Database Migrations"
+              echo "========================================="
+
+              cd /app/packages/db
+
+              echo "Checking database connection..."
+              npx prisma db execute --stdin <<< "SELECT 1;" || {
+                echo "ERROR: Cannot connect to database"
+                exit 1
+              }
+
+              echo "Running migrations..."
+              npx prisma migrate deploy
+
+              echo "Generating Prisma Client..."
+              npx prisma generate
+
+              echo "========================================="
+              echo "Migration completed successfully!"
+              echo "========================================="
+
+              # Optional: Seed data
+              if [ -f "seed.ts" ]; then
+                echo "Running database seed..."
+                npx tsx seed.ts || echo "Warning: Seed failed or not configured"
+              fi
+
+              echo "✅ All database operations completed"
+
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: database-url
+            - name: NODE_ENV
+              value: "production"
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
