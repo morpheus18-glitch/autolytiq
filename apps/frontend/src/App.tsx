@@ -6,12 +6,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ThemeProvider } from '@/contexts/theme-context';
 import { useAuth } from '@/hooks/useAuth';
-import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import Landing from '@/pages/landing';
 import Login from '@/pages/login';
-import AuthTest from '@/pages/auth-test';
-import ForgotPassword from '@/pages/forgot-password';
-import ResetPassword from '@/pages/reset-password';
 import NotFound from '@/pages/not-found';
 import AppShell from '@/components/layout/app-shell';
 import { appRoutes } from '@/routes';
@@ -29,8 +25,6 @@ function RouteLoadingFallback() {
 }
 
 function Router() {
-  usePixelTracker();
-
   const { user, isAuthenticated, isLoading } = useAuth();
 
   const allowedRouteSet = useMemo(() => {
@@ -61,9 +55,6 @@ function Router() {
     return (
       <Switch>
         <Route path="/login" component={Login} />
-        <Route path="/forgot-password" component={ForgotPassword} />
-        <Route path="/reset-password/:token" component={ResetPassword} />
-        <Route path="/auth-test" component={AuthTest} />
         <Route component={Landing} />
       </Switch>
     );
@@ -88,8 +79,8 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <TooltipProvider>
-          <Toaster />
           <Router />
+          <Toaster />
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
