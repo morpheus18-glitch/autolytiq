@@ -311,6 +311,6 @@ export const getCurrentSessionId = (): string | null => {
 // Declare global timeout for activity tracking
 declare global {
   interface Window {
-    activityTimeout: NodeJS.Timeout;
+    activityTimeout: number;
   }
 }

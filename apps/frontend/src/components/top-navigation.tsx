@@ -72,7 +72,7 @@ export default function TopNavigation() {
 
         return { ...section, subItems };
       })
-      .filter((section): section is typeof WORKFLOW_SECTIONS[number] => section !== null);
+      .filter(<T,>(section: T | null): section is T => section !== null);
   }, [allowedRouteSet, allowedSectionSet]);
 
   const resolveActiveTab = useCallback((pathname: string) => {
