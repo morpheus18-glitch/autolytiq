@@ -66,6 +66,24 @@ cd ../ml_backend && pip install -r requirements.txt
 
 The API listens on `http://localhost:5000` by default and expects PostgreSQL/Redis according to your `.env`.
 
+## Run inside Kubernetes (dev loop)
+
+The repository ships with a Skaffold profile (`skaffold.yaml`) and lightweight manifests under
+`infrastructure/k8s/dev`. This provisions PostgreSQL, the Express backend, and the Vite/NGINX
+frontend directly inside your cluster so that you can iterate against pods instead of local
+processes.
+
+```bash
+# Ensure your kube-context points at a local cluster (kind, k3d, minikube, etc.)
+skaffold dev
+
+# Apply Prisma migrations once the backend pod is ready
+kubectl exec deploy/backend -n autolytiq-dev -- npx prisma migrate deploy --schema prisma/schema.prisma
+```
+
+Skaffold automatically port-forwards the backend to `http://localhost:5000`, the frontend to
+`http://localhost:4173`, and exposes PostgreSQL locally on port `5432` for debugging tools.
+
 ## Quality checks
 
 ```bash

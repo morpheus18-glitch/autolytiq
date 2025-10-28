@@ -1,0 +1,47 @@
+apiVersion: skaffold/v4beta6
+kind: Config
+metadata:
+  name: autolytiq
+build:
+  local:
+    push: false
+  artifacts:
+    - image: autolytiq/backend-dev
+      context: .
+      docker:
+        dockerfile: apps/backend/Dockerfile
+    - image: autolytiq/frontend-dev
+      context: apps/frontend
+      docker:
+        dockerfile: Dockerfile
+manifests:
+  rawYaml:
+    - infrastructure/k8s/dev/namespace.yaml
+    - infrastructure/k8s/dev/postgres-secret.yaml
+    - infrastructure/k8s/dev/postgres-statefulset.yaml
+    - infrastructure/k8s/dev/postgres-service.yaml
+    - infrastructure/k8s/dev/backend-configmap.yaml
+    - infrastructure/k8s/dev/backend-secrets.yaml
+    - infrastructure/k8s/dev/backend-deployment.yaml
+    - infrastructure/k8s/dev/backend-service.yaml
+    - infrastructure/k8s/dev/frontend-deployment.yaml
+    - infrastructure/k8s/dev/frontend-service.yaml
+deploy:
+  kubectl:
+    defaultNamespace: autolytiq-dev
+portForward:
+  - resourceType: service
+    resourceName: backend
+    namespace: autolytiq-dev
+    port: 5000
+    localPort: 5000
+  - resourceType: service
+    resourceName: frontend
+    namespace: autolytiq-dev
+    port: 80
+    localPort: 4173
+  - resourceType: service
+    resourceName: autolytiq-postgres
+    namespace: autolytiq-dev
+    port: 5432
+    localPort: 5432

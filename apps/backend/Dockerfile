@@ -1,37 +1,46 @@
+# syntax=docker/dockerfile:1.6
+
 # Build stage
-FROM node:20-alpine as builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
+# Copy shared project configuration required for the backend build
+COPY tsconfig.json ./
+COPY packages ./packages
+COPY apps/backend ./apps/backend
 
-# Install dependencies
+WORKDIR /app/apps/backend
+
+# Install dependencies (including devDependencies for Prisma CLI and TypeScript)
 RUN npm ci
 
-# Copy source
-COPY . .
+# Prepare Prisma schema for code generation
+RUN mkdir -p prisma \
+  && cp ../../packages/db/schema.prisma prisma/schema.prisma
 
-# Generate Prisma client
-RUN npx prisma generate
+# Prisma requires a DATABASE_URL even when generating the client
+ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/autolytiq"
 
-# Build TypeScript
+# Generate Prisma client and build the TypeScript project
+RUN npx prisma generate --schema prisma/schema.prisma
 RUN npm run build
 
 # Production stage
 FROM node:20-alpine
 
+ENV NODE_ENV=production
 WORKDIR /app
 
 # Install production dependencies only
-COPY package*.json ./
-RUN npm ci --production
+COPY --from=builder /app/apps/backend/package*.json ./
+RUN npm ci --omit=dev
 
-# Copy built app
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/prisma ./prisma
+# Copy built application and Prisma assets
+COPY --from=builder /app/apps/backend/dist ./dist
+COPY --from=builder /app/apps/backend/prisma ./prisma
+COPY --from=builder /app/apps/backend/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/apps/backend/node_modules/@prisma ./node_modules/@prisma
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
