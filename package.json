@@ -5,11 +5,11 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "pnpm -r --parallel dev",
+    "dev": "pnpm dev:prod",
     "dev:server": "pnpm --filter @repo/backend dev",
     "dev:client": "pnpm --filter @repo/frontend dev",
     "dev:replit": "pnpm -w build:shared && pnpm -w build:client:static && cross-env PORT=${PORT:-80} pnpm --filter @repo/backend dev",
-    "build": "pnpm -r build",
+    "build": "pnpm -r --filter \"!@repo/frontend-dev\" build",
     "build:shared": "pnpm --filter @repo/shared build",
     "build:client": "pnpm --filter @repo/frontend build",
     "build:client:static": "pnpm --filter @repo/frontend build && rimraf apps/backend/public && mkdir -p apps/backend/public && cp -r apps/frontend/dist/* apps/backend/public/",
@@ -31,7 +31,11 @@
     "db:push": "pnpm --filter @repo/db push",
     "db:seed": "pnpm --filter @repo/db seed",
     "postinstall": "pnpm db:generate",
-    "prepare": "husky"
+    "prepare": "husky",
+    "dev:prod": "concurrently --kill-others-on-fail \"pnpm --filter @repo/backend dev\" \"pnpm --filter @repo/frontend dev\"",
+    "dev:sandbox": "concurrently --kill-others-on-fail \"pnpm --filter @repo/backend dev\" \"pnpm --filter @repo/frontend-dev dev\"",
+    "dev:client:sandbox": "pnpm --filter @repo/frontend-dev dev",
+    "build:client:sandbox": "pnpm --filter @repo/frontend-dev build"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.679.0",
