@@ -37,7 +37,7 @@ import {
   FileText,
   DollarSign
 } from "lucide-react";
-import type { Customer } from "@shared/schema";
+import type { Customer, CustomerJourney } from "@shared/schema";
 
 interface SmartCRMAssistantProps {
   customer?: Customer;
@@ -121,11 +121,13 @@ export default function SmartCRMAssistant({ customer, onActionComplete }: SmartC
     },
   });
 
-  const customerJourney = customer?.customerJourney || {
+  const defaultJourney: CustomerJourney = {
     stage: 'prospect',
     touchpoints: [],
-    probability: 0
+    probability: 0,
   };
+
+  const customerJourney = customer?.customerJourney ?? defaultJourney;
 
   const digitalProfile = customer?.digitalProfile || {
     websiteVisits: 0,

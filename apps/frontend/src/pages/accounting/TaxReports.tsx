@@ -158,7 +158,7 @@ export default function TaxReports() {
       }),
     enabled: activeTab === 'sales-tax',
     staleTime: 1000 * 60 * 5,
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   });
 
   const payrollQuery = useQuery<Payroll941Report>({

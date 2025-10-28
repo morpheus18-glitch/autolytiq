@@ -15,8 +15,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@shared/schema": ["../../packages/shared/src/schema.ts"],
-      "@shared/settings-schema": ["../../packages/shared/src/settings-schema.ts"]
+      "@shared/schema": ["../../packages/shared/src/schema/index.ts"],
+      "@shared/settings-schema": ["../../packages/shared/src/settings-schema/index.ts"]
     },
     "types": ["vite/client"]
   },

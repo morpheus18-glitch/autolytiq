@@ -1,3 +1,2 @@
-// Shared utilities and types
-export * from './schema.js';
-export * from './settings-schema.js';
+export * from "./schema/index.js";
+export * from "./settings-schema/index.js";

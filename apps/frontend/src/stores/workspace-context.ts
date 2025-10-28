@@ -83,10 +83,12 @@ interface WorkspaceStore {
   getSession: (sessionId: string) => WorkspaceSession | null;
 }
 
+type WorkspacePersistedState = Pick<WorkspaceStore, 'sessions' | 'activeSessionId' | 'isSessionBarVisible'>;
+
 export const useWorkspaceStore = create<WorkspaceStore>()(
-  persist(
-    (set: any, get: any) => ({
-      sessions: [],
+  persist<WorkspaceStore, [], [], WorkspacePersistedState>(
+    (set, get) => ({
+      sessions: [] as WorkspaceSession[],
       activeSessionId: null,
       isSessionBarVisible: true,
       
@@ -101,7 +103,7 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
           updatedAt: new Date().toISOString(),
         };
         
-        set(state => ({
+        set((state) => ({
           sessions: [...state.sessions, newSession],
           activeSessionId: sessionId,
         }));
@@ -110,7 +112,7 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
       },
       
       activateSession: (sessionId: string) => {
-        set(state => ({
+        set((state) => ({
           activeSessionId: sessionId,
           sessions: state.sessions.map(session => ({
             ...session,
@@ -121,7 +123,7 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
       },
       
       updateSession: (sessionId: string, updates: Partial<WorkspaceSession>) => {
-        set(state => ({
+        set((state) => ({
           sessions: state.sessions.map(session =>
             session.id === sessionId
               ? { ...session, ...updates, updatedAt: new Date().toISOString() }
@@ -131,7 +133,7 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
       },
       
       closeSession: (sessionId: string) => {
-        set(state => {
+        set((state) => {
           const remainingSessions = state.sessions.filter(s => s.id !== sessionId);
           const newActiveSessionId = state.activeSessionId === sessionId
             ? remainingSessions.length > 0 ? remainingSessions[remainingSessions.length - 1].id : null
@@ -231,7 +233,7 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
       },
       
       toggleSessionBar: () => {
-        set(state => ({ isSessionBarVisible: !state.isSessionBarVisible }));
+        set((state) => ({ isSessionBarVisible: !state.isSessionBarVisible }));
       },
       
       getActiveSession: () => {
