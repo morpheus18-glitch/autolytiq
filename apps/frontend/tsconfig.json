@@ -14,7 +14,9 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@shared/schema": ["../../packages/shared/src/schema.ts"],
+      "@shared/settings-schema": ["../../packages/shared/src/settings-schema.ts"]
     },
     "types": ["vite/client"]
   },

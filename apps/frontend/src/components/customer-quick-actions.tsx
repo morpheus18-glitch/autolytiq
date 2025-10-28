@@ -86,7 +86,7 @@ const initialTradeForm: TradeFormState = {
 
 const initialCreditForm = (customer: Customer): CreditFormState => ({
   fullName: `${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim(),
-  dateOfBirth: customer.dateOfBirth ?? "",
+  dateOfBirth: customer.dateOfBirth ? new Date(customer.dateOfBirth).toISOString().split('T')[0] : "",
   ssn: "",
   currentIncome: customer.income ? String(customer.income) : "",
   rentMortgage: "",
