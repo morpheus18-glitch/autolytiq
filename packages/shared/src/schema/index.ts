@@ -136,6 +136,7 @@ export interface Customer {
   zipCode?: string | null;
   status?: string | null;
   leadSource?: string | null;
+  leadScore?: number | null;
   salesConsultant?: string | null;
   dateOfBirth?: string | null;
   creditScore?: number | null;
@@ -192,6 +193,25 @@ export interface Sale {
   createdAt?: string;
   updatedAt?: string;
   metadata?: Record<string, unknown>;
+}
+
+export interface Deal {
+  id: string;
+  tenantId?: string;
+  customerId: string;
+  vehicleId?: string | null;
+  userId?: string;
+  status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'FUNDED' | 'DELIVERED' | 'CANCELLED';
+  totalAmount: number;
+  downPayment?: number;
+  tradeInValue?: number;
+  financingAmount?: number;
+  monthlyPayment?: number | null;
+  term?: number | null;
+  apr?: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+  closedAt?: Date | null;
 }
 
 export interface CreditApplication {

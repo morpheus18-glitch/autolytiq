@@ -581,7 +581,7 @@ function LenderSubmissionView({
                 {recommendation.rows.map((submission) => {
                   const payment = toNumber(submission.monthlyPayment);
                   const term = submission.term ?? deal?.term ?? 0;
-                  const totalInterest = term && payment
+                  const totalInterest = term && payment && recommendation.amountFinanced
                     ? payment * term - recommendation.amountFinanced
                     : null;
                   const isRecommended = recommendation.recommendationId === submission.id;

@@ -15,13 +15,13 @@ export function useWorkspaceCustomer(customerId?: number) {
   useEffect(() => {
     if (customer && customerId && session) {
       const workspaceCustomer: WorkspaceCustomer = {
-        id: customer.id || customerId,
+        id: typeof customer.id === 'string' ? parseInt(customer.id, 10) : customerId,
         firstName: customer.firstName || 'Unknown',
         lastName: customer.lastName || '',
         email: customer.email || '',
-        phone: customer.phone,
-        creditScore: customer.creditScore,
-        leadScore: customer.leadScore,
+        phone: customer.phone ?? undefined,
+        creditScore: customer.creditScore ?? undefined,
+        leadScore: customer.leadScore ?? undefined,
       };
       setCustomer(workspaceCustomer);
     }
@@ -46,7 +46,7 @@ export function useWorkspaceVehicle(vehicleId?: number) {
   useEffect(() => {
     if (vehicle && vehicleId && session) {
       const workspaceVehicle: WorkspaceVehicle = {
-        id: vehicle.id || vehicleId,
+        id: typeof vehicle.id === 'string' ? parseInt(vehicle.id, 10) : vehicleId,
         make: vehicle.make || 'Unknown',
         model: vehicle.model || 'Unknown',
         year: vehicle.year || new Date().getFullYear(),
@@ -79,14 +79,12 @@ export function useWorkspaceDeal(dealId?: string) {
     if (deal && dealId && session) {
       const workspaceDeal: WorkspaceDeal = {
         id: deal.id || dealId,
-        customerId: deal.customerId,
-        vehicleId: deal.vehicleId,
-        status: deal.status || 'draft',
+        customerId: typeof deal.customerId === 'string' ? parseInt(deal.customerId, 10) : undefined,
+        vehicleId: deal.vehicleId ? (typeof deal.vehicleId === 'string' ? parseInt(deal.vehicleId, 10) : deal.vehicleId) : undefined,
+        status: deal.status.toLowerCase() as 'draft' | 'pending' | 'approved' | 'completed' | 'cancelled',
         totalAmount: deal.totalAmount,
-        tradeInId: deal.tradeInId,
-        notes: deal.notes,
-        createdAt: deal.createdAt || new Date().toISOString(),
-        updatedAt: deal.updatedAt || new Date().toISOString(),
+        createdAt: deal.createdAt instanceof Date ? deal.createdAt.toISOString() : new Date().toISOString(),
+        updatedAt: deal.updatedAt instanceof Date ? deal.updatedAt.toISOString() : new Date().toISOString(),
       };
       setDeal(workspaceDeal);
     }
