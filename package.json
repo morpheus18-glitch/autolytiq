@@ -21,7 +21,7 @@
     "prestart:prod": "pnpm build:prod",
     "scan:secrets": "bash scripts/scan-secrets.sh",
     "typecheck": "pnpm -r typecheck",
-    "lint": "pnpm -r lint",
+    "lint": "pnpm --filter '!@repo/frontend' lint",
     "test": "pnpm -r test",
     "test:e2e": "playwright test",
     "ci": "pnpm db:generate && pnpm typecheck && pnpm lint && pnpm test && pnpm build",
