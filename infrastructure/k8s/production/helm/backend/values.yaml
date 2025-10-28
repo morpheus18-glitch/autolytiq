@@ -33,11 +33,57 @@ env:
       secretKeyRef:
         name: backend-secrets
         key: database-url
-  - name: JWT_SECRET
+  - name: JWT_PUBLIC_KEY
     valueFrom:
       secretKeyRef:
         name: backend-secrets
-        key: jwt-secret
+        key: jwt-public-key
+  - name: JWT_ISSUER
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: jwt-issuer
+  - name: JWT_AUDIENCE
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: jwt-audience
+  - name: SENDGRID_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: sendgrid-api-key
+  - name: SENDGRID_FROM
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: sendgrid-from
+  - name: TWILIO_ACCOUNT_SID
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: twilio-account-sid
+  - name: TWILIO_AUTH_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: twilio-auth-token
+  - name: TWILIO_MESSAGING_SERVICE_SID
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: twilio-messaging-service-sid
+  - name: TWILIO_CALLER_ID
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: twilio-caller-id
+  - name: SOCKET_IO_CORS_ORIGIN
+    value: "https://app.autolytiq.com"
+  - name: APP_URL
+    value: "https://app.autolytiq.com"
+  - name: API_URL
+    value: "https://api.autolytiq.com"
   - name: PRICING_GRPC_ADDR
     value: "pricing-rust:50051"
 

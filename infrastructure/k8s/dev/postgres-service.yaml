@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: autolytiq-postgres
+  namespace: autolytiq-dev
+  labels:
+    app.kubernetes.io/name: autolytiq-postgres
+    app.kubernetes.io/part-of: autolytiq
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: autolytiq-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432

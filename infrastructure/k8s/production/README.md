@@ -28,9 +28,9 @@ doctl kubernetes cluster kubeconfig save <cluster-name>
 doctl registry login
 
 # Build all services
-docker build -t registry.digitalocean.com/autolytiq/frontend:latest ./apps/frontend
-docker build -t registry.digitalocean.com/autolytiq/backend:latest ./apps/backend
-docker build -t registry.digitalocean.com/autolytiq/worker:latest ./apps/worker
+docker build -f apps/frontend/Dockerfile -t registry.digitalocean.com/autolytiq/frontend:latest .
+docker build -f apps/backend/Dockerfile -t registry.digitalocean.com/autolytiq/backend:latest .
+docker build -f apps/worker/Dockerfile -t registry.digitalocean.com/autolytiq/worker:latest .
 docker build -t registry.digitalocean.com/autolytiq/pricing-rust:latest ./apps/pricing-rust
 
 # Push all
@@ -47,7 +47,15 @@ kubectl create namespace production
 
 kubectl create secret generic backend-secrets \
   --from-literal=database-url='postgresql://user:pass@host:5432/db' \
-  --from-literal=jwt-secret='your-jwt-secret' \
+  --from-file=jwt-public-key=./jwt-public.pem \
+  --from-literal=jwt-issuer='autolytiq-production' \
+  --from-literal=jwt-audience='autolytiq-production' \
+  --from-literal=sendgrid-api-key='your-sendgrid-api-key' \
+  --from-literal=sendgrid-from='alerts@example.com' \
+  --from-literal=twilio-account-sid='ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' \
+  --from-literal=twilio-auth-token='your-twilio-token' \
+  --from-literal=twilio-messaging-service-sid='MGXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' \
+  --from-literal=twilio-caller-id='+15555550123' \
   -n production
 ```
 
