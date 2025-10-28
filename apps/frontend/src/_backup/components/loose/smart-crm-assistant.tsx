@@ -132,7 +132,13 @@ export default function SmartCRMAssistant({ customer, onActionComplete }: SmartC
   const digitalProfile = customer?.digitalProfile || {
     websiteVisits: 0,
     emailEngagement: 0,
-    smsEngagement: 0
+    smsEngagement: 0,
+    lastWebsiteVisit: null,
+    communicationStyle: null,
+    preferredContactTime: null,
+    socialMediaProfiles: {},
+    behaviorTags: [],
+    interestCategories: []
   };
 
   const getPriorityColor = (priority: string) => {

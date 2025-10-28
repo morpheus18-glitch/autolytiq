@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 import { useWorkspaceStore, useActiveSession, WorkspaceCustomer, WorkspaceVehicle, WorkspaceDeal } from '@/stores/workspace-context';
 import { useQuery } from '@tanstack/react-query';
+import type { Customer, Vehicle, Deal } from '@shared/schema';
 
 // Hook for integrating customer data with workspace
 export function useWorkspaceCustomer(customerId?: number) {
   const { session, setCustomer } = useActiveSession();
-  
-  const { data: customer } = useQuery({
+
+  const { data: customer } = useQuery<Customer>({
     queryKey: [`/api/customers/${customerId}`],
     enabled: !!customerId,
   });
@@ -36,8 +37,8 @@ export function useWorkspaceCustomer(customerId?: number) {
 // Hook for integrating vehicle data with workspace
 export function useWorkspaceVehicle(vehicleId?: number) {
   const { session, setVehicle } = useActiveSession();
-  
-  const { data: vehicle } = useQuery({
+
+  const { data: vehicle } = useQuery<Vehicle>({
     queryKey: [`/api/vehicles/${vehicleId}`],
     enabled: !!vehicleId,
   });
@@ -68,8 +69,8 @@ export function useWorkspaceVehicle(vehicleId?: number) {
 // Hook for integrating deal data with workspace
 export function useWorkspaceDeal(dealId?: string) {
   const { session, setDeal } = useActiveSession();
-  
-  const { data: deal } = useQuery({
+
+  const { data: deal } = useQuery<Deal>({
     queryKey: [`/api/deals/${dealId}`],
     enabled: !!dealId,
   });

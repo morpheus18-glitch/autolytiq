@@ -87,7 +87,7 @@ export async function fetchAuditLogs(params: FetchAuditLogParams = {}) {
     if (!value) {
       return;
     }
-    query.set(key, value);
+    query.set(key, String(value));
   });
 
   const response = await apiRequest(`/api/settings/audit-logs?${query.toString()}`);
