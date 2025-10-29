@@ -10,13 +10,6 @@ permissions:
   contents: read
   id-token: write
 
-env:
-  # Dev environment placeholders - configure these in GitHub Secrets for production
-  REGISTRY: ${{ secrets.REGISTRY || 'registry.digitalocean.com/autolytiq' }}
-  DO_CLUSTER: ${{ secrets.CLUSTER || 'autolytiq-cluster' }}
-  NS: ${{ secrets.NS || 'autolytiq-prod' }}
-  DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://autolytiq:autolytiq@postgres:5432/autolytiq?schema=public' }}
-
 jobs:
   build:
     name: Build and Push Images
@@ -28,7 +21,7 @@ jobs:
             file: apps/backend/Dockerfile
             context: .
             build-args: |
-              DATABASE_URL=${{ env.DATABASE_URL }}
+              DATABASE_URL=${{ secrets.DATABASE_URL }}
           - name: frontend
             file: apps/frontend/Dockerfile
             context: .
@@ -57,15 +50,19 @@ jobs:
           file: ${{ matrix.file }}
           push: true
           provenance: false
-          tags: ${{ env.REGISTRY }}/${{ matrix.name }}:${{ github.sha }}
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ matrix.name }}:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ matrix.name }}:buildcache,mode=max
+          tags: ${{ secrets.REGISTRY }}/${{ matrix.name }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.REGISTRY }}/${{ matrix.name }}:buildcache
+          cache-to: type=registry,ref=${{ secrets.REGISTRY }}/${{ matrix.name }}:buildcache,mode=max
           build-args: ${{ matrix.build-args || '' }}
 
   deploy:
     name: Apply Manifests and Roll Out
     runs-on: ubuntu-22.04
     needs: build
+    env:
+      REGISTRY: ${{ secrets.REGISTRY }}
+      DO_CLUSTER: ${{ secrets.CLUSTER }}
+      NS: ${{ secrets.NS }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -77,78 +74,73 @@ jobs:
 
       - name: Configure kubectl
         run: |
-          doctl kubernetes cluster kubeconfig save "${{ env.DO_CLUSTER }}"
+          doctl kubernetes cluster kubeconfig save "$DO_CLUSTER"
 
       - name: Ensure namespace exists
         run: |
-          kubectl create namespace "${{ env.NS }}" --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create namespace "$NS" --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Refresh DO registry pull secret
         run: |
           doctl registry docker-config --expiry-seconds 3600 \
-            | kubectl -n "${{ env.NS }}" create secret generic do-regcred \
+            | kubectl -n "$NS" create secret generic do-regcred \
                 --from-file=.dockerconfigjson=/dev/stdin \
                 --type=kubernetes.io/dockerconfigjson \
                 --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Sync application secret
         run: |
-          # Create secret with dev/placeholder values for quick deployment
-          # Configure GitHub Secrets for production deployment
-          kubectl -n "${{ env.NS }}" create secret generic app-env \
+          # Create secret with all required environment variables from backend/src/config/env.ts
+          # This replaces the entire secret to ensure consistency across deployments
+          kubectl -n "$NS" create secret generic app-env \
             --from-literal=NODE_ENV='production' \
-            --from-literal=DATABASE_URL='${{ env.DATABASE_URL }}' \
-            --from-literal=JWT_PUBLIC_KEY='-----BEGIN PUBLIC KEY-----
-          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApGfG60JgB+vHNiTNGOBy
-          g4S1hoPazTA/gkGEXUXMaLLq5yRvCNrI6VOGGAaHo9dZYkTfGZNVVRFl1kYyqS/f
-          wLw1sYUNsGrD+VUKPTySGTsNMndvrYVF/1DdbC+aD7agEXkNKOxPQ0PqSxkbZVqM
-          l8I4JVXu2fLG3gNsYch0JJYRqpMfrQa6RlmKCNt2uQ6Xo8XzYx+lNEzbG8VS9/6g
-          xF2Y2v3hF8oD7YVOlJawVSjGInxjeRGna43EIBgzHuLlHotE5T7V6czS4QhIwTZY
-          h9+VFeReyqYhB1tZEDQhTWZ+9VtxxvpG6vE11wV8L19/9ey7NwxKXlzVEk+iXdc5
-          FQIDAQAB
-          -----END PUBLIC KEY-----' \
-            --from-literal=JWT_ISSUER='autolytiq-dev' \
-            --from-literal=JWT_AUDIENCE='autolytiq-dev' \
-            --from-literal=SENDGRID_API_KEY='' \
-            --from-literal=SENDGRID_FROM='' \
-            --from-literal=TWILIO_ACCOUNT_SID='' \
-            --from-literal=TWILIO_AUTH_TOKEN='' \
-            --from-literal=TWILIO_MESSAGING_SERVICE_SID='' \
-            --from-literal=TWILIO_CALLER_ID='' \
-            --from-literal=SOCKET_IO_CORS_ORIGIN='*' \
-            --from-literal=APP_URL='http://app.autolytiq.com' \
-            --from-literal=API_URL='http://api.autolytiq.com' \
-            --from-literal=ML_SERVICE_URL='http://ml-service:8000' \
-            --from-literal=ML_SERVICE_TOKEN='dev-ml-token' \
-            --from-literal=REDIS_URL='' \
+            --from-literal=DATABASE_URL='${{ secrets.DATABASE_URL }}' \
+            --from-literal=JWT_SECRET='${{ secrets.JWT_SECRET }}' \
+            --from-literal=JWT_PUBLIC_KEY='${{ secrets.JWT_PUBLIC_KEY }}' \
+            --from-literal=JWT_ISSUER='${{ secrets.JWT_ISSUER }}' \
+            --from-literal=JWT_AUDIENCE='${{ secrets.JWT_AUDIENCE }}' \
+            --from-literal=SENDGRID_API_KEY='${{ secrets.SENDGRID_API_KEY }}' \
+            --from-literal=SENDGRID_FROM='${{ secrets.SENDGRID_FROM }}' \
+            --from-literal=TWILIO_ACCOUNT_SID='${{ secrets.TWILIO_ACCOUNT_SID }}' \
+            --from-literal=TWILIO_AUTH_TOKEN='${{ secrets.TWILIO_AUTH_TOKEN }}' \
+            --from-literal=TWILIO_MESSAGING_SERVICE_SID='${{ secrets.TWILIO_MESSAGING_SERVICE_SID }}' \
+            --from-literal=TWILIO_CALLER_ID='${{ secrets.TWILIO_CALLER_ID }}' \
+            --from-literal=SOCKET_IO_CORS_ORIGIN='${{ secrets.SOCKET_IO_CORS_ORIGIN }}' \
+            --from-literal=APP_URL='${{ secrets.APP_URL }}' \
+            --from-literal=API_URL='${{ secrets.API_URL }}' \
+            --from-literal=ML_SERVICE_URL='${{ secrets.ML_SERVICE_URL }}' \
+            --from-literal=ML_SERVICE_TOKEN='${{ secrets.ML_SERVICE_TOKEN }}' \
+            --from-literal=REDIS_URL='${{ secrets.REDIS_URL }}' \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Apply production manifests
         run: |
-          kubectl -n "${{ env.NS }}" apply -f infrastructure/k8s/production/
+          kubectl -n "$NS" apply -f infrastructure/k8s/production/
 
       - name: Run Prisma migrations
+        env:
+          IMAGE: ${{ secrets.REGISTRY }}/backend:${{ github.sha }}
         run: |
-          kubectl -n "${{ env.NS }}" run migrate \
-            --image="${{ env.REGISTRY }}/backend:${{ github.sha }}" \
+          kubectl -n "$NS" run migrate \
+            --image="$IMAGE" \
             --restart=Never \
             --overrides='{"spec":{"imagePullSecrets":[{"name":"do-regcred"}]}}' \
             --env-from=secret/app-env \
             --command -- npx prisma migrate deploy
-          kubectl -n "${{ env.NS }}" wait --for=condition=complete --timeout=120s pod/migrate
-          kubectl -n "${{ env.NS }}" delete pod migrate --ignore-not-found=true
+          kubectl -n "$NS" wait --for=condition=complete --timeout=120s pod/migrate
+          kubectl -n "$NS" delete pod migrate --ignore-not-found=true
 
       - name: Update deployments
         run: |
           for svc in backend frontend ml-service rust-pricing; do
-            kubectl -n "${{ env.NS }}" set image deploy/$svc $svc=${{ env.REGISTRY }}/$svc:${{ github.sha }} --record || true
-            kubectl -n "${{ env.NS }}" rollout status deploy/$svc --timeout=180s || kubectl -n "${{ env.NS }}" get pods
+            kubectl -n "$NS" set image deploy/$svc $svc=${{ secrets.REGISTRY }}/$svc:${{ github.sha }} --record || true
+            kubectl -n "$NS" rollout status deploy/$svc --timeout=180s || kubectl -n "$NS" get pods
           done
 
       - name: Smoke test ingress endpoints
         run: |
-          LB=$(kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "localhost")
+          LB=$(kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
           for host in api ml app; do
             echo "--- $host.autolytiq.com"
-            curl -sSI "http://$LB" -H "Host: $host.autolytiq.com" | head -n 1 || echo "Endpoint check failed (non-critical)"
+            curl -sSI "http://$LB" -H "Host: $host.autolytiq.com" | head -n 1
           done
