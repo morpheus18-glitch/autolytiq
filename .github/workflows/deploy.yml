@@ -92,9 +92,15 @@ jobs:
         run: |
           # Create secret with all required environment variables from backend/src/config/env.ts
           # This replaces the entire secret to ensure consistency across deployments
+          #
+          # IMPORTANT: If using managed Postgres with connection pooling (pgBouncer):
+          # - DATABASE_URL should be the pooled connection (for app queries)
+          # - DIRECT_URL should be the direct connection (for migrations)
+          # If not using pooling, both can be the same value
           kubectl -n "$NS" create secret generic app-env \
             --from-literal=NODE_ENV='production' \
             --from-literal=DATABASE_URL='${{ secrets.DATABASE_URL }}' \
+            --from-literal=DIRECT_URL='${{ secrets.DIRECT_URL || secrets.DATABASE_URL }}' \
             --from-literal=JWT_SECRET='${{ secrets.JWT_SECRET }}' \
             --from-literal=JWT_PUBLIC_KEY='${{ secrets.JWT_PUBLIC_KEY }}' \
             --from-literal=JWT_ISSUER='${{ secrets.JWT_ISSUER }}' \
@@ -113,9 +119,18 @@ jobs:
             --from-literal=REDIS_URL='${{ secrets.REDIS_URL }}' \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Apply production manifests
+      - name: Apply production manifests with image tags
+        env:
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          kubectl -n "$NS" apply -f infrastructure/k8s/production/
+          # Replace __TAG__ placeholder with actual git SHA before applying
+          mkdir -p /tmp/k8s-manifests
+          for file in infrastructure/k8s/production/*.yaml; do
+            if [ -f "$file" ]; then
+              sed "s|__TAG__|${IMAGE_TAG}|g" "$file" > "/tmp/k8s-manifests/$(basename $file)"
+            fi
+          done
+          kubectl -n "$NS" apply -f /tmp/k8s-manifests/
 
       - name: Run Prisma migrations
         env:
@@ -130,10 +145,9 @@ jobs:
           kubectl -n "$NS" wait --for=condition=complete --timeout=120s pod/migrate
           kubectl -n "$NS" delete pod migrate --ignore-not-found=true
 
-      - name: Update deployments
+      - name: Wait for rollout to complete
         run: |
           for svc in backend frontend ml-service rust-pricing; do
-            kubectl -n "$NS" set image deploy/$svc $svc=${{ secrets.REGISTRY }}/$svc:${{ github.sha }} --record || true
             kubectl -n "$NS" rollout status deploy/$svc --timeout=180s || kubectl -n "$NS" get pods
           done
 

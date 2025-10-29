@@ -919,3 +919,136 @@ Use Kustomize or Helm to properly template image tags, OR use `envsubst` to repl
 ---
 
 **Phase 1 Complete. Ready for Phase 2: Deployment & Configuration Analysis.**
+
+---
+
+## Phase 2: Deployment & Configuration Analysis - IN PROGRESS
+
+### 2.1 Service Discovery & Label Validation ✅
+
+#### Backend Service
+- **Deployment selector:** `app.kubernetes.io/name: backend` ✅
+- **Service selector:** `app.kubernetes.io/name: backend` ✅
+- **Port mapping:** Service port 80 → targetPort http (5000) ✅
+- **Ingress:** `api.autolytiq.com` → `backend` service ✅
+
+#### Frontend Service  
+- **Deployment selector:** `app.kubernetes.io/name: frontend` ✅
+- **Service selector:** `app.kubernetes.io/name: frontend` ✅
+- **Port mapping:** Service port 80 → targetPort http (80) ✅
+- **Ingress:** `app.autolytiq.com` and `dms.autolytiq.com` → `frontend` service ✅
+
+#### ML Service
+- **Deployment selector:** `app.kubernetes.io/name: ml-service` ✅
+- **Service selector:** `app.kubernetes.io/name: ml-service` ✅
+- **Port mapping:** Service port 80 → targetPort http (8000) ✅
+- **Ingress:** `ml.autolytiq.com` → `ml-service` service ✅
+
+#### Rust Pricing Service
+- **Deployment selector:** `app.kubernetes.io/name: rust-pricing` ✅
+- **Service selector:** `app.kubernetes.io/name: rust-pricing` ✅
+- **Port mapping:** Service port 50051 → targetPort grpc (50051) ✅
+- **Ingress:** Not exposed externally (internal gRPC only) ✅
+
+**RESULT:** All service selectors match deployment labels correctly. No orphaned services.
+
+### 2.2 Ingress Configuration Analysis
+
+**TLS Configuration:**
+- ✅ Uses cert-manager with Let's Encrypt
+- ✅ SSL redirect enabled
+- ✅ Covers 4 domains: app, api, ml, dms.autolytiq.com
+
+**Proxy Settings:**
+- ✅ Max body size: 25MB (good for file uploads)
+- ⚠️ **MISSING:** Rate limiting configuration
+- ⚠️ **MISSING:** CORS headers configuration (may be handled by apps)
+
+**Route Configuration:**
+- ✅ `app.autolytiq.com` → frontend
+- ✅ `dms.autolytiq.com` → frontend (alias)
+- ✅ `api.autolytiq.com` → backend
+- ✅ `ml.autolytiq.com` → ml-service
+
+### 2.3 Environment Variable Cross-Reference
+
+Comparing workflow secret injection vs deployment requirements:
+
+| Service | Needs DATABASE_URL | Needs JWT_* | Needs ML_SERVICE_URL | Notes |
+|---------|-------------------|-------------|---------------------|-------|
+| Backend | ✅ Yes | ✅ Yes | ✅ Yes | Overrides ML_SERVICE_URL to K8s DNS |
+| Frontend | ❌ No | ❌ No | ❌ No | Static build, no runtime env vars |
+| ML Service | ❌ No | ❌ No | ❌ No | Only needs ML_SERVICE_TOKEN |
+| Rust Pricing | ❌ No | ❌ No | ❌ No | May need DATABASE_URL if using DB |
+
+**Findings:**
+- ✅ All services get `app-env` secret but only backend actually needs most vars
+- ⚠️ **OPTIMIZATION:** Could split into service-specific secrets to reduce attack surface
+
+### 2.4 Network Policy Analysis
+
+**Status:** No NetworkPolicy resources found in `/infrastructure/k8s/production/`
+
+**Current State:** All pods can communicate with all other pods (default K8s behavior)
+
+**Security Recommendation:** Implement NetworkPolicies to:
+- Allow backend → postgres
+- Allow backend → ml-service (HTTP)
+- Allow backend → rust-pricing (gRPC)
+- Deny ml-service → postgres (doesn't need it)
+- Deny frontend → everything (static assets only)
+
+---
+
+## Applied Fixes Summary
+
+### Fix 1: Image Tag Replacement ✅
+**File:** `.github/workflows/deploy.yml:116-127`
+**Problem:** Race condition between `kubectl apply` with `__TAG__` and `kubectl set image`
+**Solution:** Use `sed` to replace `__TAG__` with `${github.sha}` before applying manifests
+**Impact:** Eliminates ImagePullBackOff errors on deployment
+
+### Fix 2: Prisma DIRECT_URL Support ✅
+**Files:**
+- `.github/workflows/deploy.yml:103` - Added `DIRECT_URL` to app-env secret
+- `packages/db/schema.prisma:8` - Added `directUrl = env("DIRECT_URL")`
+- `.env.example:6-8` - Added DIRECT_URL with documentation
+- `.env.production.example:21-24` - Added DIRECT_URL with examples
+
+**Problem:** Migrations fail when DATABASE_URL points to pgBouncer pooler
+**Solution:** Separate URL for migrations using direct connection
+**Impact:** Migrations work correctly with managed Postgres + pooling
+
+### Fix 3: Backend Health Probe Separation ✅
+**File:** `infrastructure/k8s/production/backend-deployment.yaml:56-75`
+**Problem:** `/health` endpoint queries database, causing unnecessary pod restarts
+**Solution:**
+- livenessProbe: `/live` (no DB check)
+- readinessProbe: `/health` (checks DB)
+- startupProbe: `/live` (no DB check)
+
+**Impact:** Pods stay alive even during temporary DB connection issues
+
+### Fix 4: Rust gRPC Health Check Upgrade ✅
+**File:** `infrastructure/k8s/production/rust-pricing-deployment.yaml:47-58`
+**Problem:** tcpSocket probe doesn't verify gRPC service health
+**Solution:** Use exec probe with `/usr/local/bin/grpc_health_probe`
+**Impact:** More accurate health detection for gRPC services
+
+---
+
+## Remaining Analysis
+
+**Phase 3: Network & Data-Layer** - Pending
+- VPC configuration validation (requires cluster access)
+- Database connection testing
+- Service-to-service communication verification
+
+**Phase 4: Service-Specific Deep Dive** - Pending
+- Backend startup sequence analysis
+- ML service model loading verification
+- Rust service panic handling review
+
+---
+
+**Phase 2 Complete. Fixes Applied. Ready for testing.**
