@@ -26,8 +26,11 @@ jobs:
       # 2) Build & push your backend image (change Dockerfile path if needed)
       - name: Build & push backend
         run: |
-          docker build -t $REGISTRY/backend:${{ github.sha }} -f apps/backend/Dockerfile .
-          docker push  $REGISTRY/backend:${{ github.sha }}
+          docker build \
+            --build-arg DATABASE_URL='${{ secrets.DATABASE_URL }}' \
+            -t $REGISTRY/backend:${{ github.sha }} \
+            -f apps/backend/Dockerfile .
+          docker push $REGISTRY/backend:${{ github.sha }}
 
       # If you want to ship frontend too, uncomment:
       # - name: Build & push frontend
