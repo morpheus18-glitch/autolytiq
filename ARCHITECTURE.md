@@ -12,7 +12,7 @@ The platform is composed of:
 - **React/Vite SPA** in `apps/client` that delivers the authenticated dealer console.
 - **Node.js/Express API** in `apps/server` that exposes REST + Socket.IO endpoints, orchestrates domain services, and manages
   background jobs.
-- **Python services** (`apps/ml_service`, `apps/ml_backend`) that provide realtime scoring APIs, Celery workers, and offline
+- **Python services** (`ml_service`, `apps/ml_backend`) that provide realtime scoring APIs, Celery workers, and offline
   retraining pipelines.
 - **Tracking service** in `tracking-service` for pixel ingestion, behavioural analytics, and webhook fan-out.
 - **Shared packages** in `packages/` for Prisma schema (`packages/db`) and cross-cutting TypeScript utilities (`packages/shared`).
@@ -30,7 +30,7 @@ exports and ML artefacts.
 | --- | --- | --- |
 | `apps/server` | Primary HTTP API, WebSocket hub, domain orchestration, migrations | Prisma, Zod validation, BullMQ queues, tenant context middleware |
 | `apps/client` | Dealer SPA | Vite build, shadcn/ui, TanStack Query, feature flags via `@repo/shared` |
-| `apps/ml_service` | FastAPI + Celery scoring endpoints | Async inference, REST contract consumed by server | 
+| `ml_service` | FastAPI + Celery scoring endpoints | Async inference, REST contract consumed by server |
 | `apps/ml_backend` | Offline ETL + model training | Orchestrates scrapers, feature engineering, training pipelines |
 
 Shared code lives in `packages/`:
@@ -116,7 +116,7 @@ Replit-specific files were removed to keep the deployment footprint focused on D
 | Prisma client mismatch | `pnpm db:generate`, see `PRISMA_SETUP.md` |
 | Tenant leakage / auth issues | `apps/server/src/middleware/tenantScope.ts`, `apps/server/src/middleware/authenticate.ts` |
 | Queue backlogs | `apps/server/src/queues`, Redis `MONITOR`/`INFO` |
-| ML inference failures | `apps/ml_service/app/routers`, Celery logs in `apps/ml_service/logs/` |
+| ML inference failures | `ml_service/app/routers`, Celery logs in `ml_service/logs/` |
 | Deployment failures | `/var/log/nginx/error.log`, `journalctl -u autolytiq`, `docker-compose logs` |
 
 ## 7. Change management
