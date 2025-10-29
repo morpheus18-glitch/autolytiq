@@ -1,0 +1,94 @@
+name: deploy
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: ${{ secrets.REGISTRY }}
+      CLUSTER:  ${{ secrets.CLUSTER }}
+      NS:       ${{ secrets.NS }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1) Auth to DigitalOcean + Docker Registry
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Login to DO Registry
+        run: doctl registry login
+
+      # 2) Build & push your backend image (change Dockerfile path if needed)
+      - name: Build & push backend
+        run: |
+          docker build -t $REGISTRY/backend:${{ github.sha }} -f apps/backend/Dockerfile .
+          docker push  $REGISTRY/backend:${{ github.sha }}
+
+      # If you want to ship frontend too, uncomment:
+      # - name: Build & push frontend
+      #   run: |
+      #     docker build -t $REGISTRY/frontend:${{ github.sha }} -f apps/frontend/Dockerfile .
+      #     docker push  $REGISTRY/frontend:${{ github.sha }}
+
+      # 3) Get kubeconfig for your cluster
+      - name: Kubeconfig
+        run: doctl k8s cluster kubeconfig save "$CLUSTER"
+
+      # 4) Ensure namespace exists
+      - name: Ensure namespace
+        run: kubectl get ns "$NS" >/dev/null 2>&1 || kubectl create ns "$NS"
+
+      # 5) Image pull secret so the cluster can pull from DO Registry
+      - name: Ensure imagePullSecret (do-regcred)
+        run: |
+          kubectl -n "$NS" create secret docker-registry do-regcred \
+            --docker-server=registry.digitalocean.com \
+            --docker-username=doctl \
+            --docker-password="${{ secrets.DO_TOKEN }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      # 6) Create/patch your runtime env secret (only what you have now)
+      - name: Ensure app-env secret (DB + JWT)
+        run: |
+          kubectl -n "$NS" create secret generic app-env \
+            --from-literal=DATABASE_URL='${{ secrets.DATABASE_URL }}' \
+            --from-literal=JWT_SECRET='${{ secrets.JWT_SECRET }}' \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      # 7) Make sure your backend Deployment uses the pull secret + envFrom
+      #    If your manifest already has these, this patch is a no-op.
+      - name: Patch backend deployment for pull secret + env
+        run: |
+          kubectl -n "$NS" patch deploy/backend --type='merge' -p '{
+            "spec": {
+              "template": {
+                "spec": {
+                  "imagePullSecrets":[{"name":"do-regcred"}],
+                  "containers":[
+                    {
+                      "name":"backend",
+                      "envFrom":[{"secretRef":{"name":"app-env"}}]
+                    }
+                  ]
+                }
+              }
+            }
+          }' || true
+
+      # 8) Roll out new image
+      - name: Rollout backend
+        run: |
+          kubectl -n "$NS" set image deploy/backend backend=$REGISTRY/backend:${{ github.sha }}
+          kubectl -n "$NS" rollout status deploy/backend --timeout=180s
+
+      # 9) (Optional) Show service + ingress quick status
+      - name: Quick status
+        run: |
+          kubectl -n "$NS" get pods -o wide
+          kubectl -n "$NS" get svc
+          kubectl -n "$NS" get ingress
