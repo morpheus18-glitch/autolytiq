@@ -92,6 +92,7 @@ jobs:
         run: |
           # Create secret with all required environment variables from backend/src/config/env.ts
           # This replaces the entire secret to ensure consistency across deployments
+          # Optional secrets (Twilio, SendGrid, Redis) use placeholders if not configured in GitHub
           kubectl -n "$NS" create secret generic app-env \
             --from-literal=NODE_ENV='production' \
             --from-literal=DATABASE_URL='${{ secrets.DATABASE_URL }}' \
@@ -99,18 +100,18 @@ jobs:
             --from-literal=JWT_PUBLIC_KEY='${{ secrets.JWT_PUBLIC_KEY }}' \
             --from-literal=JWT_ISSUER='${{ secrets.JWT_ISSUER }}' \
             --from-literal=JWT_AUDIENCE='${{ secrets.JWT_AUDIENCE }}' \
-            --from-literal=SENDGRID_API_KEY='${{ secrets.SENDGRID_API_KEY }}' \
-            --from-literal=SENDGRID_FROM='${{ secrets.SENDGRID_FROM }}' \
-            --from-literal=TWILIO_ACCOUNT_SID='${{ secrets.TWILIO_ACCOUNT_SID }}' \
-            --from-literal=TWILIO_AUTH_TOKEN='${{ secrets.TWILIO_AUTH_TOKEN }}' \
-            --from-literal=TWILIO_MESSAGING_SERVICE_SID='${{ secrets.TWILIO_MESSAGING_SERVICE_SID }}' \
-            --from-literal=TWILIO_CALLER_ID='${{ secrets.TWILIO_CALLER_ID }}' \
+            --from-literal=SENDGRID_API_KEY='${{ secrets.SENDGRID_API_KEY || '' }}' \
+            --from-literal=SENDGRID_FROM='${{ secrets.SENDGRID_FROM || '' }}' \
+            --from-literal=TWILIO_ACCOUNT_SID='${{ secrets.TWILIO_ACCOUNT_SID || '' }}' \
+            --from-literal=TWILIO_AUTH_TOKEN='${{ secrets.TWILIO_AUTH_TOKEN || '' }}' \
+            --from-literal=TWILIO_MESSAGING_SERVICE_SID='${{ secrets.TWILIO_MESSAGING_SERVICE_SID || '' }}' \
+            --from-literal=TWILIO_CALLER_ID='${{ secrets.TWILIO_CALLER_ID || '' }}' \
             --from-literal=SOCKET_IO_CORS_ORIGIN='${{ secrets.SOCKET_IO_CORS_ORIGIN }}' \
             --from-literal=APP_URL='${{ secrets.APP_URL }}' \
             --from-literal=API_URL='${{ secrets.API_URL }}' \
             --from-literal=ML_SERVICE_URL='${{ secrets.ML_SERVICE_URL }}' \
             --from-literal=ML_SERVICE_TOKEN='${{ secrets.ML_SERVICE_TOKEN }}' \
-            --from-literal=REDIS_URL='${{ secrets.REDIS_URL }}' \
+            --from-literal=REDIS_URL='${{ secrets.REDIS_URL || '' }}' \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Apply production manifests
