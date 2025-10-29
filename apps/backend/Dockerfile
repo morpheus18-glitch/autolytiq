@@ -1,36 +1,34 @@
 # ---------- Build ----------
 FROM node:20-alpine AS builder
-# Prisma on Alpine needs these
+
+# Prisma on Alpine
 RUN apk add --no-cache libc6-compat openssl
+
 WORKDIR /app
 
-# Copy only what we need first (better layer caching)
+# 1) Copy only what we need for dependency install (better cache)
+COPY apps/backend/package*.json ./apps/backend/
 COPY tsconfig.json ./
 COPY packages ./packages
-COPY apps/backend/package*.json ./apps/backend/
-COPY apps/backend/package-lock.json ./apps/backend/
-# If you have a prisma schema in packages, we’ll copy the whole backend later anyway.
 
 WORKDIR /app/apps/backend
 
-# Clean install if lockfile exists, else install
+# 2) Clean install if lockfile exists, else fallback (monorepo safety)
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
-# Bring in the rest of the source now
+# 3) Put Prisma schema where backend expects it
+RUN mkdir -p prisma
+COPY packages/db/schema.prisma /app/apps/backend/prisma/schema.prisma
+
+# 4) Generate Prisma client (needs a DATABASE_URL even for codegen)
+ARG DATABASE_URL="postgresql://user:pass@localhost:5432/localdb?sslmode=disable"
+ENV DATABASE_URL=$DATABASE_URL
+RUN npx prisma generate --schema prisma/schema.prisma
+
+# 5) Copy the rest of backend source and build TS
 WORKDIR /app
 COPY apps/backend ./apps/backend
-
-# Put schema where Prisma expects it (adjust if yours already lives in apps/backend/prisma/)
-# If your schema is already at apps/backend/prisma/schema.prisma, delete this block.
-RUN mkdir -p /app/apps/backend/prisma \
- && if [ -f /app/packages/db/schema.prisma ]; then cp /app/packages/db/schema.prisma /app/apps/backend/prisma/schema.prisma; fi
-
-# Build-time DATABASE_URL is only for prisma generate
-ARG DATABASE_URL="postgresql://user:pass@localhost:5432/postgres?schema=public"
-ENV DATABASE_URL=$DATABASE_URL
-
 WORKDIR /app/apps/backend
-RUN npx prisma generate --schema prisma/schema.prisma
 RUN npm run build
 
 # ---------- Runtime ----------
@@ -38,7 +36,7 @@ FROM node:20-alpine
 ENV NODE_ENV=production
 WORKDIR /app
 
-# Only production deps
+# Only prod deps in final image
 COPY --from=builder /app/apps/backend/package*.json ./
 RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
 
