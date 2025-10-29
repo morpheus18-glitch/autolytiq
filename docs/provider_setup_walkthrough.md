@@ -56,7 +56,7 @@ If you skip ClickHouse, leave the variables unset—the feature flag will disabl
 - Apply with `kubectl apply -f infrastructure/k8s/production/secrets.yaml`.
 - Rotate via `kubectl create secret generic dms-secrets --from-env-file=.env.production --dry-run=client -o yaml` and commit the updated manifest.
 
-After confirming health checks, run `python apps/ml_service/scripts/smoke_enqueue.py` to verify the Celery topology.
+After confirming health checks, run `python ml_service/scripts/smoke_enqueue.py` to verify the Celery topology.
 
 ## I) Safety & Rotation
 - `.gitignore` excludes `.env*` (except `*.example`); install & run gitleaks.

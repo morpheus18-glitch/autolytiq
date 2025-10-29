@@ -2,102 +2,84 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: celery-worker
-  namespace: dms-production
   labels:
-    app: celery-worker
+    app.kubernetes.io/name: celery-worker
+    app.kubernetes.io/part-of: autolytiq
 spec:
-  replicas: 3
+  replicas: 2
+  revisionHistoryLimit: 3
   selector:
     matchLabels:
-      app: celery-worker
+      app.kubernetes.io/name: celery-worker
   template:
     metadata:
       labels:
-        app: celery-worker
+        app.kubernetes.io/name: celery-worker
+        app.kubernetes.io/part-of: autolytiq
     spec:
+      imagePullSecrets:
+        - name: do-regcred
       containers:
         - name: celery-worker
-          image: registry.digitalocean.com/autolytiq/ml-service:latest
-          command: ["celery", "-A", "workers.celery_app", "worker", "--queues=high_priority,default", "--loglevel=info", "--concurrency=4"]
+          image: registry.digitalocean.com/autolytiq/ml-service:__TAG__
+          imagePullPolicy: IfNotPresent
+          command:
+            - celery
+            - -A
+            - workers.celery_app
+            - worker
+            - --queues=high_priority,default
+            - --loglevel=info
+            - --concurrency=4
           envFrom:
-            - configMapRef:
-                name: dms-config
             - secretRef:
-                name: dms-secrets
-          env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: dms-secrets
-                  key: DATABASE_URL
-            - name: REDIS_URL
-              valueFrom:
-                secretKeyRef:
-                  name: dms-secrets
-                  key: REDIS_URL
-            - name: CLICKHOUSE_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: dms-config
-                  key: CLICKHOUSE_HOST
-            - name: CLICKHOUSE_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: dms-config
-                  key: CLICKHOUSE_PORT
+                name: app-env
           resources:
             requests:
+              cpu: "300m"
               memory: "512Mi"
-              cpu: "500m"
             limits:
+              cpu: "750m"
               memory: "1Gi"
-              cpu: "1000m"
-      imagePullSecrets:
-        - name: registry-credentials
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: celery-beat
-  namespace: dms-production
   labels:
-    app: celery-beat
+    app.kubernetes.io/name: celery-beat
+    app.kubernetes.io/part-of: autolytiq
 spec:
   replicas: 1
+  revisionHistoryLimit: 3
   selector:
     matchLabels:
-      app: celery-beat
+      app.kubernetes.io/name: celery-beat
   template:
     metadata:
       labels:
-        app: celery-beat
+        app.kubernetes.io/name: celery-beat
+        app.kubernetes.io/part-of: autolytiq
     spec:
+      imagePullSecrets:
+        - name: do-regcred
       containers:
         - name: celery-beat
-          image: registry.digitalocean.com/autolytiq/ml-service:latest
-          command: ["celery", "-A", "workers.celery_app", "beat", "--loglevel=info"]
+          image: registry.digitalocean.com/autolytiq/ml-service:__TAG__
+          imagePullPolicy: IfNotPresent
+          command:
+            - celery
+            - -A
+            - workers.celery_app
+            - beat
+            - --loglevel=info
           envFrom:
-            - configMapRef:
-                name: dms-config
             - secretRef:
-                name: dms-secrets
-          env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: dms-secrets
-                  key: DATABASE_URL
-            - name: REDIS_URL
-              valueFrom:
-                secretKeyRef:
-                  name: dms-secrets
-                  key: REDIS_URL
+                name: app-env
           resources:
             requests:
+              cpu: "200m"
               memory: "256Mi"
-              cpu: "250m"
             limits:
-              memory: "512Mi"
               cpu: "500m"
-      imagePullSecrets:
-        - name: registry-credentials
+              memory: "512Mi"

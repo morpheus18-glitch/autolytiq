@@ -12,7 +12,9 @@
     "types": ["node"],
     "paths": {
       "@repo/shared": ["./packages/shared/src"],
-      "@repo/shared/*": ["./packages/shared/src/*"]
+      "@repo/shared/*": ["./packages/shared/src/*"],
+      "@repo/tokens": ["./packages/tokens/src"],
+      "@repo/tokens/*": ["./packages/tokens/src/*"]
     }
   },
   "exclude": ["node_modules", "dist", "build", "**/dist", "**/build", "**/*.test.ts", "**/*.spec.ts"]
