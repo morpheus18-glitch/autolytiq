@@ -1,43 +1,45 @@
-# ---------- Build stage ----------
+# ---------- Build ----------
 FROM node:20-alpine AS builder
-
-# Prisma needs these on Alpine to generate correctly
+# Prisma on Alpine needs these
 RUN apk add --no-cache libc6-compat openssl
-
 WORKDIR /app
 
-# Copy monorepo bits that backend depends on
+# Copy only what we need first (better layer caching)
 COPY tsconfig.json ./
 COPY packages ./packages
-COPY apps/backend ./apps/backend
+COPY apps/backend/package*.json ./apps/backend/
+# If you have a prisma schema in packages, we’ll copy the whole backend later anyway.
 
 WORKDIR /app/apps/backend
 
-# Install deps (expects package-lock.json in apps/backend)
-RUN npm ci
+# Clean install if lockfile exists, else install
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
-# Prisma schema lives in packages/db/schema.prisma -> put it where Prisma expects
-RUN mkdir -p prisma \
- && cp ../../packages/db/schema.prisma prisma/schema.prisma
+# Bring in the rest of the source now
+WORKDIR /app
+COPY apps/backend ./apps/backend
 
-# Provide DATABASE_URL for prisma generate.
-# NOTE: This is *build-time only*. Use a dummy default; CI can override via --build-arg.
+# Put schema where Prisma expects it (adjust if yours already lives in apps/backend/prisma/)
+# If your schema is already at apps/backend/prisma/schema.prisma, delete this block.
+RUN mkdir -p /app/apps/backend/prisma \
+ && if [ -f /app/packages/db/schema.prisma ]; then cp /app/packages/db/schema.prisma /app/apps/backend/prisma/schema.prisma; fi
+
+# Build-time DATABASE_URL is only for prisma generate
 ARG DATABASE_URL="postgresql://user:pass@localhost:5432/postgres?schema=public"
-ENV DATABASE_URL=${DATABASE_URL}
+ENV DATABASE_URL=$DATABASE_URL
 
-# Generate Prisma client for Alpine (musl) and build the app
+WORKDIR /app/apps/backend
 RUN npx prisma generate --schema prisma/schema.prisma
 RUN npm run build
 
-# ---------- Runtime stage ----------
+# ---------- Runtime ----------
 FROM node:20-alpine
-
 ENV NODE_ENV=production
 WORKDIR /app
 
 # Only production deps
 COPY --from=builder /app/apps/backend/package*.json ./
-RUN npm ci --omit=dev
+RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
 
 # Ship compiled code + Prisma assets
 COPY --from=builder /app/apps/backend/dist ./dist
@@ -50,8 +52,5 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001 \
  && chown -R nodejs:nodejs /app
 USER nodejs
 
-# Your server should listen on 5000
 EXPOSE 5000
-
-# At runtime your real DATABASE_URL comes from Kubernetes secret envs
 CMD ["node", "dist/index.js"]
