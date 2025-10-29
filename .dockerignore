@@ -90,8 +90,8 @@ packages/db/migrations/.migration_lock.toml
 # Docker
 docker-compose*.yml
 !docker-compose.yml
-Dockerfile*
-!Dockerfile
+!apps/**/Dockerfile
+!apps/**/package-lock.json
 
 # Scripts (if they contain sensitive data)
 # scripts/*.sh
