@@ -12,14 +12,14 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential curl git \
     && rm -rf /var/lib/apt/lists/*
 
-COPY apps/ml_service/requirements.txt apps/ml_service/requirements-worker.txt ./
+COPY ml_service/requirements.txt ml_service/requirements-worker.txt ./
 RUN pip install --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt -r requirements-worker.txt
 
-COPY apps/ml_service/app ./app
-COPY apps/ml_service/config ./config
-COPY apps/ml_service/workers ./workers
-COPY apps/ml_service/scripts ./scripts
+COPY ml_service/app ./app
+COPY ml_service/config ./config
+COPY ml_service/workers ./workers
+COPY ml_service/scripts ./scripts
 
 ENV PORT=8000
 EXPOSE 8000

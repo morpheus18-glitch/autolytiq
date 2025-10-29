@@ -10,7 +10,7 @@ services for predictive scoring, and operational tooling for production deployme
 | --- | --- |
 | `apps/client` | React 18 + Vite single page application with shadcn/ui components and TanStack Query. |
 | `apps/backend` | Express API, Socket.IO gateway, Prisma access layer, and background schedulers. Builds with `tsup` to `dist/`. |
-| `apps/ml_service` | FastAPI scoring API plus Celery workers for live model inference. |
+| `ml_service` | FastAPI scoring API plus Celery workers for live model inference. |
 | `apps/ml_backend` | Offline training pipelines, scraping jobs, and feature engineering utilities. |
 | `packages/db` | Prisma schema, migrations, and database utilities shared across services. |
 | `packages/shared` | TypeScript utilities, domain types, and client/server shared logic. |
@@ -53,7 +53,7 @@ pnpm db:generate  # Prisma client
 Python services manage their own dependencies:
 
 ```bash
-cd apps/ml_service && pip install -r requirements.txt
+cd ml_service && pip install -r requirements.txt
 cd ../ml_backend && pip install -r requirements.txt
 ```
 

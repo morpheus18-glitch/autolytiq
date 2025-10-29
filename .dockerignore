@@ -92,6 +92,10 @@ docker-compose*.yml
 !docker-compose.yml
 !apps/**/Dockerfile
 !apps/**/package-lock.json
+!ml_service/**/requirements.txt
+!ml_service/**/requirements-*.txt
+!services/**/Cargo.lock
+!services/**/Dockerfile
 
 # Scripts (if they contain sensitive data)
 # scripts/*.sh

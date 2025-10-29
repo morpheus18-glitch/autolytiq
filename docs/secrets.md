@@ -38,7 +38,7 @@ Optional features are controlled by flags in `backend/src/config/flags.ts` and `
 3. **Dual deploy** – Add the new key alongside the old one where supported (e.g., allow both SendGrid API keys temporarily).
 4. **Update secrets** – Replace values in Kubernetes secrets or local `.env` files.
 5. **Redeploy** – Restart services (`docker compose restart` for local, `kubectl rollout restart` for Kubernetes).
-6. **Verify** – Hit `/health`, `/metrics`, and run `python apps/ml_service/scripts/smoke_enqueue.py` to ensure the rotated credential works.
+6. **Verify** – Hit `/health`, `/metrics`, and run `python ml_service/scripts/smoke_enqueue.py` to ensure the rotated credential works.
 7. **Revoke old** – Delete the previous key/token from the provider.
 8. **Document** – Update this file and provider-specific notes if new scopes or roles were introduced.
 

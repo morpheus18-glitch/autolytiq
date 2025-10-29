@@ -1,97 +1,129 @@
-name: deploy
+name: Deploy to Production
+
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    env:
-      REGISTRY: ${{ secrets.REGISTRY }}
-      CLUSTER:  ${{ secrets.CLUSTER }}
-      NS:       ${{ secrets.NS }}
-
+  build:
+    name: Build and Push Images
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - name: backend
+            file: apps/backend/Dockerfile
+            context: .
+            build-args: |
+              DATABASE_URL=${{ secrets.DATABASE_URL }}
+          - name: frontend
+            file: apps/frontend/Dockerfile
+            context: .
+          - name: ml-service
+            file: ml_service/Dockerfile
+            context: .
+          - name: rust-pricing
+            file: services/rust-pricing/Dockerfile
+            context: .
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # 1) Auth to DigitalOcean + Docker Registry
-      - name: Install doctl
+      - name: Set up doctl
         uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DO_TOKEN }}
 
-      - name: Login to DO Registry
-        run: doctl registry login
+      - name: Authenticate to DOCR
+        run: doctl registry login --expiry-seconds 3600
 
-      # 2) Build & push your backend image (change Dockerfile path if needed)
-      - name: Build & push backend
+      - name: Build and push ${{ matrix.name }} image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          push: true
+          provenance: false
+          tags: ${{ secrets.REGISTRY }}/${{ matrix.name }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.REGISTRY }}/${{ matrix.name }}:buildcache
+          cache-to: type=registry,ref=${{ secrets.REGISTRY }}/${{ matrix.name }}:buildcache,mode=max
+          build-args: ${{ matrix.build-args || '' }}
+
+  deploy:
+    name: Apply Manifests and Roll Out
+    runs-on: ubuntu-22.04
+    needs: build
+    env:
+      REGISTRY: ${{ secrets.REGISTRY }}
+      DO_CLUSTER: ${{ secrets.CLUSTER }}
+      NS: ${{ secrets.NS }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Configure kubectl
         run: |
-          docker build \
-            --build-arg DATABASE_URL='${{ secrets.DATABASE_URL }}' \
-            -t $REGISTRY/backend:${{ github.sha }} \
-            -f apps/backend/Dockerfile .
-          docker push $REGISTRY/backend:${{ github.sha }}
+          doctl kubernetes cluster kubeconfig save "$DO_CLUSTER"
 
-      # If you want to ship frontend too, uncomment:
-      # - name: Build & push frontend
-      #   run: |
-      #     docker build -t $REGISTRY/frontend:${{ github.sha }} -f apps/frontend/Dockerfile .
-      #     docker push  $REGISTRY/frontend:${{ github.sha }}
-
-      # 3) Get kubeconfig for your cluster
-      - name: Kubeconfig
-        run: doctl k8s cluster kubeconfig save "$CLUSTER"
-
-      # 4) Ensure namespace exists
-      - name: Ensure namespace
-        run: kubectl get ns "$NS" >/dev/null 2>&1 || kubectl create ns "$NS"
-
-      # 5) Image pull secret so the cluster can pull from DO Registry
-      - name: Ensure imagePullSecret (do-regcred)
+      - name: Ensure namespace exists
         run: |
-          kubectl -n "$NS" create secret docker-registry do-regcred \
-            --docker-server=registry.digitalocean.com \
-            --docker-username=doctl \
-            --docker-password="${{ secrets.DO_TOKEN }}" \
-            --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create namespace "$NS" --dry-run=client -o yaml | kubectl apply -f -
 
-      # 6) Create/patch your runtime env secret (only what you have now)
-      - name: Ensure app-env secret (DB + JWT)
+      - name: Refresh DO registry pull secret
+        run: |
+          doctl registry docker-config --expiry-seconds 3600 \
+            | kubectl -n "$NS" create secret generic do-regcred \
+                --from-file=.dockerconfigjson=/dev/stdin \
+                --type=kubernetes.io/dockerconfigjson \
+                --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Sync application secret
         run: |
           kubectl -n "$NS" create secret generic app-env \
             --from-literal=DATABASE_URL='${{ secrets.DATABASE_URL }}' \
             --from-literal=JWT_SECRET='${{ secrets.JWT_SECRET }}' \
             --dry-run=client -o yaml | kubectl apply -f -
+          # TODO: Extend with Twilio and SendGrid credentials when available.
 
-      # 7) Make sure your backend Deployment uses the pull secret + envFrom
-      #    If your manifest already has these, this patch is a no-op.
-      - name: Patch backend deployment for pull secret + env
+      - name: Apply production manifests
         run: |
-          kubectl -n "$NS" patch deploy/backend --type='merge' -p '{
-            "spec": {
-              "template": {
-                "spec": {
-                  "imagePullSecrets":[{"name":"do-regcred"}],
-                  "containers":[
-                    {
-                      "name":"backend",
-                      "envFrom":[{"secretRef":{"name":"app-env"}}]
-                    }
-                  ]
-                }
-              }
-            }
-          }' || true
+          kubectl -n "$NS" apply -f infrastructure/k8s/production/
 
-      # 8) Roll out new image
-      - name: Rollout backend
+      - name: Run Prisma migrations
+        env:
+          IMAGE: ${{ secrets.REGISTRY }}/backend:${{ github.sha }}
         run: |
-          kubectl -n "$NS" set image deploy/backend backend=$REGISTRY/backend:${{ github.sha }}
-          kubectl -n "$NS" rollout status deploy/backend --timeout=180s
+          kubectl -n "$NS" run migrate \
+            --image="$IMAGE" \
+            --restart=Never \
+            --overrides='{"spec":{"imagePullSecrets":[{"name":"do-regcred"}]}}' \
+            --env-from=secret/app-env \
+            --command -- npx prisma migrate deploy
+          kubectl -n "$NS" wait --for=condition=complete --timeout=120s pod/migrate
+          kubectl -n "$NS" delete pod migrate --ignore-not-found=true
 
-      # 9) (Optional) Show service + ingress quick status
-      - name: Quick status
+      - name: Update deployments
         run: |
-          kubectl -n "$NS" get pods -o wide
-          kubectl -n "$NS" get svc
-          kubectl -n "$NS" get ingress
+          for svc in backend frontend ml-service rust-pricing; do
+            kubectl -n "$NS" set image deploy/$svc $svc=${{ secrets.REGISTRY }}/$svc:${{ github.sha }} --record || true
+            kubectl -n "$NS" rollout status deploy/$svc --timeout=180s || kubectl -n "$NS" get pods
+          done
+
+      - name: Smoke test ingress endpoints
+        run: |
+          LB=$(kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          for host in api ml app; do
+            echo "--- $host.autolytiq.com"
+            curl -sSI "http://$LB" -H "Host: $host.autolytiq.com" | head -n 1
+          done
