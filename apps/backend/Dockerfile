@@ -8,7 +8,7 @@ WORKDIR /app
 COPY tsconfig.json ./
 COPY packages ./packages
 COPY apps/backend/package*.json ./apps/backend/
-COOY apps/backend/package-lock.json ./apps/backend/
+COPY apps/backend/package-lock.json ./apps/backend/
 # If you have a prisma schema in packages, we’ll copy the whole backend later anyway.
 
 WORKDIR /app/apps/backend
