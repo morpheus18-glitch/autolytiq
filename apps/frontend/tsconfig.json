@@ -16,7 +16,9 @@
     "paths": {
       "@/*": ["./src/*"],
       "@shared/schema": ["../../packages/shared/src/schema/index.ts"],
-      "@shared/settings-schema": ["../../packages/shared/src/settings-schema/index.ts"]
+      "@shared/settings-schema": ["../../packages/shared/src/settings-schema/index.ts"],
+      "@repo/tokens": ["../../packages/tokens/src/index.ts"],
+      "@repo/tokens/*": ["../../packages/tokens/src/*"]
     },
     "types": ["vite/client"]
   },
