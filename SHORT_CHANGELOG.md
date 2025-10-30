@@ -9,3 +9,11 @@ Refresh agent guide, add iteration log command, and fix frontend Docker build co
 
 Add Node types dependency to tokens package
 
+## 2025-10-30T16:49:27Z (work)
+
+Ensure frontend Docker build keeps dev dependencies
+
+## 2025-10-30T16:54:09Z (work)
+
+Switch frontend Docker build to pnpm installs
+
