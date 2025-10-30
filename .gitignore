@@ -26,6 +26,7 @@ pytest_cache/
 .env.local
 .env.*
 !.env.*.example
+!**/.env.example
 !prisma/.env
 !packages/db/.env
 

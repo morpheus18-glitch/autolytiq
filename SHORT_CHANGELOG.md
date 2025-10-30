@@ -21,3 +21,7 @@ Switch frontend Docker build to pnpm installs
 
 Sync pnpm lock and frontend build tooling
 
+## 2025-10-30T18:22:35Z (work)
+
+Normalize Dockerfiles and split CI per service
+

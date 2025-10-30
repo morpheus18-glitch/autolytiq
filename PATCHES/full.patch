@@ -1,0 +1,738 @@
+diff --git a/.dockerignore b/.dockerignore
+index 26589b7..b901944 100644
+--- a/.dockerignore
++++ b/.dockerignore
+@@ -1,115 +1,31 @@
+-# Rust build artifacts
+-target
+-**/target
+-
+-# Keep Rust manifests available
+-!**/Cargo.toml
+-
+-# Dependencies
++# General ignores
++.git
++.gitignore
+ node_modules
+ **/node_modules
+-npm-debug.log
+-yarn-error.log
+ pnpm-debug.log
++npm-debug.log
++.yarn
++.cache
+ 
+-# Build outputs
+-dist
++# Python
++**/__pycache__
++**/*.pyc
++
++# Build artifacts
+ **/dist
+-build
+ **/build
+-.next
+-out
++**/.turbo
++**/.next
++**/coverage
+ 
+-# Environment files
++# Local env
+ .env
+ .env.*
+-!.env.example
+-.env.local
+-.env.production
+-.env.development
+-
+-# Git
+-.git
+-.gitignore
+-.gitattributes
+-
+-# IDE
+-.vscode
+-.idea
+-*.swp
+-*.swo
+-*~
+-.DS_Store
+-
+-# Testing
+-coverage
+-.nyc_output
+-*.lcov
+-
+-# Documentation & misc
+-*.md
+-!README.md
+-docs
+-CHANGELOG.md
+-
+-# CI/CD
+-.github
+-.gitlab-ci.yml
+-.travis.yml
+-azure-pipelines.yml
+-
+-# Replit specific
+-.replit
+-replit.nix
+-.config
+-
+-# Temporary files
+-tmp
+-temp
+-*.tmp
+-*.log
+-*.pid
+-*.seed
+-*.pid.lock
+-
+-# Large asset directories (design files, etc.)
+-docs/resources/assets
+-
+-# Backup files
+-*.backup
+-*.bak
+-*.old
+-
+-# OS files
+-Thumbs.db
+-.DS_Store
+-
+-# Package manager
+-.pnpm-debug.log
+-.npm
+-.yarn
+-
+-# Prisma
+-# Note: We keep schema.prisma but ignore generated files
+-# (they'll be regenerated during build)
+-packages/db/migrations/.migration_lock.toml
+-
+-# Docker
+-docker-compose*.yml
+-!docker-compose.yml
+-!apps/**/Dockerfile
+-!apps/**/package-lock.json
+-!ml_service/**/requirements.txt
+-!ml_service/**/requirements-*.txt
+-!services/**/Dockerfile
+-
+-# Scripts (if they contain sensitive data)
+-# scripts/*.sh
+-
+-# Monitoring & reports
+-var/reports
+-monitoring
++!.env.*.example
++!**/.env.example
+ 
+ # Misc
+-.cache
+-.parcel-cache
++.DS_Store
++reports
++var/tmp
+diff --git a/.github/workflows/deploy.yml b/.github/workflows/deploy.yml
+deleted file mode 100644
+index 4bfa310..0000000
+--- a/.github/workflows/deploy.yml
++++ /dev/null
+@@ -1,188 +0,0 @@
+-name: Deploy to Production
+-
+-on:
+-  push:
+-    branches:
+-      - main
+-  workflow_dispatch:
+-
+-permissions:
+-  contents: read
+-  id-token: write
+-
+-jobs:
+-  build:
+-    name: Build and Push Images
+-    runs-on: ubuntu-22.04
+-    env:
+-      # TEMPORARY: Dev defaults for quick deployment (configure GitHub Secrets later)
+-      REGISTRY: ${{ secrets.REGISTRY || 'registry.digitalocean.com/autolytiq' }}
+-    strategy:
+-      matrix:
+-        include:
+-          - name: backend
+-            file: apps/backend/Dockerfile
+-            context: .
+-            build-args: |
+-              DATABASE_URL=postgresql://autolytiq:autolytiq@localhost:5432/autolytiq
+-          - name: frontend
+-            file: apps/frontend/Dockerfile
+-            context: .
+-          - name: ml-service
+-            file: ml_service/Dockerfile
+-            context: .
+-          - name: rust-pricing
+-            file: services/rust/Dockerfile
+-            context: .
+-            no_cache: true
+-    steps:
+-      - name: Checkout
+-        uses: actions/checkout@v4
+-
+-      - name: Set up doctl
+-        uses: digitalocean/action-doctl@v2
+-        with:
+-          token: ${{ secrets.DO_TOKEN }}
+-
+-      - name: Authenticate to DOCR
+-        run: doctl registry login --expiry-seconds 3600
+-
+-      - name: Rust Dockerfile sanity checks
+-        if: matrix.name == 'rust-pricing'
+-        run: |
+-          echo "USING DOCKERFILE:" && echo services/rust/Dockerfile && sed -n '1,120p' services/rust/Dockerfile
+-          git grep -n "services/rust/Cargo\\.lock" -- :^ml_service :^docs || true
+-          ls -la services/rust
+-
+-      - name: Build and push ${{ matrix.name }} image
+-        uses: docker/build-push-action@v6
+-        with:
+-          context: ${{ matrix.context }}
+-          file: ${{ matrix.file }}
+-          push: true
+-          provenance: false
+-          sbom: false
+-          no-cache: ${{ matrix.no_cache || false }}
+-          progress: plain
+-          tags: ${{ env.REGISTRY }}/${{ matrix.name }}:${{ github.sha }}
+-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ matrix.name }}:buildcache
+-          build-args: ${{ matrix.build-args || '' }}
+-
+-  deploy:
+-    name: Apply Manifests and Roll Out
+-    runs-on: ubuntu-22.04
+-    needs: build
+-    env:
+-      # TEMPORARY: Dev defaults for quick deployment (configure GitHub Secrets later)
+-      REGISTRY: ${{ secrets.REGISTRY || 'registry.digitalocean.com/autolytiq' }}
+-      DO_CLUSTER: ${{ secrets.CLUSTER || 'autolytiq-cluster' }}
+-      NS: ${{ secrets.NS || 'autolytiq-prod' }}
+-    steps:
+-      - name: Checkout
+-        uses: actions/checkout@v4
+-
+-      - name: Set up doctl
+-        uses: digitalocean/action-doctl@v2
+-        with:
+-          token: ${{ secrets.DO_TOKEN }}
+-
+-      - name: Configure kubectl
+-        run: |
+-          doctl kubernetes cluster kubeconfig save "$DO_CLUSTER"
+-
+-      - name: Ensure namespace exists
+-        run: |
+-          kubectl create namespace "$NS" --dry-run=client -o yaml | kubectl apply -f -
+-
+-      - name: Refresh DO registry pull secret
+-        run: |
+-          doctl registry docker-config --expiry-seconds 3600 \
+-            | kubectl -n "$NS" create secret generic do-regcred \
+-                --from-file=.dockerconfigjson=/dev/stdin \
+-                --type=kubernetes.io/dockerconfigjson \
+-                --dry-run=client -o yaml | kubectl apply -f -
+-
+-      - name: Sync application secret
+-        env:
+-          # TEMPORARY: Dev defaults - configure GitHub Secrets for production
+-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://autolytiq:autolytiq@postgres:5432/autolytiq?schema=public' }}
+-          DIRECT_URL: ${{ secrets.DIRECT_URL || secrets.DATABASE_URL || 'postgresql://autolytiq:autolytiq@postgres:5432/autolytiq?schema=public' }}
+-          JWT_SECRET: ${{ secrets.JWT_SECRET || 'dev-jwt-secret-change-in-production' }}
+-          JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY || 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFwR2ZHNjBKZ0IrdkhOaVROR09CeQpnNFMxaG9QYXpUQS9na0dFWFVYTWFMTHE1eVJ2Q05ySTZWT0dHQWFIbzlkWllrVGZHWk5WVlJGbDFrWXlxUy9mCndMdzFzWVVOc0dyRCtWVUtQVHlTR1RzTk1uZHZyWVZGLzFEZGJDK2FEN2FnRVhrTktPeFBRMFBxU3hrYlpWcU0KbDhJNEpWWHUyZkxHM2dOc1ljaDBKSllScXBNZnJRYTZSbG1LQ050MnVRNlhvOFh6WXgrbE5FemJHOFZTOS82Zwp4RjJZMnYzaEY4b0Q3WVZPbEphd1ZTakdJbnhqZVJHbmE0M0VJQmd6SHVMbEhvdEU1VDdWNmN6UzRRaEl3VFpZCmg5K1ZGZVJleXFZaEIxdFpFRFFoVFdaKzlWdHh4dnBHNnZFMTF3VjhMMTkvOWV5N053eEtYbHpWRWsraVhkYzUKRlFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t' }}
+-          JWT_ISSUER: ${{ secrets.JWT_ISSUER || 'autolytiq-dev' }}
+-          JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE || 'autolytiq-dev' }}
+-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY || '' }}
+-          SENDGRID_FROM: ${{ secrets.SENDGRID_FROM || '' }}
+-          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID || '' }}
+-          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN || '' }}
+-          TWILIO_MESSAGING_SERVICE_SID: ${{ secrets.TWILIO_MESSAGING_SERVICE_SID || '' }}
+-          TWILIO_CALLER_ID: ${{ secrets.TWILIO_CALLER_ID || '' }}
+-          SOCKET_IO_CORS_ORIGIN: ${{ secrets.SOCKET_IO_CORS_ORIGIN || '*' }}
+-          APP_URL: ${{ secrets.APP_URL || 'http://localhost:3000' }}
+-          API_URL: ${{ secrets.API_URL || 'http://localhost:5000' }}
+-          ML_SERVICE_URL: ${{ secrets.ML_SERVICE_URL || 'http://ml-service:8000' }}
+-          ML_SERVICE_TOKEN: ${{ secrets.ML_SERVICE_TOKEN || 'dev-ml-token' }}
+-          REDIS_URL: ${{ secrets.REDIS_URL || '' }}
+-        run: |
+-          # Create secret with environment variables (using dev defaults if secrets not configured)
+-          kubectl -n "$NS" create secret generic app-env \
+-            --from-literal=NODE_ENV='production' \
+-            --from-literal=DATABASE_URL="$DATABASE_URL" \
+-            --from-literal=DIRECT_URL="$DIRECT_URL" \
+-            --from-literal=JWT_SECRET="$JWT_SECRET" \
+-            --from-literal=JWT_PUBLIC_KEY="$JWT_PUBLIC_KEY" \
+-            --from-literal=JWT_ISSUER="$JWT_ISSUER" \
+-            --from-literal=JWT_AUDIENCE="$JWT_AUDIENCE" \
+-            --from-literal=SENDGRID_API_KEY="$SENDGRID_API_KEY" \
+-            --from-literal=SENDGRID_FROM="$SENDGRID_FROM" \
+-            --from-literal=TWILIO_ACCOUNT_SID="$TWILIO_ACCOUNT_SID" \
+-            --from-literal=TWILIO_AUTH_TOKEN="$TWILIO_AUTH_TOKEN" \
+-            --from-literal=TWILIO_MESSAGING_SERVICE_SID="$TWILIO_MESSAGING_SERVICE_SID" \
+-            --from-literal=TWILIO_CALLER_ID="$TWILIO_CALLER_ID" \
+-            --from-literal=SOCKET_IO_CORS_ORIGIN="$SOCKET_IO_CORS_ORIGIN" \
+-            --from-literal=APP_URL="$APP_URL" \
+-            --from-literal=API_URL="$API_URL" \
+-            --from-literal=ML_SERVICE_URL="$ML_SERVICE_URL" \
+-            --from-literal=ML_SERVICE_TOKEN="$ML_SERVICE_TOKEN" \
+-            --from-literal=REDIS_URL="$REDIS_URL" \
+-            --dry-run=client -o yaml | kubectl apply -f -
+-
+-      - name: Apply production manifests with image tags
+-        env:
+-          IMAGE_TAG: ${{ github.sha }}
+-        run: |
+-          # Replace __TAG__ placeholder with actual git SHA before applying
+-          mkdir -p /tmp/k8s-manifests
+-          for file in infrastructure/k8s/production/*.yaml; do
+-            if [ -f "$file" ]; then
+-              sed "s|__TAG__|${IMAGE_TAG}|g" "$file" > "/tmp/k8s-manifests/$(basename $file)"
+-            fi
+-          done
+-          kubectl -n "$NS" apply -f /tmp/k8s-manifests/
+-
+-      - name: Run Prisma migrations
+-        env:
+-          IMAGE: ${{ secrets.REGISTRY }}/backend:${{ github.sha }}
+-        run: |
+-          kubectl -n "$NS" run migrate \
+-            --image="$IMAGE" \
+-            --restart=Never \
+-            --overrides='{"spec":{"imagePullSecrets":[{"name":"do-regcred"}]}}' \
+-            --env-from=secret/app-env \
+-            --command -- npx prisma migrate deploy
+-          kubectl -n "$NS" wait --for=condition=complete --timeout=120s pod/migrate
+-          kubectl -n "$NS" delete pod migrate --ignore-not-found=true
+-
+-      - name: Wait for rollout to complete
+-        run: |
+-          for svc in backend frontend ml-service rust-pricing; do
+-            kubectl -n "$NS" rollout status deploy/$svc --timeout=180s || kubectl -n "$NS" get pods
+-          done
+-
+-      - name: Smoke test ingress endpoints
+-        run: |
+-          LB=$(kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+-          for host in api ml app; do
+-            echo "--- $host.autolytiq.com"
+-            curl -sSI "http://$LB" -H "Host: $host.autolytiq.com" | head -n 1
+-          done
+diff --git a/.gitignore b/.gitignore
+index 5c861d9..fc91336 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -26,6 +26,7 @@ pytest_cache/
+ .env.local
+ .env.*
+ !.env.*.example
++!**/.env.example
+ !prisma/.env
+ !packages/db/.env
+ 
+diff --git a/SHORT_CHANGELOG.md b/SHORT_CHANGELOG.md
+index 8729f11..b29b35b 100644
+--- a/SHORT_CHANGELOG.md
++++ b/SHORT_CHANGELOG.md
+@@ -21,3 +21,7 @@ Switch frontend Docker build to pnpm installs
+ 
+ Sync pnpm lock and frontend build tooling
+ 
++## 2025-10-30T18:22:35Z (work)
++
++Normalize Dockerfiles and split CI per service
++
+diff --git a/infrastructure/docker/Dockerfile.backend b/infrastructure/docker/Dockerfile.backend
+index 8c9cf5f..94a2e15 100644
+--- a/infrastructure/docker/Dockerfile.backend
++++ b/infrastructure/docker/Dockerfile.backend
+@@ -1,17 +1,50 @@
+-# --- build ---
+-FROM node:18-bullseye-slim AS build
++# syntax=docker/dockerfile:1.7
++
++FROM node:20-bookworm-slim AS base
++ENV PNPM_HOME="/pnpm" \
++    PATH="$PNPM_HOME:$PATH"
++
++RUN corepack enable \
++ && apt-get update \
++ && apt-get install -y --no-install-recommends ca-certificates curl \
++ && rm -rf /var/lib/apt/lists/* \
++ && groupadd --system --gid 1001 nodeapp \
++ && useradd --system --uid 1001 --gid nodeapp --home /srv/app --shell /usr/sbin/nologin nodeapp
++
+ WORKDIR /app
+-COPY apps/backend/package*.json ./
+-RUN npm ci
+-COPY apps/backend/ ./
+-RUN npm run build  # tsup → dist/
+-
+-# --- runtime ---
+-FROM node:18-bullseye-slim
+-ENV NODE_ENV=production
++
++FROM base AS dependencies
+ WORKDIR /app
+-COPY apps/backend/package*.json ./
+-RUN npm ci --omit=dev
+-COPY --from=build /app/dist ./dist
++COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
++COPY apps/backend/package.json apps/backend/
++COPY packages/db/package.json packages/db/
++COPY packages/shared/package.json packages/shared/
++COPY packages/tokens/package.json packages/tokens/
++RUN pnpm install --frozen-lockfile --filter @repo/backend...
++
++FROM dependencies AS builder
++COPY . .
++RUN pnpm --filter @repo/backend build
++RUN pnpm prune --prod
++
++FROM base AS runner
++ENV NODE_ENV=production \
++    PORT=5000 \
++    DATABASE_URL="file:/srv/app/storage/dev.db"
++WORKDIR /srv/app
++
++COPY --from=builder /app/apps/backend/dist ./dist
++COPY --from=builder /app/apps/backend/package.json ./package.json
++COPY --from=builder /app/apps/backend/node_modules ./node_modules
++COPY --from=builder /app/apps/backend/scripts ./scripts
++
++RUN mkdir -p storage \
++ && touch storage/dev.db \
++ && chown -R nodeapp:nodeapp /srv/app
++
++USER nodeapp
+ EXPOSE 5000
+-CMD ["node","dist/index.js"]
++HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
++  CMD curl -fsSL http://127.0.0.1:${PORT:-5000}/health || exit 1
++
++CMD ["node", "dist/index.js"]
+diff --git a/infrastructure/docker/Dockerfile.frontend b/infrastructure/docker/Dockerfile.frontend
+index 96806bc..9598417 100644
+--- a/infrastructure/docker/Dockerfile.frontend
++++ b/infrastructure/docker/Dockerfile.frontend
+@@ -1,13 +1,34 @@
+-# --- build ---
+-FROM node:18-alpine AS build
++# syntax=docker/dockerfile:1.7
++
++FROM node:20-bookworm-slim AS base
++ENV PNPM_HOME="/pnpm" \
++    PATH="$PNPM_HOME:$PATH"
++
++RUN corepack enable \
++ && apt-get update \
++ && apt-get install -y --no-install-recommends ca-certificates \
++ && rm -rf /var/lib/apt/lists/*
++
++WORKDIR /app
++
++FROM base AS dependencies
+ WORKDIR /app
+-COPY apps/frontend/package*.json ./
+-RUN npm ci
+-COPY apps/frontend/ ./
+-RUN npm run build  # yields /app/dist
++COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
++COPY apps/frontend/package.json apps/frontend/
++COPY packages/tokens/package.json packages/tokens/
++RUN pnpm install --frozen-lockfile --filter @repo/frontend...
++
++FROM dependencies AS builder
++COPY . .
++RUN pnpm --filter @repo/tokens build
++RUN pnpm --filter @repo/frontend build
+ 
+-# --- serve ---
+-FROM nginx:alpine
++FROM nginxinc/nginx-unprivileged:1.27.2-alpine AS runner
+ COPY infrastructure/docker/nginx/nginx.conf /etc/nginx/conf.d/default.conf
+-COPY --from=build /app/dist /usr/share/nginx/html
+-EXPOSE 80
++COPY --from=builder /app/apps/frontend/dist /usr/share/nginx/html
++
++EXPOSE 8080
++HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
++  CMD wget -qO- http://127.0.0.1:8080/health >/dev/null || exit 1
++
++CMD ["/usr/sbin/nginx", "-g", "daemon off;"]
+diff --git a/infrastructure/docker/Dockerfile.ml b/infrastructure/docker/Dockerfile.ml
+index 20d8226..b79fc13 100644
+--- a/infrastructure/docker/Dockerfile.ml
++++ b/infrastructure/docker/Dockerfile.ml
+@@ -1,30 +1,41 @@
+ # syntax=docker/dockerfile:1.7
+-# AutolytiQ machine learning API and workers image
++
+ FROM python:3.11-slim AS base
++ENV PYTHONDONTWRITEBYTECODE=1 \
++    PYTHONUNBUFFERED=1
+ 
+-ENV PYTHONUNBUFFERED=1 \
+-    PIP_NO_CACHE_DIR=off \
+-    PIP_DISABLE_PIP_VERSION_CHECK=on
++RUN apt-get update \
++ && apt-get install -y --no-install-recommends build-essential curl \
++ && rm -rf /var/lib/apt/lists/* \
++ && addgroup --system --gid 1001 mlservice \
++ && adduser --system --uid 1001 --gid 1001 --home /srv/app --shell /usr/sbin/nologin mlservice
+ 
+ WORKDIR /app
+ 
+-RUN apt-get update \
+-    && apt-get install -y --no-install-recommends build-essential curl git \
+-    && rm -rf /var/lib/apt/lists/*
+-
++FROM base AS builder
++RUN python -m venv /opt/venv
++ENV PATH="/opt/venv/bin:$PATH"
+ COPY ml_service/requirements.txt ml_service/requirements-worker.txt ./
+ RUN pip install --upgrade pip \
+-    && pip install --no-cache-dir -r requirements.txt -r requirements-worker.txt
+-
+-COPY ml_service/app ./app
+-COPY ml_service/config ./config
+-COPY ml_service/workers ./workers
+-COPY ml_service/scripts ./scripts
+-
+-ENV PORT=8000
++ && pip install --no-cache-dir -r requirements.txt \
++ && pip install --no-cache-dir -r requirements-worker.txt
++COPY ml_service /app
++RUN mkdir -p /app/storage && touch /app/storage/ml.sqlite
++
++FROM base AS runner
++ENV PATH="/opt/venv/bin:$PATH" \
++    PORT=8000 \
++    ENVIRONMENT=production \
++    ML_SERVICE_TOKEN="dev-ml-token"
++WORKDIR /srv/app
++
++COPY --from=builder /opt/venv /opt/venv
++COPY --from=builder /app /srv/app
++RUN chown -R mlservice:mlservice /srv/app
++
++USER mlservice
+ EXPOSE 8000
+-
+-HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+-  CMD curl -f http://127.0.0.1:${PORT}/health || exit 1
++HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
++  CMD curl -fsSL http://127.0.0.1:${PORT:-8000}/health || exit 1
+ 
+ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+diff --git a/infrastructure/docker/nginx/nginx.conf b/infrastructure/docker/nginx/nginx.conf
+index 86d38df..424f439 100644
+--- a/infrastructure/docker/nginx/nginx.conf
++++ b/infrastructure/docker/nginx/nginx.conf
+@@ -1,45 +1,21 @@
+-upstream backend_api {
+-    server backend:5000;
+-}
+-
+-upstream frontend_app {
+-    server frontend:80;
+-}
+-
+ server {
+-    listen 80;
++    listen 8080;
+     server_name _;
+ 
+     add_header X-Frame-Options "SAMEORIGIN" always;
+     add_header X-Content-Type-Options "nosniff" always;
+-    add_header X-XSS-Protection "1; mode=block" always;
++    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+ 
+-    client_max_body_size 100M;
++    root /usr/share/nginx/html;
++    index index.html;
+ 
+-    location / {
+-        proxy_pass http://frontend_app;
+-        proxy_set_header Host $host;
+-        proxy_set_header X-Real-IP $remote_addr;
+-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+-        proxy_set_header X-Forwarded-Proto $scheme;
+-    }
+-
+-    location /api/ {
+-        proxy_pass http://backend_api/api/;
+-        proxy_set_header Host $host;
+-        proxy_set_header X-Real-IP $remote_addr;
+-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+-        proxy_set_header X-Forwarded-Proto $scheme;
+-        proxy_read_timeout 300s;
+-        proxy_connect_timeout 75s;
++    location = /health {
++        access_log off;
++        add_header Content-Type text/plain;
++        return 200 'ok';
+     }
+ 
+-    location /ws/ {
+-        proxy_pass http://backend_api/ws/;
+-        proxy_http_version 1.1;
+-        proxy_set_header Upgrade $http_upgrade;
+-        proxy_set_header Connection "upgrade";
+-        proxy_set_header Host $host;
+-        proxy_set_header X-Real-IP $remote_addr;
++    location / {
++        try_files $uri $uri/ /index.html;
+     }
+ }
+diff --git a/infrastructure/k8s/production/frontend-deployment.yaml b/infrastructure/k8s/production/frontend-deployment.yaml
+index cee4f8a..1ad40a5 100644
+--- a/infrastructure/k8s/production/frontend-deployment.yaml
++++ b/infrastructure/k8s/production/frontend-deployment.yaml
+@@ -29,7 +29,7 @@ spec:
+           image: registry.digitalocean.com/autolytiq/frontend:__TAG__
+           imagePullPolicy: IfNotPresent
+           ports:
+-            - containerPort: 80
++            - containerPort: 8080
+               name: http
+           resources:
+             requests:
+diff --git a/services/rust/Dockerfile b/services/rust/Dockerfile
+index 26b570a..958e6eb 100644
+--- a/services/rust/Dockerfile
++++ b/services/rust/Dockerfile
+@@ -1,22 +1,21 @@
+ # syntax=docker/dockerfile:1.7
+ 
+-FROM rust:1.81 AS builder
++ARG RUST_VERSION=1.81
+ 
++FROM rust:${RUST_VERSION}-slim-bookworm AS builder
+ WORKDIR /app
+ 
+-ARG BIN_NAME=price-engine
++ARG SERVICE_NAME=price-engine
+ 
+-# Install build dependencies required by Diesel + TLS clients
+ RUN apt-get update \
+-    && apt-get install -y --no-install-recommends \
+-        pkg-config \
+-        libssl-dev \
+-        libpq-dev \
+-        clang \
+-        protobuf-compiler \
+-    && rm -rf /var/lib/apt/lists/*
++ && apt-get install -y --no-install-recommends \
++      pkg-config \
++      libssl-dev \
++      libpq-dev \
++      clang \
++      protobuf-compiler \
++ && rm -rf /var/lib/apt/lists/*
+ 
+-# Copy workspace manifests only (no Cargo.lock needed)
+ COPY services/rust/Cargo.toml ./Cargo.toml
+ COPY services/rust/price-engine/Cargo.toml price-engine/Cargo.toml
+ COPY services/rust/shared/Cargo.toml shared/Cargo.toml
+@@ -24,26 +23,23 @@ COPY services/rust/cache-service/Cargo.toml cache-service/Cargo.toml
+ COPY services/rust/comm-service/Cargo.toml comm-service/Cargo.toml
+ COPY services/rust/rate-limiter/Cargo.toml rate-limiter/Cargo.toml
+ 
+-# Create minimal source tree so cargo metadata succeeds when fetching deps
+ RUN mkdir -p \
+-        price-engine/src \
+-        shared/src \
+-        cache-service/src \
+-        comm-service/src \
+-        rate-limiter/src \
+-    && echo 'fn main() {}' > price-engine/src/main.rs \
+-    && echo 'fn main() {}' > cache-service/src/main.rs \
+-    && echo 'fn main() {}' > comm-service/src/main.rs \
+-    && echo 'fn main() {}' > rate-limiter/src/main.rs \
+-    && echo 'pub fn placeholder() {}' > shared/src/lib.rs
++      price-engine/src \
++      shared/src \
++      cache-service/src \
++      comm-service/src \
++      rate-limiter/src \
++ && echo 'fn main() {}' > price-engine/src/main.rs \
++ && echo 'fn main() {}' > cache-service/src/main.rs \
++ && echo 'fn main() {}' > comm-service/src/main.rs \
++ && echo 'fn main() {}' > rate-limiter/src/main.rs \
++ && echo 'pub fn placeholder() {}' > shared/src/lib.rs
+ 
+-# Prime dependency cache
+ RUN --mount=type=cache,target=/usr/local/cargo/registry \
+     --mount=type=cache,target=/usr/local/cargo/git \
+     --mount=type=cache,target=/app/target \
+     cargo fetch --manifest-path Cargo.toml
+ 
+-# Bring in the actual sources
+ COPY services/rust/shared ./shared
+ COPY services/rust/cache-service ./cache-service
+ COPY services/rust/comm-service ./comm-service
+@@ -51,24 +47,38 @@ COPY services/rust/rate-limiter ./rate-limiter
+ COPY services/rust/price-engine ./price-engine
+ COPY services/rust/proto ./proto
+ 
+-# Build the requested binary
+ RUN --mount=type=cache,target=/usr/local/cargo/registry \
+     --mount=type=cache,target=/usr/local/cargo/git \
+     --mount=type=cache,target=/app/target \
+-    cargo build --manifest-path Cargo.toml --release -p ${BIN_NAME}
++    cargo build --manifest-path Cargo.toml --release -p ${SERVICE_NAME}
+ 
+-# Minimal runtime image
+-FROM gcr.io/distroless/cc-debian12
++FROM debian:12-slim AS runtime
++ARG SERVICE_NAME=price-engine
+ 
+-ARG BIN_NAME=price-engine
++ENV RUST_LOG=info \
++    DATABASE_URL="sqlite:////srv/app/storage/dev.db"
+ 
+-# Copy shared libraries required by libpq + TLS
+-COPY --from=builder /lib/x86_64-linux-gnu /lib/x86_64-linux-gnu
+-COPY --from=builder /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
+-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
++RUN apt-get update \
++ && apt-get install -y --no-install-recommends \
++      ca-certificates \
++      libssl3 \
++      libpq5 \
++      curl \
++ && rm -rf /var/lib/apt/lists/* \
++ && curl -fsSL https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.23/grpc_health_probe-linux-amd64 \
++      -o /usr/local/bin/grpc_health_probe \
++ && chmod +x /usr/local/bin/grpc_health_probe \
++ && groupadd --system --gid 1001 rustsvc \
++ && useradd --system --uid 1001 --gid rustsvc --home /srv/app --shell /usr/sbin/nologin rustsvc
+ 
+-COPY --from=builder /app/target/release/${BIN_NAME} /usr/local/bin/app
++WORKDIR /srv/app
++COPY --from=builder /app/target/release/${SERVICE_NAME} /usr/local/bin/app
++RUN mkdir -p storage \
++ && chown -R rustsvc:rustsvc /srv/app
+ 
+-USER nonroot
++USER rustsvc
++EXPOSE 50051
++HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
++  CMD /usr/local/bin/grpc_health_probe -addr=127.0.0.1:50051 || exit 1
+ 
+ ENTRYPOINT ["/usr/local/bin/app"]
