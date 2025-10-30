@@ -23,19 +23,16 @@ WORKDIR /app/apps/backend
 ARG DATABASE_URL="postgresql://user:pass@localhost:5432/localdb?sslmode=disable"
 ENV DATABASE_URL=$DATABASE_URL
 RUN npx prisma generate --schema prisma/schema.prisma
-RUN npm run build
+RUN npm run build && npm prune --omit=dev
 
 FROM base AS runner
 ENV NODE_ENV=production
 WORKDIR /app
 
-COPY --from=deps /app/apps/backend/package*.json ./
-RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
-
+COPY --from=builder /app/apps/backend/package*.json ./
+COPY --from=builder /app/apps/backend/node_modules ./node_modules
 COPY --from=builder /app/apps/backend/dist ./dist
 COPY --from=builder /app/apps/backend/prisma ./prisma
-COPY --from=builder /app/apps/backend/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/apps/backend/node_modules/@prisma ./node_modules/@prisma
 
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001 -G nodejs && \
