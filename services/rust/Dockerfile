@@ -35,9 +35,9 @@ RUN mkdir -p \
  && echo 'fn main() {}' > rate-limiter/src/main.rs \
  && echo 'pub fn placeholder() {}' > shared/src/lib.rs
 
+# Build dependencies with cache mount
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    --mount=type=cache,target=/app/target \
     cargo fetch --manifest-path Cargo.toml
 
 COPY services/rust/shared ./shared
@@ -47,10 +47,14 @@ COPY services/rust/rate-limiter ./rate-limiter
 COPY services/rust/price-engine ./price-engine
 COPY services/rust/proto ./proto
 
+# Build with cache mount but copy binary OUT before mount disappears
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    --mount=type=cache,target=/app/target \
-    cargo build --manifest-path Cargo.toml --release -p ${SERVICE_NAME}
+    cargo build --manifest-path Cargo.toml --release -p ${SERVICE_NAME} && \
+    cp target/release/${SERVICE_NAME} /tmp/service-binary
+
+# Copy the binary to a known location that persists
+RUN cp /tmp/service-binary target/release/${SERVICE_NAME}
 
 FROM debian:12-slim AS runtime
 ARG SERVICE_NAME=price-engine
