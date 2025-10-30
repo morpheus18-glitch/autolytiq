@@ -2,11 +2,14 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: autolytiq-ingress
+  namespace: prod
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: "25m"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
 spec:
   tls:
     - hosts:
@@ -14,7 +17,7 @@ spec:
         - api.autolytiq.com
         - ml.autolytiq.com
         - dms.autolytiq.com
-      secretName: autolytiq-tls
+      secretName: tls-autolytiq
   rules:
     - host: app.autolytiq.com
       http:
@@ -25,7 +28,7 @@ spec:
               service:
                 name: frontend
                 port:
-                  name: http
+                  number: 80
     - host: api.autolytiq.com
       http:
         paths:
@@ -35,7 +38,7 @@ spec:
               service:
                 name: backend
                 port:
-                  name: http
+                  number: 80
     - host: ml.autolytiq.com
       http:
         paths:
@@ -45,7 +48,7 @@ spec:
               service:
                 name: ml-service
                 port:
-                  name: http
+                  number: 80
     - host: dms.autolytiq.com
       http:
         paths:
@@ -53,6 +56,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: frontend
+                name: dms
                 port:
-                  name: http
+                  number: 80
