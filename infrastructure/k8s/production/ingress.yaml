@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: autolytiq-ingress
-  namespace: prod
+  namespace: autolytiq-prod
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -17,7 +17,7 @@ spec:
         - api.autolytiq.com
         - ml.autolytiq.com
         - dms.autolytiq.com
-      secretName: tls-autolytiq
+      secretName: autolytiq-tls
   rules:
     - host: app.autolytiq.com
       http:
@@ -56,6 +56,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: dms
+                name: autolytiq
                 port:
                   number: 80
