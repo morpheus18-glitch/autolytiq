@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use rust_decimal::Decimal;
+use rust_decimal::{prelude::ToPrimitive, Decimal};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -27,10 +27,7 @@ impl Money {
     }
 
     pub fn from_dollars(dollars: Decimal, currency: Currency) -> Self {
-        let cents = (dollars * Decimal::from(100))
-            .round()
-            .to_i64()
-            .unwrap_or(0);
+        let cents = (dollars * Decimal::from(100)).round().to_i64().unwrap_or(0);
         Self::new(cents, currency)
     }
 
@@ -131,7 +128,7 @@ mod tests {
     #[test]
     fn test_money_operations() {
         let m1 = Money::new(10050, Currency::USD); // $100.50
-        let m2 = Money::new(2500, Currency::USD);  // $25.00
+        let m2 = Money::new(2500, Currency::USD); // $25.00
 
         // Addition
         let sum = m1.add(&m2).unwrap();

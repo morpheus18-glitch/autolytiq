@@ -1,5 +1,5 @@
 use crate::models::{CompetitiveRange, MarketComp, MarketStats};
-use rust_decimal::Decimal;
+use rust_decimal::{prelude::ToPrimitive, Decimal};
 use rust_decimal_macros::dec;
 use tracing::{info, instrument};
 

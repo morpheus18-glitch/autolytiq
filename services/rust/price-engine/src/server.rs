@@ -1,19 +1,21 @@
 use crate::config::PricingConfig;
-use crate::proto::common::{HealthRequest, HealthResponse, ResponseMetadata};
+use crate::proto::common::{
+    self, health_response, HealthRequest, HealthResponse, ResponseMetadata,
+};
 use crate::proto::pricing::price_engine_server::PriceEngine;
 use crate::proto::pricing::*;
 use crate::services::{
     GrossCalculatorService, MarkdownSuggesterService, MarketPricingService,
     PaymentCalculatorService,
 };
-use rust_decimal::Decimal;
+use rust_decimal::{prelude::ToPrimitive, Decimal};
 use shared::db::DbPool;
-use shared::error::AppError;
 use shared::middleware::extract_request_context;
 use shared::redis_client::RedisClient;
-use shared::types::Money;
+use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use tokio_stream::Stream;
 use tonic::{Request, Response, Status};
 use tracing::{info, instrument};
 
@@ -63,10 +65,10 @@ impl PriceEngineServer {
     }
 
     fn decimal_to_proto_money(&self, amount: Decimal, currency: &str) -> common::Money {
+        let cents = (amount * Decimal::new(100, 0)).to_i64().unwrap_or_default();
+
         common::Money {
-            amount_cents: (amount * Decimal::new(100, 0))
-                .to_i64()
-                .unwrap_or(0),
+            amount_cents: cents,
             currency: currency.to_string(),
         }
     }
@@ -80,6 +82,9 @@ impl PriceEngineServer {
 
 #[tonic::async_trait]
 impl PriceEngine for PriceEngineServer {
+    type BatchPriceStream =
+        Pin<Box<dyn Stream<Item = std::result::Result<BatchPriceResponse, Status>> + Send>>;
+
     #[instrument(skip(self, request))]
     async fn get_market_data(
         &self,
@@ -148,12 +153,14 @@ impl PriceEngine for PriceEngineServer {
             .filter_comparables(market_comps.clone(), 0.5, 50);
 
         // Calculate competitive range
-        let competitive_range = self.market_pricing.calculate_competitive_range(&filtered_comps);
+        let competitive_range = self
+            .market_pricing
+            .calculate_competitive_range(&filtered_comps);
 
         // Calculate market stats
-        let market_stats =
-            self.market_pricing
-                .calculate_market_stats(&market_comps, &filtered_comps);
+        let market_stats = self
+            .market_pricing
+            .calculate_market_stats(&market_comps, &filtered_comps);
 
         // Convert to proto response
         let response = MarketDataResponse {
@@ -188,7 +195,9 @@ impl PriceEngine for PriceEngineServer {
                 comps_used: market_stats.comps_used as i32,
                 price_std_dev: market_stats.price_std_dev,
                 mileage_std_dev: market_stats.mileage_std_dev,
-                price_per_mile: Some(self.decimal_to_proto_money(market_stats.price_per_mile, "USD")),
+                price_per_mile: Some(
+                    self.decimal_to_proto_money(market_stats.price_per_mile, "USD"),
+                ),
             }),
         };
 
@@ -252,10 +261,16 @@ impl PriceEngine for PriceEngineServer {
         let response = GrossResponse {
             metadata: Some(self.create_response_metadata(&context.request_id.to_string())),
             breakdown: Some(GrossBreakdown {
-                front_end_gross: Some(self.decimal_to_proto_money(breakdown.front_end_gross, "USD")),
+                front_end_gross: Some(
+                    self.decimal_to_proto_money(breakdown.front_end_gross, "USD"),
+                ),
                 trade_reserve: Some(self.decimal_to_proto_money(breakdown.trade_reserve, "USD")),
-                total_front_gross: Some(self.decimal_to_proto_money(breakdown.total_front_gross, "USD")),
-                finance_reserve: Some(self.decimal_to_proto_money(breakdown.finance_reserve, "USD")),
+                total_front_gross: Some(
+                    self.decimal_to_proto_money(breakdown.total_front_gross, "USD"),
+                ),
+                finance_reserve: Some(
+                    self.decimal_to_proto_money(breakdown.finance_reserve, "USD"),
+                ),
                 back_end_gross: Some(self.decimal_to_proto_money(breakdown.back_end_gross, "USD")),
                 product_profits: breakdown
                     .product_profits
@@ -292,8 +307,14 @@ impl PriceEngine for PriceEngineServer {
 
         let amount_financed = self.proto_money_to_decimal(&req.amount_financed);
         let apr = self.proto_decimal_to_decimal(&req.apr);
-        let gross_monthly_income = req.gross_monthly_income.as_ref().map(|m| self.proto_money_to_decimal(&Some(m.clone())));
-        let total_monthly_debt = req.total_monthly_debt.as_ref().map(|m| self.proto_money_to_decimal(&Some(m.clone())));
+        let gross_monthly_income = req
+            .gross_monthly_income
+            .as_ref()
+            .map(|m| self.proto_money_to_decimal(&Some(m.clone())));
+        let total_monthly_debt = req
+            .total_monthly_debt
+            .as_ref()
+            .map(|m| self.proto_money_to_decimal(&Some(m.clone())));
 
         let details = self.payment_calculator.calculate_payment(
             amount_financed,
@@ -345,16 +366,17 @@ impl PriceEngine for PriceEngineServer {
         let cost = self.proto_money_to_decimal(&req.cost);
 
         // Convert competitive range if provided
-        let market_range = req.market_range.as_ref().map(|range| {
-            crate::models::CompetitiveRange {
+        let market_range = req
+            .market_range
+            .as_ref()
+            .map(|range| crate::models::CompetitiveRange {
                 floor_price: self.proto_money_to_decimal(&range.floor_price),
                 target_price: self.proto_money_to_decimal(&range.target_price),
                 ceiling_price: self.proto_money_to_decimal(&range.ceiling_price),
                 average_price: self.proto_money_to_decimal(&range.average_price),
                 comp_count: range.comp_count as usize,
                 days_to_sale_avg: range.days_to_sale_avg,
-            }
-        });
+            });
 
         // Use custom aging bands or defaults
         let aging_bands = if !req.aging_bands.is_empty() {
@@ -396,7 +418,7 @@ impl PriceEngine for PriceEngineServer {
     async fn batch_price(
         &self,
         request: Request<BatchPriceRequest>,
-    ) -> Result<Response<tokio_stream::wrappers::ReceiverStream<Result<BatchPriceResponse, Status>>>, Status> {
+    ) -> Result<Response<Self::BatchPriceStream>, Status> {
         let _req = request.get_ref();
         let _context = extract_request_context(&request)?;
 
@@ -404,10 +426,10 @@ impl PriceEngine for PriceEngineServer {
         Err(Status::unimplemented("Batch pricing not yet implemented"))
     }
 
-    #[instrument(skip(self, request))]
+    #[instrument(skip(self, _request))]
     async fn get_health(
         &self,
-        request: Request<HealthRequest>,
+        _request: Request<HealthRequest>,
     ) -> Result<Response<HealthResponse>, Status> {
         info!("Health check requested");
 

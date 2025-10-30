@@ -71,6 +71,12 @@ failsafe = "1.2"
 # Metrics
 prometheus = "0.13"
 
+# Connection pooling
+r2d2 = "0.8"
+
+# Utilities
+rand = "0.8"
+
 # Testing
 mockall = "0.12"
 

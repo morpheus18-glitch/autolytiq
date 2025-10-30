@@ -62,12 +62,14 @@ pub mod logging_interceptor {
     use tonic::{Request, Status};
     use tracing::{info, instrument};
 
-    #[instrument(skip(request), fields(
-        method = ?request.uri(),
-        request_id = tracing::field::Empty,
-        tenant_id = tracing::field::Empty,
-        user_id = tracing::field::Empty,
-    ))]
+    #[instrument(
+        skip(request),
+        fields(
+            request_id = tracing::field::Empty,
+            tenant_id = tracing::field::Empty,
+            user_id = tracing::field::Empty,
+        )
+    )]
     pub fn log_request<T>(request: &Request<T>) -> Result<(), Status> {
         let metadata = request.metadata();
 

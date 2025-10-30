@@ -23,6 +23,9 @@ deadpool = { workspace = true }
 # Redis
 redis = { workspace = true }
 
+# Connection pool
+r2d2 = { workspace = true }
+
 # Error handling
 anyhow = { workspace = true }
 thiserror = { workspace = true }

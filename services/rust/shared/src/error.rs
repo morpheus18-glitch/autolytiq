@@ -1,3 +1,4 @@
+use r2d2::Error as PoolError;
 use thiserror::Error;
 use tonic::{Code, Status};
 
@@ -7,6 +8,9 @@ pub type Result<T> = std::result::Result<T, AppError>;
 pub enum AppError {
     #[error("Database error: {0}")]
     Database(#[from] diesel::result::Error),
+
+    #[error("Connection pool error: {0}")]
+    Pool(PoolError),
 
     #[error("Redis error: {0}")]
     Redis(#[from] redis::RedisError),
@@ -57,6 +61,7 @@ impl From<AppError> for Status {
             AppError::ServiceUnavailable(msg) => Status::unavailable(msg),
             AppError::Database(e) => Status::internal(format!("Database error: {}", e)),
             AppError::Redis(e) => Status::internal(format!("Cache error: {}", e)),
+            AppError::Pool(e) => Status::internal(format!("Connection pool error: {}", e)),
             AppError::Config(e) => Status::internal(format!("Configuration error: {}", e)),
             AppError::Serialization(e) => Status::internal(format!("Serialization error: {}", e)),
             AppError::Internal(msg) => Status::internal(msg),

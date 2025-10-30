@@ -1,4 +1,9 @@
-use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer};
+use tracing_subscriber::{
+    fmt::{self, format::FmtSpan},
+    layer::SubscriberExt,
+    util::SubscriberInitExt,
+    EnvFilter, Layer,
+};
 
 pub fn init_logging(service_name: &str, log_level: &str, format: &str) {
     let env_filter = EnvFilter::try_from_default_env()
@@ -8,7 +13,7 @@ pub fn init_logging(service_name: &str, log_level: &str, format: &str) {
     let fmt_layer = match format {
         "json" => fmt::layer()
             .json()
-            .with_current_span(true)
+            .with_span_events(FmtSpan::CLOSE)
             .with_span_list(false)
             .with_target(true)
             .with_thread_ids(true)
@@ -17,7 +22,7 @@ pub fn init_logging(service_name: &str, log_level: &str, format: &str) {
             .boxed(),
         _ => fmt::layer()
             .pretty()
-            .with_current_span(true)
+            .with_span_events(FmtSpan::CLOSE)
             .with_target(true)
             .with_thread_ids(true)
             .with_thread_names(true)
@@ -25,9 +30,7 @@ pub fn init_logging(service_name: &str, log_level: &str, format: &str) {
             .boxed(),
     };
 
-    tracing_subscriber::registry()
-        .with(fmt_layer)
-        .init();
+    tracing_subscriber::registry().with(fmt_layer).init();
 
     tracing::info!(
         service_name = service_name,

@@ -1,5 +1,5 @@
 use crate::config::TelemetryConfig;
-use opentelemetry::{global, trace::TracerProvider, KeyValue};
+use opentelemetry::{global, KeyValue};
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{
     trace::{self, RandomIdGenerator, Sampler},
@@ -32,7 +32,7 @@ pub fn init_telemetry(config: &TelemetryConfig) -> anyhow::Result<()> {
         .with_endpoint(&endpoint);
 
     // Create tracer provider
-    let tracer_provider = opentelemetry_otlp::new_pipeline()
+    let tracer = opentelemetry_otlp::new_pipeline()
         .tracing()
         .with_exporter(exporter)
         .with_trace_config(
@@ -46,11 +46,7 @@ pub fn init_telemetry(config: &TelemetryConfig) -> anyhow::Result<()> {
         )
         .install_batch(opentelemetry_sdk::runtime::Tokio)?;
 
-    // Set global tracer provider
-    global::set_tracer_provider(tracer_provider.clone());
-
     // Create tracing layer
-    let tracer = tracer_provider.tracer(config.service_name.clone());
     let telemetry_layer = tracing_opentelemetry::layer().with_tracer(tracer);
 
     // Initialize subscriber with telemetry layer

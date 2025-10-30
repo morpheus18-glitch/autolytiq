@@ -1,6 +1,6 @@
 use std::time::Duration;
 use tokio::time::sleep;
-use tracing::{info, warn, instrument};
+use tracing::{info, instrument, warn};
 
 #[derive(Debug, Clone)]
 pub struct RetryConfig {
@@ -34,10 +34,7 @@ impl RetryExecutor {
 
     /// Execute an operation with retry logic
     #[instrument(skip(self, operation))]
-    pub async fn execute<F, Fut, T, E>(
-        &self,
-        mut operation: F,
-    ) -> Result<T, E>
+    pub async fn execute<F, Fut, T, E>(&self, mut operation: F) -> Result<T, E>
     where
         F: FnMut() -> Fut,
         Fut: std::future::Future<Output = Result<T, E>>,
@@ -72,7 +69,9 @@ impl RetryExecutor {
                     );
 
                     // Apply jitter
-                    let jitter = (backoff_ms as f64 * self.config.jitter_factor * rand::random::<f64>()) as u64;
+                    let jitter = (backoff_ms as f64
+                        * self.config.jitter_factor
+                        * rand::random::<f64>()) as u64;
                     let actual_backoff = backoff_ms + jitter;
 
                     sleep(Duration::from_millis(actual_backoff)).await;

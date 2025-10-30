@@ -24,6 +24,9 @@ futures = { workspace = true }
 # Redis
 redis = { workspace = true }
 
+# Utilities
+rand = { workspace = true }
+
 # Error handling
 anyhow = { workspace = true }
 thiserror = { workspace = true }

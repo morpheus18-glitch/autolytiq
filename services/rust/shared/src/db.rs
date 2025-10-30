@@ -1,7 +1,8 @@
 use crate::config::DatabaseConfig;
-use crate::error::Result;
+use crate::error::{AppError, Result};
 use diesel::pg::PgConnection;
-use diesel::r2d2::{self, ConnectionManager, Pool, PooledConnection};
+use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
+use diesel::RunQueryDsl;
 use std::time::Duration;
 use tracing::{info, instrument};
 
@@ -22,7 +23,8 @@ pub fn create_pool(config: &DatabaseConfig) -> Result<DbPool> {
         .max_size(config.max_connections)
         .min_idle(config.min_connections)
         .connection_timeout(Duration::from_secs(config.connection_timeout_seconds))
-        .build(manager)?;
+        .build(manager)
+        .map_err(AppError::Pool)?;
 
     info!("Database connection pool created");
 
@@ -30,8 +32,10 @@ pub fn create_pool(config: &DatabaseConfig) -> Result<DbPool> {
 }
 
 pub async fn test_connection(pool: &DbPool) -> Result<()> {
-    let mut conn = pool.get()?;
-    diesel::sql_query("SELECT 1").execute(&mut conn)?;
+    let mut conn = pool.get().map_err(AppError::Pool)?;
+    diesel::sql_query("SELECT 1")
+        .execute(&mut conn)
+        .map_err(AppError::from)?;
     Ok(())
 }
 
