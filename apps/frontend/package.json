@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "prebuild": "npm run build:tokens",
-    "build:tokens": "npm --prefix ../../packages/tokens run build",
+    "prebuild": "pnpm run build:tokens",
+    "build:tokens": "pnpm --filter @repo/tokens build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ignore-pattern 'src/_backup/**'"

@@ -17,3 +17,7 @@ Ensure frontend Docker build keeps dev dependencies
 
 Switch frontend Docker build to pnpm installs
 
+## 2025-10-30T17:04:27Z (work)
+
+Sync pnpm lock and frontend build tooling
+
