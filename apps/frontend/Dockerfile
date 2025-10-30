@@ -37,11 +37,14 @@ FROM nginx:1.27-alpine AS runner
 COPY apps/frontend/nginx.conf /etc/nginx/nginx.conf
 COPY --from=builder /workspace/apps/frontend/dist /usr/share/nginx/html
 
-RUN addgroup -g 101 -S nginx-user && \
-    adduser -S nginx-user -G nginx-user -u 101 && \
-    chown -R nginx-user:nginx-user /usr/share/nginx/html /var/cache/nginx /var/log/nginx && \
-    touch /var/run/nginx.pid && chown nginx-user:nginx-user /var/run/nginx.pid
+# Use the existing nginx user (UID 101) that comes with the nginx:alpine image
+# Ensure proper permissions for nginx directories
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    touch /var/run/nginx.pid && \
+    chown nginx:nginx /var/run/nginx.pid
 
-USER nginx-user
+USER nginx
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
