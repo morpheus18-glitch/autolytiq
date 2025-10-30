@@ -35,7 +35,8 @@
     "dev:prod": "concurrently --kill-others-on-fail \"pnpm --filter @repo/backend dev\" \"pnpm --filter @repo/frontend dev\"",
     "dev:sandbox": "concurrently --kill-others-on-fail \"pnpm --filter @repo/backend dev\" \"pnpm --filter @repo/frontend-dev dev\"",
     "dev:client:sandbox": "pnpm --filter @repo/frontend-dev dev",
-    "build:client:sandbox": "pnpm --filter @repo/frontend-dev build"
+    "build:client:sandbox": "pnpm --filter @repo/frontend-dev build",
+    "changelog:update": "bash scripts/update-changelog.sh"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.679.0",

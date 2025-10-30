@@ -5,18 +5,21 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /workspace
 
 FROM base AS builder
-COPY packages/tokens/package*.json packages/tokens/
-WORKDIR /workspace/packages/tokens
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+WORKDIR /workspace
 
-COPY apps/frontend/package*.json apps/frontend/
-WORKDIR /workspace/apps/frontend
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+# Install shared package dependencies
+COPY packages/tokens/package*.json ./packages/tokens/
+RUN cd packages/tokens && if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
+# Install frontend dependencies
+COPY apps/frontend/package*.json ./apps/frontend/
+RUN cd apps/frontend && if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+# Copy full workspace
 COPY . .
 
-WORKDIR /workspace/packages/tokens
-RUN npm run build
+# Build shared tokens before the frontend
+RUN cd packages/tokens && npm run build
 
 WORKDIR /workspace/apps/frontend
 ENV NODE_ENV=production
