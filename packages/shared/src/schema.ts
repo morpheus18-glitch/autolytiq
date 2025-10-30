@@ -10,12 +10,15 @@ export enum PreferredContactMethod {
 
 export enum LeadSource {
   WEBSITE = 'WEBSITE',
+  REFERRAL = 'REFERRAL',
+  WALKIN = 'WALKIN',
+  WALK_IN = 'WALK_IN',
   PHONE = 'PHONE',
   EMAIL = 'EMAIL',
-  WALK_IN = 'WALK_IN',
-  REFERRAL = 'REFERRAL',
   SOCIAL_MEDIA = 'SOCIAL_MEDIA',
-  ADVERTISING = 'ADVERTISING',
+  THIRD_PARTY = 'THIRD_PARTY',
+  EVENT = 'EVENT',
+  SERVICE_DRIVE = 'SERVICE_DRIVE',
   OTHER = 'OTHER',
 }
 
@@ -23,9 +26,23 @@ export enum LeadStatus {
   NEW = 'NEW',
   CONTACTED = 'CONTACTED',
   QUALIFIED = 'QUALIFIED',
+  SCHEDULED = 'SCHEDULED',
+  APPOINTMENT_SET = 'APPOINTMENT_SET',
+  SHOWED = 'SHOWED',
+  NO_SHOW = 'NO_SHOW',
+  DEMO_DRIVEN = 'DEMO_DRIVEN',
+  PROPOSAL_SENT = 'PROPOSAL_SENT',
   NEGOTIATING = 'NEGOTIATING',
+  NEGOTIATION = 'NEGOTIATION',
+  HOT = 'HOT',
+  WARM = 'WARM',
+  COLD = 'COLD',
+  SOLD = 'SOLD',
+  DEAD = 'DEAD',
+  CUSTOMER = 'CUSTOMER',
   WON = 'WON',
   LOST = 'LOST',
+  ARCHIVED = 'ARCHIVED',
 }
 
 // Base Customer type matching Prisma schema
@@ -33,20 +50,25 @@ export interface Customer {
   id: string;
   tenantId: string;
   firstName: string;
+  middleName: string | null;
   lastName: string;
+  suffix: string | null;
   email: string | null;
   phone: string | null;
+  phoneSecondary: string | null;
   mobile: string | null;
   cellPhone: string | null; // Alias for mobile
   dateOfBirth: Date | null;
-  driversLicenseNumber: string | null;
-  driversLicenseState: string | null;
+  licenseNumber: string | null;
+  licenseState: string | null;
+  licenseExpiry: Date | null;
   ssn: string | null;
   addressStreet: string | null;
   addressCity: string | null;
   addressState: string | null;
   addressZip: string | null;
   addressCountry: string | null;
+  county: string | null;
   // Aliases for backwards compatibility
   address: string | null; // Alias for addressStreet
   city: string | null; // Alias for addressCity
@@ -57,6 +79,12 @@ export interface Customer {
   leadStatus: LeadStatus;
   leadScore: number;
   creditScore: number | null;
+  employerName: string | null;
+  employerPhone: string | null;
+  monthlyIncome: number | null;
+  housingStatus: string | null;
+  monthlyPayment: number | null;
+  yearsAtAddress: number | null;
   income: number | null;
   assignedToUserId: string | null;
   salesConsultant: string | null; // Alias for assignedToUserId
@@ -64,10 +92,24 @@ export interface Customer {
   tags: string[];
   notes: string | null;
   lifetimeValue: number;
+  consentTcpa: boolean;
+  consentCredit: boolean;
+  consentDate: Date | null;
+  coBuyerFirstName: string | null;
+  coBuyerLastName: string | null;
+  coBuyerEmail: string | null;
+  coBuyerPhone: string | null;
+  coBuyerDateOfBirth: Date | null;
+  coBuyerSsn: string | null;
+  coBuyerEmployer: string | null;
+  coBuyerIncome: number | null;
+  source: LeadSource | null;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
   searchVector: string | null;
+  isActive: boolean;
+  createdById: string | null;
   // Relations - optional for frontend
   digitalProfile?: CustomerDigitalProfile;
   customerJourney?: CustomerJourney;
@@ -160,6 +202,7 @@ export interface Vehicle {
   tenantId: string;
   vin: string;
   stockNumber: string;
+  type: VehicleType;
   year: number;
   make: string;
   model: string;
@@ -168,14 +211,33 @@ export interface Vehicle {
   exteriorColor: string | null;
   interiorColor: string | null;
   mileage: number;
+  mileageIn?: number | null;
+  mileageOut?: number | null;
   price: number;
   cost: number | null;
+  costCents?: number | null;
+  packCents?: number | null;
+  reconCostCents?: number | null;
+  floorPlanCostCents?: number | null;
+  msrpCents?: number | null;
+  invoiceCents?: number | null;
+  priceCents?: number | null;
+  minPriceCents?: number | null;
+  acquisitionCostCents?: number | null;
   status: VehicleStatus;
-  condition: VehicleCondition;
+  condition: VehicleCondition | null;
   location: string | null;
+  locationId?: string | null;
   description: string | null;
   features: string[];
   images: string[];
+  primaryImageUrl?: string | null;
+  imageUrls?: string[];
+  videoUrl?: string | null;
+  hasCarfax?: boolean;
+  carfaxUrl?: string | null;
+  hasAutocheck?: boolean;
+  autocheckUrl?: string | null;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -183,16 +245,30 @@ export interface Vehicle {
 
 export enum VehicleStatus {
   AVAILABLE = 'AVAILABLE',
+  IN_STOCK = 'IN_STOCK',
   SOLD = 'SOLD',
   PENDING = 'PENDING',
-  RESERVED = 'RESERVED',
   IN_TRANSIT = 'IN_TRANSIT',
+  RECON = 'RECON',
+  DEMO = 'DEMO',
+  DELIVERED = 'DELIVERED',
+  SERVICE = 'SERVICE',
+  SERVICE_LOANER = 'SERVICE_LOANER',
+  WHOLESALE = 'WHOLESALE',
 }
 
 export enum VehicleCondition {
+  EXCELLENT = 'EXCELLENT',
+  GOOD = 'GOOD',
+  FAIR = 'FAIR',
+  POOR = 'POOR',
+}
+
+export enum VehicleType {
   NEW = 'NEW',
   USED = 'USED',
   CERTIFIED = 'CERTIFIED',
+  CPO = 'CPO',
 }
 
 // User types

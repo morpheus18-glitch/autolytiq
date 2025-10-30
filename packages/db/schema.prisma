@@ -38,13 +38,17 @@ model Tenant {
   customerInteractions CustomerInteraction[]
   customerVehicles     CustomerVehicle[]
   customers            Customer[]
+  customerActivities   CustomerActivity[]
   dealJackets          DealJacket[]
+  dealActivities       DealActivity[]
   dealOptimizations    DealOptimization[]
   dealVersions         DealVersion[]
   dealWorksheets       DealWorksheet[]
   deals                Deal[]
   emailTemplates       EmailTemplate[]
+  financeProducts      FinanceProduct[]
   fiProducts           FIProduct[]
+  dealFiProducts       DealFIProduct[]
   fundingChecklists    FundingChecklist[]
   glAccounts           GLAccount[]
   journalEntries       JournalEntry[]
@@ -58,11 +62,16 @@ model Tenant {
   notifications        Notification[]
   pipelineAggregates   PipelineAggregate[]
   priceHistories       PriceHistory[]
+  leadActivities       LeadActivity[]
   reconItems           ReconItem[]
   reports              Report[]
   smsTemplates         SMSTemplate[]
+  serviceOrders        ServiceOrder[]
+  serviceLineItems     ServiceLineItem[]
   stageTransitions     StageTransition[]
   systemSettings       SystemSetting[]
+  tradeIns             TradeIn[]
+  locations            Location[]
   transportOrders      TransportOrder[]
   users                User[]
   vehicleHistories     VehicleHistory[]
@@ -104,22 +113,31 @@ model User {
   communications            Communication[]
   counterOffersHandled      CounterOffer[]        @relation("CounterOfferHandledBy")
   interactions              CustomerInteraction[]
+  createdCustomers          Customer[]            @relation("CustomerCreator")
   customers                 Customer[]            @relation("CustomerAssignedTo")
   dealJacketsAsFinance      DealJacket[]          @relation("DealJacketFIManager")
   dealJacketsAsSales        DealJacket[]          @relation("DealJacketSalesperson")
   dealOptimizationsRun      DealOptimization[]    @relation("DealOptimizationRunBy")
   dealVersionsCreated       DealVersion[]         @relation("DealVersionCreatedBy")
   dealWorksheets            DealWorksheet[]       @relation("DealWorksheetSalesperson")
-  dealsAsFinance            Deal[]                @relation("FinanceManagerDeals")
-  dealsAsSales              Deal[]                @relation("SalesPersonDeals")
+  fiDeals                   Deal[]                @relation("FinanceManagerDeals")
+  salesDeals                Deal[]                @relation("SalesPersonDeals")
+  managedDeals              Deal[]                @relation("DealSalesManager")
+  deliveredDeals            Deal[]                @relation("DealDeliveredBy")
   fundingChecklistsReviewed FundingChecklist[]    @relation("FundingChecklistReviewer")
   journalEntries            JournalEntry[]
   leadsAssigned             Lead[]                @relation("LeadAssignedTo")
   leadsOwned                Lead[]                @relation("LeadOwner")
   notifications             Notification[]
   priceChanges              PriceHistory[]        @relation("PriceHistoryChangedBy")
+  appraisedTradeIns         TradeIn[]             @relation("TradeInAppraiser")
   reports                   Report[]              @relation("ReportCreatedBy")
   stageTransitions          StageTransition[]     @relation("StageTransitionActor")
+  customerActivities        CustomerActivity[]
+  dealActivities            DealActivity[]
+  leadActivities            LeadActivity[]
+  advisedServiceOrders      ServiceOrder[]        @relation("ServiceAdvisor")
+  techServiceOrders         ServiceOrder[]        @relation("ServiceTechnician")
   systemSettings            SystemSetting[]
   tenant                    Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   assignedWorkflowTasks     WorkflowTask[]        @relation("WorkflowTaskAssignee")
@@ -135,25 +153,48 @@ model Customer {
   id                     String                 @id @default(cuid())
   tenantId               String                 @map("tenant_id")
   firstName              String                 @map("first_name")
+  middleName             String?                @map("middle_name")
   lastName               String                 @map("last_name")
+  suffix                 String?                @map("suffix")
   email                  String?
   phone                  String?
+  phoneSecondary         String?                @map("phone_secondary")
   mobile                 String?
   dateOfBirth            DateTime?              @map("date_of_birth") @db.Date
-  driversLicenseNumber   String?                @map("drivers_license_number")
-  driversLicenseState    String?                @map("drivers_license_state")
+  licenseNumber          String?                @map("drivers_license_number")
+  licenseState           String?                @map("drivers_license_state")
+  licenseExpiry          DateTime?              @map("license_expiry") @db.Date
   ssn                    String?
   addressStreet          String?                @map("address_street")
   addressCity            String?                @map("address_city")
   addressState           String?                @map("address_state")
   addressZip             String?                @map("address_zip")
   addressCountry         String?                @map("address_country")
+  county                 String?                @map("county")
   preferredContactMethod PreferredContactMethod @default(EMAIL) @map("preferred_contact_method")
   leadSource             LeadSource             @default(WEBSITE) @map("lead_source")
   leadStatus             LeadStatus             @default(NEW) @map("lead_status")
   leadScore              Int                    @default(0) @map("lead_score")
   creditScore            Int?                   @map("credit_score")
   assignedToUserId       String?                @map("assigned_to_user_id")
+  employerName           String?                @map("employer_name")
+  employerPhone          String?                @map("employer_phone")
+  monthlyIncome          Int?                   @map("monthly_income")
+  housingStatus          String?                @map("housing_status")
+  monthlyPayment         Int?                   @map("monthly_payment")
+  yearsAtAddress         Int?                   @map("years_at_address")
+  consentTcpa            Boolean                @default(false) @map("consent_tcpa")
+  consentCredit          Boolean                @default(false) @map("consent_credit")
+  consentDate            DateTime?              @map("consent_date") @db.Timestamptz(6)
+  coBuyerFirstName       String?                @map("co_buyer_first_name")
+  coBuyerLastName        String?                @map("co_buyer_last_name")
+  coBuyerEmail           String?                @map("co_buyer_email")
+  coBuyerPhone           String?                @map("co_buyer_phone")
+  coBuyerDateOfBirth     DateTime?              @map("co_buyer_date_of_birth") @db.Date
+  coBuyerSsn             String?                @map("co_buyer_ssn")
+  coBuyerEmployer        String?                @map("co_buyer_employer")
+  coBuyerIncome          Int?                   @map("co_buyer_income")
+  source                 LeadSource?            @map("source")
   tags                   String[]               @default([])
   notes                  String?
   lifetimeValue          Decimal                @default(0) @map("lifetime_value") @db.Decimal(18, 2)
@@ -161,12 +202,18 @@ model Customer {
   updatedAt              DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt              DateTime?              @map("deleted_at") @db.Timestamptz(6)
   searchVector           String?                @map("search_vector")
+  isActive               Boolean                @default(true) @map("is_active")
+  createdById            String?                @map("created_by_id")
   activities             Activity[]
+  customerActivities     CustomerActivity[]
   appointments           Appointment[]
   communications         Communication[]
   interactions           CustomerInteraction[]
   vehicles               CustomerVehicle[]
+  serviceOrders          ServiceOrder[]
+  tradeIns               TradeIn[]
   assignedToUser         User?                  @relation("CustomerAssignedTo", fields: [assignedToUserId], references: [id])
+  createdBy              User?                  @relation("CustomerCreator", fields: [createdById], references: [id])
   tenant                 Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   dealJackets            DealJacket[]
   dealWorksheets         DealWorksheet[]
@@ -178,6 +225,10 @@ model Customer {
   @@index([tenantId])
   @@index([tenantId, searchVector])
   @@index([tenantId, lastName, firstName])
+  @@index([tenantId, email])
+  @@index([tenantId, phone])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, deletedAt])
   @@map("customers")
 }
 
@@ -203,6 +254,26 @@ model CustomerInteraction {
   @@index([tenantId, customerId])
   @@index([tenantId, scheduledAt])
   @@map("customer_interactions")
+}
+
+model CustomerActivity {
+  id           String   @id @default(cuid())
+  tenantId     String   @map("tenant_id")
+  customerId   String   @map("customer_id")
+  type         String   @map("type")
+  direction    String?  @map("direction")
+  subject      String?  @map("subject")
+  description  String?  @map("description")
+  performedBy  String?  @map("performed_by")
+  duration     Int?     @map("duration")
+  metadata     Json?    @map("metadata")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  customer     Customer @relation(fields: [customerId], references: [id])
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  performer    User?    @relation(fields: [performedBy], references: [id])
+
+  @@index([tenantId, customerId, createdAt])
+  @@map("customer_activities")
 }
 
 model Lead {
@@ -236,6 +307,7 @@ model Lead {
   activities          Activity[]
   appointments        Appointment[]
   communications      Communication[]
+  leadActivities      LeadActivity[]
   scores              LeadScore[]
   assignedTo          User?           @relation("LeadAssignedTo", fields: [assignedToId], references: [id])
   customer            Customer?       @relation(fields: [customerId], references: [id])
@@ -249,6 +321,23 @@ model Lead {
   @@index([tenantId, isArchived, status])
   @@index([tenantId, createdAt])
   @@map("leads")
+}
+
+model LeadActivity {
+  id           String   @id @default(cuid())
+  tenantId     String   @map("tenant_id")
+  leadId       String   @map("lead_id")
+  type         String   @map("type")
+  description  String?  @map("description")
+  performedBy  String?  @map("performed_by")
+  metadata     Json?    @map("metadata")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  lead         Lead     @relation(fields: [leadId], references: [id])
+  performer    User?    @relation(fields: [performedBy], references: [id])
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, leadId, createdAt])
+  @@map("lead_activities")
 }
 
 model Activity {
@@ -296,6 +385,7 @@ model Appointment {
   type           AppointmentType
   status         AppointmentStatus @default(SCHEDULED)
   location       String?
+  locationId     String?           @map("location_id")
   timeZone       String?           @default("UTC") @map("time_zone")
   startAt        DateTime          @map("start_at") @db.Timestamptz(6)
   endAt          DateTime?         @map("end_at") @db.Timestamptz(6)
@@ -313,13 +403,83 @@ model Appointment {
   lead           Lead?             @relation(fields: [leadId], references: [id])
   tenant         Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   vehicle        Vehicle?          @relation(fields: [vehicleId], references: [id])
+  locationRef    Location?         @relation(fields: [locationId], references: [id])
 
   @@index([tenantId, startAt])
   @@index([tenantId, status])
   @@index([tenantId, leadId])
   @@index([tenantId, assignedToId])
   @@index([tenantId, vehicleId])
+  @@index([tenantId, locationId])
   @@map("appointments")
+}
+
+model ServiceOrder {
+  id                 String              @id @default(cuid())
+  tenantId           String              @map("tenant_id")
+  roNumber           String              @map("ro_number")
+  customerId         String              @map("customer_id")
+  vehicleId          String              @map("vehicle_id")
+  locationId         String?             @map("location_id")
+  status             ServiceOrderStatus  @default(DRAFT)
+  type               ServiceType         @map("type")
+  advisorId          String?             @map("advisor_id")
+  technicianId       String?             @map("technician_id")
+  scheduledDate      DateTime?           @map("scheduled_date") @db.Timestamptz(6)
+  startedAt          DateTime?           @map("started_at") @db.Timestamptz(6)
+  completedAt        DateTime?           @map("completed_at") @db.Timestamptz(6)
+  promisedDate       DateTime?           @map("promised_date") @db.Timestamptz(6)
+  mileageIn          Int?                @map("mileage_in")
+  mileageOut         Int?                @map("mileage_out")
+  customerConcern    String?             @map("customer_concern")
+  causeOfFailure     String?             @map("cause_of_failure")
+  correction         String?             @map("correction")
+  laborCents         Int?                @map("labor_cents")
+  partsCents         Int?                @map("parts_cents")
+  subletCents        Int?                @map("sublet_cents")
+  shopSuppliesCents  Int?                @map("shop_supplies_cents")
+  subtotalCents      Int?                @map("subtotal_cents")
+  taxCents           Int?                @map("tax_cents")
+  totalCents         Int?                @map("total_cents")
+  isPaid             Boolean             @default(false) @map("is_paid")
+  paidAt             DateTime?           @map("paid_at") @db.Timestamptz(6)
+  notes              String?             @map("notes")
+  internalNotes      String?             @map("internal_notes")
+  deletedAt          DateTime?           @map("deleted_at") @db.Timestamptz(6)
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  advisor            User?               @relation("ServiceAdvisor", fields: [advisorId], references: [id])
+  customer           Customer            @relation(fields: [customerId], references: [id])
+  technician         User?               @relation("ServiceTechnician", fields: [technicianId], references: [id])
+  tenant             Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle            Vehicle             @relation(fields: [vehicleId], references: [id])
+  location           Location?           @relation(fields: [locationId], references: [id])
+  lineItems          ServiceLineItem[]
+
+  @@unique([tenantId, roNumber])
+  @@index([tenantId, status])
+  @@index([tenantId, customerId])
+  @@index([tenantId, vehicleId])
+  @@index([tenantId, advisorId])
+  @@map("service_orders")
+}
+
+model ServiceLineItem {
+  id             String   @id @default(cuid())
+  tenantId       String   @map("tenant_id")
+  serviceOrderId String   @map("service_order_id")
+  type           String   @map("type")
+  description    String?  @map("description")
+  hours          Float?   @map("hours")
+  rateCents      Int?     @map("rate_cents")
+  amountCents    Int      @map("amount_cents")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  serviceOrder   ServiceOrder @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, serviceOrderId])
+  @@map("service_line_items")
 }
 
 model LeadScore {
@@ -471,6 +631,7 @@ model Vehicle {
   make                  String
   model                 String
   trim                  String?
+  bodyStyle             String?                 @map("body_style")
   exteriorColor         String?                 @map("exterior_color")
   interiorColor         String?                 @map("interior_color")
   mileage               Int?
@@ -478,31 +639,56 @@ model Vehicle {
   transmission          String?
   drivetrain            String?
   fuelType              FuelType                @map("fuel_type")
-  msrp                  Decimal?                @db.Decimal(18, 2)
-  invoiceCost           Decimal?                @map("invoice_cost") @db.Decimal(18, 2)
-  listPrice             Decimal?                @map("list_price") @db.Decimal(18, 2)
-  specialPrice          Decimal?                @map("special_price") @db.Decimal(18, 2)
+  condition             VehicleCondition?       @map("condition")
   status                VehicleStatus           @default(AVAILABLE)
+  mileageIn             Int?                    @map("mileage_in")
+  mileageOut            Int?                    @map("mileage_out")
+  costCents             Int?                    @map("cost_cents")
+  packCents             Int?                    @map("pack_cents")
+  reconCostCents        Int?                    @map("recon_cost_cents")
+  floorPlanCostCents    Int?                    @map("floor_plan_cost_cents")
+  msrp                  Decimal?                @db.Decimal(18, 2)
+  msrpCents             Int?                    @map("msrp_cents")
+  invoiceCost           Decimal?                @map("invoice_cost") @db.Decimal(18, 2)
+  invoiceCents          Int?                    @map("invoice_cents")
+  listPrice             Decimal?                @map("list_price") @db.Decimal(18, 2)
+  priceCents            Int?                    @map("price_cents")
+  minPriceCents         Int?                    @map("min_price_cents")
+  specialPrice          Decimal?                @map("special_price") @db.Decimal(18, 2)
+  acquiredFrom          String?                 @map("acquired_from")
+  acquiredDate          DateTime?               @map("acquired_date") @db.Timestamptz(6)
+  acquisitionCost       Decimal?                @map("acquisition_cost") @db.Decimal(18, 2)
+  acquisitionCostCents  Int?                    @map("acquisition_cost_cents")
   location              String?
+  locationId            String?                 @map("location_id")
   dateReceived          DateTime?               @map("date_received") @db.Timestamptz(6)
   dateSold              DateTime?               @map("date_sold") @db.Timestamptz(6)
   daysInStock           Int?                    @default(0) @map("days_in_stock")
+  lastPriceChangeDate   DateTime?               @map("last_price_change_date") @db.Timestamptz(6)
   images                String[]                @default([])
+  primaryImageUrl       String?                 @map("primary_image_url")
+  imageUrls             String[]                @default([]) @map("image_urls")
+  videoUrl              String?                 @map("video_url")
   features              String[]                @default([])
+  options               Json?                   @map("options")
   certificationNumber   String?                 @map("certification_number")
+  certifiedPreOwned     Boolean                 @default(false) @map("certified_pre_owned")
   floorPlanId           String?                 @map("floor_plan_id")
   floorPlanDate         DateTime?               @map("floor_plan_date") @db.Timestamptz(6)
   floorPlanInterestRate Decimal?                @map("floor_plan_interest_rate") @db.Decimal(5, 2)
   acquisitionType       VehicleAcquisitionType? @map("acquisition_type")
   acquisitionSource     String?                 @map("acquisition_source")
   acquisitionDate       DateTime?               @map("acquisition_date") @db.Timestamptz(6)
-  acquisitionCost       Decimal?                @map("acquisition_cost") @db.Decimal(18, 2)
   floorPrice            Decimal?                @map("floor_price") @db.Decimal(18, 2)
   wholesaleValue        Decimal?                @map("wholesale_value") @db.Decimal(18, 2)
   marketValue           Decimal?                @map("market_value") @db.Decimal(18, 2)
   targetPrice           Decimal?                @map("target_price") @db.Decimal(18, 2)
   aiPrice               Decimal?                @map("ai_price") @db.Decimal(18, 2)
   pricingNotes          String?                 @map("pricing_notes")
+  hasCarfax             Boolean                 @default(false) @map("has_carfax")
+  carfaxUrl             String?                 @map("carfax_url")
+  hasAutocheck          Boolean                 @default(false) @map("has_autocheck")
+  autocheckUrl          String?                 @map("autocheck_url")
   appraisalStatus       AppraisalStatus?        @map("appraisal_status")
   lastAppraisedAt       DateTime?               @map("last_appraised_at") @db.Timestamptz(6)
   reconEstimate         Decimal?                @map("recon_estimate") @db.Decimal(18, 2)
@@ -525,15 +711,19 @@ model Vehicle {
   priceHistory          PriceHistory[]
   reconItems            ReconItem[]
   transportOrders       TransportOrder[]
+  serviceOrders         ServiceOrder[]
   histories             VehicleHistory[]
   workflows             VehicleWorkflow[]
   tenant                Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  locationRef           Location?               @relation(fields: [locationId], references: [id])
+  tradeIns              TradeIn[]               @relation("TradeInVehicle")
   wholesaleListings     WholesaleListing[]
   workflowTasks         WorkflowTask[]
 
   @@unique([tenantId, stockNumber])
   @@index([tenantId, status])
   @@index([tenantId, make, model])
+  @@index([tenantId, locationId])
   @@index([tenantId, acquisitionType])
   @@index([tenantId, appraisalStatus])
   @@index([tenantId])
@@ -556,6 +746,35 @@ model VehicleHistory {
 
   @@index([tenantId, vehicleId])
   @@map("vehicle_histories")
+}
+
+model Location {
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  name        String
+  code        String?  @map("code")
+  type        String
+  address1    String?  @map("address1")
+  address2    String?  @map("address2")
+  city        String?
+  state       String?
+  postalCode  String?  @map("postal_code")
+  phone       String?
+  email       String?
+  isPrimary   Boolean  @default(false) @map("is_primary")
+  isActive    Boolean  @default(true) @map("is_active")
+  notes       String?  @map("notes")
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  appointments  Appointment[]
+  serviceOrders ServiceOrder[]
+  vehicles      Vehicle[]
+
+  @@index([tenantId, isActive])
+  @@map("locations")
 }
 
 model Appraisal {
@@ -636,8 +855,11 @@ model PriceHistory {
   changedById     String?         @map("changed_by_id")
   changeType      PriceChangeType @default(MANUAL) @map("change_type")
   oldPrice        Decimal?        @map("old_price") @db.Decimal(18, 2)
+  oldPriceCents   Int?            @map("old_price_cents")
   newPrice        Decimal         @map("new_price") @db.Decimal(18, 2)
+  newPriceCents   Int?            @map("new_price_cents")
   adjustment      Decimal?        @db.Decimal(18, 2)
+  adjustmentCents Int?            @map("adjustment_cents")
   sourceReference String?         @map("source_reference")
   notes           String?
   createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -736,21 +958,45 @@ model Deal {
   customerId          String                  @map("customer_id")
   vehicleId           String                  @map("vehicle_id")
   salesPersonId       String                  @map("sales_person_id")
+  salesManagerId      String?                 @map("sales_manager_id")
   financeManagerId    String?                 @map("finance_manager_id")
+  lenderId            String?                 @map("lender_id")
+  deliveredById       String?                 @map("delivered_by_id")
   dealType            DealType                @map("deal_type")
   status              RetailDealStatus        @default(DRAFT)
   vehiclePrice        Decimal                 @map("vehicle_price") @db.Decimal(18, 2)
   discount            Decimal                 @default(0) @db.Decimal(18, 2)
   netVehiclePrice     Decimal                 @map("net_vehicle_price") @db.Decimal(18, 2)
+  msrpCents           Int?                    @map("msrp_cents")
+  sellingPriceCents   Int?                    @map("selling_price_cents")
+  discountCents       Int?                    @map("discount_cents")
+  rebateCents         Int?                    @map("rebate_cents")
+  holdbackCents       Int?                    @map("holdback_cents")
+  dealerCostCents     Int?                    @map("dealer_cost_cents")
+  packAmount          Decimal?                @map("pack_amount") @db.Decimal(18, 2)
+  packCents           Int?                    @map("pack_cents")
   tradeVehicleId      String?                 @map("trade_vehicle_id")
   tradeAllowance      Decimal?                @map("trade_allowance") @db.Decimal(18, 2)
   tradePayoff         Decimal?                @map("trade_payoff") @db.Decimal(18, 2)
   tradeEquity         Decimal?                @map("trade_equity") @db.Decimal(18, 2)
+  tradeInId           String?                 @map("trade_in_id")
+  tradeAllowanceCents Int?                    @map("trade_allowance_cents")
+  tradeAcvCents       Int?                    @map("trade_acv_cents")
+  tradePayoffCents    Int?                    @map("trade_payoff_cents")
   downPayment         Decimal?                @map("down_payment") @db.Decimal(18, 2)
+  cashDownCents       Int?                    @map("cash_down_cents")
+  tradeEquityCents    Int?                    @map("trade_equity_cents")
+  totalDownCents      Int?                    @map("total_down_cents")
   amountFinanced      Decimal?                @map("amount_financed") @db.Decimal(18, 2)
+  amountFinancedCents Int?                    @map("amount_financed_cents")
   apr                 Decimal?                @db.Decimal(5, 2)
+  aprBps              Int?                    @map("apr_bps")
+  buyRateBps          Int?                    @map("buy_rate_bps")
+  reserveBps          Int?                    @map("reserve_bps")
   term                Int?
+  termMonths          Int?                    @map("term_months")
   monthlyPayment      Decimal?                @map("monthly_payment") @db.Decimal(18, 2)
+  monthlyPaymentCents Int?                    @map("monthly_payment_cents")
   lenderName          String?                 @map("lender_name")
   lenderRate          Decimal?                @map("lender_rate") @db.Decimal(5, 2)
   dealerReserve       Decimal?                @map("dealer_reserve") @db.Decimal(18, 2)
@@ -758,6 +1004,11 @@ model Deal {
   registrationFee     Decimal?                @map("registration_fee") @db.Decimal(18, 2)
   salesTax            Decimal?                @map("sales_tax") @db.Decimal(18, 2)
   otherFees           Json?                   @map("other_fees")
+  docFeeCents         Int?                    @map("doc_fee_cents")
+  registrationFeeCents Int?                   @map("registration_fee_cents")
+  titleFeeCents       Int?                    @map("title_fee_cents")
+  salesTaxCents       Int?                    @map("sales_tax_cents")
+  otherFeesCents      Int?                    @map("other_fees_cents")
   warrantyProduct     String?                 @map("warranty_product")
   warrantyCost        Decimal?                @map("warranty_cost") @db.Decimal(18, 2)
   gapInsurance        Boolean                 @default(false) @map("gap_insurance")
@@ -768,11 +1019,32 @@ model Deal {
   frontEndGross       Decimal?                @map("front_end_gross") @db.Decimal(18, 2)
   backEndGross        Decimal?                @map("back_end_gross") @db.Decimal(18, 2)
   totalGross          Decimal?                @map("total_gross") @db.Decimal(18, 2)
-  packAmount          Decimal?                @map("pack_amount") @db.Decimal(18, 2)
+  totalFiCents        Int?                    @map("total_fi_cents")
+  frontGrossCents     Int?                    @map("front_gross_cents")
+  backGrossCents      Int?                    @map("back_gross_cents")
+  tradeGrossCents     Int?                    @map("trade_gross_cents")
+  reserveGrossCents   Int?                    @map("reserve_gross_cents")
+  totalGrossCents     Int?                    @map("total_gross_cents")
   dealDate            DateTime                @map("deal_date") @db.Timestamptz(6)
   fundedDate          DateTime?               @map("funded_date") @db.Timestamptz(6)
   deliveryDate        DateTime?               @map("delivery_date") @db.Timestamptz(6)
+  contractNumber      String?                 @map("contract_number")
+  contractDate        DateTime?               @map("contract_date") @db.Timestamptz(6)
+  contractSignedAt    DateTime?               @map("contract_signed_at") @db.Timestamptz(6)
+  submittedToLender   Boolean                 @default(false) @map("submitted_to_lender")
+  submittedAt         DateTime?               @map("submitted_at") @db.Timestamptz(6)
+  lenderApprovalStatus String?                @map("lender_approval_status")
+  approvedAt          DateTime?               @map("approved_at") @db.Timestamptz(6)
+  fundedAt            DateTime?               @map("funded_at") @db.Timestamptz(6)
+  deliveredBy         User?                   @relation("DealDeliveredBy", fields: [deliveredById], references: [id])
+  spotDelivery        Boolean                 @default(false) @map("spot_delivery")
+  yoYoRisk            Boolean                 @default(false) @map("yo_yo_risk")
+  version             Int                     @default(1)
+  aiScore             Int?                    @map("ai_score")
+  aiRecommendations   Json?                   @map("ai_recommendations")
+  similarDealsAnalysis Json?                  @map("similar_deals_analysis")
   notes               String?
+  internalNotes       String?                 @map("internal_notes")
   createdAt           DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt           DateTime?               @map("deleted_at") @db.Timestamptz(6)
@@ -785,18 +1057,134 @@ model Deal {
   worksheets          DealWorksheet[]
   customer            Customer                @relation(fields: [customerId], references: [id])
   financeManager      User?                   @relation("FinanceManagerDeals", fields: [financeManagerId], references: [id])
+  salesManager        User?                   @relation("DealSalesManager", fields: [salesManagerId], references: [id])
   salesPerson         User                    @relation("SalesPersonDeals", fields: [salesPersonId], references: [id])
   tenant              Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tradeIn             TradeIn?                @relation(fields: [tradeInId], references: [id])
   tradeVehicle        CustomerVehicle?        @relation("TradeVehicleDeal", fields: [tradeVehicleId], references: [id])
   vehicle             Vehicle                 @relation(fields: [vehicleId], references: [id])
+  lender              Lender?                 @relation("DealLender", fields: [lenderId], references: [id])
   journalEntries      JournalEntry[]
   events              DealEvent[]
+  fiProducts          DealFIProduct[]
+  activities          DealActivity[]
 
   @@unique([tenantId, dealNumber])
   @@index([tenantId, status])
   @@index([tenantId, customerId])
   @@index([tenantId, salesPersonId])
+  @@index([tenantId, salesManagerId])
+  @@index([tenantId, lenderId])
   @@map("deals")
+}
+
+model TradeIn {
+  id                   String            @id @default(cuid())
+  tenantId             String            @map("tenant_id")
+  customerId           String            @map("customer_id")
+  vehicleId            String?           @map("vehicle_id")
+  vin                  String?           @map("vin")
+  year                 Int?
+  make                 String?
+  model                String?
+  trim                 String?
+  mileage              Int?
+  color                String?
+  condition            VehicleCondition? @map("condition")
+  acvCents             Int?              @map("acv_cents")
+  allowanceCents       Int?              @map("allowance_cents")
+  payoffCents          Int?              @map("payoff_cents")
+  equityCents          Int?              @map("equity_cents")
+  lienholder           String?           @map("lienholder")
+  accountNumber        String?           @map("account_number")
+  payoffPhoneNumber    String?           @map("payoff_phone_number")
+  payoffGoodThrough    DateTime?         @map("payoff_good_through") @db.Timestamptz(6)
+  appraisedById        String?           @map("appraised_by_id")
+  appraisedAt          DateTime?         @map("appraised_at") @db.Timestamptz(6)
+  appraisalNotes       String?           @map("appraisal_notes")
+  status               TradeInStatus     @default(PENDING_APPRAISAL)
+  acceptedByCustomer   Boolean           @default(false) @map("accepted_by_customer")
+  imageUrls            String[]          @default([]) @map("image_urls")
+  notes                String?           @map("notes")
+  deletedAt            DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  createdAt            DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  customer             Customer          @relation(fields: [customerId], references: [id])
+  tenant               Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle              Vehicle?          @relation("TradeInVehicle", fields: [vehicleId], references: [id])
+  appraiser            User?             @relation("TradeInAppraiser", fields: [appraisedById], references: [id])
+  deals                Deal[]
+
+  @@index([tenantId, customerId])
+  @@index([tenantId, status])
+  @@index([tenantId, deletedAt])
+  @@map("trade_ins")
+}
+
+model FinanceProduct {
+  id                    String              @id @default(cuid())
+  tenantId              String              @map("tenant_id")
+  name                  String
+  type                  FinanceProductType  @map("type")
+  provider              String?             @map("provider")
+  isActive              Boolean             @default(true) @map("is_active")
+  costCents             Int                 @map("cost_cents")
+  retailCents           Int                 @map("retail_cents")
+  termMonths            Int?                @map("term_months")
+  mileageLimit          Int?                @map("mileage_limit")
+  deductibleCents       Int?                @map("deductible_cents")
+  commissionPercent     Float?              @map("commission_percent")
+  flatCommissionCents   Int?                @map("flat_commission_cents")
+  description           String?             @map("description")
+  features              String[]            @default([]) @map("features")
+  exclusions            String[]            @default([]) @map("exclusions")
+  brochureUrl           String?             @map("brochure_url")
+  notes                 String?             @map("notes")
+  deletedAt             DateTime?           @map("deleted_at") @db.Timestamptz(6)
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant                Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  dealProducts          DealFIProduct[]
+
+  @@index([tenantId, type])
+  @@index([tenantId, isActive])
+  @@map("finance_products")
+}
+
+model DealFIProduct {
+  id               String          @id @default(cuid())
+  tenantId         String          @map("tenant_id")
+  dealId           String          @map("deal_id")
+  productId        String          @map("product_id")
+  costCents        Int             @map("cost_cents")
+  retailCents      Int             @map("retail_cents")
+  commissionCents  Int?            @map("commission_cents")
+  termMonths       Int?            @map("term_months")
+  coverage         String?         @map("coverage")
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  deal             Deal            @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  product          FinanceProduct  @relation(fields: [productId], references: [id])
+  tenant           Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, dealId])
+  @@map("deal_fi_products")
+}
+
+model DealActivity {
+  id           String   @id @default(cuid())
+  tenantId     String   @map("tenant_id")
+  dealId       String   @map("deal_id")
+  type         String   @map("type")
+  description  String   @map("description")
+  performedBy  String?  @map("performed_by")
+  metadata     Json?    @map("metadata")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  deal         Deal     @relation(fields: [dealId], references: [id])
+  performer    User?    @relation(fields: [performedBy], references: [id])
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, dealId, createdAt])
+  @@map("deal_activities")
 }
 
 model DealWorksheet {
@@ -1264,7 +1652,7 @@ model Lender {
   id                  String               @id @default(uuid())
   tenantId            String               @map("tenant_id")
   name                String
-  type                String
+  type                LenderType           @map("type")
   apiProvider         String               @map("api_provider")
   apiCredentials      Json                 @map("api_credentials")
   isActive            Boolean              @default(true) @map("is_active")
@@ -1277,6 +1665,7 @@ model Lender {
   approvalPredictions ApprovalPrediction[]
   fundedDeals         DealJacket[]         @relation("DealJacketLender")
   submissions         LenderSubmission[]
+  deals               Deal[]               @relation("DealLender")
   tenant              Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
@@ -1379,6 +1768,8 @@ model GLAccount {
   subAccounts     GLAccount[]        @relation("GLAccountHierarchy")
   tenant          Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   journalLines    JournalEntryLine[]
+  debitJournalEntries  JournalEntry[]  @relation("JournalEntryDebit")
+  creditJournalEntries JournalEntry[]  @relation("JournalEntryCredit")
 
   @@unique([tenantId, accountNumber])
   @@index([tenantId, parentAccountId])
@@ -1386,24 +1777,33 @@ model GLAccount {
 }
 
 model JournalEntry {
-  id          String             @id @default(cuid())
-  tenantId    String             @map("tenant_id")
-  entryNumber String             @map("entry_number")
-  memo        String?
-  status      JournalStatus      @default(DRAFT)
-  postingDate DateTime           @map("posting_date") @db.Timestamptz(6)
-  dealId      String?            @map("deal_id")
-  postedById  String             @map("posted_by_id")
-  postedAt    DateTime?          @map("posted_at") @db.Timestamptz(6)
-  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deal        Deal?              @relation(fields: [dealId], references: [id])
-  postedBy    User               @relation(fields: [postedById], references: [id])
-  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  lines       JournalEntryLine[]
+  id             String             @id @default(cuid())
+  tenantId       String             @map("tenant_id")
+  entryNumber    String             @map("entry_number")
+  memo           String?
+  status         JournalStatus      @default(DRAFT)
+  postingDate    DateTime           @map("posting_date") @db.Timestamptz(6)
+  dealId         String?            @map("deal_id")
+  postedById     String             @map("posted_by_id")
+  postedAt       DateTime?          @map("posted_at") @db.Timestamptz(6)
+  entryType      JournalEntryType?  @map("entry_type")
+  amountCents    Int?               @map("amount_cents")
+  debitAccountId String?            @map("debit_account_id")
+  creditAccountId String?           @map("credit_account_id")
+  createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deal           Deal?              @relation(fields: [dealId], references: [id])
+  postedBy       User               @relation(fields: [postedById], references: [id])
+  tenant         Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lines          JournalEntryLine[]
+  debitAccount   GLAccount?         @relation("JournalEntryDebit", fields: [debitAccountId], references: [id])
+  creditAccount  GLAccount?         @relation("JournalEntryCredit", fields: [creditAccountId], references: [id])
 
   @@unique([tenantId, entryNumber])
   @@index([tenantId, dealId])
+  @@index([tenantId, entryType])
+  @@index([tenantId, debitAccountId])
+  @@index([tenantId, creditAccountId])
   @@map("journal_entries")
 }
 
@@ -1781,6 +2181,8 @@ enum LeadSource {
   EMAIL
   SOCIAL_MEDIA
   THIRD_PARTY
+  EVENT
+  SERVICE_DRIVE
   OTHER
 }
 
@@ -1789,12 +2191,20 @@ enum LeadStatus {
   CONTACTED
   QUALIFIED
   SCHEDULED
+  APPOINTMENT_SET
+  SHOWED
+  NO_SHOW
+  DEMO_DRIVEN
+  PROPOSAL_SENT
+  NEGOTIATING
   NEGOTIATION
   WON
+  SOLD
   HOT
   WARM
   COLD
   LOST
+  DEAD
   CUSTOMER
   ARCHIVED
 }
@@ -1885,6 +2295,14 @@ enum VehicleType {
   NEW
   USED
   CERTIFIED
+  CPO
+}
+
+enum VehicleCondition {
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
 }
 
 enum FuelType {
@@ -1896,11 +2314,24 @@ enum FuelType {
 
 enum VehicleStatus {
   AVAILABLE
+  IN_STOCK
   PENDING
   SOLD
   IN_TRANSIT
+  RECON
+  DEMO
+  DELIVERED
   SERVICE
+  SERVICE_LOANER
   WHOLESALE
+}
+
+enum TradeInStatus {
+  PENDING_APPRAISAL
+  APPRAISED
+  ACCEPTED
+  REJECTED
+  WHOLESALED
 }
 
 enum VehicleHistoryType {
@@ -1932,6 +2363,18 @@ enum AppraisalConditionGrade {
   AVERAGE
   CLEAN
   EXCELLENT
+}
+
+enum FinanceProductType {
+  VSC
+  GAP
+  TIRE_WHEEL
+  KEY_REPLACEMENT
+  MAINTENANCE_PLAN
+  APPEARANCE_PROTECTION
+  THEFT_PROTECTION
+  WINDSHIELD
+  DENT_REPAIR
 }
 
 enum ReconItemStatus {
@@ -1970,19 +2413,31 @@ enum MarketCompSource {
   INTERNAL
 }
 
+enum LenderType {
+  CAPTIVE
+  BANK
+  CREDIT_UNION
+  SPECIALTY
+}
+
 enum DealType {
   CASH
   FINANCE
   LEASE
+  WHOLESALE
 }
 
 enum RetailDealStatus {
   DRAFT
+  PENCILED
+  NEGOTIATING
   PENDING
   SUBMITTED
   APPROVED
+  CONTRACTED
   FUNDED
   DELIVERED
+  UNWOUND
   CANCELLED
 }
 
@@ -2001,6 +2456,11 @@ enum CreditTier {
   TIER_4
   TIER_5
   TIER_6
+  SUPER_PRIME
+  PRIME
+  NEAR_PRIME
+  SUBPRIME
+  DEEP_SUBPRIME
 }
 
 enum ResidenceType {
@@ -2025,6 +2485,27 @@ enum CounterOfferOutcome {
   DECLINED
 }
 
+enum ServiceOrderStatus {
+  DRAFT
+  SCHEDULED
+  IN_PROGRESS
+  AWAITING_PARTS
+  AWAITING_APPROVAL
+  COMPLETED
+  INVOICED
+  PAID
+  CANCELLED
+}
+
+enum ServiceType {
+  MAINTENANCE
+  REPAIR
+  WARRANTY
+  RECALL
+  INSPECTION
+  DETAIL
+}
+
 enum AccountType {
   ASSET
   LIABILITY
@@ -2042,6 +2523,14 @@ enum JournalStatus {
   DRAFT
   POSTED
   VOID
+}
+
+enum JournalEntryType {
+  DEAL_POSTING
+  PAYMENT
+  ADJUSTMENT
+  REVERSAL
+  CHARGEBACK
 }
 
 enum LineType {
