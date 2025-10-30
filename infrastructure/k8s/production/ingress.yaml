@@ -56,6 +56,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: autolytiq
+                name: frontend
                 port:
                   number: 80
