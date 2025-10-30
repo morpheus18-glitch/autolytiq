@@ -1,53 +1,74 @@
-# Multi-stage Dockerfile for Rust services
-FROM rust:1.76-alpine AS builder
+# syntax=docker/dockerfile:1.7
 
-# Install build dependencies
-RUN apk add --no-cache musl-dev protobuf-dev
+FROM rust:1.81 AS builder
 
 WORKDIR /app
 
-# Copy workspace files
-COPY Cargo.toml 
-# Cargo.lock ./
-COPY proto/ ./proto/
-COPY shared/ ./shared/
+ARG BIN_NAME=price-engine
 
-# Accept build-time argument for which service to build
-ARG SERVICE_NAME
+# Install build dependencies required by Diesel + TLS clients
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        pkg-config \
+        libssl-dev \
+        libpq-dev \
+        clang \
+        protobuf-compiler \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy the specific service
-COPY ${SERVICE_NAME}/ ./${SERVICE_NAME}/
+# Copy workspace manifests only (no Cargo.lock needed)
+COPY services/rust/Cargo.toml ./Cargo.toml
+COPY services/rust/price-engine/Cargo.toml price-engine/Cargo.toml
+COPY services/rust/shared/Cargo.toml shared/Cargo.toml
+COPY services/rust/cache-service/Cargo.toml cache-service/Cargo.toml
+COPY services/rust/comm-service/Cargo.toml comm-service/Cargo.toml
+COPY services/rust/rate-limiter/Cargo.toml rate-limiter/Cargo.toml
 
-# Build the service in release mode
-RUN cargo build --release --bin ${SERVICE_NAME}
+# Create minimal source tree so cargo metadata succeeds when fetching deps
+RUN mkdir -p \
+        price-engine/src \
+        shared/src \
+        cache-service/src \
+        comm-service/src \
+        rate-limiter/src \
+    && echo 'fn main() {}' > price-engine/src/main.rs \
+    && echo 'fn main() {}' > cache-service/src/main.rs \
+    && echo 'fn main() {}' > comm-service/src/main.rs \
+    && echo 'fn main() {}' > rate-limiter/src/main.rs \
+    && echo 'pub fn placeholder() {}' > shared/src/lib.rs
 
-# Runtime stage
-FROM alpine:3.19
+# Prime dependency cache
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/app/target \
+    cargo fetch --manifest-path Cargo.toml
 
-# Install runtime dependencies
-RUN apk add --no-cache ca-certificates libgcc
+# Bring in the actual sources
+COPY services/rust/shared ./shared
+COPY services/rust/cache-service ./cache-service
+COPY services/rust/comm-service ./comm-service
+COPY services/rust/rate-limiter ./rate-limiter
+COPY services/rust/price-engine ./price-engine
+COPY services/rust/proto ./proto
 
-# Accept the service name again for the runtime stage
-ARG SERVICE_NAME
-ENV SERVICE_NAME=${SERVICE_NAME}
+# Build the requested binary
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/app/target \
+    cargo build --manifest-path Cargo.toml --release -p ${BIN_NAME}
 
-WORKDIR /app
+# Minimal runtime image
+FROM gcr.io/distroless/cc-debian12
 
-# Copy the binary from builder
-COPY --from=builder /app/target/release/${SERVICE_NAME} /app/service
+ARG BIN_NAME=price-engine
 
-# Create non-root user
-RUN addgroup -g 1000 appuser && \
-    adduser -D -u 1000 -G appuser appuser && \
-    chown -R appuser:appuser /app
+# Copy shared libraries required by libpq + TLS
+COPY --from=builder /lib/x86_64-linux-gnu /lib/x86_64-linux-gnu
+COPY --from=builder /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
-USER appuser
+COPY --from=builder /app/target/release/${BIN_NAME} /usr/local/bin/app
 
-# Expose gRPC port (default, can be overridden)
-EXPOSE 50051
+USER nonroot
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD ["/app/service", "--health-check"] || exit 1
-
-CMD ["/app/service"]
+ENTRYPOINT ["/usr/local/bin/app"]
