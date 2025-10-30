@@ -7,7 +7,8 @@ RUN apk add --no-cache musl-dev protobuf-dev
 WORKDIR /app
 
 # Copy workspace files
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml 
+# Cargo.lock ./
 COPY proto/ ./proto/
 COPY shared/ ./shared/
 
