@@ -55,7 +55,6 @@ jobs:
           provenance: false
           tags: ${{ env.REGISTRY }}/${{ matrix.name }}:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ matrix.name }}:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ matrix.name }}:buildcache,mode=max
           build-args: ${{ matrix.build-args || '' }}
 
   deploy:
