@@ -1,6 +1,6 @@
 use crate::config::AgingBand;
 use crate::models::{CompetitiveRange, MarkdownSuggestion};
-use rust_decimal::Decimal;
+use rust_decimal::{prelude::ToPrimitive, Decimal};
 use rust_decimal_macros::dec;
 use tracing::{info, instrument};
 
@@ -49,8 +49,8 @@ impl MarkdownSuggesterService {
         let total_markdown_pct = aging_markdown_pct * position_adjustment;
 
         // Calculate suggested price
-        let markdown_amount = current_price * Decimal::from_f64_retain(total_markdown_pct / 100.0)
-            .unwrap_or(dec!(0));
+        let markdown_amount =
+            current_price * Decimal::from_f64_retain(total_markdown_pct / 100.0).unwrap_or(dec!(0));
         let suggested_price = current_price - markdown_amount;
 
         // Ensure we don't go below cost (maintain minimum $500 margin)
@@ -74,11 +74,8 @@ impl MarkdownSuggesterService {
         let projected_gross = final_price - cost;
 
         // Estimate days to sale based on competitive position
-        let estimated_days_to_sale = self.estimate_days_to_sale(
-            competitive_position,
-            days_in_stock,
-            market_range,
-        );
+        let estimated_days_to_sale =
+            self.estimate_days_to_sale(competitive_position, days_in_stock, market_range);
 
         // Generate recommendation text
         let recommendation = self.generate_recommendation(
@@ -163,9 +160,7 @@ impl MarkdownSuggesterService {
         current_days_in_stock: i32,
         market_range: Option<&CompetitiveRange>,
     ) -> i32 {
-        let base_days = market_range
-            .map(|r| r.days_to_sale_avg)
-            .unwrap_or(45);
+        let base_days = market_range.map(|r| r.days_to_sale_avg).unwrap_or(45);
 
         // Adjust based on competitive position
         // Lower position = sells faster

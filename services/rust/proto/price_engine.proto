@@ -145,7 +145,7 @@ message GrossBreakdown {
   common.Money finance_reserve = 4;   // Rate markup profit
 
   // Back-end gross
-  money back_end_gross = 5;         // Sum of product profits
+  common.Money back_end_gross = 5;  // Sum of product profits
   repeated ProductProfit product_profits = 6;
 
   // Total gross

@@ -2,14 +2,14 @@ use crate::models::MarketComp;
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use shared::db::DbPool;
-use shared::error::{AppError, Result};
+use shared::error::Result;
 use tracing::instrument;
 
 /// Query market comparables from database
 /// This is a simplified implementation - in production, you'd use Diesel ORM with schema
-#[instrument(skip(pool))]
+#[instrument(skip(_pool))]
 pub async fn query_market_comps(
-    pool: &DbPool,
+    _pool: &DbPool,
     tenant_id: &str,
     year: i32,
     make: &str,

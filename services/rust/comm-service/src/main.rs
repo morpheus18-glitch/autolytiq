@@ -17,7 +17,7 @@ use server::CommServiceServer;
 use shared::{init_logging, AppConfig};
 use std::net::SocketAddr;
 use tonic::transport::Server;
-use tracing::{error, info};
+use tracing::info;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

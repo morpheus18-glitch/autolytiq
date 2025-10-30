@@ -1,6 +1,6 @@
 use crate::config::RedisConfig;
-use crate::error::{AppError, Result};
-use redis::{aio::ConnectionManager, Client, AsyncCommands};
+use crate::error::Result;
+use redis::{aio::ConnectionManager, AsyncCommands, Client};
 use std::time::Duration;
 use tracing::{info, instrument};
 
@@ -21,13 +21,13 @@ impl RedisClient {
         Ok(Self { manager })
     }
 
-    #[instrument(skip(self, value))]
+    #[instrument(skip(self))]
     pub async fn get(&mut self, key: &str) -> Result<Option<String>> {
         let result: Option<String> = self.manager.get(key).await?;
         Ok(result)
     }
 
-    #[instrument(skip(self, value))]
+    #[instrument(skip(self))]
     pub async fn get_bytes(&mut self, key: &str) -> Result<Option<Vec<u8>>> {
         let result: Option<Vec<u8>> = self.manager.get(key).await?;
         Ok(result)
@@ -36,19 +36,28 @@ impl RedisClient {
     #[instrument(skip(self, value))]
     pub async fn set(&mut self, key: &str, value: &str, ttl: Option<Duration>) -> Result<()> {
         if let Some(ttl) = ttl {
-            self.manager.set_ex(key, value, ttl.as_secs()).await?;
+            self.manager
+                .set_ex::<_, _, ()>(key, value, ttl.as_secs())
+                .await?;
         } else {
-            self.manager.set(key, value).await?;
+            self.manager.set::<_, _, ()>(key, value).await?;
         }
         Ok(())
     }
 
     #[instrument(skip(self, value))]
-    pub async fn set_bytes(&mut self, key: &str, value: &[u8], ttl: Option<Duration>) -> Result<()> {
+    pub async fn set_bytes(
+        &mut self,
+        key: &str,
+        value: &[u8],
+        ttl: Option<Duration>,
+    ) -> Result<()> {
         if let Some(ttl) = ttl {
-            self.manager.set_ex(key, value, ttl.as_secs()).await?;
+            self.manager
+                .set_ex::<_, _, ()>(key, value, ttl.as_secs())
+                .await?;
         } else {
-            self.manager.set(key, value).await?;
+            self.manager.set::<_, _, ()>(key, value).await?;
         }
         Ok(())
     }
@@ -96,10 +105,15 @@ impl RedisClient {
     /// Set if not exists (for idempotency)
     #[instrument(skip(self, value))]
     pub async fn set_nx(&mut self, key: &str, value: &[u8], ttl: Duration) -> Result<bool> {
-        let set: bool = self.manager
-            .set_ex(key, value, ttl.as_secs())
+        let response: Option<String> = redis::cmd("SET")
+            .arg(key)
+            .arg(value)
+            .arg("NX")
+            .arg("EX")
+            .arg(ttl.as_secs())
+            .query_async(&mut self.manager)
             .await?;
-        Ok(set)
+        Ok(response.is_some())
     }
 
     /// Atomic increment

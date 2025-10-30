@@ -1,6 +1,6 @@
 use crate::models::{AmortizationEntry, PaymentDetails};
-use rust_decimal::Decimal;
 use rust_decimal::prelude::*;
+use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use tracing::{info, instrument};
 
@@ -44,11 +44,11 @@ impl PaymentCalculatorService {
         });
 
         let dti_ratio = match (total_monthly_debt, gross_monthly_income) {
-            (Some(debt), Some(income)) if income > dec!(0) => {
-                Some(((debt + monthly_payment) / income * dec!(100))
+            (Some(debt), Some(income)) if income > dec!(0) => Some(
+                ((debt + monthly_payment) / income * dec!(100))
                     .to_f64()
-                    .unwrap_or(0.0))
-            }
+                    .unwrap_or(0.0),
+            ),
             _ => None,
         };
 

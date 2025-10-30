@@ -33,3 +33,7 @@ Add automotive DMS schema extensions
 
 Align shared enums with automotive schema
 
+## 2025-10-30T20:49:34Z (work)
+
+Fix Rust service build issues and update shared utilities
+

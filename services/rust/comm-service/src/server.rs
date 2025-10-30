@@ -4,7 +4,6 @@ use crate::metrics::Metrics;
 use crate::proto::comm::comm_service_server::CommService;
 use crate::proto::comm::*;
 use crate::proto::common::{HealthRequest, HealthResponse};
-use crate::retry::RetryExecutor;
 use shared::middleware::extract_request_context;
 use shared::redis_client::RedisClient;
 use std::sync::Arc;

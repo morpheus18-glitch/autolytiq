@@ -1,5 +1,5 @@
 use crate::models::{GrossBreakdown, ProductProfit};
-use rust_decimal::Decimal;
+use rust_decimal::{prelude::ToPrimitive, Decimal};
 use rust_decimal_macros::dec;
 use tracing::{info, instrument};
 
@@ -61,7 +61,8 @@ impl GrossCalculatorService {
 
         for (product_type, selling_price, cost, product_participation) in products {
             let gross_profit = selling_price - cost;
-            let profit = gross_profit * Decimal::from_f64_retain(product_participation).unwrap_or(dec!(1));
+            let profit =
+                gross_profit * Decimal::from_f64_retain(product_participation).unwrap_or(dec!(1));
 
             product_profits.push(ProductProfit {
                 product_type,
@@ -221,10 +222,10 @@ mod tests {
             dec!(0),
             dec!(0),
             dec!(0),
-            dec!(2.0),    // 2% rate markup
-            60,           // 60 months
-            dec!(30000),  // amount financed
-            0.8,          // 80% participation
+            dec!(2.0),   // 2% rate markup
+            60,          // 60 months
+            dec!(30000), // amount financed
+            0.8,         // 80% participation
             vec![],
         );
 
@@ -240,8 +241,8 @@ mod tests {
         let service = GrossCalculatorService::new();
 
         let products = vec![
-            ("warranty".to_string(), dec!(2000), dec!(1200), 1.0),  // $800 profit
-            ("gap".to_string(), dec!(800), dec!(500), 0.5),         // $150 profit (50% participation)
+            ("warranty".to_string(), dec!(2000), dec!(1200), 1.0), // $800 profit
+            ("gap".to_string(), dec!(800), dec!(500), 0.5), // $150 profit (50% participation)
         ];
 
         let breakdown = service.calculate_gross(
@@ -274,7 +275,14 @@ mod tests {
             dec!(30000), // vehicle_price
             dec!(25000), // vehicle_cost
             dec!(500),   // pack
-            dec!(0), dec!(0), dec!(0), dec!(0), 0, dec!(0), 1.0, vec![],
+            dec!(0),
+            dec!(0),
+            dec!(0),
+            dec!(0),
+            0,
+            dec!(0),
+            1.0,
+            vec![],
         );
 
         // Gross: 4500 / 30000 = 15%

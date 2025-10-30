@@ -1,5 +1,5 @@
-use shared::redis_client::RedisClient;
 use shared::error::Result;
+use shared::redis_client::RedisClient;
 use std::time::Duration;
 use tracing::{info, instrument};
 
@@ -46,7 +46,9 @@ impl IdempotencyManager {
         response: &[u8],
     ) -> Result<()> {
         let cache_key = self.build_key(tenant_id, idempotency_key);
-        redis.set_bytes(&cache_key, response, Some(self.ttl)).await?;
+        redis
+            .set_bytes(&cache_key, response, Some(self.ttl))
+            .await?;
 
         info!(
             tenant_id = tenant_id,
