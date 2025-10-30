@@ -1,17 +1,50 @@
-# --- build ---
-FROM node:18-bullseye-slim AS build
-WORKDIR /app
-COPY apps/backend/package*.json ./
-RUN npm ci
-COPY apps/backend/ ./
-RUN npm run build  # tsup → dist/
+# syntax=docker/dockerfile:1.7
 
-# --- runtime ---
-FROM node:18-bullseye-slim
-ENV NODE_ENV=production
+FROM node:20-bookworm-slim AS base
+ENV PNPM_HOME="/pnpm" \
+    PATH="$PNPM_HOME:$PATH"
+
+RUN corepack enable \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates curl \
+ && rm -rf /var/lib/apt/lists/* \
+ && groupadd --system --gid 1001 nodeapp \
+ && useradd --system --uid 1001 --gid nodeapp --home /srv/app --shell /usr/sbin/nologin nodeapp
+
 WORKDIR /app
-COPY apps/backend/package*.json ./
-RUN npm ci --omit=dev
-COPY --from=build /app/dist ./dist
+
+FROM base AS dependencies
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/backend/package.json apps/backend/
+COPY packages/db/package.json packages/db/
+COPY packages/shared/package.json packages/shared/
+COPY packages/tokens/package.json packages/tokens/
+RUN pnpm install --frozen-lockfile --filter @repo/backend...
+
+FROM dependencies AS builder
+COPY . .
+RUN pnpm --filter @repo/backend build
+RUN pnpm prune --prod
+
+FROM base AS runner
+ENV NODE_ENV=production \
+    PORT=5000 \
+    DATABASE_URL="file:/srv/app/storage/dev.db"
+WORKDIR /srv/app
+
+COPY --from=builder /app/apps/backend/dist ./dist
+COPY --from=builder /app/apps/backend/package.json ./package.json
+COPY --from=builder /app/apps/backend/node_modules ./node_modules
+COPY --from=builder /app/apps/backend/scripts ./scripts
+
+RUN mkdir -p storage \
+ && touch storage/dev.db \
+ && chown -R nodeapp:nodeapp /srv/app
+
+USER nodeapp
 EXPOSE 5000
-CMD ["node","dist/index.js"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -fsSL http://127.0.0.1:${PORT:-5000}/health || exit 1
+
+CMD ["node", "dist/index.js"]

@@ -1,22 +1,21 @@
 # syntax=docker/dockerfile:1.7
 
-FROM rust:1.81 AS builder
+ARG RUST_VERSION=1.81
 
+FROM rust:${RUST_VERSION}-slim-bookworm AS builder
 WORKDIR /app
 
-ARG BIN_NAME=price-engine
+ARG SERVICE_NAME=price-engine
 
-# Install build dependencies required by Diesel + TLS clients
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        pkg-config \
-        libssl-dev \
-        libpq-dev \
-        clang \
-        protobuf-compiler \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get install -y --no-install-recommends \
+      pkg-config \
+      libssl-dev \
+      libpq-dev \
+      clang \
+      protobuf-compiler \
+ && rm -rf /var/lib/apt/lists/*
 
-# Copy workspace manifests only (no Cargo.lock needed)
 COPY services/rust/Cargo.toml ./Cargo.toml
 COPY services/rust/price-engine/Cargo.toml price-engine/Cargo.toml
 COPY services/rust/shared/Cargo.toml shared/Cargo.toml
@@ -24,26 +23,23 @@ COPY services/rust/cache-service/Cargo.toml cache-service/Cargo.toml
 COPY services/rust/comm-service/Cargo.toml comm-service/Cargo.toml
 COPY services/rust/rate-limiter/Cargo.toml rate-limiter/Cargo.toml
 
-# Create minimal source tree so cargo metadata succeeds when fetching deps
 RUN mkdir -p \
-        price-engine/src \
-        shared/src \
-        cache-service/src \
-        comm-service/src \
-        rate-limiter/src \
-    && echo 'fn main() {}' > price-engine/src/main.rs \
-    && echo 'fn main() {}' > cache-service/src/main.rs \
-    && echo 'fn main() {}' > comm-service/src/main.rs \
-    && echo 'fn main() {}' > rate-limiter/src/main.rs \
-    && echo 'pub fn placeholder() {}' > shared/src/lib.rs
+      price-engine/src \
+      shared/src \
+      cache-service/src \
+      comm-service/src \
+      rate-limiter/src \
+ && echo 'fn main() {}' > price-engine/src/main.rs \
+ && echo 'fn main() {}' > cache-service/src/main.rs \
+ && echo 'fn main() {}' > comm-service/src/main.rs \
+ && echo 'fn main() {}' > rate-limiter/src/main.rs \
+ && echo 'pub fn placeholder() {}' > shared/src/lib.rs
 
-# Prime dependency cache
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/app/target \
     cargo fetch --manifest-path Cargo.toml
 
-# Bring in the actual sources
 COPY services/rust/shared ./shared
 COPY services/rust/cache-service ./cache-service
 COPY services/rust/comm-service ./comm-service
@@ -51,24 +47,38 @@ COPY services/rust/rate-limiter ./rate-limiter
 COPY services/rust/price-engine ./price-engine
 COPY services/rust/proto ./proto
 
-# Build the requested binary
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/app/target \
-    cargo build --manifest-path Cargo.toml --release -p ${BIN_NAME}
+    cargo build --manifest-path Cargo.toml --release -p ${SERVICE_NAME}
 
-# Minimal runtime image
-FROM gcr.io/distroless/cc-debian12
+FROM debian:12-slim AS runtime
+ARG SERVICE_NAME=price-engine
 
-ARG BIN_NAME=price-engine
+ENV RUST_LOG=info \
+    DATABASE_URL="sqlite:////srv/app/storage/dev.db"
 
-# Copy shared libraries required by libpq + TLS
-COPY --from=builder /lib/x86_64-linux-gnu /lib/x86_64-linux-gnu
-COPY --from=builder /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      ca-certificates \
+      libssl3 \
+      libpq5 \
+      curl \
+ && rm -rf /var/lib/apt/lists/* \
+ && curl -fsSL https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.23/grpc_health_probe-linux-amd64 \
+      -o /usr/local/bin/grpc_health_probe \
+ && chmod +x /usr/local/bin/grpc_health_probe \
+ && groupadd --system --gid 1001 rustsvc \
+ && useradd --system --uid 1001 --gid rustsvc --home /srv/app --shell /usr/sbin/nologin rustsvc
 
-COPY --from=builder /app/target/release/${BIN_NAME} /usr/local/bin/app
+WORKDIR /srv/app
+COPY --from=builder /app/target/release/${SERVICE_NAME} /usr/local/bin/app
+RUN mkdir -p storage \
+ && chown -R rustsvc:rustsvc /srv/app
 
-USER nonroot
+USER rustsvc
+EXPOSE 50051
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD /usr/local/bin/grpc_health_probe -addr=127.0.0.1:50051 || exit 1
 
 ENTRYPOINT ["/usr/local/bin/app"]

@@ -1,0 +1,73 @@
+name: Rust Pricing Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'services/rust/**'
+      - 'infrastructure/k8s/production/rust-pricing-deployment.yaml'
+      - '.github/workflows/rust.yml'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ${{ secrets.DO_REGISTRY || 'registry.digitalocean.com/autolytiq' }}
+  IMAGE_NAME: rust-pricing
+  DEPLOYMENT_NAME: rust-pricing
+  CONTAINER_NAME: rust-pricing
+  CLUSTER: ${{ secrets.CLUSTER || 'autolytiq-cluster' }}
+  NAMESPACE: ${{ secrets.NS || 'autolytiq-prod' }}
+  SERVICE_NAME: ${{ secrets.RUST_SERVICE_NAME || 'price-engine' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Set up doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+      - name: Authenticate to DOCR
+        run: doctl registry login --expiry-seconds 3600
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/rust/Dockerfile
+          push: true
+          provenance: false
+          sbom: false
+          build-args: |
+            SERVICE_NAME=${{ env.SERVICE_NAME }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+
+  deploy:
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+      - name: Configure kubectl
+        run: doctl kubernetes cluster kubeconfig save "$CLUSTER"
+      - name: Ensure namespace exists
+        run: kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+      - name: Refresh DOCR secret
+        run: |
+          doctl registry docker-config --expiry-seconds 3600 \
+            | kubectl -n "$NAMESPACE" create secret generic do-regcred \
+              --from-file=.dockerconfigjson=/dev/stdin \
+              --type=kubernetes.io/dockerconfigjson \
+              --dry-run=client -o yaml | kubectl apply -f -
+      - name: Deploy Rust pricing service
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        run: |
+          kubectl -n "$NAMESPACE" set image deployment/${DEPLOYMENT_NAME} ${CONTAINER_NAME}=$IMAGE
+          kubectl -n "$NAMESPACE" rollout status deployment/${DEPLOYMENT_NAME} --timeout=180s

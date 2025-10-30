@@ -29,7 +29,7 @@ spec:
           image: registry.digitalocean.com/autolytiq/frontend:__TAG__
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 80
+            - containerPort: 8080
               name: http
           resources:
             requests:

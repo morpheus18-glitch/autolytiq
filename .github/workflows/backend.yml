@@ -1,0 +1,97 @@
+name: Backend Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/backend/**'
+      - 'packages/db/**'
+      - 'packages/shared/**'
+      - 'infrastructure/docker/Dockerfile.backend'
+      - 'infrastructure/k8s/production/backend-deployment.yaml'
+      - '.github/workflows/backend.yml'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ${{ secrets.DO_REGISTRY || 'registry.digitalocean.com/autolytiq' }}
+  IMAGE_NAME: backend
+  DEPLOYMENT_NAME: backend
+  CONTAINER_NAME: backend
+  CLUSTER: ${{ secrets.CLUSTER || 'autolytiq-cluster' }}
+  NAMESPACE: ${{ secrets.NS || 'autolytiq-prod' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Set up doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+      - name: Authenticate to DOCR
+        run: doctl registry login --expiry-seconds 3600
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infrastructure/docker/Dockerfile.backend
+          push: true
+          provenance: false
+          sbom: false
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+
+  deploy:
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+      - name: Configure kubectl
+        run: doctl kubernetes cluster kubeconfig save "$CLUSTER"
+      - name: Ensure namespace exists
+        run: kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+      - name: Refresh DOCR secret
+        run: |
+          doctl registry docker-config --expiry-seconds 3600 \
+            | kubectl -n "$NAMESPACE" create secret generic do-regcred \
+              --from-file=.dockerconfigjson=/dev/stdin \
+              --type=kubernetes.io/dockerconfigjson \
+              --dry-run=client -o yaml | kubectl apply -f -
+      - name: Deploy backend
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        run: |
+          kubectl -n "$NAMESPACE" set image deployment/${DEPLOYMENT_NAME} ${CONTAINER_NAME}=$IMAGE
+          kubectl -n "$NAMESPACE" rollout status deployment/${DEPLOYMENT_NAME} --timeout=180s
+
+  migrate:
+    runs-on: ubuntu-22.04
+    needs: deploy
+    if: secrets.RUN_MIGRATIONS == 'true'
+    steps:
+      - name: Set up doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+      - name: Configure kubectl
+        run: doctl kubernetes cluster kubeconfig save "$CLUSTER"
+      - name: Run Prisma migrations
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        run: |
+          kubectl -n "$NAMESPACE" run migrate \
+            --image="$IMAGE" \
+            --restart=Never \
+            --overrides='{"spec":{"imagePullSecrets":[{"name":"do-regcred"}]}}' \
+            --env-from=secret/app-env \
+            --command -- npx prisma migrate deploy
+          kubectl -n "$NAMESPACE" wait --for=condition=complete --timeout=180s pod/migrate
+          kubectl -n "$NAMESPACE" delete pod migrate --ignore-not-found=true
