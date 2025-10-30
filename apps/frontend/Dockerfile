@@ -1,29 +1,37 @@
 # syntax=docker/dockerfile:1.6
 
 FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat \
+    && corepack enable \
+    && corepack prepare pnpm@10.5.2 --activate
+ENV PNPM_HOME="/root/.local/share/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 WORKDIR /workspace
 
 FROM base AS builder
 WORKDIR /workspace
 
-# Install shared package dependencies
-COPY packages/tokens/package*.json ./packages/tokens/
-RUN cd packages/tokens && if [ -f package-lock.json ]; then npm ci; else npm install; fi
+# Prepare workspace manifests for targeted installs
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/tokens/package.json ./packages/tokens/
+COPY apps/frontend/package.json ./apps/frontend/
 
-# Install frontend dependencies
-COPY apps/frontend/package*.json ./apps/frontend/
-RUN cd apps/frontend && if [ -f package-lock.json ]; then npm ci; else npm install; fi
+# Install workspace dependencies with dev tooling for builds
+RUN pnpm install \
+    --filter @repo/tokens... \
+    --filter @repo/frontend... \
+    --frozen-lockfile \
+    --prod=false
 
 # Copy full workspace
 COPY . .
 
 # Build shared tokens before the frontend
-RUN cd packages/tokens && npm run build
+RUN pnpm --filter @repo/tokens build
 
 WORKDIR /workspace/apps/frontend
 ENV NODE_ENV=production
-RUN npm run build
+RUN pnpm run build
 
 FROM nginx:1.27-alpine AS runner
 COPY apps/frontend/nginx.conf /etc/nginx/nginx.conf
