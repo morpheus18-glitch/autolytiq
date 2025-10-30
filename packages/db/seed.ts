@@ -38,6 +38,7 @@ import {
   ReconItemStatus,
   ReportType,
   TenantPlan,
+  LenderType,
   TenantStatus,
   VehicleAcquisitionType,
   UserRole,
@@ -272,7 +273,7 @@ async function main() {
       where: { id: 'sunrise-credit-union' },
       update: {
         name: 'Sunrise Credit Union',
-        type: 'Credit Union',
+        type: LenderType.CREDIT_UNION,
         apiProvider: 'manual',
         apiCredentials: {
           supportEmail: 'deskingsupport@sunrisecredit.demo',
@@ -309,7 +310,7 @@ async function main() {
         id: 'sunrise-credit-union',
         tenantId: tenant.id,
         name: 'Sunrise Credit Union',
-        type: 'Credit Union',
+        type: LenderType.CREDIT_UNION,
         apiProvider: 'manual',
         apiCredentials: {
           supportEmail: 'deskingsupport@sunrisecredit.demo',
@@ -346,7 +347,7 @@ async function main() {
       where: { id: 'horizon-auto-finance' },
       update: {
         name: 'Horizon Auto Finance',
-        type: 'Bank',
+        type: LenderType.BANK,
         apiProvider: 'manual',
         apiCredentials: {
           supportEmail: 'programs@horizonauto.demo',
@@ -375,7 +376,7 @@ async function main() {
         id: 'horizon-auto-finance',
         tenantId: tenant.id,
         name: 'Horizon Auto Finance',
-        type: 'Bank',
+        type: LenderType.BANK,
         apiProvider: 'manual',
         apiCredentials: {
           supportEmail: 'programs@horizonauto.demo',

@@ -311,9 +311,9 @@ function buildVehicleDescription(deal: DealWithRelations) {
 function deriveStateFromDeal(deal: DealWithRelations) {
   const customer = deal.customer as DealWithRelations['customer'] & {
     addressState?: string | null;
-    driversLicenseState?: string | null;
+    licenseState?: string | null;
   };
-  const state = customer?.addressState || customer?.driversLicenseState;
+  const state = customer?.addressState || customer?.licenseState;
   return state ? state.toUpperCase() : 'GENERAL';
 }
 

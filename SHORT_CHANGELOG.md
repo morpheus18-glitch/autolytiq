@@ -25,3 +25,11 @@ Sync pnpm lock and frontend build tooling
 
 Normalize Dockerfiles and split CI per service
 
+## 2025-10-30T18:51:59Z (work)
+
+Add automotive DMS schema extensions
+
+## 2025-10-30T18:58:32Z (work)
+
+Align shared enums with automotive schema
+
