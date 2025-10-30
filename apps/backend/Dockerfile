@@ -14,7 +14,12 @@ WORKDIR /workspace
 # Prepare workspace manifests for targeted installs
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/db/package.json ./packages/db/
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/tokens/package.json ./packages/tokens/
 COPY apps/backend/package.json ./apps/backend/
+COPY apps/frontend/package.json ./apps/frontend/
+COPY apps/frontend-dev/package.json ./apps/frontend-dev/
+COPY apps/worker/package.json ./apps/worker/
 
 # Install workspace dependencies including dev dependencies for build
 RUN pnpm install \
@@ -26,11 +31,9 @@ RUN pnpm install \
 # Copy full workspace
 COPY . .
 
-# Copy Prisma schema and generate client
-RUN mkdir -p apps/backend/prisma
-COPY packages/db/schema.prisma apps/backend/prisma/schema.prisma
-
 WORKDIR /workspace/apps/backend
+# Ensure Prisma schema is in place (from packages/db via workspace)
+RUN mkdir -p prisma && cp ../../packages/db/schema.prisma prisma/schema.prisma
 ARG DATABASE_URL="postgresql://user:pass@localhost:5432/localdb?sslmode=disable"
 ENV DATABASE_URL=$DATABASE_URL
 RUN pnpm exec prisma generate --schema prisma/schema.prisma
@@ -40,7 +43,7 @@ RUN pnpm run build
 
 # Prune to production dependencies only
 WORKDIR /workspace
-RUN pnpm --filter @repo/backend --prod deploy /workspace/pruned/backend
+RUN pnpm deploy --filter=@repo/backend --prod /workspace/pruned/backend
 
 FROM base AS runner
 ENV NODE_ENV=production
