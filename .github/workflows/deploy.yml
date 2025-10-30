@@ -32,8 +32,9 @@ jobs:
             file: ml_service/Dockerfile
             context: .
           - name: rust-pricing
-            file: services/rust-pricing/Dockerfile
+            file: services/rust/Dockerfile
             context: .
+            no_cache: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,6 +47,13 @@ jobs:
       - name: Authenticate to DOCR
         run: doctl registry login --expiry-seconds 3600
 
+      - name: Rust Dockerfile sanity checks
+        if: matrix.name == 'rust-pricing'
+        run: |
+          echo "USING DOCKERFILE:" && echo services/rust/Dockerfile && sed -n '1,120p' services/rust/Dockerfile
+          git grep -n "services/rust/Cargo\\.lock" -- :^ml_service :^docs || true
+          ls -la services/rust
+
       - name: Build and push ${{ matrix.name }} image
         uses: docker/build-push-action@v6
         with:
@@ -53,6 +61,9 @@ jobs:
           file: ${{ matrix.file }}
           push: true
           provenance: false
+          sbom: false
+          no-cache: ${{ matrix.no_cache || false }}
+          progress: plain
           tags: ${{ env.REGISTRY }}/${{ matrix.name }}:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ matrix.name }}:buildcache
           build-args: ${{ matrix.build-args || '' }}

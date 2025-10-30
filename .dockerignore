@@ -1,3 +1,10 @@
+# Rust build artifacts
+target
+**/target
+
+# Keep Rust manifests available
+!**/Cargo.toml
+
 # Dependencies
 node_modules
 **/node_modules
@@ -94,7 +101,6 @@ docker-compose*.yml
 !apps/**/package-lock.json
 !ml_service/**/requirements.txt
 !ml_service/**/requirements-*.txt
-!services/**/Cargo.lock
 !services/**/Dockerfile
 
 # Scripts (if they contain sensitive data)
