@@ -14,6 +14,9 @@ jobs:
   build:
     name: Build and Push Images
     runs-on: ubuntu-22.04
+    env:
+      # TEMPORARY: Dev defaults for quick deployment (configure GitHub Secrets later)
+      REGISTRY: ${{ secrets.REGISTRY || 'registry.digitalocean.com/autolytiq' }}
     strategy:
       matrix:
         include:
@@ -21,7 +24,7 @@ jobs:
             file: apps/backend/Dockerfile
             context: .
             build-args: |
-              DATABASE_URL=${{ secrets.DATABASE_URL }}
+              DATABASE_URL=postgresql://autolytiq:autolytiq@localhost:5432/autolytiq
           - name: frontend
             file: apps/frontend/Dockerfile
             context: .
@@ -50,9 +53,9 @@ jobs:
           file: ${{ matrix.file }}
           push: true
           provenance: false
-          tags: ${{ secrets.REGISTRY }}/${{ matrix.name }}:${{ github.sha }}
-          cache-from: type=registry,ref=${{ secrets.REGISTRY }}/${{ matrix.name }}:buildcache
-          cache-to: type=registry,ref=${{ secrets.REGISTRY }}/${{ matrix.name }}:buildcache,mode=max
+          tags: ${{ env.REGISTRY }}/${{ matrix.name }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ matrix.name }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ matrix.name }}:buildcache,mode=max
           build-args: ${{ matrix.build-args || '' }}
 
   deploy:
@@ -60,9 +63,10 @@ jobs:
     runs-on: ubuntu-22.04
     needs: build
     env:
-      REGISTRY: ${{ secrets.REGISTRY }}
-      DO_CLUSTER: ${{ secrets.CLUSTER }}
-      NS: ${{ secrets.NS }}
+      # TEMPORARY: Dev defaults for quick deployment (configure GitHub Secrets later)
+      REGISTRY: ${{ secrets.REGISTRY || 'registry.digitalocean.com/autolytiq' }}
+      DO_CLUSTER: ${{ secrets.CLUSTER || 'autolytiq-cluster' }}
+      NS: ${{ secrets.NS || 'autolytiq-prod' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -89,34 +93,48 @@ jobs:
                 --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Sync application secret
+        env:
+          # TEMPORARY: Dev defaults - configure GitHub Secrets for production
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://autolytiq:autolytiq@postgres:5432/autolytiq?schema=public' }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL || secrets.DATABASE_URL || 'postgresql://autolytiq:autolytiq@postgres:5432/autolytiq?schema=public' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'dev-jwt-secret-change-in-production' }}
+          JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY || 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFwR2ZHNjBKZ0IrdkhOaVROR09CeQpnNFMxaG9QYXpUQS9na0dFWFVYTWFMTHE1eVJ2Q05ySTZWT0dHQWFIbzlkWllrVGZHWk5WVlJGbDFrWXlxUy9mCndMdzFzWVVOc0dyRCtWVUtQVHlTR1RzTk1uZHZyWVZGLzFEZGJDK2FEN2FnRVhrTktPeFBRMFBxU3hrYlpWcU0KbDhJNEpWWHUyZkxHM2dOc1ljaDBKSllScXBNZnJRYTZSbG1LQ050MnVRNlhvOFh6WXgrbE5FemJHOFZTOS82Zwp4RjJZMnYzaEY4b0Q3WVZPbEphd1ZTakdJbnhqZVJHbmE0M0VJQmd6SHVMbEhvdEU1VDdWNmN6UzRRaEl3VFpZCmg5K1ZGZVJleXFZaEIxdFpFRFFoVFdaKzlWdHh4dnBHNnZFMTF3VjhMMTkvOWV5N053eEtYbHpWRWsraVhkYzUKRlFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t' }}
+          JWT_ISSUER: ${{ secrets.JWT_ISSUER || 'autolytiq-dev' }}
+          JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE || 'autolytiq-dev' }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY || '' }}
+          SENDGRID_FROM: ${{ secrets.SENDGRID_FROM || '' }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID || '' }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN || '' }}
+          TWILIO_MESSAGING_SERVICE_SID: ${{ secrets.TWILIO_MESSAGING_SERVICE_SID || '' }}
+          TWILIO_CALLER_ID: ${{ secrets.TWILIO_CALLER_ID || '' }}
+          SOCKET_IO_CORS_ORIGIN: ${{ secrets.SOCKET_IO_CORS_ORIGIN || '*' }}
+          APP_URL: ${{ secrets.APP_URL || 'http://localhost:3000' }}
+          API_URL: ${{ secrets.API_URL || 'http://localhost:5000' }}
+          ML_SERVICE_URL: ${{ secrets.ML_SERVICE_URL || 'http://ml-service:8000' }}
+          ML_SERVICE_TOKEN: ${{ secrets.ML_SERVICE_TOKEN || 'dev-ml-token' }}
+          REDIS_URL: ${{ secrets.REDIS_URL || '' }}
         run: |
-          # Create secret with all required environment variables from backend/src/config/env.ts
-          # This replaces the entire secret to ensure consistency across deployments
-          #
-          # IMPORTANT: If using managed Postgres with connection pooling (pgBouncer):
-          # - DATABASE_URL should be the pooled connection (for app queries)
-          # - DIRECT_URL should be the direct connection (for migrations)
-          # If not using pooling, both can be the same value
+          # Create secret with environment variables (using dev defaults if secrets not configured)
           kubectl -n "$NS" create secret generic app-env \
             --from-literal=NODE_ENV='production' \
-            --from-literal=DATABASE_URL='${{ secrets.DATABASE_URL }}' \
-            --from-literal=DIRECT_URL='${{ secrets.DIRECT_URL || secrets.DATABASE_URL }}' \
-            --from-literal=JWT_SECRET='${{ secrets.JWT_SECRET }}' \
-            --from-literal=JWT_PUBLIC_KEY='${{ secrets.JWT_PUBLIC_KEY }}' \
-            --from-literal=JWT_ISSUER='${{ secrets.JWT_ISSUER }}' \
-            --from-literal=JWT_AUDIENCE='${{ secrets.JWT_AUDIENCE }}' \
-            --from-literal=SENDGRID_API_KEY='${{ secrets.SENDGRID_API_KEY }}' \
-            --from-literal=SENDGRID_FROM='${{ secrets.SENDGRID_FROM }}' \
-            --from-literal=TWILIO_ACCOUNT_SID='${{ secrets.TWILIO_ACCOUNT_SID }}' \
-            --from-literal=TWILIO_AUTH_TOKEN='${{ secrets.TWILIO_AUTH_TOKEN }}' \
-            --from-literal=TWILIO_MESSAGING_SERVICE_SID='${{ secrets.TWILIO_MESSAGING_SERVICE_SID }}' \
-            --from-literal=TWILIO_CALLER_ID='${{ secrets.TWILIO_CALLER_ID }}' \
-            --from-literal=SOCKET_IO_CORS_ORIGIN='${{ secrets.SOCKET_IO_CORS_ORIGIN }}' \
-            --from-literal=APP_URL='${{ secrets.APP_URL }}' \
-            --from-literal=API_URL='${{ secrets.API_URL }}' \
-            --from-literal=ML_SERVICE_URL='${{ secrets.ML_SERVICE_URL }}' \
-            --from-literal=ML_SERVICE_TOKEN='${{ secrets.ML_SERVICE_TOKEN }}' \
-            --from-literal=REDIS_URL='${{ secrets.REDIS_URL }}' \
+            --from-literal=DATABASE_URL="$DATABASE_URL" \
+            --from-literal=DIRECT_URL="$DIRECT_URL" \
+            --from-literal=JWT_SECRET="$JWT_SECRET" \
+            --from-literal=JWT_PUBLIC_KEY="$JWT_PUBLIC_KEY" \
+            --from-literal=JWT_ISSUER="$JWT_ISSUER" \
+            --from-literal=JWT_AUDIENCE="$JWT_AUDIENCE" \
+            --from-literal=SENDGRID_API_KEY="$SENDGRID_API_KEY" \
+            --from-literal=SENDGRID_FROM="$SENDGRID_FROM" \
+            --from-literal=TWILIO_ACCOUNT_SID="$TWILIO_ACCOUNT_SID" \
+            --from-literal=TWILIO_AUTH_TOKEN="$TWILIO_AUTH_TOKEN" \
+            --from-literal=TWILIO_MESSAGING_SERVICE_SID="$TWILIO_MESSAGING_SERVICE_SID" \
+            --from-literal=TWILIO_CALLER_ID="$TWILIO_CALLER_ID" \
+            --from-literal=SOCKET_IO_CORS_ORIGIN="$SOCKET_IO_CORS_ORIGIN" \
+            --from-literal=APP_URL="$APP_URL" \
+            --from-literal=API_URL="$API_URL" \
+            --from-literal=ML_SERVICE_URL="$ML_SERVICE_URL" \
+            --from-literal=ML_SERVICE_TOKEN="$ML_SERVICE_TOKEN" \
+            --from-literal=REDIS_URL="$REDIS_URL" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Apply production manifests with image tags
