@@ -1,9 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: autolytiq-prod
   name: ml-service
-  namespace: autolytiq-prod
   namespace: autolytiq-prod
   labels:
     app.kubernetes.io/name: ml-service
@@ -89,9 +87,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: autolytiq-prod
   name: ml-service
-  namespace: autolytiq-prod
   namespace: autolytiq-prod
   labels:
     app.kubernetes.io/name: ml-service
@@ -104,3 +100,4 @@ spec:
     - name: http
       port: 80
       targetPort: http
+
