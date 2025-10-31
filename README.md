@@ -4,6 +4,25 @@ AutolytiQ is an end-to-end retail automotive platform that unifies CRM, desking,
 operations. The repository is organised as a pnpm workspace that ships a React front end, a TypeScript/Express API, Python
 services for predictive scoring, and operational tooling for production deployments on DigitalOcean Kubernetes.
 
+---
+
+## 🚀 Quick Start
+
+**Want to deploy AutolytiQ right now?**
+
+- 📖 **[Quick Reference](./QUICK_START.md)** - One-page deployment cheat sheet
+- 📚 **[Complete Guide](./DEPLOYMENT_GUIDE.md)** - Detailed deployment instructions
+- 🛠️ **[Scripts Documentation](./scripts/README.md)** - All automation tools explained
+
+```bash
+# Get running locally in under 5 minutes
+./scripts/quick-deploy.sh
+# OR
+pnpm deploy:local
+```
+
+---
+
 ## Monorepo layout
 
 | Path | Purpose |
@@ -104,6 +123,27 @@ pnpm db:seed             # Seed baseline tenant + sample data
 
 ## Deployment
 
+**📖 See the complete [Deployment Guide](./DEPLOYMENT_GUIDE.md) for all deployment options.**
+
+### Quick Deployment Options
+
+**Local (Docker Compose):**
+```bash
+./scripts/quick-deploy.sh
+```
+
+**Production (Kubernetes):**
+```bash
+./scripts/deploy-production.sh
+```
+
+**VPS/Droplet:**
+```bash
+./scripts/deploy-to-droplet.sh YOUR_IP
+```
+
+### Manual Deployment
+
 DigitalOcean Kubernetes is the supported production target. Container builds for each service live in
 `infrastructure/docker/`:
 
@@ -111,51 +151,14 @@ DigitalOcean Kubernetes is the supported production target. Container builds for
 - `Dockerfile.frontend`
 - `Dockerfile.ml`
 
-Typical workflow:
-
-```bash
-# Authenticate to DigitalOcean Container Registry (DOCR)
-doctl registry login
-
-# Build images
-REGISTRY=registry.digitalocean.com/autolytiq
-TAG=$(git rev-parse --short HEAD)
-
-docker build -f infrastructure/docker/Dockerfile.backend -t $REGISTRY/backend:$TAG .
-docker build -f infrastructure/docker/Dockerfile.frontend -t $REGISTRY/frontend:$TAG .
-docker build -f infrastructure/docker/Dockerfile.ml -t $REGISTRY/ml-service:$TAG .
-
-docker push $REGISTRY/backend:$TAG
-docker push $REGISTRY/frontend:$TAG
-docker push $REGISTRY/ml-service:$TAG
-```
-
-Update the image tags inside `infrastructure/k8s/production` and apply the manifests:
-
-```bash
-kubectl apply -f infrastructure/k8s/production/namespace.yaml
-kubectl apply -f infrastructure/k8s/production/configmap.yaml
-kubectl apply -f infrastructure/k8s/production/secrets.yaml
-kubectl apply -f infrastructure/k8s/production/pvc.yaml
-kubectl apply -f infrastructure/k8s/production/backend-deployment.yaml
-kubectl apply -f infrastructure/k8s/production/frontend-deployment.yaml
-kubectl apply -f infrastructure/k8s/production/ml-service-deployment.yaml
-kubectl apply -f infrastructure/k8s/production/celery-worker-deployment.yaml
-kubectl apply -f infrastructure/k8s/production/hpa.yaml
-kubectl apply -f infrastructure/k8s/production/ingress.yaml
-```
-
-For full runbooks, scaling guidance, and operational checklists see
-[`DIGITAL_OCEAN_MIGRATION.md`](./DIGITAL_OCEAN_MIGRATION.md) and [`ARCHITECTURE.md`](./ARCHITECTURE.md).
-
-Legacy droplet scripts remain available under `scripts/` for disaster recovery but are no longer the primary deployment
-mechanism.
+For detailed manual deployment instructions, see [`DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md) and [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md).
 
 ## Support & additional documentation
 
+- **[`DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md)** – comprehensive deployment guide with all methods
+- **[`docs/TROUBLESHOOTING.md`](./docs/TROUBLESHOOTING.md)** – troubleshooting and debugging guide
 - `AGENTS.md` – canonical engineering standards for AI contributors
-- `PRISMA_SETUP.md` / `PRISMA_SETUP_ISSUE.md` – database provisioning notes and historical outage postmortem
-- `PRODUCTION_READINESS.md` – production checklists and guardrails
-- `docs/` – in-depth deployment, infrastructure, and operations references
+- `docs/DEPLOYMENT.md` – detailed Kubernetes deployment reference
+- `docs/` – in-depth infrastructure and operations documentation
 
 Questions or incidents? Reach the AutolytiQ engineering team via the internal Slack channel or https://autolytiq.com.
