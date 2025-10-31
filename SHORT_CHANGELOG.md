@@ -77,3 +77,7 @@ Fixed ML service deployment config: removed hardcoded namespace, moved securityC
 
 Added securityContext to celery-worker and celery-beat deployments for consistency and security best practices.
 
+## 2025-10-31T09:36:58Z (copilot/fix-deploy-errors-cluster-config)
+
+Fixed critical namespace inconsistencies: updated namespace.yaml to autolytiq-prod, removed hardcoded namespaces from HPA, Ingress, and PVCs to allow kubectl apply with -n flag.
+
