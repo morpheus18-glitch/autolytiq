@@ -1,7 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  namespace: autolytiq-prod
   name: ml-service
+  namespace: autolytiq-prod
+  namespace: autolytiq-prod
   labels:
     app.kubernetes.io/name: ml-service
     app.kubernetes.io/part-of: autolytiq
@@ -75,11 +78,21 @@ spec:
         runAsUser: 1001
         runAsGroup: 1001
         fsGroup: 1001
+      nodeSelector:
+        workload-type: ml-heavy
+      tolerations:
+      - key: "workload-type"
+        operator: "Equal"
+        value: "ml-heavy"
+        effect: "NoSchedule"
 ---
 apiVersion: v1
 kind: Service
 metadata:
+  namespace: autolytiq-prod
   name: ml-service
+  namespace: autolytiq-prod
+  namespace: autolytiq-prod
   labels:
     app.kubernetes.io/name: ml-service
     app.kubernetes.io/part-of: autolytiq
