@@ -73,3 +73,7 @@ Allow ml service to run without optional integrations
 
 Fixed ML service deployment config: removed hardcoded namespace, moved securityContext to pod level, restored __TAG__ placeholder. Added securityContext to frontend and rust-pricing deployments for consistency.
 
+## 2025-10-31T09:35:12Z (copilot/fix-deploy-errors-cluster-config)
+
+Added securityContext to celery-worker and celery-beat deployments for consistency and security best practices.
+
