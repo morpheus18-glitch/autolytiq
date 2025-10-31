@@ -105,3 +105,7 @@ Add comprehensive deployment readiness summary document
 
 Address code review feedback: improve script robustness and env validation
 
+## 2025-10-31T10:42:26Z (copilot/fix-app-deployment-issues)
+
+Add comprehensive DEPLOYMENT_GUIDE.md and quick-deploy.sh script for simplified deployment
+
