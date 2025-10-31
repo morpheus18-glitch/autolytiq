@@ -5,6 +5,21 @@ import express from 'express';
 import { createApp } from './server.js';
 import { logger } from './lib/logger.js';
 
+// Global error handlers for uncaught errors
+process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
+  logger.error('Unhandled Promise Rejection', reason as Error, {
+    promise: String(promise),
+  });
+});
+
+process.on('uncaughtException', (error: Error) => {
+  logger.error('Uncaught Exception', error);
+  // Give time for logs to flush then exit
+  setTimeout(() => {
+    process.exit(1);
+  }, 1000);
+});
+
 // Import socket-related modules
 async function startServer() {
   try {
