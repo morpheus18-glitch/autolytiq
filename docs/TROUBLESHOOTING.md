@@ -98,7 +98,8 @@ docker exec autolytiq-frontend nginx -t
 **Common issues:**
 - Nginx config errors: Test with `nginx -t`
 - Missing build artifacts: Check `/usr/share/nginx/html` in container
-- Wrong port mapping: Verify `docker-compose.yml` ports section
+- Wrong port mapping: Ensure `docker-compose.yml` maps to port 8080 (nginx-unprivileged default)
+- Healthcheck failures: Verify healthcheck uses port 8080 internally
 
 ### 4. Database Issues
 
