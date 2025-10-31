@@ -18,6 +18,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/backend/package.json apps/backend/
 COPY packages/db/package.json packages/db/
+COPY packages/db/schema.prisma packages/db/
 COPY packages/shared/package.json packages/shared/
 COPY packages/tokens/package.json packages/tokens/
 

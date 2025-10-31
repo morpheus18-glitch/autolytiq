@@ -37,3 +37,7 @@ Align shared enums with automotive schema
 
 Fix Rust service build issues and update shared utilities
 
+## 2025-10-31T01:26:53Z (copilot/fix-build-deploy-errors)
+
+Fix backend Docker build by copying Prisma schema before install
+
