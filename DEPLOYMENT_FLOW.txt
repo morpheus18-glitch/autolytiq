@@ -1,0 +1,137 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                     AutolytiQ Deployment Decision Flow                       ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+                            START: Want to deploy AutolytiQ?
+                                          │
+                                          ▼
+                          ┌───────────────────────────────┐
+                          │   Read QUICK_START.md first!   │
+                          └───────────────┬───────────────┘
+                                          │
+                          ┌───────────────┴───────────────┐
+                          │                               │
+                    ▼                                     ▼
+        ┌──────────────────────┐              ┌──────────────────────┐
+        │   Local Development   │              │  Production Deploy   │
+        │   (try it out)        │              │  (real deployment)   │
+        └──────────┬───────────┘              └──────────┬───────────┘
+                   │                                      │
+                   ▼                                      ▼
+        ┌──────────────────────┐              ┌──────────────────────┐
+        │ Run preflight check:  │              │ Choose your method:   │
+        │ pnpm preflight       │              │  • Kubernetes         │
+        └──────────┬───────────┘              │  • VPS/Droplet        │
+                   │                           │  • Self-hosted        │
+                   │ ✓ All checks pass        └──────────┬───────────┘
+                   ▼                                      │
+        ┌──────────────────────┐                         │
+        │ One-command deploy:   │              ┌─────────┴──────────┐
+        │ pnpm deploy:local    │              │                    │
+        │      OR               │              ▼                    ▼
+        │ ./scripts/           │   ┌──────────────────┐  ┌──────────────────┐
+        │  quick-deploy.sh     │   │   Kubernetes      │  │   VPS/Droplet    │
+        └──────────┬───────────┘   └─────────┬────────┘  └─────────┬────────┘
+                   │                          │                      │
+                   │ Automatic:               │                      │
+                   │ • Check prereqs          ▼                      ▼
+                   │ • Setup .env   ┌──────────────────┐  ┌──────────────────┐
+                   │ • Build images │ pnpm preflight:  │  │ ./scripts/       │
+                   │ • Start services│  production     │  │  deploy-to-      │
+                   │ • Run migrations│                 │  │  droplet.sh IP   │
+                   │ • Health checks └─────────┬───────┘  └─────────┬────────┘
+                   │                           │                     │
+                   ▼                           ▼                     │
+        ┌──────────────────────┐   ┌──────────────────┐           │
+        │   SUCCESS! 🎉         │   │ pnpm deploy:     │           │
+        │                       │   │  production      │           │
+        │ Frontend:             │   │      OR          │           │
+        │  http://localhost:3000│   │ ./scripts/       │           │
+        │                       │   │  deploy-         │           │
+        │ Backend:              │   │  production.sh   │           │
+        │  http://localhost:5000│   └─────────┬───────┘           │
+        │                       │              │                    │
+        │ ML API:               │              │ Interactive:       │
+        │  http://localhost:8000│              │ • Cluster confirm  │
+        │                       │              │ • Namespace select │
+        │ Time: ~5 minutes      │              │ • Tag config       │
+        └───────────────────────┘              │ • Deploy w/Helm    │
+                                               │ • Smoke tests      │
+                                               ▼                    ▼
+                                    ┌──────────────────┐  ┌──────────────────┐
+                                    │   SUCCESS! 🎉     │  │   SUCCESS! 🎉     │
+                                    │                   │  │                   │
+                                    │ Deployed to K8s   │  │ Deployed to VPS   │
+                                    │ Time: ~15 min     │  │ Time: ~10 min     │
+                                    └───────────────────┘  └───────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                            Troubleshooting Path                               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+                              Something went wrong?
+                                       │
+                                       ▼
+                        ┌──────────────────────────────┐
+                        │  Step 1: Run diagnostics      │
+                        │  pnpm preflight              │
+                        │  pnpm validate:deployment    │
+                        │  pnpm health:check           │
+                        └──────────────┬───────────────┘
+                                       │
+                                       ▼
+                        ┌──────────────────────────────┐
+                        │  Step 2: Check docs          │
+                        │  • TROUBLESHOOTING.md        │
+                        │  • DEPLOYMENT_GUIDE.md       │
+                        └──────────────┬───────────────┘
+                                       │
+                                       ▼
+                        ┌──────────────────────────────┐
+                        │  Step 3: View logs           │
+                        │  docker compose logs -f      │
+                        └──────────────┬───────────────┘
+                                       │
+                                       ▼
+                                 Issue Resolved! ✓
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                            Quick Command Reference                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────┬──────────────────────────────────────────────────────┐
+│ Task                │ Command                                              │
+├─────────────────────┼──────────────────────────────────────────────────────┤
+│ Deploy locally      │ pnpm deploy:local                                    │
+│ Deploy to K8s       │ pnpm deploy:production                               │
+│ Deploy to VPS       │ pnpm deploy:droplet YOUR_IP                          │
+│ Pre-flight check    │ pnpm preflight                                       │
+│ Validate setup      │ pnpm validate:deployment                             │
+│ Health check        │ pnpm health:check                                    │
+│ View logs           │ docker compose logs -f                               │
+│ Stop services       │ docker compose down                                  │
+│ Restart             │ docker compose restart                               │
+│ Build for prod      │ pnpm build:prod                                      │
+│ Run migrations      │ pnpm db:migrate:deploy                               │
+│ Start dev mode      │ pnpm dev                                             │
+└─────────────────────┴──────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           Documentation Hierarchy                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+START HERE → QUICK_START.md ──────────────┐
+                                           ▼
+                                Need details? → DEPLOYMENT_GUIDE.md
+                                           │
+                           ┌───────────────┴───────────────┐
+                           │                               │
+                           ▼                               ▼
+                   Need scripts info?            Having problems?
+                   scripts/README.md             TROUBLESHOOTING.md
+                           │                               │
+                           └───────────────┬───────────────┘
+                                           ▼
+                                 DEPLOYMENT_SOLUTION.md
+                                 (Implementation summary)
+

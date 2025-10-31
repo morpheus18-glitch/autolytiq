@@ -121,3 +121,7 @@ Update scripts README and improve preflight check script
 
 Add QUICK_START.md and comprehensive DEPLOYMENT_SOLUTION.md summary
 
+## 2025-10-31T10:50:16Z (copilot/fix-app-deployment-issues)
+
+Add visual deployment flow diagram
+
