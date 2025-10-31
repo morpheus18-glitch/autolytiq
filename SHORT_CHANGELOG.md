@@ -93,3 +93,7 @@ Fix deployment issues: corrected healthcheck paths, removed unnecessary .md file
 
 Add deployment validation tests, health check script, troubleshooting guide, and global error handlers
 
+## 2025-10-31T10:10:56Z (copilot/remove-unnecessary-md-files)
+
+Improve environment variable validation with better error messages and optional defaults
+

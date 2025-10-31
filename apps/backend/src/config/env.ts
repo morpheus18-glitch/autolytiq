@@ -7,18 +7,18 @@ const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     DATABASE_URL: z.string().url('DATABASE_URL must be a valid URL'),
-    JWT_PUBLIC_KEY: z.string().min(1, 'JWT_PUBLIC_KEY is required'),
-    JWT_ISSUER: z.string().min(1, 'JWT_ISSUER is required'),
-    JWT_AUDIENCE: z.string().min(1, 'JWT_AUDIENCE is required'),
-    SENDGRID_API_KEY: z.string().min(1, 'SENDGRID_API_KEY is required'),
-    SENDGRID_FROM: z.string().min(1, 'SENDGRID_FROM is required'),
-    TWILIO_ACCOUNT_SID: z.string().min(1, 'TWILIO_ACCOUNT_SID is required'),
-    TWILIO_AUTH_TOKEN: z.string().min(1, 'TWILIO_AUTH_TOKEN is required'),
-    TWILIO_MESSAGING_SERVICE_SID: z.string().min(1, 'TWILIO_MESSAGING_SERVICE_SID is required'),
-    TWILIO_CALLER_ID: z.string().min(1, 'TWILIO_CALLER_ID is required'),
-    SOCKET_IO_CORS_ORIGIN: z.string().min(1, 'SOCKET_IO_CORS_ORIGIN is required'),
-    APP_URL: z.string().min(1, 'APP_URL is required'),
-    API_URL: z.string().min(1, 'API_URL is required'),
+    JWT_PUBLIC_KEY: z.string().min(1, 'JWT_PUBLIC_KEY is required').optional().default(''),
+    JWT_ISSUER: z.string().min(1, 'JWT_ISSUER is required').optional().default('autolytiq'),
+    JWT_AUDIENCE: z.string().min(1, 'JWT_AUDIENCE is required').optional().default('autolytiq-api'),
+    SENDGRID_API_KEY: z.string().min(1, 'SENDGRID_API_KEY is required').optional().default(''),
+    SENDGRID_FROM: z.string().min(1, 'SENDGRID_FROM is required').optional().default('noreply@autolytiq.com'),
+    TWILIO_ACCOUNT_SID: z.string().min(1, 'TWILIO_ACCOUNT_SID is required').optional().default(''),
+    TWILIO_AUTH_TOKEN: z.string().min(1, 'TWILIO_AUTH_TOKEN is required').optional().default(''),
+    TWILIO_MESSAGING_SERVICE_SID: z.string().min(1, 'TWILIO_MESSAGING_SERVICE_SID is required').optional().default(''),
+    TWILIO_CALLER_ID: z.string().min(1, 'TWILIO_CALLER_ID is required').optional().default(''),
+    SOCKET_IO_CORS_ORIGIN: z.string().min(1, 'SOCKET_IO_CORS_ORIGIN is required').optional().default('*'),
+    APP_URL: z.string().min(1, 'APP_URL is required').optional().default('http://localhost:3000'),
+    API_URL: z.string().min(1, 'API_URL is required').optional().default('http://localhost:5000'),
     ML_SERVICE_URL: z
       .string()
       .url('ML_SERVICE_URL must be a valid URL')
@@ -38,7 +38,7 @@ const envSchema = z
     CLAMAV_PORT: z.coerce.number().int().positive().optional(),
     PORT: z
       .string()
-      .default('4000')
+      .default('5000')
       .transform((value) => {
         const parsed = Number.parseInt(value, 10);
         if (Number.isNaN(parsed) || parsed <= 0) {
@@ -49,7 +49,38 @@ const envSchema = z
   })
   .transform((values) => ({
     ...values,
-    JWT_PUBLIC_KEY: values.JWT_PUBLIC_KEY.replace(/\\n/g, '\n'),
+    JWT_PUBLIC_KEY: values.JWT_PUBLIC_KEY ? values.JWT_PUBLIC_KEY.replace(/\\n/g, '\n') : '',
   }));
 
-export const env = envSchema.parse(process.env);
+let env: z.infer<typeof envSchema>;
+
+try {
+  env = envSchema.parse(process.env);
+  
+  // Warn about missing optional but important variables
+  if (!env.JWT_PUBLIC_KEY) {
+    console.warn('⚠️  Warning: JWT_PUBLIC_KEY not set - authentication may not work');
+  }
+  if (!env.SENDGRID_API_KEY) {
+    console.warn('⚠️  Warning: SENDGRID_API_KEY not set - email sending disabled');
+  }
+  if (!env.TWILIO_ACCOUNT_SID) {
+    console.warn('⚠️  Warning: TWILIO_ACCOUNT_SID not set - SMS sending disabled');
+  }
+  if (!env.REDIS_URL && env.NODE_ENV === 'production') {
+    console.warn('⚠️  Warning: REDIS_URL not set in production - session storage may be unreliable');
+  }
+} catch (error) {
+  console.error('❌ Environment validation failed:');
+  if (error instanceof z.ZodError) {
+    console.error('Missing or invalid environment variables:');
+    error.errors.forEach((err) => {
+      console.error(`  - ${err.path.join('.')}: ${err.message}`);
+    });
+  } else {
+    console.error(error);
+  }
+  process.exit(1);
+}
+
+export { env };
