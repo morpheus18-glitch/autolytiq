@@ -26,7 +26,7 @@ check_endpoint() {
     
     echo -n "Checking $name... "
     
-    response=$(curl -s -o /dev/null -w "%{http_code}" "$url" 2>/dev/null || echo "000")
+    response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$url" 2>/dev/null || echo "000")
     
     if [ "$response" = "$expected_code" ]; then
         echo -e "${GREEN}✓${NC} ($response)"

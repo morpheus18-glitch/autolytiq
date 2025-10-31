@@ -55,7 +55,7 @@ fi
 # Validate Prisma schema
 echo ""
 echo "Validating Prisma schema..."
-if pnpm --filter @repo/db exec prisma validate --schema schema.prisma 2>&1 | grep -q "is valid"; then
+if pnpm --filter @repo/db exec prisma validate --schema schema.prisma >/dev/null 2>&1; then
     validate_step "Prisma schema is valid"
 else
     echo -e "${RED}✗${NC} Prisma schema validation failed"

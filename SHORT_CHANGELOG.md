@@ -101,3 +101,7 @@ Improve environment variable validation with better error messages and optional 
 
 Add comprehensive deployment readiness summary document
 
+## 2025-10-31T10:15:44Z (copilot/remove-unnecessary-md-files)
+
+Address code review feedback: improve script robustness and env validation
+

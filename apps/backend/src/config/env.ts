@@ -7,18 +7,18 @@ const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     DATABASE_URL: z.string().url('DATABASE_URL must be a valid URL'),
-    JWT_PUBLIC_KEY: z.string().min(1, 'JWT_PUBLIC_KEY is required').optional().default(''),
-    JWT_ISSUER: z.string().min(1, 'JWT_ISSUER is required').optional().default('autolytiq'),
-    JWT_AUDIENCE: z.string().min(1, 'JWT_AUDIENCE is required').optional().default('autolytiq-api'),
-    SENDGRID_API_KEY: z.string().min(1, 'SENDGRID_API_KEY is required').optional().default(''),
-    SENDGRID_FROM: z.string().min(1, 'SENDGRID_FROM is required').optional().default('noreply@autolytiq.com'),
-    TWILIO_ACCOUNT_SID: z.string().min(1, 'TWILIO_ACCOUNT_SID is required').optional().default(''),
-    TWILIO_AUTH_TOKEN: z.string().min(1, 'TWILIO_AUTH_TOKEN is required').optional().default(''),
-    TWILIO_MESSAGING_SERVICE_SID: z.string().min(1, 'TWILIO_MESSAGING_SERVICE_SID is required').optional().default(''),
-    TWILIO_CALLER_ID: z.string().min(1, 'TWILIO_CALLER_ID is required').optional().default(''),
-    SOCKET_IO_CORS_ORIGIN: z.string().min(1, 'SOCKET_IO_CORS_ORIGIN is required').optional().default('*'),
-    APP_URL: z.string().min(1, 'APP_URL is required').optional().default('http://localhost:3000'),
-    API_URL: z.string().min(1, 'API_URL is required').optional().default('http://localhost:5000'),
+    JWT_PUBLIC_KEY: z.string().optional(),
+    JWT_ISSUER: z.string().optional().default('autolytiq'),
+    JWT_AUDIENCE: z.string().optional().default('autolytiq-api'),
+    SENDGRID_API_KEY: z.string().optional(),
+    SENDGRID_FROM: z.string().optional().default('noreply@autolytiq.com'),
+    TWILIO_ACCOUNT_SID: z.string().optional(),
+    TWILIO_AUTH_TOKEN: z.string().optional(),
+    TWILIO_MESSAGING_SERVICE_SID: z.string().optional(),
+    TWILIO_CALLER_ID: z.string().optional(),
+    SOCKET_IO_CORS_ORIGIN: z.string().optional().default('*'),
+    APP_URL: z.string().optional().default('http://localhost:3000'),
+    API_URL: z.string().optional().default('http://localhost:5000'),
     ML_SERVICE_URL: z
       .string()
       .url('ML_SERVICE_URL must be a valid URL')
@@ -49,7 +49,7 @@ const envSchema = z
   })
   .transform((values) => ({
     ...values,
-    JWT_PUBLIC_KEY: values.JWT_PUBLIC_KEY ? values.JWT_PUBLIC_KEY.replace(/\\n/g, '\n') : '',
+    JWT_PUBLIC_KEY: values.JWT_PUBLIC_KEY ? values.JWT_PUBLIC_KEY.replace(/\\n/g, '\n') : undefined,
   }));
 
 let env: z.infer<typeof envSchema>;
