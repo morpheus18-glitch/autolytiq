@@ -13,24 +13,24 @@ class Settings(BaseSettings):
     DEPLOY_MODE: Literal['replit', 'self_hosted'] = 'replit'
     PORT: int = 8000
     DATABASE_URL: AnyUrl
-    REDIS_URL: AnyUrl
+    REDIS_URL: Optional[AnyUrl] = None
     JWT_SECRET: str
-    SENDGRID_API_KEY: str
-    SENDGRID_FROM_EMAIL: str
-    SENDGRID_WEBHOOK_SIGNING_KEY: str
+    SENDGRID_API_KEY: Optional[str] = None
+    SENDGRID_FROM_EMAIL: Optional[str] = None
+    SENDGRID_WEBHOOK_SIGNING_KEY: Optional[str] = None
     SMTP_HOST: str = 'smtp.sendgrid.net'
     SMTP_PORT: int = 587
     SMTP_USER: Optional[str] = None
     SMTP_PASS: Optional[str] = None
-    TWILIO_ACCOUNT_SID: str
-    TWILIO_AUTH_TOKEN: str
-    TWILIO_MESSAGING_SERVICE_SID: str
+    TWILIO_ACCOUNT_SID: Optional[str] = None
+    TWILIO_AUTH_TOKEN: Optional[str] = None
+    TWILIO_MESSAGING_SERVICE_SID: Optional[str] = None
     TWILIO_PHONE_NUMBER: Optional[str] = None
-    PEXELS_API_KEY: str
-    AWS_ACCESS_KEY_ID: str
-    AWS_SECRET_ACCESS_KEY: str
+    PEXELS_API_KEY: Optional[str] = None
+    AWS_ACCESS_KEY_ID: Optional[str] = None
+    AWS_SECRET_ACCESS_KEY: Optional[str] = None
     AWS_REGION: Optional[str] = None
-    S3_BUCKET: str
+    S3_BUCKET: Optional[str] = None
     S3_REGION: Optional[str] = None
     S3_ENDPOINT: Optional[AnyUrl] = None
     CLICKHOUSE_HOST: Optional[str] = None
