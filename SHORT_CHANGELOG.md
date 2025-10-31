@@ -65,3 +65,7 @@ Final review complete - no security issues, ready for merge
 
 Task complete - comprehensive documentation added
 
+## 2025-10-31T09:19:13Z (work)
+
+Allow ml service to run without optional integrations
+

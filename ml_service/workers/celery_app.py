@@ -1,6 +1,8 @@
 """Celery application configuration for Autolytiq background workers."""
 from __future__ import annotations
 
+import logging
+
 from celery import Celery
 
 from config.env import ENV
@@ -8,8 +10,18 @@ from config.env import ENV
 from .schedules import BEAT_SCHEDULE
 
 
+LOGGER = logging.getLogger(__name__)
+
+
 def _redis_url() -> str:
-    return str(ENV.REDIS_URL)
+    if ENV.REDIS_URL:
+        return str(ENV.REDIS_URL)
+
+    LOGGER.warning(
+        "REDIS_URL is not configured; using in-memory Celery broker/backend. "
+        "Background tasks will not persist across restarts."
+    )
+    return "memory://"
 
 
 celery_app = Celery(
