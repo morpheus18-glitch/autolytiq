@@ -134,7 +134,8 @@ For convenience, many scripts are also available as npm/pnpm commands:
 # Deployment
 pnpm deploy:local              # Same as ./scripts/quick-deploy.sh
 pnpm deploy:production         # Same as ./scripts/deploy-production.sh
-pnpm deploy:droplet            # Same as ./scripts/deploy-to-droplet.sh
+# Note: deploy:droplet requires IP parameter:
+#   pnpm deploy:droplet -- YOUR_DROPLET_IP [branch]
 
 # Validation
 pnpm preflight                 # Pre-flight check for local deployment

@@ -80,8 +80,34 @@ echo_step "Checking for port conflicts..."
 PORTS=(3000 5000 5432 6379 8000 9000)
 PORT_CONFLICTS=()
 
+# Function to check if port is in use (with fallbacks)
+check_port_in_use() {
+    local port=$1
+    
+    # Try lsof first (most reliable)
+    if command -v lsof &> /dev/null; then
+        lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1
+        return $?
+    fi
+    
+    # Fallback to ss (common on modern Linux)
+    if command -v ss &> /dev/null; then
+        ss -lnt | grep -q ":$port " 
+        return $?
+    fi
+    
+    # Fallback to netstat (older systems)
+    if command -v netstat &> /dev/null; then
+        netstat -lnt | grep -q ":$port "
+        return $?
+    fi
+    
+    # If no tools available, assume port is available
+    return 1
+}
+
 for port in "${PORTS[@]}"; do
-    if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1 ; then
+    if check_port_in_use "$port"; then
         PORT_CONFLICTS+=($port)
         echo_warn "Port $port is already in use"
     fi
