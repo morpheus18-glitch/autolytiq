@@ -24,6 +24,17 @@ export default defineConfig({
     "vite",
     /@babel\//,
     /@tailwindcss\//,
+    // External packages to prevent bundling issues with dynamic requires
+    "axios",
+    "bullmq",
+    "chokidar",
+    "date-fns",
+    "ioredis",
+    "js-yaml",
+    "jsonwebtoken",
+    "node-cron",
+    "pdfkit",
+    "twilio",
   ],
   esbuildOptions(options) {
     options.resolveExtensions = [".ts", ".js", ".mjs", ".cjs"];
