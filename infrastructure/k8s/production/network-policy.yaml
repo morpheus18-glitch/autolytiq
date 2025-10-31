@@ -36,37 +36,11 @@ spec:
         - protocol: TCP
           port: 6379   # redis
   egress:
-    # Allow DNS
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              name: kube-system
-      ports:
-        - protocol: UDP
-          port: 53
-    # Allow external HTTPS (for APIs, webhooks, etc.)
-    - to:
-        - namespaceSelector: {}
-      ports:
-        - protocol: TCP
-          port: 443
-    # Allow PostgreSQL (external)
-    - to:
-        - namespaceSelector: {}
-      ports:
-        - protocol: TCP
-          port: 25060
-    # Allow internal communication
+    # Allow all egress (can be restricted later based on requirements)
     - to:
         - podSelector: {}
-      ports:
+    - to:
+        - namespaceSelector: {}
+    - ports:
         - protocol: TCP
-          port: 5000
-        - protocol: TCP
-          port: 3000
-        - protocol: TCP
-          port: 8000
-        - protocol: TCP
-          port: 50051
-        - protocol: TCP
-          port: 6379
+        - protocol: UDP
