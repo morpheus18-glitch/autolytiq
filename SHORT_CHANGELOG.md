@@ -113,3 +113,7 @@ Add comprehensive DEPLOYMENT_GUIDE.md and quick-deploy.sh script for simplified 
 
 Add interactive production deployment script, preflight checks, and convenient npm scripts
 
+## 2025-10-31T10:47:00Z (copilot/fix-app-deployment-issues)
+
+Update scripts README and improve preflight check script
+

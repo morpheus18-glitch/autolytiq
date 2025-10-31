@@ -1,132 +1,235 @@
 # AutolytiQ Deployment Scripts
 
-Automation scripts that support infrastructure tasks for AutolytiQ.
+This directory contains automation scripts for deploying and managing AutolytiQ.
 
-## 📁 Scripts Overview
+## 🚀 Deployment Scripts
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
-| `setup-droplet.sh` | Provision a legacy all-in-one droplet (Ubuntu 24.04) | Run once when creating a VM |
-| `deploy-to-droplet.sh` | Deploy or update the droplet stack | Run on demand from your workstation |
+### Quick Deploy (Local)
+```bash
+./scripts/quick-deploy.sh
+```
+One-command local deployment using Docker Compose. Perfect for getting started quickly.
 
-> **Note**
-> DigitalOcean Kubernetes is the primary production target. The droplet scripts remain available for
-> disaster recovery or lightweight demo environments but are no longer maintained as the main path.
+**Features:**
+- Checks prerequisites (Docker, Docker Compose)
+- Sets up environment automatically
+- Builds and starts all services
+- Runs database migrations
+- Performs health checks
+- Shows you exactly where to access the app
 
----
+### Production Deploy (Kubernetes)
+```bash
+./scripts/deploy-production.sh
+```
+Interactive production deployment to Kubernetes (DigitalOcean or any cluster).
 
-## 🚀 Quick Start (Droplet Legacy Path)
+**Features:**
+- Checks prerequisites (kubectl, helm)
+- Interactive configuration prompts
+- Namespace and tag selection
+- Helm chart deployments
+- Deployment verification
+- Smoke tests
+
+### Droplet Deploy (VPS)
+```bash
+./scripts/deploy-to-droplet.sh YOUR_DROPLET_IP [branch]
+```
+Deploy to a DigitalOcean droplet or any VPS.
+
+**Features:**
+- SSH connection verification
+- Code deployment
+- Dependency installation
+- Database migrations
+- Service restart
+- Health checks
+
+## ✅ Validation Scripts
+
+### Pre-Flight Check
+```bash
+./scripts/preflight-check.sh [local|production]
+```
+Comprehensive pre-deployment validation.
+
+**Checks:**
+- Git repository status
+- Docker/Kubernetes environment
+- Node.js and pnpm versions
+- Environment configuration
+- Dependencies and build artifacts
+- Dockerfiles and docker-compose.yml
+- Prisma schema validity
+- Port availability
+
+### Deployment Validation
+```bash
+./scripts/validate-deployment.sh
+```
+Validates the deployment setup before deploying.
+
+**Checks:**
+- Node.js version
+- pnpm availability
+- Environment files
+- Prisma schema
+- TypeScript compilation
+- Build artifacts
+- Dockerfiles
+- docker-compose.yml validity
+- Security issues
+
+### Health Check
+```bash
+./scripts/deployment-health-check.sh
+```
+Post-deployment health verification.
+
+**Checks:**
+- Backend health endpoints
+- Frontend availability
+- ML service health
+- Database connectivity
+- Docker container status
+
+## 🔧 Utility Scripts
+
+### Update Changelog
+```bash
+./scripts/update-changelog.sh "Description of changes"
+```
+Appends a timestamped entry to SHORT_CHANGELOG.md.
+
+### Scan Secrets
+```bash
+./scripts/scan-secrets.sh
+```
+Scans for accidentally committed secrets using gitleaks.
+
+### Database Backup
+```bash
+./scripts/db-backup.sh
+```
+Creates a backup of the PostgreSQL database.
+
+### Smoke Tests
+```bash
+./scripts/smoke.sh
+```
+Runs smoke tests against deployed services.
+
+### Setup Droplet
+```bash
+./scripts/setup-droplet.sh DROPLET_IP
+```
+Initial setup of a DigitalOcean droplet (installs dependencies, configures environment).
+
+## 📦 NPM Scripts
+
+For convenience, many scripts are also available as npm/pnpm commands:
 
 ```bash
-# 1. Create a DigitalOcean droplet (Ubuntu 24.04, 2GB RAM)
+# Deployment
+pnpm deploy:local              # Same as ./scripts/quick-deploy.sh
+pnpm deploy:production         # Same as ./scripts/deploy-production.sh
+pnpm deploy:droplet            # Same as ./scripts/deploy-to-droplet.sh
 
-# 2. SSH into droplet
-ssh root@YOUR_DROPLET_IP
+# Validation
+pnpm preflight                 # Pre-flight check for local deployment
+pnpm preflight:production      # Pre-flight check for production
+pnpm validate:deployment       # Deployment validation
+pnpm health:check              # Health check
 
-# 3. Run setup script
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/autolytiq/main/scripts/setup-droplet.sh | bash
+# Development
+pnpm dev                       # Start dev servers (frontend + backend)
+pnpm dev:server               # Start backend only
+pnpm dev:client               # Start frontend only
 
-# 4. Clone repository
-cd /opt/autolytiq
-git clone https://github.com/YOUR_USERNAME/autolytiq.git .
+# Building
+pnpm build                     # Build all packages
+pnpm build:prod               # Build for production
+pnpm build:server             # Build backend only
+pnpm build:client             # Build frontend only
 
-# 5. Configure environment
-cp .env.digitalocean.example .env
-nano .env  # Fill in your values
+# Database
+pnpm db:migrate:dev           # Create and apply migration
+pnpm db:migrate:deploy        # Apply migrations in production
+pnpm db:seed                  # Seed database
 
-# 6. Deploy application
-pnpm install
-pnpm db:generate
-pnpm db:migrate:deploy
+# Testing & Quality
+pnpm test                      # Run all tests
+pnpm test:e2e                 # Run end-to-end tests
+pnpm test:deployment          # Run deployment tests
+pnpm typecheck                # TypeScript type checking
+pnpm lint                     # Code linting
+pnpm scan:secrets             # Scan for secrets
+```
+
+## 🎯 Common Workflows
+
+### First Time Local Setup
+```bash
+# 1. Pre-flight check
+pnpm preflight
+
+# 2. Quick deploy
+pnpm deploy:local
+
+# 3. Access app at http://localhost:3000
+```
+
+### Production Deployment
+```bash
+# 1. Pre-flight check
+pnpm preflight:production
+
+# 2. Build for production
 pnpm build:prod
-sudo systemctl enable autolytiq
-sudo systemctl start autolytiq
+
+# 3. Deploy
+pnpm deploy:production
 ```
 
-### Subsequent Deployments
-
+### Debugging Deployment Issues
 ```bash
-# From your local machine
-./scripts/deploy-to-droplet.sh YOUR_DROPLET_IP main
+# 1. Run validation
+pnpm validate:deployment
+
+# 2. Check health
+pnpm health:check
+
+# 3. View logs
+docker compose logs -f
 ```
 
-For the Kubernetes workflow, follow `docs/DEPLOYMENT.md` and `DIGITAL_OCEAN_MIGRATION.md`.
+## 📖 Documentation
 
----
+For more detailed information, see:
 
-## 📝 Detailed Documentation
+- **[DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)** - Comprehensive deployment guide
+- **[docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md)** - Kubernetes deployment details
+- **[docs/TROUBLESHOOTING.md](../docs/TROUBLESHOOTING.md)** - Troubleshooting guide
+- **[README.md](../README.md)** - Project overview
 
-### `setup-droplet.sh`
+## 🆘 Getting Help
 
-**Purpose**: Prepares a fresh Ubuntu droplet with all required dependencies.
+If you encounter issues:
 
-**What it installs**:
-- Node.js 22.x
-- pnpm 10.18.3
-- Docker & Docker Compose
-- PostgreSQL 16
-- Redis 7
-- Nginx
-- Certbot (for SSL)
-- Firewall (UFW)
+1. Run `pnpm preflight` to check your environment
+2. Run `pnpm validate:deployment` to validate setup
+3. Check [docs/TROUBLESHOOTING.md](../docs/TROUBLESHOOTING.md)
+4. Review logs: `docker compose logs -f`
+5. Check [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)
 
-**What it configures**:
-- PostgreSQL database and user
-- Nginx reverse proxy
-- Systemd service for AutolytiQ
-- Firewall rules (SSH, HTTP, HTTPS)
+## 📝 Script Maintenance
 
-**Usage**:
-```bash
-# Option 1: Direct execution (review first!)
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/autolytiq/main/scripts/setup-droplet.sh | bash
+When adding new scripts:
 
-# Option 2: Download and review
-wget https://raw.githubusercontent.com/YOUR_USERNAME/autolytiq/main/scripts/setup-droplet.sh
-chmod +x setup-droplet.sh
-./setup-droplet.sh
-```
-
-**Prerequisites**:
-- Fresh Ubuntu 24.04 LTS droplet
-- Root access
-- Internet connection
-
-**Time**: ~5-10 minutes
-
----
-
-### `deploy-to-droplet.sh`
-
-**Purpose**: Automates application deployment and updates on the droplet stack.
-
-**What it does**:
-1. Connects to droplet via SSH
-2. Pulls latest code from Git
-3. Installs/updates dependencies
-4. Generates Prisma client
-5. Runs database migrations
-6. Builds application
-7. Restarts service
-8. Performs health check
-
-**Usage**:
-```bash
-./scripts/deploy-to-droplet.sh DROPLET_IP [BRANCH]
-
-# Examples:
-./scripts/deploy-to-droplet.sh 165.227.123.45
-./scripts/deploy-to-droplet.sh 165.227.123.45 main
-./scripts/deploy-to-droplet.sh 165.227.123.45 develop
-```
-
-**Prerequisites**:
-- Droplet already configured with `setup-droplet.sh`
-- SSH key authentication configured
-- Application already cloned to `/opt/autolytiq`
-
-**Time**: ~2-5 minutes
-
-**Exit codes**:
-- `0`: Deployment successful
-- `1`: Deployment failed (check logs)
+1. Make them executable: `chmod +x scripts/your-script.sh`
+2. Add helpful comments and error handling
+3. Follow the pattern of existing scripts (colors, helper functions)
+4. Document them in this README
+5. Consider adding an npm script alias in package.json
+6. Update the changelog: `pnpm changelog:update "Description"`
