@@ -49,3 +49,7 @@ Fix deployment errors across all 4 GitHub Actions workflows
 
 Fix backend crash loop by adding missing dependencies and externalizing packages in tsup config
 
+## 2025-10-31T02:28:05Z (copilot/debug-workflow-logs)
+
+Fix deployment errors: register health routes, fix ML service user ID, improve probe configurations
+

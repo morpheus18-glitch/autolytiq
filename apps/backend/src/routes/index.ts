@@ -14,11 +14,11 @@ import { mlRouter } from './ml.routes.js';
 import { simulateLeadRouting } from '../services/lead-routing.service.js';
 import { fiRouter } from './fi/index.js';
 import { deskingRouter } from './desking.routes.js';
+import { healthRouter } from './health.routes.js';
 
 export function registerRoutes(app: Express) {
-  app.get('/health', ((req, res) => {
-    res.json({ ok: true, tenant: req.context?.tenantId ?? null });
-  }) as RequestHandler);
+  // Health check routes (no auth required)
+  app.use('/', healthRouter);
 
   const apiRouter = Router();
   apiRouter.use(authenticate);
