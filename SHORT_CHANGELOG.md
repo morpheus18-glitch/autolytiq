@@ -45,3 +45,7 @@ Fix backend Docker build by copying Prisma schema before install
 
 Fix deployment errors across all 4 GitHub Actions workflows
 
+## 2025-10-31T02:09:53Z (copilot/fix-backend-crash-loop)
+
+Fix backend crash loop by adding missing dependencies and externalizing packages in tsup config
+
