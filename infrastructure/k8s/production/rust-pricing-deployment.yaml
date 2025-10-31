@@ -44,18 +44,27 @@ spec:
             limits:
               cpu: "750m"
               memory: "1Gi"
-          livenessProbe:
-            exec:
-              command: ["/usr/local/bin/grpc_health_probe", "-addr=:50051"]
-            initialDelaySeconds: 15
-            periodSeconds: 10
-            timeoutSeconds: 5
-          readinessProbe:
+          startupProbe:
             exec:
               command: ["/usr/local/bin/grpc_health_probe", "-addr=:50051"]
             initialDelaySeconds: 5
             periodSeconds: 5
+            failureThreshold: 30
+            timeoutSeconds: 3
+          livenessProbe:
+            exec:
+              command: ["/usr/local/bin/grpc_health_probe", "-addr=:50051"]
+            initialDelaySeconds: 30
+            periodSeconds: 15
             timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["/usr/local/bin/grpc_health_probe", "-addr=:50051"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
 ---
 apiVersion: v1
 kind: Service
