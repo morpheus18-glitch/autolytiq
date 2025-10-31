@@ -36,16 +36,16 @@ FROM base AS runner
 ENV NODE_ENV=production \
     PORT=5000
 
-WORKDIR /srv/app
+WORKDIR /app
 
-COPY --from=builder /app/apps/backend/dist ./dist
-COPY --from=builder /app/apps/backend/package.json ./package.json
-COPY --from=builder /app/apps/backend/node_modules ./node_modules
-COPY --from=builder /app/node_modules/.pnpm ./node_modules/.pnpm
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/apps/backend ./apps/backend
+
+WORKDIR /app/apps/backend
 
 RUN mkdir -p storage \
- && chown -R nodeapp:nodeapp /srv/app
+ && chown -R nodeapp:nodeapp /app
 
 USER nodeapp
 EXPOSE 5000
