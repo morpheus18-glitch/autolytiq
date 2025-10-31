@@ -11,13 +11,13 @@ on:
   workflow_dispatch:
 
 env:
-  REGISTRY: ${{ secrets.DO_REGISTRY || 'registry.digitalocean.com/autolytiq' }}
+  REGISTRY: registry.digitalocean.com/autolytiq
   IMAGE_NAME: rust-pricing
   DEPLOYMENT_NAME: rust-pricing
   CONTAINER_NAME: rust-pricing
-  CLUSTER: ${{ secrets.CLUSTER || 'autolytiq-cluster' }}
-  NAMESPACE: ${{ secrets.NS || 'autolytiq-prod' }}
-  SERVICE_NAME: ${{ secrets.RUST_SERVICE_NAME || 'price-engine' }}
+  CLUSTER: autolytiq-cluster
+  NAMESPACE: autolytiq-prod
+  SERVICE_NAME: price-engine
 
 jobs:
   build:
@@ -66,8 +66,8 @@ jobs:
               --type=kubernetes.io/dockerconfigjson \
               --dry-run=client -o yaml | kubectl apply -f -
       - name: Deploy Rust pricing service
-        env:
-          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
         run: |
-          kubectl -n "$NAMESPACE" set image deployment/${DEPLOYMENT_NAME} ${CONTAINER_NAME}=$IMAGE
-          kubectl -n "$NAMESPACE" rollout status deployment/${DEPLOYMENT_NAME} --timeout=180s
+          sed "s|image:.*rust-pricing:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
+            infrastructure/k8s/production/rust-pricing-deployment.yaml | \
+            kubectl apply -n "$NAMESPACE" -f -
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n "$NAMESPACE" --timeout=180s

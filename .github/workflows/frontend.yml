@@ -14,12 +14,12 @@ on:
   workflow_dispatch:
 
 env:
-  REGISTRY: ${{ secrets.DO_REGISTRY || 'registry.digitalocean.com/autolytiq' }}
+  REGISTRY: registry.digitalocean.com/autolytiq
   IMAGE_NAME: frontend
   DEPLOYMENT_NAME: frontend
   CONTAINER_NAME: frontend
-  CLUSTER: ${{ secrets.CLUSTER || 'autolytiq-cluster' }}
-  NAMESPACE: ${{ secrets.NS || 'autolytiq-prod' }}
+  CLUSTER: autolytiq-cluster
+  NAMESPACE: autolytiq-prod
 
 jobs:
   build:
@@ -75,8 +75,8 @@ jobs:
               --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy frontend
-        env:
-          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
         run: |
-          kubectl -n "$NAMESPACE" set image deployment/${DEPLOYMENT_NAME} ${CONTAINER_NAME}=$IMAGE
-          kubectl -n "$NAMESPACE" rollout status deployment/${DEPLOYMENT_NAME} --timeout=180s
+          sed "s|image:.*frontend:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
+            infrastructure/k8s/production/frontend-deployment.yaml | \
+            kubectl apply -n "$NAMESPACE" -f -
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n "$NAMESPACE" --timeout=180s
