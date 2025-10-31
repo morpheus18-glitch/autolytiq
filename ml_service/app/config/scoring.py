@@ -10,7 +10,7 @@ import yaml
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-_DEFAULT_CONFIG = Path(__file__).resolve().parents[3] / "ml_backend/config/scoring.yaml"
+_DEFAULT_CONFIG = Path(__file__).resolve().parent / "scoring.yaml"
 _CONFIG_PATH = Path(os.getenv("SCORING_CONFIG_PATH") or _DEFAULT_CONFIG).resolve()
 _lock = threading.RLock()
 _current: Dict[str, Any] | None = None
@@ -77,6 +77,10 @@ def start_watcher() -> None:
     global _observer
     with _lock:
         if _observer is not None:
+            return
+        # Only start watcher if config directory exists
+        if not _CONFIG_PATH.parent.exists():
+            print(f"[scoring] config directory {_CONFIG_PATH.parent} does not exist, skipping file watcher")
             return
         observer = Observer()
         handler = _ConfigHandler()

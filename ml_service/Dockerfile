@@ -37,6 +37,7 @@ RUN pip install --no-cache-dir --find-links=/wheels -r requirements.txt
 RUN rm -rf /wheels
 
 COPY ml_service /app
+COPY ml_backend/config/scoring.yaml /app/app/config/scoring.yaml
 
 RUN groupadd --system app && useradd --system --gid app --create-home app
 RUN chown -R app:app /app
