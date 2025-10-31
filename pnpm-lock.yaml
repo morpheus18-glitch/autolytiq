@@ -329,10 +329,6 @@ importers:
       zustand:
         specifier: ^5.0.6
         version: 5.0.6(@types/react@18.3.12)(react@18.3.1)(use-sync-external-store@1.2.2(react@18.3.1))
-    optionalDependencies:
-      bufferutil:
-        specifier: ^4.0.8
-        version: 4.0.8
     devDependencies:
       '@faker-js/faker':
         specifier: ^9.1.0
@@ -472,6 +468,10 @@ importers:
       vitest:
         specifier: ^2.1.4
         version: 2.1.9(@types/node@20.16.11)(lightningcss@1.29.2)
+    optionalDependencies:
+      bufferutil:
+        specifier: ^4.0.8
+        version: 4.0.8
 
   apps/backend:
     dependencies:
