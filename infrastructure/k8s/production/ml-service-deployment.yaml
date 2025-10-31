@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ml-service
-  namespace: autolytiq-prod
   labels:
     app.kubernetes.io/name: ml-service
     app.kubernetes.io/part-of: autolytiq
@@ -25,9 +24,14 @@ spec:
     spec:
       imagePullSecrets:
         - name: do-regcred
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
       containers:
         - name: ml-service
-          image: registry.digitalocean.com/autolytiq/ml-service:5b847853b6c909dd36704853fd092eb5773bb78f
+          image: registry.digitalocean.com/autolytiq/ml-service:__TAG__
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
@@ -71,11 +75,6 @@ spec:
             periodSeconds: 15
             failureThreshold: 3
             timeoutSeconds: 5
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
-        fsGroup: 1001
       nodeSelector:
         workload-type: ml-heavy
       tolerations:
@@ -88,7 +87,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ml-service
-  namespace: autolytiq-prod
   labels:
     app.kubernetes.io/name: ml-service
     app.kubernetes.io/part-of: autolytiq

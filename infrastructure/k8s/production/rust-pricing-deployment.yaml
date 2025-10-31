@@ -24,6 +24,11 @@ spec:
     spec:
       imagePullSecrets:
         - name: do-regcred
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
       containers:
         - name: rust-pricing
           image: registry.digitalocean.com/autolytiq/rust-pricing:__TAG__
