@@ -24,6 +24,8 @@ export default defineConfig({
     "vite",
     /@babel\//,
     /@tailwindcss\//,
+    /@sendgrid\//,
+    /@grpc\//,
     // External packages to prevent bundling issues with dynamic requires
     "axios",
     "bullmq",
@@ -34,6 +36,7 @@ export default defineConfig({
     "jsonwebtoken",
     "node-cron",
     "pdfkit",
+    "socket.io",
     "twilio",
   ],
   esbuildOptions(options) {
