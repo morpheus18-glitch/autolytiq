@@ -50,22 +50,22 @@ spec:
               cpu: "750m"
               memory: "1Gi"
           startupProbe:
-            exec:
-              command: ["/usr/local/bin/grpc_health_probe", "-addr=:50051"]
+            tcpSocket:
+              port: grpc
             initialDelaySeconds: 5
             periodSeconds: 5
             failureThreshold: 30
             timeoutSeconds: 3
           livenessProbe:
-            exec:
-              command: ["/usr/local/bin/grpc_health_probe", "-addr=:50051"]
+            tcpSocket:
+              port: grpc
             initialDelaySeconds: 30
             periodSeconds: 15
             timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
-            exec:
-              command: ["/usr/local/bin/grpc_health_probe", "-addr=:50051"]
+            tcpSocket:
+              port: grpc
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
