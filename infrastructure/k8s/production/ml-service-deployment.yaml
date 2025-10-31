@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ml-service
+  namespace: autolytiq-prod
   labels:
     app.kubernetes.io/name: ml-service
     app.kubernetes.io/part-of: autolytiq
@@ -24,14 +25,9 @@ spec:
     spec:
       imagePullSecrets:
         - name: do-regcred
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
-        fsGroup: 1001
       containers:
         - name: ml-service
-          image: registry.digitalocean.com/autolytiq/ml-service:__TAG__
+          image: registry.digitalocean.com/autolytiq/ml-service:5b847853b6c909dd36704853fd092eb5773bb78f
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
@@ -75,6 +71,17 @@ spec:
             periodSeconds: 15
             failureThreshold: 3
             timeoutSeconds: 5
+          # --- ADD THIS SECTION ---
+          volumeMounts:
+            - name: scoring-config-volume
+              mountPath: /ml_backend/config/scoring.yaml
+              subPath: scoring.yaml
+          # -------------------------
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
       nodeSelector:
         workload-type: ml-heavy
       tolerations:
@@ -82,11 +89,18 @@ spec:
         operator: "Equal"
         value: "ml-heavy"
         effect: "NoSchedule"
+      # --- ADD THIS SECTION ---
+      volumes:
+        - name: scoring-config-volume
+          configMap:
+            name: scoring-config
+      # -------------------------
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: ml-service
+  namespace: autolytiq-prod
   labels:
     app.kubernetes.io/name: ml-service
     app.kubernetes.io/part-of: autolytiq
@@ -98,4 +112,5 @@ spec:
     - name: http
       port: 80
       targetPort: http
+
 
