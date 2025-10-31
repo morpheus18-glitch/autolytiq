@@ -85,3 +85,23 @@ Fixed critical namespace inconsistencies: updated namespace.yaml to autolytiq-pr
 
 Created comprehensive deployment configuration fixes documentation summarizing all cluster and pod config issues resolved.
 
+## 2025-10-31T10:01:18Z (copilot/remove-unnecessary-md-files)
+
+Fix deployment issues: corrected healthcheck paths, removed unnecessary .md files, added comprehensive logging and validation
+
+## 2025-10-31T10:08:27Z (copilot/remove-unnecessary-md-files)
+
+Add deployment validation tests, health check script, troubleshooting guide, and global error handlers
+
+## 2025-10-31T10:10:56Z (copilot/remove-unnecessary-md-files)
+
+Improve environment variable validation with better error messages and optional defaults
+
+## 2025-10-31T10:13:45Z (copilot/remove-unnecessary-md-files)
+
+Add comprehensive deployment readiness summary document
+
+## 2025-10-31T10:15:44Z (copilot/remove-unnecessary-md-files)
+
+Address code review feedback: improve script robustness and env validation
+

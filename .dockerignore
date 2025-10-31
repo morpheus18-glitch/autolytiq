@@ -29,3 +29,27 @@ npm-debug.log
 .DS_Store
 reports
 var/tmp
+*.md
+!README.md
+!AGENTS.md
+!SHORT_CHANGELOG.md
+!docs/**/*.md
+!infrastructure/**/README.md
+!scripts/README.md
+!services/**/README.md
+
+# Test files
+**/*.test.ts
+**/*.test.js
+**/*.spec.ts
+**/*.spec.js
+**/tests
+**/test
+
+# Development files
+.husky
+.github
+*.log
+.replit
+.kube
+PATCHES
