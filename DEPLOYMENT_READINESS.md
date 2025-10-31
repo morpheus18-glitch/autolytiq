@@ -76,6 +76,17 @@ This document summarizes all improvements made to ensure reliable deployments of
   - Unnecessary docs (most .md files)
   - Build artifacts that get rebuilt
 
+### 7. Frontend Port Mapping Issues ✅
+**Problem**: Docker Compose port mapping mismatch for frontend service
+- Frontend service mapped `3000:80` but nginx listens on port 8080
+- Healthcheck tested `http://localhost/health` (port 80) instead of port 8080
+- This would cause frontend container to be unreachable and healthchecks to fail
+
+**Solution**:
+- Fixed port mapping from `3000:80` to `3000:8080` in docker-compose.yml
+- Updated healthcheck to test `http://localhost:8080/health`
+- Verified all other service port mappings are correct
+
 ## New Tools and Scripts
 
 ### Validation Script
