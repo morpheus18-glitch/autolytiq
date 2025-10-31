@@ -69,3 +69,7 @@ Task complete - comprehensive documentation added
 
 Allow ml service to run without optional integrations
 
+## 2025-10-31T09:33:32Z (copilot/fix-deploy-errors-cluster-config)
+
+Fixed ML service deployment config: removed hardcoded namespace, moved securityContext to pod level, restored __TAG__ placeholder. Added securityContext to frontend and rust-pricing deployments for consistency.
+
