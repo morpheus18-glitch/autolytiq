@@ -53,3 +53,7 @@ Fix backend crash loop by adding missing dependencies and externalizing packages
 
 Fix deployment errors: register health routes, fix ML service user ID, improve probe configurations
 
+## 2025-10-31T02:31:22Z (copilot/debug-workflow-logs)
+
+Validated deployment fixes - all configuration checks passed
+
