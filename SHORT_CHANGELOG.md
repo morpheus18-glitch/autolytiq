@@ -109,3 +109,7 @@ Address code review feedback: improve script robustness and env validation
 
 Add comprehensive DEPLOYMENT_GUIDE.md and quick-deploy.sh script for simplified deployment
 
+## 2025-10-31T10:44:43Z (copilot/fix-app-deployment-issues)
+
+Add interactive production deployment script, preflight checks, and convenient npm scripts
+
