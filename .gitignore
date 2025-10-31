@@ -40,3 +40,4 @@ var/secrets/
 !var/
 var/bin/
 services/rust/Cargo.lock
+kubeconfig.yaml
