@@ -13,12 +13,12 @@ on:
   workflow_dispatch:
 
 env:
-  REGISTRY: ${{ secrets.DO_REGISTRY || 'registry.digitalocean.com/autolytiq' }}
+  REGISTRY: registry.digitalocean.com/autolytiq
   IMAGE_NAME: ml-service
   DEPLOYMENT_NAME: ml-service
   CONTAINER_NAME: ml-service
-  CLUSTER: ${{ secrets.CLUSTER || 'autolytiq-cluster' }}
-  NAMESPACE: ${{ secrets.NS || 'autolytiq-prod' }}
+  CLUSTER: autolytiq-cluster
+  NAMESPACE: autolytiq-prod
 
 jobs:
   build:
@@ -65,8 +65,8 @@ jobs:
               --type=kubernetes.io/dockerconfigjson \
               --dry-run=client -o yaml | kubectl apply -f -
       - name: Deploy ML service
-        env:
-          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
         run: |
-          kubectl -n "$NAMESPACE" set image deployment/${DEPLOYMENT_NAME} ${CONTAINER_NAME}=$IMAGE
-          kubectl -n "$NAMESPACE" rollout status deployment/${DEPLOYMENT_NAME} --timeout=180s
+          sed "s|image:.*ml-service:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
+            infrastructure/k8s/production/ml-service-deployment.yaml | \
+            kubectl apply -n "$NAMESPACE" -f -
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n "$NAMESPACE" --timeout=180s
