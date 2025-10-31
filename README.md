@@ -8,15 +8,17 @@ services for predictive scoring, and operational tooling for production deployme
 
 ## 🚀 Quick Start
 
-**Want to deploy AutolytiQ right now?** See the **[Deployment Guide](./DEPLOYMENT_GUIDE.md)** for:
+**Want to deploy AutolytiQ right now?**
 
-- **One-command local deployment** (Docker Compose)
-- **Production deployment** (Kubernetes, Droplet, or Self-hosted)
-- **Step-by-step troubleshooting**
+- 📖 **[Quick Reference](./QUICK_START.md)** - One-page deployment cheat sheet
+- 📚 **[Complete Guide](./DEPLOYMENT_GUIDE.md)** - Detailed deployment instructions
+- 🛠️ **[Scripts Documentation](./scripts/README.md)** - All automation tools explained
 
 ```bash
 # Get running locally in under 5 minutes
 ./scripts/quick-deploy.sh
+# OR
+pnpm deploy:local
 ```
 
 ---
