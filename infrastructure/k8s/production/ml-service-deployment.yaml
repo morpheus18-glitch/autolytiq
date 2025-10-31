@@ -27,7 +27,7 @@ spec:
         - name: do-regcred
       containers:
         - name: ml-service
-          image: registry.digitalocean.com/autolytiq/ml-service:__TAG__
+          image: registry.digitalocean.com/autolytiq/ml-service:5b847853b6c909dd36704853fd092eb5773bb78f
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
