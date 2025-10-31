@@ -26,6 +26,8 @@ export default defineConfig({
     /@tailwindcss\//,
     /@sendgrid\//,
     /@grpc\//,
+    /@aws\//,
+    /@aws-sdk\//,
     // External packages to prevent bundling issues with dynamic requires
     "axios",
     "bullmq",
