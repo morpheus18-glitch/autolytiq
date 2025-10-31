@@ -81,3 +81,7 @@ Added securityContext to celery-worker and celery-beat deployments for consisten
 
 Fixed critical namespace inconsistencies: updated namespace.yaml to autolytiq-prod, removed hardcoded namespaces from HPA, Ingress, and PVCs to allow kubectl apply with -n flag.
 
+## 2025-10-31T09:38:21Z (copilot/fix-deploy-errors-cluster-config)
+
+Created comprehensive deployment configuration fixes documentation summarizing all cluster and pod config issues resolved.
+
