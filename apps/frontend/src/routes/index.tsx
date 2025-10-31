@@ -1,9 +1,7 @@
 import { lazy, type ComponentType } from 'react';
 
-// Eager load critical routes
-import Dashboard from '@/pages/dashboard';
-
-// Lazy load other routes
+// Lazy load all routes for optimal bundle size
+const Dashboard = lazy(() => import('@/pages/dashboard'));
 const Settings = lazy(() => import('@/pages/settings'));
 
 interface RouteDefinition {

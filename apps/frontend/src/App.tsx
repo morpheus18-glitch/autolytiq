@@ -5,6 +5,7 @@ import { queryClient } from './lib/queryClient';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ThemeProvider } from '@/contexts/theme-context';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
 import Landing from '@/pages/landing';
 import Login from '@/pages/login';
@@ -76,14 +77,16 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <TooltipProvider>
-          <Router />
-          <Toaster />
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <TooltipProvider>
+            <Router />
+            <Toaster />
+          </TooltipProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
