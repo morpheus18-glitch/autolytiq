@@ -6,6 +6,7 @@ import { createApp } from './server.js';
 import { logger } from './lib/logger.js';
 
 // Global error handlers for uncaught errors
+// Ensure proper error handling for production stability
 process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
   logger.error('Unhandled Promise Rejection', reason as Error, {
     promise: String(promise),
