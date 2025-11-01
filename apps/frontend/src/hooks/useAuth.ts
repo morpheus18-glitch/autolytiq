@@ -36,15 +36,20 @@ export interface AuthUser {
 }
 
 export function useAuth() {
-  const { data, isLoading } = useQuery<AuthUser | null>({
+  const { data, isLoading, error } = useQuery<AuthUser | null>({
     queryKey: ["/api/auth/user"],
     queryFn: getQueryFn<AuthUser | null>({ on401: "returnNull" }),
     retry: false,
   });
 
+  // If there's an error (e.g., network failure), treat as not authenticated
+  // This prevents infinite loading when backend is unavailable
+  const isLoadingWithTimeout = isLoading && !error;
+
   return {
     user: data ?? undefined,
-    isLoading,
+    isLoading: isLoadingWithTimeout,
     isAuthenticated: Boolean(data),
+    error,
   };
 }
