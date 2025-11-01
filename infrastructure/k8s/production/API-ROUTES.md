@@ -115,6 +115,64 @@ Delete lead
 
 ---
 
+### Timeline
+
+#### `GET /api/timeline`
+Get unified customer timeline (all touchpoints)
+
+**Query Parameters:**
+- `customerId` (string, optional) - Filter by customer
+- `leadId` (string, optional) - Filter by lead
+- `categories` (array, optional) - Filter by categories: ACTIVITY, COMMUNICATION, APPOINTMENT, DEAL, SERVICE
+- `types` (array, optional) - Filter by specific types: EMAIL, CALL, SMS, etc.
+- `actorId` (string, optional) - Filter by user
+- `fromDate` (ISO date, optional) - Start date
+- `toDate` (ISO date, optional) - End date
+- `cursor` (ISO timestamp, optional) - Pagination cursor
+- `limit` (number, optional) - Results per page (1-100, default: 50)
+
+**Response 200:**
+```json
+{
+  "events": [
+    {
+      "id": "evt_123",
+      "category": "COMMUNICATION",
+      "type": "EMAIL",
+      "title": "Follow-up email sent",
+      "body": "Thank you for your interest...",
+      "occurredAt": "2025-11-01T10:30:00Z",
+      "createdAt": "2025-11-01T10:30:00Z",
+      "actor": {
+        "id": "user_456",
+        "firstName": "Sarah",
+        "lastName": "Johnson"
+      },
+      "direction": "OUTBOUND",
+      "status": "DELIVERED"
+    }
+  ],
+  "nextCursor": "2025-10-31T15:20:00Z",
+  "hasMore": true
+}
+```
+
+#### `GET /api/timeline/stats/:customerId`
+Get timeline statistics for customer
+
+**Response 200:**
+```json
+{
+  "totalEvents": 123,
+  "activityCount": 45,
+  "communicationCount": 67,
+  "appointmentCount": 11,
+  "lastInteraction": "2025-11-01T10:30:00Z"
+}
+```
+
+---
+
 ### Activities
 
 #### `GET /api/activities`

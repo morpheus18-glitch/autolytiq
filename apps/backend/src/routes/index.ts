@@ -15,6 +15,7 @@ import { simulateLeadRouting } from '../services/lead-routing.service.js';
 import { fiRouter } from './fi/index.js';
 import { deskingRouter } from './desking.routes.js';
 import { healthRouter } from './health.routes.js';
+import timelineRouter from './timeline.routes.js';
 
 export function registerRoutes(app: Express) {
   // Health check routes (no auth required)
@@ -29,6 +30,7 @@ export function registerRoutes(app: Express) {
   apiRouter.use('/communications', communicationRouter);
   apiRouter.use('/appointments', appointmentRouter);
   apiRouter.use('/automations', automationRouter);
+  apiRouter.use('/timeline', timelineRouter);
   apiRouter.use('/ml', mlRouter);
   apiRouter.use('/fi', fiRouter);
   apiRouter.use('/desking', deskingRouter);
