@@ -36,6 +36,15 @@ spec:
     - host: autolytiq.com
       http:
         paths:
+          # API endpoints - must come before / to match first
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 80
+          # Frontend assets and routes
           - path: /
             pathType: Prefix
             backend:
@@ -47,6 +56,15 @@ spec:
     - host: www.autolytiq.com
       http:
         paths:
+          # API endpoints - must come before / to match first
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 80
+          # Frontend assets and routes
           - path: /
             pathType: Prefix
             backend:
