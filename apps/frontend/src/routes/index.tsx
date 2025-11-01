@@ -1,8 +1,11 @@
 import { lazy, type ComponentType } from 'react';
 
 // Lazy load all routes for optimal bundle size
+const Sitemap = lazy(() => import('@/pages/sitemap'));
 const Dashboard = lazy(() => import('@/pages/dashboard'));
 const Settings = lazy(() => import('@/pages/settings'));
+const UserPermissions = lazy(() => import('@/pages/admin/user-permissions'));
+const RolePresets = lazy(() => import('@/pages/admin/role-presets'));
 
 interface RouteDefinition {
   path: string;
@@ -17,9 +20,12 @@ export interface ResolvedRoute {
 }
 
 const routeDefinitions: RouteDefinition[] = [
-  { path: '/', component: Dashboard },
+  { path: '/', component: Sitemap },
+  { path: '/sitemap', component: Sitemap },
   { path: '/dashboard', component: Dashboard },
   { path: '/settings/:tab?', component: Settings },
+  { path: '/admin/user-permissions', component: UserPermissions },
+  { path: '/admin/role-presets', component: RolePresets },
 ];
 
 export const appRoutes: ResolvedRoute[] = routeDefinitions.flatMap((route) => {

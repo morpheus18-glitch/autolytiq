@@ -49,7 +49,7 @@ export default function Login() {
         description: `Signed in as ${data.firstName} ${data.lastName}`,
       });
 
-      const target = data.access?.homePath ?? "/dashboard";
+      const target = data.access?.homePath ?? "/";
       navigate(target, { replace: true });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to sign in";

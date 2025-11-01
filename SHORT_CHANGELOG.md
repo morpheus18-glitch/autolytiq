@@ -149,3 +149,7 @@ Fix backend deployment healthcheck, improve dark mode color contrast, and add CL
 
 Fix frontend deployment: enable static serving, build frontend, update dark mode for production
 
+## 2025-11-01T14:02:44Z (main)
+
+Add sitemap/index page for testing - shows all pages after login
+
