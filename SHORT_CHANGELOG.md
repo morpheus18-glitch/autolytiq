@@ -137,3 +137,7 @@ Fix Tailwind CSS configuration for frontend deployment
 
 Update all references from client/ to apps/frontend/ directory
 
+## 2025-11-01T05:49:48Z (copilot/fix-deployment-issues-and-colors)
+
+Fix HTML comment typo and improve dark mode color contrast
+
