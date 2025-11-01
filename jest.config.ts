@@ -7,8 +7,8 @@ const config: Config = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testMatch: ['**/__tests__/**/*.test.ts'],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/client/src/$1',
-    '^@shared/(.*)$': '<rootDir>/shared/$1',
+    '^@/(.*)$': '<rootDir>/apps/frontend/src/$1',
+    '^@shared/(.*)$': '<rootDir>/packages/shared/$1',
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   transform: {
