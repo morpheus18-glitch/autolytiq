@@ -1,0 +1,33 @@
+@import '@repo/tokens/dist/tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border-base;
+  }
+
+  body {
+    @apply bg-surface-base text-text-primary;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+}
+
+@layer components {
+  /* Focus visible styles */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2;
+  }
+
+  /* Disabled state */
+  .disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  /* Smooth transitions */
+  .transition-smooth {
+    @apply transition-all duration-[200ms] ease-out;
+  }
+}

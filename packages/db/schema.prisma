@@ -85,6 +85,8 @@ model Tenant {
   dealEvents           DealEvent[]
   mlFeatureCaches      MLFeatureCache[]
   rolePresets          RolePreset[]
+  tenantSettings       TenantSettings?
+  aiCounterOffers      AICounterOffer[]
 
   @@map("tenants")
 }
@@ -145,6 +147,7 @@ model User {
   tenant                    Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   assignedWorkflowTasks     WorkflowTask[]        @relation("WorkflowTaskAssignee")
   dealEventsCreated         DealEvent[]
+  aiCounterOffers           AICounterOffer[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -1071,6 +1074,7 @@ model Deal {
   events              DealEvent[]
   fiProducts          DealFIProduct[]
   activities          DealActivity[]
+  aiCounterOffers     AICounterOffer[]
 
   @@unique([tenantId, dealNumber])
   @@index([tenantId, status])
@@ -2639,3 +2643,116 @@ enum AuditAction {
   DELETE
   VIEW
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TENANT SETTINGS - Dealership customization
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model TenantSettings {
+  id                          String   @id @default(cuid())
+  tenantId                    String   @unique @map("tenant_id")
+  
+  // Branding
+  logoUrl                     String?  @map("logo_url")
+  primaryColor                String   @default("#0EA5E9") @map("primary_color")
+  secondaryColor              String   @default("#8B5CF6") @map("secondary_color")
+  theme                       String   @default("light")
+  
+  // Business Rules
+  minProfitMargin             Decimal  @default(1500.00) @map("min_profit_margin") @db.Decimal(10,2)
+  preferredProfitMargin       Decimal  @default(2500.00) @map("preferred_profit_margin") @db.Decimal(10,2)
+  maxDiscountPercent          Decimal  @default(10.00) @map("max_discount_percent") @db.Decimal(5,2)
+  agedVehicleThresholdDays    Int      @default(50) @map("aged_vehicle_threshold_days")
+  agedVehicleDiscountStrategy String   @default("price_reduction") @map("aged_vehicle_discount_strategy")
+  
+  // Lender Configuration
+  preferredLenders            Json     @default("[]") @map("preferred_lenders")
+  defaultAprPrime             Decimal  @default(5.90) @map("default_apr_prime") @db.Decimal(5,2)
+  defaultAprSubprime          Decimal  @default(12.90) @map("default_apr_subprime") @db.Decimal(5,2)
+  creditScorePrimeThreshold   Int      @default(700) @map("credit_score_prime_threshold")
+  
+  // AI Configuration
+  aiEnabled                   Boolean  @default(true) @map("ai_enabled")
+  aiAggressiveness            String   @default("balanced") @map("ai_aggressiveness")
+  aiUseHistoricalData         Boolean  @default(true) @map("ai_use_historical_data")
+  aiMinConfidenceThreshold    Decimal  @default(0.70) @map("ai_min_confidence_threshold") @db.Decimal(3,2)
+  
+  // Compliance & Features
+  requireManagerApprovalOver  Decimal  @default(5000.00) @map("require_manager_approval_over") @db.Decimal(10,2)
+  enableSmsNotifications      Boolean  @default(true) @map("enable_sms_notifications")
+  enableEmailNotifications    Boolean  @default(true) @map("enable_email_notifications")
+  timezone                    String   @default("America/New_York")
+  businessHours               Json     @default("{\"mon\": {\"open\": \"09:00\", \"close\": \"18:00\"}}") @map("business_hours")
+  
+  createdAt                   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
+  tenant                      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@map("tenant_settings")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// AI COUNTER OFFERS - AI-powered desking companion
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model AICounterOffer {
+  id                      String    @id @default(cuid())
+  tenantId                String    @map("tenant_id")
+  dealId                  String    @map("deal_id")
+  userId                  String    @map("user_id")
+  
+  // Customer Offer
+  customerPayment         Decimal   @map("customer_payment") @db.Decimal(10,2)
+  customerDownPayment     Decimal   @map("customer_down_payment") @db.Decimal(10,2)
+  customerTermMonths      Int       @map("customer_term_months")
+  customerApr             Decimal?  @map("customer_apr") @db.Decimal(5,2)
+  
+  // Vehicle & Trade Context
+  vehicleCost             Decimal   @map("vehicle_cost") @db.Decimal(10,2)
+  vehicleMsrp             Decimal   @map("vehicle_msrp") @db.Decimal(10,2)
+  vehicleDaysOnLot        Int       @map("vehicle_days_on_lot")
+  tradeInValue            Decimal   @default(0.00) @map("trade_in_value") @db.Decimal(10,2)
+  tradeInPayoff           Decimal   @default(0.00) @map("trade_in_payoff") @db.Decimal(10,2)
+  
+  // Customer Context
+  customerCreditScore     Int?      @map("customer_credit_score")
+  customerDebtToIncome    Decimal?  @map("customer_debt_to_income") @db.Decimal(5,2)
+  
+  // AI Analysis
+  requestedAt             DateTime  @default(now()) @map("requested_at") @db.Timestamptz(6)
+  processedAt             DateTime? @map("processed_at") @db.Timestamptz(6)
+  modelVersion            String    @default("v1.0") @map("model_version")
+  confidenceScore         Decimal?  @map("confidence_score") @db.Decimal(3,2)
+  processingTimeMs        Int?      @map("processing_time_ms")
+  
+  // AI Counter Options
+  counterOptions          Json      @default("[]") @map("counter_options")
+  
+  // Selection & Outcome
+  selectedOptionIndex     Int?      @map("selected_option_index")
+  selectedAt              DateTime? @map("selected_at") @db.Timestamptz(6)
+  outcome                 String?   
+  outcomeRecordedAt       DateTime? @map("outcome_recorded_at") @db.Timestamptz(6)
+  actualProfit            Decimal?  @map("actual_profit") @db.Decimal(10,2)
+  
+  // Feedback
+  feedbackHelpful         Boolean?  @map("feedback_helpful")
+  feedbackComment         String?   @map("feedback_comment")
+  feedbackSubmittedAt     DateTime? @map("feedback_submitted_at") @db.Timestamptz(6)
+  
+  createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
+  tenant                  Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal                    Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([tenantId])
+  @@index([dealId])
+  @@index([userId])
+  @@index([requestedAt(sort: Desc)])
+  @@index([outcome])
+  @@map("ai_counter_offers")
+}
+

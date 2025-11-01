@@ -371,3 +371,131 @@ export function responsiveSpacing(mobile: string, desktop: string) {
 
 // Export type for TypeScript autocomplete
 export type DesignTokens = typeof designTokens;
+
+// ═════════════════════════════════════════════════════════════════════════
+// THEME SYSTEM
+// ═════════════════════════════════════════════════════════════════════════
+
+export type ThemeName = 'light' | 'dark' | 'high-contrast' | 'automotive';
+
+export interface ThemeConfig {
+  name: ThemeName;
+  displayName: string;
+  description: string;
+}
+
+export const themes: Record<ThemeName, ThemeConfig> = {
+  light: {
+    name: 'light',
+    displayName: 'Light',
+    description: 'Clean and bright theme for daytime use',
+  },
+  dark: {
+    name: 'dark',
+    displayName: 'Dark',
+    description: 'Comfortable theme for low-light environments',
+  },
+  'high-contrast': {
+    name: 'high-contrast',
+    displayName: 'High Contrast',
+    description: 'Enhanced contrast for accessibility',
+  },
+  automotive: {
+    name: 'automotive',
+    displayName: 'Automotive Pro',
+    description: 'Premium automotive-inspired dark theme',
+  },
+};
+
+/**
+ * Set the active theme by updating the data-theme attribute
+ */
+export function setTheme(theme: ThemeName): void {
+  if (typeof document === 'undefined') return;
+  document.documentElement.setAttribute('data-theme', theme);
+
+  // Store preference
+  try {
+    localStorage.setItem('autolytiq-theme', theme);
+  } catch (e) {
+    // localStorage might not be available
+  }
+}
+
+/**
+ * Get the currently active theme
+ */
+export function getTheme(): ThemeName {
+  if (typeof document === 'undefined') return 'light';
+
+  const stored = typeof localStorage !== 'undefined'
+    ? localStorage.getItem('autolytiq-theme')
+    : null;
+
+  if (stored && stored in themes) {
+    return stored as ThemeName;
+  }
+
+  const attribute = document.documentElement.getAttribute('data-theme');
+  if (attribute && attribute in themes) {
+    return attribute as ThemeName;
+  }
+
+  // Check system preference
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return prefersDark ? 'dark' : 'light';
+  }
+
+  return 'light';
+}
+
+/**
+ * Initialize theme from localStorage or system preference
+ */
+export function initTheme(): void {
+  if (typeof document === 'undefined') return;
+
+  const theme = getTheme();
+  setTheme(theme);
+}
+
+/**
+ * Listen for system theme changes
+ */
+export function watchSystemTheme(callback: (theme: ThemeName) => void): () => void {
+  if (typeof window === 'undefined' || !window.matchMedia) {
+    return () => {};
+  }
+
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+  const handler = (e: MediaQueryListEvent | MediaQueryList) => {
+    const theme = e.matches ? 'dark' : 'light';
+    callback(theme);
+  };
+
+  // Modern API
+  if (mediaQuery.addEventListener) {
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }
+
+  // Legacy API
+  mediaQuery.addListener(handler);
+  return () => mediaQuery.removeListener(handler);
+}
+
+/**
+ * Get all available themes
+ */
+export function getAvailableThemes(): ThemeConfig[] {
+  return Object.values(themes);
+}
+
+/**
+ * Check if a theme name is valid
+ */
+export function isValidTheme(theme: string): theme is ThemeName {
+  return theme in themes;
+}
