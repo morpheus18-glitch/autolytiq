@@ -104,7 +104,7 @@ export default function Login() {
             <CardContent>
               <form className="space-y-5" onSubmit={handleSubmit}>
                 <div className="space-y-2">
-                  <Label htmlFor="storeId">Store identifier</Label>
+                  <Label htmlFor="storeId" className="text-sm font-semibold text-foreground/90">Store identifier</Label>
                   <Input
                     id="storeId"
                     autoComplete="organization"
@@ -112,13 +112,17 @@ export default function Login() {
                     onChange={(event) => setStoreId(event.target.value.toUpperCase())}
                     placeholder="MAIN"
                     required
+                    className="input-enhanced h-11 text-base"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    {STORE_DIRECTORY.map((store) => store.id).join(", ")} accepted.
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {STORE_DIRECTORY.map((store) => store.id).join(", ")} accepted
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
+                  <Label htmlFor="username" className="text-sm font-semibold text-foreground/90">Username</Label>
                   <Input
                     id="username"
                     autoComplete="username"
@@ -126,10 +130,11 @@ export default function Login() {
                     onChange={(event) => setUsername(event.target.value)}
                     placeholder="sarah.johnson"
                     required
+                    className="input-enhanced h-11 text-base"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password" className="text-sm font-semibold text-foreground/90">Password</Label>
                   <Input
                     id="password"
                     type="password"
@@ -138,6 +143,7 @@ export default function Login() {
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="••••••••"
                     required
+                    className="input-enhanced h-11 text-base"
                   />
                 </div>
                 <Button

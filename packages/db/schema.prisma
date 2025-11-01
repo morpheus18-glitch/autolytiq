@@ -84,6 +84,7 @@ model Tenant {
   outboxEvents         Outbox[]
   dealEvents           DealEvent[]
   mlFeatureCaches      MLFeatureCache[]
+  rolePresets          RolePreset[]
 
   @@map("tenants")
 }
@@ -97,7 +98,9 @@ model User {
   lastName                  String                @map("last_name")
   phone                     String?
   role                      UserRole              @default(SALES)
+  rolePresetId              String?               @map("role_preset_id")
   permissions               Json                  @default(dbgenerated("jsonb_build_array()"))
+  customPermissions         Json?                 @map("custom_permissions") @default(dbgenerated("jsonb_build_array()"))
   status                    UserStatus            @default(ACTIVE)
   isSuperAdmin              Boolean               @default(false) @map("is_super_admin")
   lastLoginAt               DateTime?             @map("last_login_at") @db.Timestamptz(6)
@@ -2135,6 +2138,37 @@ model MLFeatureCache {
   @@index([tenantId])
   @@index([expiresAt])
   @@map("ml_feature_cache")
+}
+
+model PermissionDefinition {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  category    String
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([category])
+  @@map("permission_definitions")
+}
+
+model RolePreset {
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  name        String
+  description String?
+  permissions Json     @default(dbgenerated("jsonb_build_array()"))
+  isSystem    Boolean  @default(false) @map("is_system")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@map("role_presets")
 }
 
 enum TenantPlan {
