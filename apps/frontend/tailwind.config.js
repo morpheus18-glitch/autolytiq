@@ -1,10 +1,12 @@
-import type { Config } from 'tailwindcss';
-import formsPlugin from '@tailwindcss/forms';
-import typographyPlugin from '@tailwindcss/typography';
-import tailwindcssAnimate from 'tailwindcss-animate';
-import { colorWithOpacity, designTokens } from '@repo/tokens';
+/** @type {import('tailwindcss').Config} */
+const formsPlugin = require('@tailwindcss/forms');
+const typographyPlugin = require('@tailwindcss/typography');
+const tailwindcssAnimate = require('tailwindcss-animate');
 
-const parseFontStack = (stack: string) =>
+// Import from the built tokens package - use require for CommonJS compatibility
+const { colorWithOpacity, designTokens } = require('../../packages/tokens/dist/index.js');
+
+const parseFontStack = (stack) =>
   stack
     .split(',')
     .map((font) => font.trim())
@@ -79,11 +81,11 @@ const colors = {
   },
 };
 
-export default {
+module.exports = {
   darkMode: ['class'],
   content: [
-    './apps/frontend/index.html',
-    './apps/frontend/src/**/*.{js,jsx,ts,tsx}',
+    './index.html',
+    './src/**/*.{js,jsx,ts,tsx}',
   ],
   theme: {
     screens,
@@ -173,4 +175,4 @@ export default {
     },
   },
   plugins: [tailwindcssAnimate, formsPlugin, typographyPlugin],
-} satisfies Config;
+};
