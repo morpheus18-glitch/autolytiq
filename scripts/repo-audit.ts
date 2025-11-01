@@ -52,8 +52,8 @@ const ENV_CONTRACT = [
 type ServiceName = 'frontend' | 'backend' | 'ml';
 
 const SERVICE_FILE_GLOBS: Record<ServiceName, string[]> = {
-  frontend: ['client/src/**/*.{ts,tsx,js,jsx}', 'src/**/*.{ts,tsx,js,jsx}', 'vite.config.*'],
-  backend: ['backend/src/**/*.{ts,tsx,js,jsx}'],
+  frontend: ['apps/frontend/src/**/*.{ts,tsx,js,jsx}', 'vite.config.*'],
+  backend: ['apps/backend/src/**/*.{ts,tsx,js,jsx}'],
   ml: ['ml_service/**/*.py'],
 };
 
@@ -61,8 +61,8 @@ const SERVICE_ENTRY_GLOBS: Record<
   'vite' | 'express' | 'fastapi' | 'celery',
   string[]
 > = {
-  vite: ['client/vite.config.*', 'vite.config.*'],
-  express: ['backend/src/server.ts', 'backend/src/app.ts', 'server/**/*.ts', 'server/**/*.js'],
+  vite: ['apps/frontend/vite.config.*', 'vite.config.*'],
+  express: ['apps/backend/src/index.ts', 'apps/backend/src/server.ts', 'apps/backend/src/app.ts'],
   fastapi: ['ml_service/app/main.py', 'ml_service/main.py', 'ml_service/src/main.py'],
   celery: ['ml_service/workers/**/*.{py}', 'ml_service/**/celery*.py'],
 };

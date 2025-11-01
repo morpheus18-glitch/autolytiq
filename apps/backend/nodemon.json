@@ -5,7 +5,7 @@
     "**/node_modules/**",
     "**/dist/**",
     "**/.git/**",
-    "**/apps/client/**",
+    "**/apps/frontend/**",
     "**/migrations/**",
     "**/*.test.ts",
     "**/*.spec.ts"
