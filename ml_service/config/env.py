@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=None, extra='ignore')
 
     NODE_ENV: Literal['development', 'production', 'test'] = 'development'
-    DEPLOY_MODE: Literal['replit', 'self_hosted'] = 'replit'
+    DEPLOY_MODE: Literal['development', 'self_hosted'] = 'development'
     PORT: int = 8000
     DATABASE_URL: AnyUrl
     REDIS_URL: Optional[AnyUrl] = None

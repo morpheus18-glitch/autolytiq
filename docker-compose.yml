@@ -59,6 +59,22 @@ services:
       PORT: 8000
       DATABASE_URL: ${DATABASE_URL:-postgresql://autolytiq:autolytiq@postgres:5432/autolytiq?schema=public}
       REDIS_URL: ${REDIS_URL:-redis://:autolytiq@redis:6379/0}
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-in-production}
+      ML_SERVICE_TOKEN: ${ML_SERVICE_TOKEN:-dev-ml-token}
+      NODE_ENV: ${NODE_ENV:-production}
+      DEPLOY_MODE: ${DEPLOY_MODE:-self_hosted}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-minio}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-minio123}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET:-autolytiq}
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://s3:9000}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY:-dummy-key}
+      SENDGRID_FROM_EMAIL: ${SENDGRID_FROM_EMAIL:-noreply@autolytiq.local}
+      SENDGRID_WEBHOOK_SIGNING_KEY: ${SENDGRID_WEBHOOK_SIGNING_KEY:-dummy-key}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-dummy-sid}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-dummy-token}
+      TWILIO_MESSAGING_SERVICE_SID: ${TWILIO_MESSAGING_SERVICE_SID:-dummy-sid}
+      PEXELS_API_KEY: ${PEXELS_API_KEY:-dummy-key}
     ports:
       - "8000:8000"
     depends_on:

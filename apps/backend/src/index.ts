@@ -31,7 +31,7 @@ async function startServer() {
 
     const app = await createApp();
 
-    // Serve static client files in production (Replit single-port mode)
+    // Serve static client files in production (single-port mode)
     if (process.env.NODE_ENV === 'production' || process.env.SERVE_STATIC === 'true') {
       const publicPath = path.resolve(process.cwd(), 'public');
       logger.info('Serving static files', { publicPath });
