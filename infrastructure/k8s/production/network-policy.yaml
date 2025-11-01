@@ -18,7 +18,9 @@ spec:
         - protocol: TCP
           port: 5000  # backend
         - protocol: TCP
-          port: 3000  # frontend
+          port: 3000  # frontend (legacy)
+        - protocol: TCP
+          port: 8080  # frontend (nginx)
         - protocol: TCP
           port: 8000  # ml-service
     # Allow inter-pod communication within namespace
@@ -29,6 +31,8 @@ spec:
           port: 5000
         - protocol: TCP
           port: 3000
+        - protocol: TCP
+          port: 8080  # frontend nginx
         - protocol: TCP
           port: 8000
         - protocol: TCP
