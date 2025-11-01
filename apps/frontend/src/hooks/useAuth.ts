@@ -40,7 +40,6 @@ export function useAuth() {
     queryKey: ["/api/auth/user"],
     queryFn: getQueryFn<AuthUser | null>({ on401: "returnNull" }),
     retry: false,
-    retryDelay: 1000,
   });
 
   // If there's an error (e.g., network failure), treat as not authenticated
