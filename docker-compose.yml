@@ -17,6 +17,8 @@ services:
       REDIS_URL: ${REDIS_URL:-redis://:autolytiq@redis:6379/0}
       ML_SERVICE_URL: ${ML_SERVICE_URL:-http://ml-service:8000}
       AWS_REGION: ${AWS_REGION:-us-east-1}
+      S3_CLOUDFRONT_URL: ${S3_CLOUDFRONT_URL:-http://localhost:9000}
+      CLAMAV_PORT: ${CLAMAV_PORT:-3310}
     ports:
       - "5000:5000"
     depends_on:
