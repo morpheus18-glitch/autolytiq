@@ -11,6 +11,7 @@ services:
       - .env
     environment:
       NODE_ENV: production
+      SERVE_STATIC: "true"
       PORT: 5000
       DATABASE_URL: ${DATABASE_URL:-postgresql://autolytiq:autolytiq@postgres:5432/autolytiq?schema=public}
       DIRECT_URL: ${DIRECT_URL:-postgresql://autolytiq:autolytiq@postgres:5432/autolytiq?schema=public}

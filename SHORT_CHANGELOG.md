@@ -145,3 +145,7 @@ Fix HTML comment typo and improve dark mode color contrast
 
 Fix backend deployment healthcheck, improve dark mode color contrast, and add CLAUDE.md documentation
 
+## 2025-11-01T13:54:58Z (main)
+
+Fix frontend deployment: enable static serving, build frontend, update dark mode for production
+
