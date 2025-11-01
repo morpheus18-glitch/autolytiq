@@ -81,6 +81,41 @@ const colors = {
   },
 };
 
+const darkColors = {
+  background: designTokens.surface.dark.base,
+  foreground: designTokens.colors.neutral[50],
+  card: {
+    DEFAULT: designTokens.surface.dark.elevated,
+    foreground: designTokens.colors.neutral[100],
+  },
+  popover: {
+    DEFAULT: designTokens.surface.dark.elevated,
+    foreground: designTokens.colors.neutral[100],
+  },
+  muted: {
+    DEFAULT: designTokens.surface.dark.subtle,
+    foreground: designTokens.colors.neutral[300],
+  },
+  accent: {
+    DEFAULT: designTokens.colors.secondary[900],
+    foreground: designTokens.colors.secondary[100],
+  },
+  destructive: {
+    DEFAULT: designTokens.colors.error[700],
+    foreground: designTokens.colors.neutral[50],
+  },
+  border: designTokens.surface.dark.outline,
+  input: designTokens.surface.dark.outline,
+  ring: designTokens.colors.primary[500],
+  surface: {
+    base: designTokens.surface.dark.base,
+    muted: designTokens.surface.dark.subtle,
+    strong: designTokens.surface.dark.elevated,
+    glass: 'rgba(15, 23, 42, 0.82)',
+    highlight: designTokens.surface.dark.glow,
+  },
+};
+
 module.exports = {
   darkMode: ['class'],
   content: [
@@ -105,6 +140,8 @@ module.exports = {
         white: '#ffffff',
         black: '#000000',
         ...colors,
+        // Dark mode color overrides
+        dark: darkColors,
       },
       spacing: designTokens.spacing,
       fontFamily,

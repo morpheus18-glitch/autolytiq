@@ -141,3 +141,7 @@ Update all references from client/ to apps/frontend/ directory
 
 Fix HTML comment typo and improve dark mode color contrast
 
+## 2025-11-01T13:34:54Z (main)
+
+Fix backend deployment healthcheck, improve dark mode color contrast, and add CLAUDE.md documentation
+
