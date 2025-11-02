@@ -10,12 +10,15 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth, type AuthUser } from "@/hooks/useAuth";
+import { setAuthToken } from "@/lib/auth";
 
 const STORE_DIRECTORY = [
   { id: "MAIN", label: "AutolytiQ Flagship Store" },
 ];
 
-interface LoginResponse extends AuthUser {}
+interface LoginResponse extends AuthUser {
+  token: string;
+}
 
 export default function Login() {
   const queryClient = useQueryClient();
@@ -41,6 +44,9 @@ export default function Login() {
       });
 
       const data = (await response.json()) as LoginResponse;
+
+      // Store authentication token
+      setAuthToken(data.token);
 
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
 

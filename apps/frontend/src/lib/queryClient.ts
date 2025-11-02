@@ -1,5 +1,6 @@
 import { QueryClient, QueryFunction } from '@tanstack/react-query';
 import { API_BASE_URL } from '@/config/api';
+import { getAuthToken } from './auth';
 
 function resolveUrl(path: string) {
   if (/^https?:\/\//i.test(path)) {
@@ -56,9 +57,20 @@ export async function apiRequest(
     body = urlOrOptions?.body;
   }
 
+  const token = getAuthToken();
+  const headers: Record<string, string> = {};
+
+  if (body) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(resolveUrl(url), {
     method,
-    headers: body ? { 'Content-Type': 'application/json' } : {},
+    headers,
     body: body ? JSON.stringify(body) : undefined,
     credentials: 'include',
   });
@@ -77,7 +89,15 @@ export const getQueryFn: <T>(options: {
       ? resolveUrl(['', ...queryKey.map(String)].join('/').replace(/\/+/g, '/'))
       : resolveUrl(String(queryKey));
 
+    const token = getAuthToken();
+    const headers: Record<string, string> = {};
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const res = await fetch(requestUrl, {
+      headers,
       credentials: 'include',
     });
 

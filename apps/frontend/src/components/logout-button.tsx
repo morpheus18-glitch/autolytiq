@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
+import { clearAuthToken } from '@/lib/auth';
 
 export default function LogoutButton() {
   const { toast } = useToast();
@@ -16,7 +17,12 @@ export default function LogoutButton() {
       return response.json();
     },
     onSuccess: () => {
+      // Clear authentication token
+      clearAuthToken();
+
       queryClient.invalidateQueries({ queryKey: ['/api/auth/session'] });
+      queryClient.clear();
+
       toast({
         title: 'Logged Out',
         description: 'You have been successfully logged out.',
