@@ -16,11 +16,17 @@ import { fiRouter } from './fi/index.js';
 import { deskingRouter } from './desking.routes.js';
 import { healthRouter } from './health.routes.js';
 import timelineRouter from './timeline.routes.js';
+import { authRouter } from './auth.routes.js';
 
 export function registerRoutes(app: Express) {
   // Health check routes (no auth required)
   app.use('/', healthRouter);
 
+  // Auth routes (no auth required for login)
+  // IMPORTANT: Must be registered before apiRouter to avoid authenticate middleware
+  app.use('/api/auth', authRouter);
+
+  // Protected API routes
   const apiRouter = Router();
   apiRouter.use(authenticate);
   apiRouter.use(tenantScope);

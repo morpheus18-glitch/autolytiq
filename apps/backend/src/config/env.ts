@@ -7,6 +7,7 @@ const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     DATABASE_URL: z.string().url('DATABASE_URL must be a valid URL'),
+    JWT_PRIVATE_KEY: z.string().optional(),
     JWT_PUBLIC_KEY: z.string().optional(),
     JWT_ISSUER: z.string().optional().default('autolytiq'),
     JWT_AUDIENCE: z.string().optional().default('autolytiq-api'),
@@ -49,6 +50,7 @@ const envSchema = z
   })
   .transform((values) => ({
     ...values,
+    JWT_PRIVATE_KEY: values.JWT_PRIVATE_KEY ? values.JWT_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined,
     JWT_PUBLIC_KEY: values.JWT_PUBLIC_KEY ? values.JWT_PUBLIC_KEY.replace(/\\n/g, '\n') : undefined,
   }));
 
@@ -58,6 +60,9 @@ try {
   env = envSchema.parse(process.env);
   
   // Warn about missing optional but important variables
+  if (!env.JWT_PRIVATE_KEY) {
+    console.warn('⚠️  Warning: JWT_PRIVATE_KEY not set - token signing may not work');
+  }
   if (!env.JWT_PUBLIC_KEY) {
     console.warn('⚠️  Warning: JWT_PUBLIC_KEY not set - authentication may not work');
   }
