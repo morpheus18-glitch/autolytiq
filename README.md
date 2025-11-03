@@ -11,8 +11,10 @@ services for predictive scoring, and operational tooling for production deployme
 **Want to deploy AutolytiQ right now?**
 
 - 📖 **[Quick Reference](./QUICK_START.md)** - One-page deployment cheat sheet
-- 📚 **[Complete Guide](./DEPLOYMENT_GUIDE.md)** - Detailed deployment instructions
+- 📚 **[Complete Guide](./docs/deployment/DEPLOYMENT_GUIDE.md)** - Detailed deployment instructions
 - 🛠️ **[Scripts Documentation](./scripts/README.md)** - All automation tools explained
+- 📋 **[Session State](./SESSION_STATE.md)** - Current project status & where we left off
+- 📚 **[Documentation Index](./docs/INDEX.md)** - Complete documentation map
 
 ```bash
 # Get running locally in under 5 minutes
