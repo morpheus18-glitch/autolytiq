@@ -52,8 +52,14 @@ jobs:
         run: |
           kubectl create secret generic app-env -n ${{ env.NAMESPACE }} \
             --from-literal=DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            --from-literal=DIRECT_URL="${{ secrets.DIRECT_URL }}" \
+            --from-literal=JWT_PRIVATE_KEY="${{ secrets.JWT_PRIVATE_KEY }}" \
+            --from-literal=JWT_PUBLIC_KEY="${{ secrets.JWT_PUBLIC_KEY }}" \
             --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
             --from-literal=NODE_ENV=production \
+            --from-literal=REDIS_URL="${{ secrets.REDIS_URL }}" \
+            --from-literal=PRICE_ENGINE__DATABASE__URL="${{ secrets.DATABASE_URL }}" \
+            --from-literal=PRICE_ENGINE__REDIS__URL="${{ secrets.REDIS_URL }}" \
             --dry-run=client -o yaml | kubectl apply -f -
           doctl registry docker-config --expiry-seconds 3600 | \
             kubectl -n ${{ env.NAMESPACE }} create secret generic do-regcred \
