@@ -1,7 +1,7 @@
 # AutolytiQ - Current Session State
 
-**Last Updated:** 2025-11-03 14:50 UTC
-**Session ID:** 2025-11-03-bcrypt-k8s-fixes
+**Last Updated:** 2025-11-03 15:15 UTC
+**Session ID:** 2025-11-03-prisma-seed-refactoring
 **Status:** ✅ Active Development
 
 ---
@@ -9,24 +9,36 @@
 ## 🎯 Current Focus
 
 ### Recently Completed (This Session)
-1. ✅ **Fixed bcrypt authentication inconsistency**
+1. ✅ **Fixed bcrypt authentication inconsistency** (Previous session)
    - Standardized on `bcryptjs` across entire codebase
    - Updated seed file and package dependencies
    - Location: `packages/db/seed.ts`, `packages/db/package.json`
 
-2. ✅ **Fixed Kubernetes memory issues**
+2. ✅ **Fixed Kubernetes memory issues** (Previous session)
    - Added memory limits to dev PostgreSQL StatefulSet (256Mi → 1Gi)
    - Audited all production deployments (all have proper limits)
    - Location: `infrastructure/k8s/dev/postgres-statefulset.yaml`
 
-3. ✅ **Organized documentation structure**
+3. ✅ **Organized documentation structure** (Previous session)
    - Created organized docs/ structure with subdirectories
    - Moved 25+ MD files into logical categories
    - Created SESSION_STATE.md for session continuity
 
+4. ✅ **Analyzed Prisma engine configuration** (New)
+   - Investigated `PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1` environment variable
+   - Verified Prisma engines are properly installed (Query Engine + Schema Engine)
+   - Documented findings in `docs/fixes/PRISMA_ENGINE_AND_SEED_ANALYSIS.md`
+   - **Recommendation:** Remove checksum flag for production (security concern)
+
+5. ✅ **Started seed file refactoring** (New)
+   - Analyzed monolithic seed.ts (2510 lines, 109 Prisma operations)
+   - Created modular seed structure in `packages/db/seed/`
+   - Extracted constants, static data, and tenant seeder
+   - Progress: 12% complete (1 of 10+ seeders)
+
 ### Currently In Progress
-- Installing dependencies (may need memory optimization)
-- Testing authentication flow with bcryptjs
+- Seed file refactoring (12% complete)
+- Next: Extract users, lenders, and workflow seeders
 
 ---
 
@@ -43,6 +55,17 @@
 - Production Kubernetes deployments with proper resource limits
 
 ### ⚠️ Needs Attention
+- **Prisma checksum flag** - `PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1`
+  - Currently used in all Prisma commands (9 locations)
+  - Security concern: Bypasses engine binary verification
+  - **Action:** Test without flag, then remove from package.json
+  - See: `docs/fixes/PRISMA_ENGINE_AND_SEED_ANALYSIS.md`
+
+- **Seed file refactoring** - 88% remaining
+  - 2510 lines → modular structure
+  - Progress: Tenant seeder complete, 9+ seeders remaining
+  - See: `packages/db/seed/README.md` for roadmap
+
 - **Dependency installation** - Hit OOM during `pnpm install --force`
   - Exit code 137 (memory kill)
   - May need to increase system memory or install in chunks
@@ -52,10 +75,11 @@
   - Verify login works with new password hashes
 
 ### 🔜 Upcoming Tasks
+- Complete seed file refactoring (extract remaining 9 seeders)
+- Test Prisma without checksum flag
+- Remove `PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1` if possible
 - Add memory-based autoscaling to K8s HPAs
-- Monitor ML service memory usage (currently 1Gi → 2Gi)
 - Remove unused `bcrypt` dependency from root package.json
-- Test authentication end-to-end
 
 ---
 
@@ -189,20 +213,21 @@ NODE_OPTIONS="--max-old-space-size=4096" pnpm install
 
 ## 📝 Recent Git Commits
 
-### Latest Commit: `b2b2c8f`
+### Latest Commit: `59f7388`
 ```
-Fix bcrypt authentication and K8s memory limits
+Start seed file refactoring into modular structure
 
-- Standardize on bcryptjs across codebase for password hashing
-- Add memory/CPU limits to dev PostgreSQL StatefulSet
-- Document all fixes and recommendations
+- Created packages/db/seed/ directory structure
+- Extracted configuration, static data, and tenant seeder
+- Documented Prisma engine analysis
+- Progress: 12% complete (1 of 10+ seeders)
 ```
 
-**Changed Files:**
-- `packages/db/seed.ts` - bcrypt → bcryptjs
-- `packages/db/package.json` - Added bcryptjs dependency
-- `infrastructure/k8s/dev/postgres-statefulset.yaml` - Added resource limits
-- `FIXES_APPLIED.md` - Documentation (now at `docs/fixes/FIXES_APPLIED.md`)
+### Previous Commits (Last 4):
+- `4b9fb6b` - Add work session summary for 2025-11-03
+- `25884ca` - Update README links to new documentation structure
+- `4d5ac06` - Reorganize documentation into structured folders
+- `b2b2c8f` - Fix bcrypt authentication and K8s memory limits
 
 ---
 
