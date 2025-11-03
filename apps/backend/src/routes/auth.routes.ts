@@ -45,13 +45,13 @@ router.post('/login', async (req, res, next) => {
     `, username);
 
     if (!users || users.length === 0) {
-      throw new ApiError('UNAUTHORIZED', 'Invalid credentials');
+      throw new ApiError('UNAUTHORIZED', 'Invalid credentials', { status: 401 });
     }
 
     const user = users[0] as any;
 
     if (!user) {
-      throw new ApiError('UNAUTHORIZED', 'Invalid credentials');
+      throw new ApiError('UNAUTHORIZED', 'Invalid credentials', { status: 401 });
     }
 
     // Verify tenant is active
@@ -62,7 +62,7 @@ router.post('/login', async (req, res, next) => {
     // Verify password
     const isValidPassword = await bcryptjs.compare(password, user.password);
     if (!isValidPassword) {
-      throw new ApiError('UNAUTHORIZED', 'Invalid credentials');
+      throw new ApiError('UNAUTHORIZED', 'Invalid credentials', { status: 401 });
     }
 
     // Update last login using raw SQL to avoid tenant middleware issues
@@ -127,7 +127,7 @@ router.get('/user', async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
-      throw new ApiError('UNAUTHORIZED', 'No authorization token provided');
+      throw new ApiError('UNAUTHORIZED', 'No authorization token provided', { status: 401 });
     }
 
     const token = authHeader.substring(7);
@@ -143,7 +143,7 @@ router.get('/user', async (req, res, next) => {
     }) as any;
 
     if (!decoded.sub) {
-      throw new ApiError('UNAUTHORIZED', 'Invalid token format');
+      throw new ApiError('UNAUTHORIZED', 'Invalid token format', { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
@@ -160,7 +160,7 @@ router.get('/user', async (req, res, next) => {
     });
 
     if (!user) {
-      throw new ApiError('UNAUTHORIZED', 'User not found');
+      throw new ApiError('UNAUTHORIZED', 'User not found', { status: 401 });
     }
 
     res.json({
