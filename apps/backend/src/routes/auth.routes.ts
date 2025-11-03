@@ -34,11 +34,11 @@ router.post('/login', async (req, res, next) => {
       customPermissions: any;
       status: string;
     }>>(`
-      SELECT u.id, u."tenantId", u.email, u.password, u."firstName", u."lastName",
-             u.role, u."isSuperAdmin", u.permissions, u."customPermissions", u.status,
+      SELECT u.id, u.tenant_id as "tenantId", u.email, u.password, u.first_name as "firstName", u.last_name as "lastName",
+             u.role, u.is_super_admin as "isSuperAdmin", u.permissions, u.custom_permissions as "customPermissions", u.status,
              t.id as "tenant_id", t.name as "tenant_name", t.subdomain as "tenant_subdomain", t.status as "tenant_status"
       FROM users u
-      JOIN tenants t ON u."tenantId" = t.id
+      JOIN tenants t ON u.tenant_id = t.id
       WHERE LOWER(TRIM(u.email)) = LOWER(TRIM($1))
         AND u.status = 'ACTIVE'
       LIMIT 1
