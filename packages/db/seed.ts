@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcryptjs from 'bcryptjs';
 import {
   AccountType,
   AppraisalConditionGrade,
@@ -241,7 +241,7 @@ async function main() {
     },
   });
 
-  const passwordHash = await bcrypt.hash(DEVELOPER_PASSWORD, 12);
+  const passwordHash = await bcryptjs.hash(DEVELOPER_PASSWORD, 12);
 
   const store = await prisma.store.upsert({
     where: { code: 'MAIN' },
