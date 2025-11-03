@@ -19,6 +19,7 @@
     "@grpc/proto-loader": "^0.7.10",
     "@prisma/client": "5.22.0",
     "axios": "^1.7.9",
+    "bcryptjs": "^3.0.3",
     "bullmq": "^5.32.2",
     "chokidar": "^4.0.3",
     "date-fns": "^4.1.0",

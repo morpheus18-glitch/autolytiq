@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import bcrypt from 'bcrypt';
+import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/prisma.js';
 import { ApiError } from '../lib/errors.js';
@@ -47,7 +47,7 @@ router.post('/login', async (req, res, next) => {
     }
 
     // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.password);
+    const isValidPassword = await bcryptjs.compare(password, user.password);
     if (!isValidPassword) {
       throw new ApiError('UNAUTHORIZED', 'Invalid credentials');
     }

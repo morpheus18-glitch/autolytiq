@@ -16,10 +16,6 @@ export { seedUsers } from './seeders/seedUsers';
 export { seedGLAccounts } from './seeders/seedGLAccounts';
 export { seedLenders } from './seeders/seedLenders';
 export { seedWorkflows } from './seeders/seedWorkflows';
-
-// Additional seeders to be added:
-// export { seedCustomers } from './seeders/seedCustomers';
-// export { seedLeads } from './seeders/seedLeads';
-// export { seedVehicles } from './seeders/seedVehicles';
-// export { seedDeals } from './seeders/seedDeals';
-// etc...
+export { seedCustomers } from './seeders/seedCustomers';
+export { seedVehicles } from './seeders/seedVehicles';
+export { seedDeals } from './seeders/seedDeals';
