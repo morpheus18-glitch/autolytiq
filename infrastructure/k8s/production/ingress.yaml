@@ -16,10 +16,7 @@ metadata:
     # Rate limiting for DDoS protection
     nginx.ingress.kubernetes.io/limit-rps: "100"
     nginx.ingress.kubernetes.io/limit-connections: "20"
-    # Enable CORS for API
-    nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
-    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    # CORS is handled by backend Express app, not nginx
 spec:
   ingressClassName: nginx
   tls:
