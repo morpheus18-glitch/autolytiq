@@ -96,17 +96,24 @@ export const getQueryFn: <T>(options: {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
+    console.log('[getQueryFn] Fetching:', { url: requestUrl, hasToken: Boolean(token), on401: unauthorizedBehavior });
+
     const res = await fetch(requestUrl, {
       headers,
       credentials: 'include',
     });
 
+    console.log('[getQueryFn] Response:', { url: requestUrl, status: res.status, ok: res.ok });
+
     if (unauthorizedBehavior === 'returnNull' && res.status === 401) {
+      console.log('[getQueryFn] Returning null for 401');
       return null;
     }
 
     await throwIfResNotOk(res);
-    return await res.json();
+    const data = await res.json();
+    console.log('[getQueryFn] Success:', { url: requestUrl, hasData: Boolean(data) });
+    return data;
   };
 
 export const queryClient = new QueryClient({

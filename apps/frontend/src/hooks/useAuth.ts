@@ -46,10 +46,20 @@ export function useAuth() {
   // This prevents infinite loading when backend is unavailable
   const isLoadingWithTimeout = isLoading && !error;
 
-  return {
+  const result = {
     user: data ?? undefined,
     isLoading: isLoadingWithTimeout,
     isAuthenticated: Boolean(data),
     error,
   };
+
+  console.log('[useAuth]', {
+    hasData: Boolean(data),
+    isLoading: result.isLoading,
+    isAuthenticated: result.isAuthenticated,
+    hasError: Boolean(error),
+    errorMessage: error?.message,
+  });
+
+  return result;
 }

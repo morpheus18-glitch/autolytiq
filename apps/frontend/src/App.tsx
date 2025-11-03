@@ -41,7 +41,10 @@ function Router() {
     return appRoutes.filter((route) => allowedRouteSet.has(route.path));
   }, [allowedRouteSet]);
 
+  console.log('[Router] Rendering with state:', { isLoading, isAuthenticated, hasUser: Boolean(user) });
+
   if (isLoading) {
+    console.log('[Router] Showing loading spinner');
     return (
       <div className="flex items-center justify-center min-h-[calc(var(--vh,1vh)*100)] bg-surface-base">
         <div className="text-center">
@@ -53,6 +56,7 @@ function Router() {
   }
 
   if (!isAuthenticated) {
+    console.log('[Router] Not authenticated, showing landing/login');
     return (
       <Switch>
         <Route path="/login" component={Login} />
@@ -60,6 +64,8 @@ function Router() {
       </Switch>
     );
   }
+
+  console.log('[Router] Authenticated, showing app shell');
 
   return (
     <AppShell>
