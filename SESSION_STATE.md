@@ -1,268 +1,164 @@
 # AutolytiQ - Current Session State
 
-**Last Updated:** 2025-11-03 15:15 UTC
-**Session ID:** 2025-11-03-prisma-seed-refactoring
-**Status:** ✅ Active Development
+**Last Updated:** 2025-11-03 19:05 UTC
+**Session ID:** 2025-11-03-authentication-deployment
+**Status:** ⚠️ JWT Configuration In Progress
 
 ---
 
-## 🎯 Current Focus
+## 🚨 **URGENT - NEXT STEPS**
 
-### Recently Completed (This Session)
-1. ✅ **Fixed bcrypt authentication inconsistency** (Previous session)
-   - Standardized on `bcryptjs` across entire codebase
-   - Updated seed file and package dependencies
-   - Location: `packages/db/seed.ts`, `packages/db/package.json`
+### **Current Issue: JWT Keys Not Loading in Pods**
 
-2. ✅ **Fixed Kubernetes memory issues** (Previous session)
-   - Added memory limits to dev PostgreSQL StatefulSet (256Mi → 1Gi)
-   - Audited all production deployments (all have proper limits)
-   - Location: `infrastructure/k8s/dev/postgres-statefulset.yaml`
+**Problem:** Login endpoint fails with "JWT private key not configured"
 
-3. ✅ **Organized documentation structure** (Previous session)
-   - Created organized docs/ structure with subdirectories
-   - Moved 25+ MD files into logical categories
-   - Created SESSION_STATE.md for session continuity
+**Root Cause:** JWT_PRIVATE_KEY and JWT_PUBLIC_KEY in Kubernetes secret `app-env` are not loading correctly into pods. Keys exist in `/root/autolytiq/.env` with escaped newlines (`\n`) but not properly transferred to K8s secret.
 
-4. ✅ **Analyzed Prisma engine configuration** (New)
-   - Investigated `PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1` environment variable
-   - Verified Prisma engines are properly installed (Query Engine + Schema Engine)
-   - Documented findings in `docs/fixes/PRISMA_ENGINE_AND_SEED_ANALYSIS.md`
-   - **Recommendation:** Remove checksum flag for production (security concern)
-
-5. ✅ **Started seed file refactoring** (New)
-   - Analyzed monolithic seed.ts (2510 lines, 109 Prisma operations)
-   - Created modular seed structure in `packages/db/seed/`
-   - Extracted constants, static data, and tenant seeder
-   - Progress: 12% complete (1 of 10+ seeders)
-
-### Currently In Progress
-- Seed file refactoring (12% complete)
-- Next: Extract users, lenders, and workflow seeders
-
----
-
-## 📊 Project Status Overview
-
-### ✅ Completed & Working
-- Multi-tenant architecture with Prisma
-- JWT authentication (RS256)
-- Role-based access control (RBAC)
-- CRM with adaptive lead scoring
-- ML services (FastAPI + Celery)
-- Rust microservices (price-engine, comm-service)
-- Frontend (React + Vite + Tailwind, mobile-first)
-- Production Kubernetes deployments with proper resource limits
-
-### ⚠️ Needs Attention
-- **Prisma checksum flag** - `PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1`
-  - Currently used in all Prisma commands (9 locations)
-  - Security concern: Bypasses engine binary verification
-  - **Action:** Test without flag, then remove from package.json
-  - See: `docs/fixes/PRISMA_ENGINE_AND_SEED_ANALYSIS.md`
-
-- **Seed file refactoring** - 88% remaining
-  - 2510 lines → modular structure
-  - Progress: Tenant seeder complete, 9+ seeders remaining
-  - See: `packages/db/seed/README.md` for roadmap
-
-- **Dependency installation** - Hit OOM during `pnpm install --force`
-  - Exit code 137 (memory kill)
-  - May need to increase system memory or install in chunks
-
-- **Database reseeding** - After bcryptjs fix
-  - Run: `pnpm db:seed`
-  - Verify login works with new password hashes
-
-### 🔜 Upcoming Tasks
-- Complete seed file refactoring (extract remaining 9 seeders)
-- Test Prisma without checksum flag
-- Remove `PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1` if possible
-- Add memory-based autoscaling to K8s HPAs
-- Remove unused `bcrypt` dependency from root package.json
-
----
-
-## 🗂️ Documentation Structure
-
-All documentation has been organized into `/docs/` with the following structure:
-
-```
-docs/
-├── architecture/          # System architecture & design
-│   ├── AGENTS.md         # Engineering standards & workflow (MANDATORY READ)
-│   ├── CLAUDE.md         # Claude Code guidance for this repo
-│   ├── MULTITENANCY_AI_ARCHITECTURE.md
-│   └── CRM-TIMELINE-ARCHITECTURE.md
-│
-├── deployment/           # Deployment guides & configuration
-│   ├── DEPLOYMENT_GUIDE.md
-│   ├── DEPLOYMENT_READINESS.md
-│   ├── DEPLOYMENT_SOLUTION.md
-│   ├── DEPLOYMENT-COMPLETE-SUMMARY.md
-│   ├── DEPLOYMENT-VERIFICATION-CHECKLIST.md
-│   ├── DEPLOYMENT.md
-│   └── DNS-CONFIGURATION.md
-│
-├── features/            # Feature documentation
-│   ├── CRM-ADAPTIVE-LEAD-SCORING.md
-│   ├── CRM-CAPABILITIES-ANALYSIS.md
-│   ├── ML-DESKING-VERIFICATION-RESULTS.md
-│   ├── REVOLUTIONARY-CRM-IMPLEMENTATION-PLAN.md
-│   ├── DESIGN_SYSTEM_IMPLEMENTATION.md
-│   ├── UI-DESIGN-SYSTEM-COMPLETE.md
-│   ├── FRONTEND-COMPONENTS-PLAN.md
-│   ├── CUSTOM-PERMISSIONS-IMPLEMENTATION.md
-│   └── ENTERPRISE_CRM_EXTENSION.md
-│
-├── fixes/               # Bug fixes & issue resolutions
-│   ├── FIXES_APPLIED.md (LATEST - bcrypt & K8s memory)
-│   ├── AUTOLYTIQ_401_ERROR_ANALYSIS.md
-│   └── CODE-IMPROVEMENTS-SUMMARY.md
-│
-├── guides/              # Step-by-step guides
-│   ├── TROUBLESHOOTING.md
-│   ├── SCHEMA_MIGRATION_GUIDE.md
-│   └── provider_setup_walkthrough.md
-│
-└── operations/          # Operational procedures
-    ├── ops.md
-    ├── secrets.md
-    ├── sprint5-6-audit.md
-    └── SECURITY-SUMMARY.md
-```
-
----
-
-## 🔑 Critical Files to Review
-
-### On Every Session Start
-1. **`SESSION_STATE.md`** (this file) - Current state and progress
-2. **`docs/architecture/AGENTS.md`** - Engineering standards (MANDATORY)
-3. **`docs/architecture/CLAUDE.md`** - Repository-specific guidance
-4. **`docs/fixes/FIXES_APPLIED.md`** - Latest fixes (bcrypt & K8s)
-
-### Architecture Understanding
-- `docs/architecture/MULTITENANCY_AI_ARCHITECTURE.md` - Multi-tenant design
-- `services/rust/README.md` - Rust microservices architecture
-- `services/rust/ARCHITECTURE.md` - Detailed Rust design patterns
-
-### Deployment
-- `docs/deployment/DEPLOYMENT_GUIDE.md` - Complete deployment guide
-- `infrastructure/k8s/` - Kubernetes manifests
-
----
-
-## 🚀 Quick Start Commands
-
-### Development
+**Immediate Fix Required:**
 ```bash
-# Install dependencies (may need memory optimization)
-pnpm install
+cd /root/autolytiq
 
-# Run full stack
-pnpm dev
+# Extract JWT keys with proper format (with escaped \n)
+JWT_PRIVATE=$(grep "^JWT_PRIVATE_KEY=" .env | cut -d= -f2-)
+JWT_PUBLIC=$(grep "^JWT_PUBLIC_KEY=" .env | cut -d= -f2-)
 
-# Database operations
-pnpm db:generate       # After schema changes
-pnpm db:migrate:dev    # Create migration
-pnpm db:seed           # Seed database (NEEDED after bcryptjs fix)
+# Update secret
+kubectl patch secret app-env -n autolytiq-prod --type='json' -p="[
+  {\"op\": \"replace\", \"path\": \"/data/JWT_PRIVATE_KEY\", \"value\": \"$(echo -n "$JWT_PRIVATE" | base64 -w 0)\"},
+  {\"op\": \"replace\", \"path\": \"/data/JWT_PUBLIC_KEY\", \"value\": \"$(echo -n "$JWT_PUBLIC" | base64 -w 0)\"}
+]"
 
-# Testing
-pnpm typecheck
-pnpm test
+# Restart backend to load new secrets
+kubectl rollout restart deployment/backend -n autolytiq-prod
+kubectl rollout status deployment/backend -n autolytiq-prod
+
+# Test login
+kubectl port-forward -n autolytiq-prod svc/backend 5000:80 &
+sleep 3
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"storeId":"MAIN","username":"developer@sunrisemotors.demo","password":"DevAccess!2024"}' | jq .
 ```
 
-### Deployment
+---
+
+## ✅ **Completed This Session**
+
+### 1. **Deployment Monitoring & Verification**
+- ✅ All pods running in Kubernetes (8/8 pods healthy)
+- ✅ Backend: 2/2 pods, Frontend: 2/2 pods, ML: 2/2 pods, Redis: 1/1, Rust: 1/1
+- ✅ Memory limits configured on all pods
+- ✅ No services running on VM (all containerized)
+
+### 2. **Authentication Fixes Deployed**
+- ✅ **Commit f114239:** Fixed SQL column names (snake_case → camelCase)
+- ✅ **Commit 8bfca3c:** Fixed login lastLoginAt tenant context issue
+- ✅ **Commit 2d215af:** Added K8s snapshot and seed jobs
+- ✅ All commits pushed to `origin/main`
+- ✅ GitHub Actions CI/CD built and deployed new image
+
+### 3. **Kubernetes Configuration**
+- ✅ JWT keys added to `app-env` secret (but not loading correctly - see above)
+- ✅ Backend pods restarted multiple times
+- ✅ Deployment image: `8bfca3c92cfa0cfa7e253321fb7f32d99d14c17b`
+
+---
+
+## ⏳ **Pending Tasks**
+
+### **High Priority**
+1. ⚠️ **Fix JWT key loading** (see URGENT section above)
+2. 🔲 Test login endpoint successfully
+3. 🔲 Verify JWT token generation and claims
+4. 🔲 Test protected endpoints with token
+
+### **Medium Priority**
+5. 🔲 Check database migration status
+6. 🔲 Verify database is seeded with test data
+7. 🔲 Test full authentication flow end-to-end
+
+---
+
+## 📊 **Current System Status**
+
+### **Kubernetes Pods (autolytiq-prod namespace)**
+```
+NAME                           READY   STATUS    AGE
+backend-67cb496c4d-429jv       1/1     Running   ~10m
+backend-67cb496c4d-fqh7m       1/1     Running   ~11m
+frontend-cc888f759-65qxs       1/1     Running   ~3h
+frontend-cc888f759-s8slr       1/1     Running   ~1h
+ml-service-865d855549-9h6vv    1/1     Running   2d15h
+ml-service-865d855549-wg4kc    1/1     Running   2d15h
+redis-0                        1/1     Running   ~2h
+rust-pricing-69d97c96d-r66cg   1/1     Running   2d23h
+```
+
+### **Git Status**
+- Branch: `main`
+- Up to date with `origin/main`
+- Latest commit: `2d215af` - Add Kubernetes snapshot and seed job configurations
+- No uncommitted changes
+
+### **Test Credentials**
+```
+Store ID: MAIN
+Email: developer@sunrisemotors.demo
+Password: DevAccess!2024
+```
+
+---
+
+## 🔧 **Technical Details**
+
+### **Issue Analysis**
+When checking pod environment variables:
 ```bash
-# Local Docker
-./scripts/quick-deploy.sh
-
-# Production K8s
-./scripts/deploy-production.sh
-
-# Apply dev K8s changes
-kubectl apply -f infrastructure/k8s/dev/postgres-statefulset.yaml
-kubectl top pods -n autolytiq-dev
+kubectl exec -n autolytiq-prod backend-67cb496c4d-429jv -- env | grep JWT
+```
+Result shows:
+```
+JWT_PUBLIC_KEY=
+JWT_PRIVATE_KEY=
+JWT_SECRET=2088ae397cc17620f63dac6ba47d41bbe236aa2872cc247abec08e74895d7556
 ```
 
----
+The JWT_PRIVATE_KEY and JWT_PUBLIC_KEY are empty in the pod, even though they're in the secret.
 
-## 🐛 Known Issues & Workarounds
-
-### 1. OOM During `pnpm install`
-**Issue:** Exit code 137 during dependency installation
-**Workaround:**
-```bash
-# Option 1: Install in chunks
-pnpm install --filter @repo/db
-pnpm install --filter @repo/backend
-pnpm install
-
-# Option 2: Increase system memory
-# Option 3: Use NODE_OPTIONS
-NODE_OPTIONS="--max-old-space-size=4096" pnpm install
+### **Expected Format**
+Keys in `.env` file (line 21):
+```
+JWT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvgIBADA...
 ```
 
-### 2. Bcrypt Authentication (FIXED)
-**Issue:** Seed used `bcrypt`, auth used `bcryptjs`
-**Status:** ✅ Fixed - Now standardized on `bcryptjs`
-**Next Step:** Run `pnpm db:seed` to regenerate password hashes
+Keys must include the literal string `\n` (not actual newlines) to be properly processed by the backend's environment variable transformation in `apps/backend/src/config/env.ts:53-54`.
 
 ---
 
-## 📝 Recent Git Commits
+## 📁 **Key Files Modified**
 
-### Latest Commit: `59f7388`
-```
-Start seed file refactoring into modular structure
-
-- Created packages/db/seed/ directory structure
-- Extracted configuration, static data, and tenant seeder
-- Documented Prisma engine analysis
-- Progress: 12% complete (1 of 10+ seeders)
-```
-
-### Previous Commits (Last 4):
-- `4b9fb6b` - Add work session summary for 2025-11-03
-- `25884ca` - Update README links to new documentation structure
-- `4d5ac06` - Reorganize documentation into structured folders
-- `b2b2c8f` - Fix bcrypt authentication and K8s memory limits
+1. `apps/backend/src/routes/auth.routes.ts` - Login endpoint fixes
+2. `k8s-snapshot-20251103-172610/` - Full cluster backup
+3. `k8s-migrate-job.yaml` - Database migration job
+4. `k8s-seed-job.yaml` - Database seeding jobs
 
 ---
 
-## 🎓 Development Philosophy
+## 📝 **For Next Session**
 
-From `docs/architecture/AGENTS.md`:
-- **Mobile-first design** - All UI starts with mobile viewport
-- **Security first** - Input validation, auth checks, audit logging
-- **Multi-tenancy always** - Tenant scoping on all routes
-- **Type safety** - TypeScript + Zod validation
-- **Performance critical → Rust** - Use Rust services for heavy computation
+**Start Here:**
+1. Read this file (SESSION_STATE.md)
+2. Fix JWT key loading (commands in URGENT section)
+3. Test authentication
+4. Verify database migrations and seeding
+5. Update this file with results
 
----
-
-## 📞 Next Session Checklist
-
-When starting the next session:
-1. [ ] Read this SESSION_STATE.md
-2. [ ] Check `git status` and `git log -3`
-3. [ ] Review latest `docs/fixes/` for recent changes
-4. [ ] Run `pnpm install` (watch for OOM)
-5. [ ] Test authentication: `pnpm db:seed` then test login
-6. [ ] Check K8s pod status: `kubectl get pods -n autolytiq-dev`
+**Documentation:**
+- `docs/architecture/CLAUDE.md` - Repository guidance
+- `docs/fixes/FIXES_APPLIED.md` - Previous fixes
+- `START_HERE.md` - Project navigation
 
 ---
 
-## 💡 Remember
-
-- **Always use `pnpm`**, never npm/yarn
-- **Run `pnpm db:generate`** after schema changes
-- **Test mobile-first** - Start at 320px viewport
-- **Chain middleware** - `authenticate` → `tenantScope` → handler
-- **Use TodoWrite tool** for multi-step tasks
-- **Update this SESSION_STATE.md** when starting/ending sessions
-
----
-
-**End of Session State - Last Updated: 2025-11-03 14:50 UTC**
+**Session End:** 2025-11-03 19:05 UTC
+**Next Action:** Fix JWT key loading and test authentication
