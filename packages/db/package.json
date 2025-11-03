@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate": "cross-env PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 prisma generate",
-    "migrate:dev": "cross-env PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 prisma migrate dev",
-    "migrate:deploy": "cross-env PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 prisma migrate deploy",
-    "push": "cross-env PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 prisma db push",
+    "generate": "prisma generate",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "push": "prisma db push",
     "seed": "tsx seed.ts",
     "studio": "prisma studio"
   },

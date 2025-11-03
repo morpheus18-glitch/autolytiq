@@ -52,21 +52,26 @@ const lenders = await seeders.seedLenders(prisma, tenant.id);
 | `data/glAccounts.ts` | 46 | ✅ | Chart of accounts |
 | `data/workflowStages.ts` | 44 | ✅ | CRM workflow stages |
 | `seeders/seedTenant.ts` | 160 | ✅ | Tenant & store creation |
+| `seeders/seedUsers.ts` | 187 | ✅ | User creation with roles |
+| `seeders/seedGLAccounts.ts` | 43 | ✅ | GL accounts creation |
+| `seeders/seedLenders.ts` | 174 | ✅ | Lenders with rate sheets |
+| `seeders/seedWorkflows.ts` | 75 | ✅ | Workflow definitions |
 
-**Total:** 289 lines in modular structure
+**Total:** ~770 lines in modular structure (vs 2510 monolithic)
 
 ### 🚧 In Progress
 
-- Extracting user seeding logic
-- Creating lender seeder
-- Extracting customer generation
+- Extracting customer generation logic
+- Creating vehicle seeder
+- Extracting deal/worksheet creation
 
 ### 📋 To Do
 
-- [ ] `seeders/seedUsers.ts` - User creation (~400 lines expected)
-- [ ] `seeders/seedLenders.ts` - Lender setup (~200 lines expected)
-- [ ] `seeders/seedWorkflows.ts` - Workflow definitions (~200 lines expected)
 - [ ] `seeders/seedCustomers.ts` - Customer generation (~300 lines expected)
+- [x] `seeders/seedUsers.ts` - User creation ✅
+- [x] `seeders/seedLenders.ts` - Lender setup ✅
+- [x] `seeders/seedWorkflows.ts` - Workflow definitions ✅
+- [x] `seeders/seedGLAccounts.ts` - GL accounts ✅
 - [ ] `seeders/seedLeads.ts` - Lead generation (~200 lines expected)
 - [ ] `seeders/seedVehicles.ts` - Vehicle inventory (~300 lines expected)
 - [ ] `seeders/seedDeals.ts` - Deal/Worksheet creation (~300 lines expected)
@@ -150,4 +155,4 @@ pnpm db:seed
 ---
 
 **Last Updated:** 2025-11-03
-**Refactoring Progress:** 12% complete (1 of 10+ seeders)
+**Refactoring Progress:** 40% complete (5 of 10+ seeders)

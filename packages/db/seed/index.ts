@@ -12,9 +12,14 @@ export { DEFAULT_WORKFLOW_STAGES } from './data/workflowStages';
 
 // Seeders
 export { seedTenant } from './seeders/seedTenant';
+export { seedUsers } from './seeders/seedUsers';
+export { seedGLAccounts } from './seeders/seedGLAccounts';
+export { seedLenders } from './seeders/seedLenders';
+export { seedWorkflows } from './seeders/seedWorkflows';
 
 // Additional seeders to be added:
-// export { seedUsers } from './seeders/seedUsers';
-// export { seedLenders } from './seeders/seedLenders';
 // export { seedCustomers } from './seeders/seedCustomers';
+// export { seedLeads } from './seeders/seedLeads';
+// export { seedVehicles } from './seeders/seedVehicles';
+// export { seedDeals } from './seeders/seedDeals';
 // etc...
