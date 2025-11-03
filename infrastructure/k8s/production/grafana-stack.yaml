@@ -99,7 +99,7 @@ spec:
     spec:
       containers:
         - name: grafana
-          image: grafana/grafana:10.2.2
+          image: grafana/grafana:11.3.2
           ports:
             - containerPort: 3000
               name: http
@@ -116,11 +116,11 @@ spec:
               value: "false"
           resources:
             requests:
-              cpu: 250m
-              memory: 512Mi
+              cpu: 100m
+              memory: 256Mi
             limits:
               cpu: 500m
-              memory: 1Gi
+              memory: 512Mi
           volumeMounts:
             - name: grafana-storage
               mountPath: /var/lib/grafana

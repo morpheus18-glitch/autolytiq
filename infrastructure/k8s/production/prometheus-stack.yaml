@@ -163,24 +163,31 @@ spec:
         app: prometheus
     spec:
       serviceAccountName: prometheus
+      securityContext:
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
       containers:
         - name: prometheus
-          image: prom/prometheus:v2.48.0
+          image: prom/prometheus:v2.55.0
           args:
             - '--config.file=/etc/prometheus/prometheus.yml'
             - '--storage.tsdb.path=/prometheus'
-            - '--storage.tsdb.retention.time=15d'
+            - '--storage.tsdb.retention.time=7d'
+            - '--storage.tsdb.retention.size=8GB'
             - '--web.enable-lifecycle'
+            - '--storage.tsdb.min-block-duration=2h'
+            - '--storage.tsdb.max-block-duration=2h'
           ports:
             - containerPort: 9090
               name: http
           resources:
             requests:
-              cpu: 500m
-              memory: 1Gi
+              cpu: 200m
+              memory: 256Mi
             limits:
-              cpu: 2000m
-              memory: 4Gi
+              cpu: 1000m
+              memory: 768Mi
           volumeMounts:
             - name: config
               mountPath: /etc/prometheus
@@ -195,9 +202,10 @@ spec:
         name: storage
       spec:
         accessModes: ["ReadWriteOnce"]
+        storageClassName: do-block-storage
         resources:
           requests:
-            storage: 20Gi
+            storage: 10Gi
 ---
 apiVersion: v1
 kind: Service
