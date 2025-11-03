@@ -65,12 +65,10 @@ router.post('/login', async (req, res, next) => {
       throw new ApiError('UNAUTHORIZED', 'Invalid credentials');
     }
 
-    // Update last login
-    await runWithTenant(user.tenantId, () =>
-      prisma.user.update({
-        where: { id: user.id },
-        data: { lastLoginAt: new Date() },
-      })
+    // Update last login using raw SQL to avoid tenant middleware issues
+    await prisma.$executeRawUnsafe(
+      `UPDATE users SET last_login_at = NOW() WHERE id = $1`,
+      user.id
     );
 
     // Create JWT token
