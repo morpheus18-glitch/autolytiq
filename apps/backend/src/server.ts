@@ -12,6 +12,37 @@ initializeDomainIntegrations();
 export function createApp() {
   const app = express();
 
+  // CORS middleware - must be before other middleware
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    const allowedOrigins = [
+      'https://app.autolytiq.com',
+      'https://autolytiq.com',
+      'http://localhost:5173',
+      'http://localhost:3000',
+    ];
+
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization'
+    );
+    res.setHeader('Access-Control-Max-Age', '1728000');
+
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(204);
+      return;
+    }
+
+    next();
+  });
+
   // Add request tracing for better debugging
   app.use(requestTracingMiddleware);
   app.use(initializeContext);
