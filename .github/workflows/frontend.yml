@@ -46,6 +46,9 @@ jobs:
           provenance: false
           sbom: false
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          build-args: |
+            VITE_API_URL=https://api.autolytiq.com
+            VITE_ML_SERVICE_URL=https://ml.autolytiq.com
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
 

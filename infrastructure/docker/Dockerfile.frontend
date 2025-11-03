@@ -19,6 +19,10 @@ COPY packages/tokens/package.json packages/tokens/
 RUN pnpm install --frozen-lockfile --filter @repo/frontend...
 
 FROM dependencies AS builder
+ARG VITE_API_URL=https://api.autolytiq.com
+ARG VITE_ML_SERVICE_URL=https://ml.autolytiq.com
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_ML_SERVICE_URL=$VITE_ML_SERVICE_URL
 COPY . .
 RUN pnpm --filter @repo/tokens build
 RUN pnpm --filter @repo/frontend build
