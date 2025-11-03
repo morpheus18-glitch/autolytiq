@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../lib/prisma.js';
+import { prisma, runWithTenant } from '../lib/prisma.js';
 import { ApiError } from '../lib/errors.js';
 import { env } from '../config/env.js';
 
@@ -20,29 +20,42 @@ router.post('/login', async (req, res, next) => {
     }
 
     // Find user by email (username field contains email)
-    const user = await prisma.user.findFirst({
-      where: {
-        email: username.toLowerCase().trim(),
-        status: 'ACTIVE',
-      },
-      include: {
-        tenant: {
-          select: {
-            id: true,
-            name: true,
-            subdomain: true,
-            status: true,
-          },
-        },
-      },
-    });
+    // Use $queryRawUnsafe to bypass tenant middleware since we don't have tenant context yet
+    const users = await prisma.$queryRawUnsafe<Array<{
+      id: string;
+      tenantId: string;
+      email: string;
+      password: string;
+      firstName: string;
+      lastName: string;
+      role: string;
+      isSuperAdmin: boolean;
+      permissions: any;
+      customPermissions: any;
+      status: string;
+    }>>(`
+      SELECT u.id, u."tenantId", u.email, u.password, u."firstName", u."lastName",
+             u.role, u."isSuperAdmin", u.permissions, u."customPermissions", u.status,
+             t.id as "tenant_id", t.name as "tenant_name", t.subdomain as "tenant_subdomain", t.status as "tenant_status"
+      FROM users u
+      JOIN tenants t ON u."tenantId" = t.id
+      WHERE LOWER(TRIM(u.email)) = LOWER(TRIM($1))
+        AND u.status = 'ACTIVE'
+      LIMIT 1
+    `, username);
+
+    if (!users || users.length === 0) {
+      throw new ApiError('UNAUTHORIZED', 'Invalid credentials');
+    }
+
+    const user = users[0] as any;
 
     if (!user) {
       throw new ApiError('UNAUTHORIZED', 'Invalid credentials');
     }
 
     // Verify tenant is active
-    if (user.tenant.status !== 'ACTIVE') {
+    if (user.tenant_status !== 'ACTIVE') {
       throw new ApiError('FORBIDDEN', 'Account is not active');
     }
 
@@ -53,10 +66,12 @@ router.post('/login', async (req, res, next) => {
     }
 
     // Update last login
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    });
+    await runWithTenant(user.tenantId, () =>
+      prisma.user.update({
+        where: { id: user.id },
+        data: { lastLoginAt: new Date() },
+      })
+    );
 
     // Create JWT token
     const privateKey = env.JWT_PRIVATE_KEY;
