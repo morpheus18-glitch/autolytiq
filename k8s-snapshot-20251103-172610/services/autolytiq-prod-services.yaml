@@ -1,0 +1,170 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"backend","app.kubernetes.io/part-of":"autolytiq"},"name":"backend","namespace":"autolytiq-prod"},"spec":{"ports":[{"name":"http","port":80,"targetPort":"http"}],"selector":{"app.kubernetes.io/name":"backend"},"type":"ClusterIP"}}
+    creationTimestamp: "2025-10-31T01:34:26Z"
+    labels:
+      app.kubernetes.io/name: backend
+      app.kubernetes.io/part-of: autolytiq
+    name: backend
+    namespace: autolytiq-prod
+    resourceVersion: "682687"
+    uid: da65e3ea-dee7-4335-b0a4-fe6af81cf83e
+  spec:
+    clusterIP: 10.108.49.202
+    clusterIPs:
+    - 10.108.49.202
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+    selector:
+      app.kubernetes.io/name: backend
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"frontend","app.kubernetes.io/part-of":"autolytiq"},"name":"frontend","namespace":"autolytiq-prod"},"spec":{"ports":[{"name":"http","port":80,"targetPort":"http"}],"selector":{"app.kubernetes.io/name":"frontend"},"type":"ClusterIP"}}
+    creationTimestamp: "2025-10-31T01:59:06Z"
+    labels:
+      app.kubernetes.io/name: frontend
+      app.kubernetes.io/part-of: autolytiq
+    name: frontend
+    namespace: autolytiq-prod
+    resourceVersion: "688422"
+    uid: 45b05cc2-2065-4ce8-83dc-3565db46baa4
+  spec:
+    clusterIP: 10.108.56.138
+    clusterIPs:
+    - 10.108.56.138
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+    selector:
+      app.kubernetes.io/name: frontend
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"ml-service","app.kubernetes.io/part-of":"autolytiq"},"name":"ml-service","namespace":"autolytiq-prod"},"spec":{"ports":[{"name":"http","port":80,"targetPort":"http"}],"selector":{"app.kubernetes.io/name":"ml-service"},"type":"ClusterIP"}}
+    creationTimestamp: "2025-10-31T01:57:13Z"
+    labels:
+      app.kubernetes.io/name: ml-service
+      app.kubernetes.io/part-of: autolytiq
+    name: ml-service
+    namespace: autolytiq-prod
+    resourceVersion: "687921"
+    uid: 462d9ec3-6e4c-4012-b95a-6be76d0b6c95
+  spec:
+    clusterIP: 10.108.47.237
+    clusterIPs:
+    - 10.108.47.237
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+    selector:
+      app.kubernetes.io/name: ml-service
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"redis","app.kubernetes.io/part-of":"autolytiq"},"name":"redis","namespace":"autolytiq-prod"},"spec":{"clusterIP":"None","ports":[{"name":"redis","port":6379,"targetPort":"redis"}],"selector":{"app.kubernetes.io/name":"redis"},"type":"ClusterIP"}}
+    creationTimestamp: "2025-10-31T18:09:17Z"
+    labels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/part-of: autolytiq
+    name: redis
+    namespace: autolytiq-prod
+    resourceVersion: "935476"
+    uid: 7151f785-f6c1-4dd9-a534-7a066fb99e79
+  spec:
+    clusterIP: None
+    clusterIPs:
+    - None
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: redis
+      port: 6379
+      protocol: TCP
+      targetPort: redis
+    selector:
+      app.kubernetes.io/name: redis
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"rust-pricing","app.kubernetes.io/part-of":"autolytiq"},"name":"rust-pricing","namespace":"autolytiq-prod"},"spec":{"ports":[{"name":"grpc","port":50051,"targetPort":"grpc"}],"selector":{"app.kubernetes.io/name":"rust-pricing"},"type":"ClusterIP"}}
+    creationTimestamp: "2025-10-31T01:57:26Z"
+    labels:
+      app.kubernetes.io/name: rust-pricing
+      app.kubernetes.io/part-of: autolytiq
+    name: rust-pricing
+    namespace: autolytiq-prod
+    resourceVersion: "687991"
+    uid: 19a50ebb-d9ca-439b-a784-f232be75be4b
+  spec:
+    clusterIP: 10.108.43.253
+    clusterIPs:
+    - 10.108.43.253
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: grpc
+      port: 50051
+      protocol: TCP
+      targetPort: grpc
+    selector:
+      app.kubernetes.io/name: rust-pricing
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+kind: List
+metadata:
+  resourceVersion: ""

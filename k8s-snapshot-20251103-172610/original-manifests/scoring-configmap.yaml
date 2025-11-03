@@ -1,0 +1,32 @@
+apiVersion: v1
+data:
+  scoring.yaml: |
+    objectives:
+      gross_weight: 0.35
+      close_weight: 0.25
+      approval_weight: 0.25
+      payment_weight: 0.15
+    normalization:
+      gross:
+        baseline_avg: 1800
+        baseline_std: 450
+        clip_min: 300
+        clip_max: 6000
+      close_probability:
+        clip_min: 35
+        clip_max: 95
+      approval_probability:
+        clip_min: 40
+        clip_max: 98
+      payment:
+        target_multiplier: 1.0
+        tolerance: 0.12
+        penalty_weight: 0.2
+    constraints:
+      min_gross: 1200
+      max_payment_delta: 0.18
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: scoring-config
+  namespace: autolytiq-prod

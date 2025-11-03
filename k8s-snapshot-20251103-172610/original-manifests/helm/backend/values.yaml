@@ -1,0 +1,102 @@
+replicaCount: 3
+
+image:
+  repository: registry.digitalocean.com/autolytiq/backend
+  pullPolicy: IfNotPresent
+  tag: ""
+
+service:
+  type: ClusterIP
+  port: 5000
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 60
+
+env:
+  - name: NODE_ENV
+    value: "production"
+  - name: PORT
+    value: "5000"
+  - name: DATABASE_URL
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: database-url
+  - name: JWT_PUBLIC_KEY
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: jwt-public-key
+  - name: JWT_ISSUER
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: jwt-issuer
+  - name: JWT_AUDIENCE
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: jwt-audience
+  - name: SENDGRID_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: sendgrid-api-key
+  - name: SENDGRID_FROM
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: sendgrid-from
+  - name: TWILIO_ACCOUNT_SID
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: twilio-account-sid
+  - name: TWILIO_AUTH_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: twilio-auth-token
+  - name: TWILIO_MESSAGING_SERVICE_SID
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: twilio-messaging-service-sid
+  - name: TWILIO_CALLER_ID
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: twilio-caller-id
+  - name: SOCKET_IO_CORS_ORIGIN
+    value: "https://app.autolytiq.com"
+  - name: APP_URL
+    value: "https://app.autolytiq.com"
+  - name: API_URL
+    value: "https://api.autolytiq.com"
+  - name: PRICING_GRPC_ADDR
+    value: "pricing-rust:50051"
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 5000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 5000
+  initialDelaySeconds: 10
+  periodSeconds: 5

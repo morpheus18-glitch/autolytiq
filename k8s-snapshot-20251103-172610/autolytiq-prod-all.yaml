@@ -1,0 +1,4337 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/restartedAt: "2025-11-01T22:14:04Z"
+    creationTimestamp: "2025-11-03T16:34:29Z"
+    generateName: backend-cc58d4589-
+    generation: 1
+    labels:
+      app.kubernetes.io/name: backend
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: cc58d4589
+    name: backend-cc58d4589-p5j54
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: backend-cc58d4589
+      uid: 200c3b2a-183e-4fb4-bac6-b8322296910e
+    resourceVersion: "1991971"
+    uid: 0a76d8e6-1d29-4dfe-9159-9dff862dae86
+  spec:
+    containers:
+    - env:
+      - name: PORT
+        value: "5000"
+      - name: ML_SERVICE_URL
+        value: http://ml-service
+      - name: PRICE_ENGINE_URL
+        value: rust-pricing:50051
+      envFrom:
+      - secretRef:
+          name: app-env
+      image: registry.digitalocean.com/autolytiq/backend:9efd166e1a2a56eeccf2e77dc0e816a5648f51fc
+      imagePullPolicy: IfNotPresent
+      livenessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /live
+          port: http
+          scheme: HTTP
+        initialDelaySeconds: 30
+        periodSeconds: 15
+        successThreshold: 1
+        timeoutSeconds: 5
+      name: backend
+      ports:
+      - containerPort: 5000
+        name: http
+        protocol: TCP
+      readinessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /health
+          port: http
+          scheme: HTTP
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 5
+      resources:
+        limits:
+          cpu: "1"
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      startupProbe:
+        failureThreshold: 30
+        httpGet:
+          path: /live
+          port: http
+          scheme: HTTP
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        successThreshold: 1
+        timeoutSeconds: 3
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-wf4zk
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    imagePullSecrets:
+    - name: do-regcred
+    nodeName: pool-autolytiq-pv6j9
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1001
+      runAsGroup: 1001
+      runAsNonRoot: true
+      runAsUser: 1001
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: kube-api-access-wf4zk
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:35:30Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:34:29Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:35:50Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:35:50Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:34:29Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 250m
+        memory: 512Mi
+      containerID: containerd://76baede683e080ace2c5f4c7a669273c4a69cafe4a80833bcf05069528194025
+      image: registry.digitalocean.com/autolytiq/backend:9efd166e1a2a56eeccf2e77dc0e816a5648f51fc
+      imageID: registry.digitalocean.com/autolytiq/backend@sha256:35b4054684ef7e8b941135e601678c8a27c37dcbff40339e11146f227d7eeed4
+      lastState: {}
+      name: backend
+      ready: true
+      resources:
+        limits:
+          cpu: "1"
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2025-11-03T16:35:30Z"
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-wf4zk
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.108.16.8
+    hostIPs:
+    - ip: 10.108.16.8
+    phase: Running
+    podIP: 10.109.3.147
+    podIPs:
+    - ip: 10.109.3.147
+    qosClass: Burstable
+    startTime: "2025-11-03T16:34:29Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/restartedAt: "2025-11-01T22:14:04Z"
+    creationTimestamp: "2025-11-03T16:29:34Z"
+    generateName: backend-cc58d4589-
+    generation: 1
+    labels:
+      app.kubernetes.io/name: backend
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: cc58d4589
+    name: backend-cc58d4589-qt25t
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: backend-cc58d4589
+      uid: 200c3b2a-183e-4fb4-bac6-b8322296910e
+    resourceVersion: "1991583"
+    uid: d89a4e22-dd26-44fd-a8a1-d21a2488b2dd
+  spec:
+    containers:
+    - env:
+      - name: PORT
+        value: "5000"
+      - name: ML_SERVICE_URL
+        value: http://ml-service
+      - name: PRICE_ENGINE_URL
+        value: rust-pricing:50051
+      envFrom:
+      - secretRef:
+          name: app-env
+      image: registry.digitalocean.com/autolytiq/backend:9efd166e1a2a56eeccf2e77dc0e816a5648f51fc
+      imagePullPolicy: IfNotPresent
+      livenessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /live
+          port: http
+          scheme: HTTP
+        initialDelaySeconds: 30
+        periodSeconds: 15
+        successThreshold: 1
+        timeoutSeconds: 5
+      name: backend
+      ports:
+      - containerPort: 5000
+        name: http
+        protocol: TCP
+      readinessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /health
+          port: http
+          scheme: HTTP
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 5
+      resources:
+        limits:
+          cpu: "1"
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      startupProbe:
+        failureThreshold: 30
+        httpGet:
+          path: /live
+          port: http
+          scheme: HTTP
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        successThreshold: 1
+        timeoutSeconds: 3
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-7fvss
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    imagePullSecrets:
+    - name: do-regcred
+    nodeName: pool-autolytiq-pv6tz
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1001
+      runAsGroup: 1001
+      runAsNonRoot: true
+      runAsUser: 1001
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: kube-api-access-7fvss
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:34:12Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:32:57Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:34:28Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:34:28Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:32:57Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 250m
+        memory: 512Mi
+      containerID: containerd://08850e5f7ef65da143213fadff26221e58a550eea4ed62ee557caf672d5dc2cc
+      image: registry.digitalocean.com/autolytiq/backend:9efd166e1a2a56eeccf2e77dc0e816a5648f51fc
+      imageID: registry.digitalocean.com/autolytiq/backend@sha256:35b4054684ef7e8b941135e601678c8a27c37dcbff40339e11146f227d7eeed4
+      lastState: {}
+      name: backend
+      ready: true
+      resources:
+        limits:
+          cpu: "1"
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2025-11-03T16:34:12Z"
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-7fvss
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.108.16.11
+    hostIPs:
+    - ip: 10.108.16.11
+    phase: Running
+    podIP: 10.109.4.2
+    podIPs:
+    - ip: 10.109.4.2
+    qosClass: Burstable
+    startTime: "2025-11-03T16:32:57Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: "2025-11-03T16:46:56Z"
+    generateName: frontend-cc888f759-
+    generation: 1
+    labels:
+      app.kubernetes.io/name: frontend
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: cc888f759
+    name: frontend-cc888f759-5g6fg
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: frontend-cc888f759
+      uid: 04319f67-4153-471e-b24a-86a0b271c96f
+    resourceVersion: "1995129"
+    uid: e7f0cf77-ee35-4906-b78b-82940121bf97
+  spec:
+    containers:
+    - image: registry.digitalocean.com/autolytiq/frontend:aa8f0479b8363971ee0bf8f44a80bb723ff9e2ed
+      imagePullPolicy: IfNotPresent
+      livenessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /health
+          port: http
+          scheme: HTTP
+        initialDelaySeconds: 10
+        periodSeconds: 15
+        successThreshold: 1
+        timeoutSeconds: 1
+      name: frontend
+      ports:
+      - containerPort: 8080
+        name: http
+        protocol: TCP
+      readinessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /health
+          port: http
+          scheme: HTTP
+        initialDelaySeconds: 5
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 1
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 150m
+          memory: 256Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-f2xh6
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    imagePullSecrets:
+    - name: do-regcred
+    nodeName: pool-autolytiq-pv6tz
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 101
+      runAsGroup: 101
+      runAsNonRoot: true
+      runAsUser: 101
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: kube-api-access-f2xh6
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:47:03Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:46:56Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:47:15Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:47:15Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:46:56Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 150m
+        memory: 256Mi
+      containerID: containerd://0d5dd52b5d6138696a37840d0de6f5c12d23b3a088f3cb8c23816d1091561bc9
+      image: registry.digitalocean.com/autolytiq/frontend:aa8f0479b8363971ee0bf8f44a80bb723ff9e2ed
+      imageID: registry.digitalocean.com/autolytiq/frontend@sha256:4caf7ccd23a390e1463934b0f7dd04984c1b8ce5ad3e9892dc969f725cd024da
+      lastState: {}
+      name: frontend
+      ready: true
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 150m
+          memory: 256Mi
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2025-11-03T16:47:03Z"
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-f2xh6
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.108.16.11
+    hostIPs:
+    - ip: 10.108.16.11
+    phase: Running
+    podIP: 10.109.4.96
+    podIPs:
+    - ip: 10.109.4.96
+    qosClass: Burstable
+    startTime: "2025-11-03T16:46:56Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: "2025-11-03T16:28:45Z"
+    generateName: frontend-cc888f759-
+    generation: 1
+    labels:
+      app.kubernetes.io/name: frontend
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: cc888f759
+    name: frontend-cc888f759-65qxs
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: frontend-cc888f759
+      uid: 04319f67-4153-471e-b24a-86a0b271c96f
+    resourceVersion: "1989815"
+    uid: 76ff8ae8-846a-4af9-8083-02fb08f75e6e
+  spec:
+    containers:
+    - image: registry.digitalocean.com/autolytiq/frontend:aa8f0479b8363971ee0bf8f44a80bb723ff9e2ed
+      imagePullPolicy: IfNotPresent
+      livenessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /health
+          port: http
+          scheme: HTTP
+        initialDelaySeconds: 10
+        periodSeconds: 15
+        successThreshold: 1
+        timeoutSeconds: 1
+      name: frontend
+      ports:
+      - containerPort: 8080
+        name: http
+        protocol: TCP
+      readinessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /health
+          port: http
+          scheme: HTTP
+        initialDelaySeconds: 5
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 1
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 150m
+          memory: 256Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-zn2l2
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    imagePullSecrets:
+    - name: do-regcred
+    nodeName: pool-autolytiq-pv6j9
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 101
+      runAsGroup: 101
+      runAsNonRoot: true
+      runAsUser: 101
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: kube-api-access-zn2l2
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:28:53Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:28:45Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:29:05Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:29:05Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:28:45Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 150m
+        memory: 256Mi
+      containerID: containerd://5d71f9f14590029f9ca236e24b3883626ec23f592c8a9b97adcee2c45067a7e2
+      image: registry.digitalocean.com/autolytiq/frontend:aa8f0479b8363971ee0bf8f44a80bb723ff9e2ed
+      imageID: registry.digitalocean.com/autolytiq/frontend@sha256:4caf7ccd23a390e1463934b0f7dd04984c1b8ce5ad3e9892dc969f725cd024da
+      lastState: {}
+      name: frontend
+      ready: true
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 150m
+          memory: 256Mi
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2025-11-03T16:28:52Z"
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-zn2l2
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.108.16.8
+    hostIPs:
+    - ip: 10.108.16.8
+    phase: Running
+    podIP: 10.109.3.155
+    podIPs:
+    - ip: 10.109.3.155
+    qosClass: Burstable
+    startTime: "2025-11-03T16:28:45Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/restartedAt: "1761898519"
+    creationTimestamp: "2025-11-01T03:52:05Z"
+    generateName: ml-service-865d855549-
+    generation: 1
+    labels:
+      app.kubernetes.io/name: ml-service
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: 865d855549
+    name: ml-service-865d855549-9h6vv
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: ml-service-865d855549
+      uid: dd21d7d8-38d1-4446-90d5-576e9bd0149e
+    resourceVersion: "1085992"
+    uid: 88ecfe04-1670-4ac5-ad0f-bc31d15b5723
+  spec:
+    containers:
+    - env:
+      - name: UVICORN_PORT
+        value: "8000"
+      - name: UVICORN_HOST
+        value: 0.0.0.0
+      envFrom:
+      - secretRef:
+          name: app-env
+      image: registry.digitalocean.com/autolytiq/ml-service:b3ee3f1a21a40224df832f5e6415218692c3b109
+      imagePullPolicy: IfNotPresent
+      livenessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /health
+          port: http
+          scheme: HTTP
+        initialDelaySeconds: 30
+        periodSeconds: 20
+        successThreshold: 1
+        timeoutSeconds: 5
+      name: ml-service
+      ports:
+      - containerPort: 8000
+        name: http
+        protocol: TCP
+      readinessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /health
+          port: http
+          scheme: HTTP
+        initialDelaySeconds: 20
+        periodSeconds: 15
+        successThreshold: 1
+        timeoutSeconds: 5
+      resources:
+        limits:
+          cpu: 1500m
+          memory: 2Gi
+        requests:
+          cpu: 500m
+          memory: 1Gi
+      startupProbe:
+        failureThreshold: 40
+        httpGet:
+          path: /health
+          port: http
+          scheme: HTTP
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        successThreshold: 1
+        timeoutSeconds: 3
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /ml_backend/config/scoring.yaml
+        name: scoring-config-volume
+        subPath: scoring.yaml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-46tqx
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    imagePullSecrets:
+    - name: do-regcred
+    nodeName: ml-pool-p4x1c
+    nodeSelector:
+      workload-type: ml-heavy
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1001
+      runAsGroup: 1001
+      runAsNonRoot: true
+      runAsUser: 1001
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoSchedule
+      key: workload-type
+      operator: Equal
+      value: ml-heavy
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: scoring-config
+      name: scoring-config-volume
+    - name: kube-api-access-46tqx
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-01T03:52:09Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-01T03:52:05Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-01T03:52:31Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-01T03:52:31Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-01T03:52:05Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 500m
+        memory: 1Gi
+      containerID: containerd://c59f1c4f9275eb36f3a28b837ee425e3110ef37d0acb9dac95054e5630dea610
+      image: registry.digitalocean.com/autolytiq/ml-service:b3ee3f1a21a40224df832f5e6415218692c3b109
+      imageID: registry.digitalocean.com/autolytiq/ml-service@sha256:3b6fd9fb86cfbe20d349a2f4345d66e32e86a276cbcd9bed9f426a1a2cf6ab69
+      lastState: {}
+      name: ml-service
+      ready: true
+      resources:
+        limits:
+          cpu: 1500m
+          memory: 2Gi
+        requests:
+          cpu: 500m
+          memory: 1Gi
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2025-11-01T03:52:08Z"
+      volumeMounts:
+      - mountPath: /ml_backend/config/scoring.yaml
+        name: scoring-config-volume
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-46tqx
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.108.16.10
+    hostIPs:
+    - ip: 10.108.16.10
+    phase: Running
+    podIP: 10.109.3.113
+    podIPs:
+    - ip: 10.109.3.113
+    qosClass: Burstable
+    startTime: "2025-11-01T03:52:05Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/restartedAt: "1761898519"
+    creationTimestamp: "2025-11-01T03:51:39Z"
+    generateName: ml-service-865d855549-
+    generation: 1
+    labels:
+      app.kubernetes.io/name: ml-service
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: 865d855549
+    name: ml-service-865d855549-wg4kc
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: ml-service-865d855549
+      uid: dd21d7d8-38d1-4446-90d5-576e9bd0149e
+    resourceVersion: "1085851"
+    uid: 528e4936-2684-4a17-8a67-ddf4b51ecc9f
+  spec:
+    containers:
+    - env:
+      - name: UVICORN_PORT
+        value: "8000"
+      - name: UVICORN_HOST
+        value: 0.0.0.0
+      envFrom:
+      - secretRef:
+          name: app-env
+      image: registry.digitalocean.com/autolytiq/ml-service:b3ee3f1a21a40224df832f5e6415218692c3b109
+      imagePullPolicy: IfNotPresent
+      livenessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /health
+          port: http
+          scheme: HTTP
+        initialDelaySeconds: 30
+        periodSeconds: 20
+        successThreshold: 1
+        timeoutSeconds: 5
+      name: ml-service
+      ports:
+      - containerPort: 8000
+        name: http
+        protocol: TCP
+      readinessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /health
+          port: http
+          scheme: HTTP
+        initialDelaySeconds: 20
+        periodSeconds: 15
+        successThreshold: 1
+        timeoutSeconds: 5
+      resources:
+        limits:
+          cpu: 1500m
+          memory: 2Gi
+        requests:
+          cpu: 500m
+          memory: 1Gi
+      startupProbe:
+        failureThreshold: 40
+        httpGet:
+          path: /health
+          port: http
+          scheme: HTTP
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        successThreshold: 1
+        timeoutSeconds: 3
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /ml_backend/config/scoring.yaml
+        name: scoring-config-volume
+        subPath: scoring.yaml
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-wtr82
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    imagePullSecrets:
+    - name: do-regcred
+    nodeName: ml-pool-p4x17
+    nodeSelector:
+      workload-type: ml-heavy
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1001
+      runAsGroup: 1001
+      runAsNonRoot: true
+      runAsUser: 1001
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoSchedule
+      key: workload-type
+      operator: Equal
+      value: ml-heavy
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - configMap:
+        defaultMode: 420
+        name: scoring-config
+      name: scoring-config-volume
+    - name: kube-api-access-wtr82
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-01T03:51:42Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-01T03:51:39Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-01T03:52:05Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-01T03:52:05Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-01T03:51:39Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 500m
+        memory: 1Gi
+      containerID: containerd://e5749065fefc881c065341a6873697f283c0ab8c8499a4f86a8f37b6d4113e67
+      image: registry.digitalocean.com/autolytiq/ml-service:b3ee3f1a21a40224df832f5e6415218692c3b109
+      imageID: registry.digitalocean.com/autolytiq/ml-service@sha256:3b6fd9fb86cfbe20d349a2f4345d66e32e86a276cbcd9bed9f426a1a2cf6ab69
+      lastState: {}
+      name: ml-service
+      ready: true
+      resources:
+        limits:
+          cpu: 1500m
+          memory: 2Gi
+        requests:
+          cpu: 500m
+          memory: 1Gi
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2025-11-01T03:51:42Z"
+      volumeMounts:
+      - mountPath: /ml_backend/config/scoring.yaml
+        name: scoring-config-volume
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-wtr82
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.108.16.9
+    hostIPs:
+    - ip: 10.108.16.9
+    phase: Running
+    podIP: 10.109.2.209
+    podIPs:
+    - ip: 10.109.2.209
+    qosClass: Burstable
+    startTime: "2025-11-01T03:51:39Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: "2025-11-03T16:47:11Z"
+    generateName: redis-
+    generation: 1
+    labels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/part-of: autolytiq
+      apps.kubernetes.io/pod-index: "0"
+      controller-revision-hash: redis-b5bff488
+      statefulset.kubernetes.io/pod-name: redis-0
+    name: redis-0
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: StatefulSet
+      name: redis
+      uid: d6064470-0e23-4e34-9a36-0dfbb6ae283e
+    resourceVersion: "1995458"
+    uid: 7f165223-298f-4b5b-a65a-f26059561295
+  spec:
+    containers:
+    - image: redis:7-alpine
+      imagePullPolicy: IfNotPresent
+      livenessProbe:
+        failureThreshold: 3
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        successThreshold: 1
+        tcpSocket:
+          port: redis
+        timeoutSeconds: 1
+      name: redis
+      ports:
+      - containerPort: 6379
+        name: redis
+        protocol: TCP
+      readinessProbe:
+        exec:
+          command:
+          - redis-cli
+          - ping
+        failureThreshold: 3
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        successThreshold: 1
+        timeoutSeconds: 1
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /data
+        name: redis-data
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-8g4jg
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    hostname: redis-0
+    imagePullSecrets:
+    - name: autolytiq
+    nodeName: pool-autolytiq-pkpci
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: default
+    serviceAccountName: default
+    subdomain: redis
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: redis-data
+      persistentVolumeClaim:
+        claimName: redis-data-redis-0
+    - name: kube-api-access-8g4jg
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:47:29Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:47:11Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:47:36Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:47:36Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:47:11Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 100m
+        memory: 128Mi
+      containerID: containerd://1697658f13953630eaaec02d2dd74813856f08932d3824a8d7f9cdfd66de443e
+      image: docker.io/library/redis:7-alpine
+      imageID: docker.io/library/redis@sha256:3b73847e72874be07e6657b129a94761662b79bc0f679273757d4218573b2a98
+      lastState: {}
+      name: redis
+      ready: true
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2025-11-03T16:47:29Z"
+      volumeMounts:
+      - mountPath: /data
+        name: redis-data
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-8g4jg
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.108.16.6
+    hostIPs:
+    - ip: 10.108.16.6
+    phase: Running
+    podIP: 10.109.0.232
+    podIPs:
+    - ip: 10.109.0.232
+    qosClass: Burstable
+    startTime: "2025-11-03T16:47:11Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/restartedAt: "2025-10-31T18:12:23Z"
+    creationTimestamp: "2025-10-31T19:01:45Z"
+    generateName: rust-pricing-69d97c96d-
+    generation: 1
+    labels:
+      app.kubernetes.io/name: rust-pricing
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: 69d97c96d
+    name: rust-pricing-69d97c96d-r66cg
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: rust-pricing-69d97c96d
+      uid: 6ef76313-7b44-48a7-9741-5815581f5ae9
+    resourceVersion: "949971"
+    uid: c9c85f7d-e5e3-4125-a469-d5f208d53e3e
+  spec:
+    containers:
+    - env:
+      - name: RUST_LOG
+        value: info
+      envFrom:
+      - secretRef:
+          name: app-env
+      image: registry.digitalocean.com/autolytiq/rust-pricing:94ff7edb9602f9a0ca3fbed4762559164e8cc68d
+      imagePullPolicy: IfNotPresent
+      livenessProbe:
+        failureThreshold: 3
+        initialDelaySeconds: 30
+        periodSeconds: 15
+        successThreshold: 1
+        tcpSocket:
+          port: grpc
+        timeoutSeconds: 5
+      name: rust-pricing
+      ports:
+      - containerPort: 50051
+        name: grpc
+        protocol: TCP
+      readinessProbe:
+        failureThreshold: 3
+        initialDelaySeconds: 10
+        periodSeconds: 10
+        successThreshold: 1
+        tcpSocket:
+          port: grpc
+        timeoutSeconds: 5
+      resources:
+        limits:
+          cpu: 750m
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      startupProbe:
+        failureThreshold: 30
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        successThreshold: 1
+        tcpSocket:
+          port: grpc
+        timeoutSeconds: 3
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-9xjj6
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    imagePullSecrets:
+    - name: do-regcred
+    nodeName: pool-autolytiq-pkpcv
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1001
+      runAsGroup: 1001
+      runAsNonRoot: true
+      runAsUser: 1001
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: kube-api-access-9xjj6
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2025-10-31T19:02:15Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2025-10-31T19:02:13Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2025-10-31T19:02:34Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2025-10-31T19:02:34Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2025-10-31T19:02:13Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 250m
+        memory: 512Mi
+      containerID: containerd://5d24e1fdec1e7927097b5aa94ba1bea2f61b453155d2f99835dda0684e14043d
+      image: registry.digitalocean.com/autolytiq/rust-pricing:4c98981e1ebdf094891224a3eabe0a05097466ea
+      imageID: registry.digitalocean.com/autolytiq/rust-pricing@sha256:428ecec4b6a8a25d2848962f07e39e0d8c0d023be8d61a06f54be4d66611ff52
+      lastState: {}
+      name: rust-pricing
+      ready: true
+      resources:
+        limits:
+          cpu: 750m
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2025-10-31T19:02:15Z"
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-9xjj6
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.108.16.5
+    hostIPs:
+    - ip: 10.108.16.5
+    phase: Running
+    podIP: 10.109.0.41
+    podIPs:
+    - ip: 10.109.0.41
+    qosClass: Burstable
+    startTime: "2025-10-31T19:02:13Z"
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"backend","app.kubernetes.io/part-of":"autolytiq"},"name":"backend","namespace":"autolytiq-prod"},"spec":{"ports":[{"name":"http","port":80,"targetPort":"http"}],"selector":{"app.kubernetes.io/name":"backend"},"type":"ClusterIP"}}
+    creationTimestamp: "2025-10-31T01:34:26Z"
+    labels:
+      app.kubernetes.io/name: backend
+      app.kubernetes.io/part-of: autolytiq
+    name: backend
+    namespace: autolytiq-prod
+    resourceVersion: "682687"
+    uid: da65e3ea-dee7-4335-b0a4-fe6af81cf83e
+  spec:
+    clusterIP: 10.108.49.202
+    clusterIPs:
+    - 10.108.49.202
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+    selector:
+      app.kubernetes.io/name: backend
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"frontend","app.kubernetes.io/part-of":"autolytiq"},"name":"frontend","namespace":"autolytiq-prod"},"spec":{"ports":[{"name":"http","port":80,"targetPort":"http"}],"selector":{"app.kubernetes.io/name":"frontend"},"type":"ClusterIP"}}
+    creationTimestamp: "2025-10-31T01:59:06Z"
+    labels:
+      app.kubernetes.io/name: frontend
+      app.kubernetes.io/part-of: autolytiq
+    name: frontend
+    namespace: autolytiq-prod
+    resourceVersion: "688422"
+    uid: 45b05cc2-2065-4ce8-83dc-3565db46baa4
+  spec:
+    clusterIP: 10.108.56.138
+    clusterIPs:
+    - 10.108.56.138
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+    selector:
+      app.kubernetes.io/name: frontend
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"ml-service","app.kubernetes.io/part-of":"autolytiq"},"name":"ml-service","namespace":"autolytiq-prod"},"spec":{"ports":[{"name":"http","port":80,"targetPort":"http"}],"selector":{"app.kubernetes.io/name":"ml-service"},"type":"ClusterIP"}}
+    creationTimestamp: "2025-10-31T01:57:13Z"
+    labels:
+      app.kubernetes.io/name: ml-service
+      app.kubernetes.io/part-of: autolytiq
+    name: ml-service
+    namespace: autolytiq-prod
+    resourceVersion: "687921"
+    uid: 462d9ec3-6e4c-4012-b95a-6be76d0b6c95
+  spec:
+    clusterIP: 10.108.47.237
+    clusterIPs:
+    - 10.108.47.237
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+    selector:
+      app.kubernetes.io/name: ml-service
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"redis","app.kubernetes.io/part-of":"autolytiq"},"name":"redis","namespace":"autolytiq-prod"},"spec":{"clusterIP":"None","ports":[{"name":"redis","port":6379,"targetPort":"redis"}],"selector":{"app.kubernetes.io/name":"redis"},"type":"ClusterIP"}}
+    creationTimestamp: "2025-10-31T18:09:17Z"
+    labels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/part-of: autolytiq
+    name: redis
+    namespace: autolytiq-prod
+    resourceVersion: "935476"
+    uid: 7151f785-f6c1-4dd9-a534-7a066fb99e79
+  spec:
+    clusterIP: None
+    clusterIPs:
+    - None
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: redis
+      port: 6379
+      protocol: TCP
+      targetPort: redis
+    selector:
+      app.kubernetes.io/name: redis
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"rust-pricing","app.kubernetes.io/part-of":"autolytiq"},"name":"rust-pricing","namespace":"autolytiq-prod"},"spec":{"ports":[{"name":"grpc","port":50051,"targetPort":"grpc"}],"selector":{"app.kubernetes.io/name":"rust-pricing"},"type":"ClusterIP"}}
+    creationTimestamp: "2025-10-31T01:57:26Z"
+    labels:
+      app.kubernetes.io/name: rust-pricing
+      app.kubernetes.io/part-of: autolytiq
+    name: rust-pricing
+    namespace: autolytiq-prod
+    resourceVersion: "687991"
+    uid: 19a50ebb-d9ca-439b-a784-f232be75be4b
+  spec:
+    clusterIP: 10.108.43.253
+    clusterIPs:
+    - 10.108.43.253
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: grpc
+      port: 50051
+      protocol: TCP
+      targetPort: grpc
+    selector:
+      app.kubernetes.io/name: rust-pricing
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "53"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"backend","app.kubernetes.io/part-of":"autolytiq"},"name":"backend","namespace":"autolytiq-prod"},"spec":{"replicas":2,"revisionHistoryLimit":3,"selector":{"matchLabels":{"app.kubernetes.io/name":"backend"}},"strategy":{"rollingUpdate":{"maxSurge":1,"maxUnavailable":0},"type":"RollingUpdate"},"template":{"metadata":{"labels":{"app.kubernetes.io/name":"backend","app.kubernetes.io/part-of":"autolytiq"}},"spec":{"containers":[{"env":[{"name":"PORT","value":"5000"},{"name":"ML_SERVICE_URL","value":"http://ml-service"},{"name":"PRICE_ENGINE_URL","value":"rust-pricing:50051"}],"envFrom":[{"secretRef":{"name":"app-env"}}],"image":"registry.digitalocean.com/autolytiq/backend:9efd166e1a2a56eeccf2e77dc0e816a5648f51fc","imagePullPolicy":"IfNotPresent","livenessProbe":{"failureThreshold":3,"httpGet":{"path":"/live","port":"http"},"initialDelaySeconds":30,"periodSeconds":15,"timeoutSeconds":5},"name":"backend","ports":[{"containerPort":5000,"name":"http"}],"readinessProbe":{"failureThreshold":3,"httpGet":{"path":"/health","port":"http"},"initialDelaySeconds":15,"periodSeconds":10,"timeoutSeconds":5},"resources":{"limits":{"cpu":"1","memory":"1Gi"},"requests":{"cpu":"250m","memory":"512Mi"}},"startupProbe":{"failureThreshold":30,"httpGet":{"path":"/live","port":"http"},"initialDelaySeconds":5,"periodSeconds":5,"timeoutSeconds":3}}],"imagePullSecrets":[{"name":"do-regcred"}],"securityContext":{"fsGroup":1001,"runAsGroup":1001,"runAsNonRoot":true,"runAsUser":1001}}}}}
+    creationTimestamp: "2025-10-31T01:34:25Z"
+    generation: 53
+    labels:
+      app.kubernetes.io/name: backend
+      app.kubernetes.io/part-of: autolytiq
+    name: backend
+    namespace: autolytiq-prod
+    resourceVersion: "1991985"
+    uid: 68b2e54e-70c9-47b7-a53e-84702e5f7fb9
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 2
+    revisionHistoryLimit: 3
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: backend
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2025-11-01T22:14:04Z"
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: backend
+          app.kubernetes.io/part-of: autolytiq
+      spec:
+        containers:
+        - env:
+          - name: PORT
+            value: "5000"
+          - name: ML_SERVICE_URL
+            value: http://ml-service
+          - name: PRICE_ENGINE_URL
+            value: rust-pricing:50051
+          envFrom:
+          - secretRef:
+              name: app-env
+          image: registry.digitalocean.com/autolytiq/backend:9efd166e1a2a56eeccf2e77dc0e816a5648f51fc
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /live
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: backend
+          ports:
+          - containerPort: 5000
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          startupProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /live
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 1001
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 2
+    conditions:
+    - lastTransitionTime: "2025-10-31T19:20:42Z"
+      lastUpdateTime: "2025-10-31T19:20:42Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2025-10-31T18:26:24Z"
+      lastUpdateTime: "2025-11-03T16:35:50Z"
+      message: ReplicaSet "backend-cc58d4589" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 53
+    readyReplicas: 2
+    replicas: 2
+    updatedReplicas: 2
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "9"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"frontend","app.kubernetes.io/part-of":"autolytiq"},"name":"frontend","namespace":"autolytiq-prod"},"spec":{"replicas":2,"revisionHistoryLimit":3,"selector":{"matchLabels":{"app.kubernetes.io/name":"frontend"}},"strategy":{"rollingUpdate":{"maxSurge":1,"maxUnavailable":0},"type":"RollingUpdate"},"template":{"metadata":{"labels":{"app.kubernetes.io/name":"frontend","app.kubernetes.io/part-of":"autolytiq"}},"spec":{"containers":[{"image":"registry.digitalocean.com/autolytiq/frontend:aa8f0479b8363971ee0bf8f44a80bb723ff9e2ed","imagePullPolicy":"IfNotPresent","livenessProbe":{"httpGet":{"path":"/health","port":"http"},"initialDelaySeconds":10,"periodSeconds":15},"name":"frontend","ports":[{"containerPort":8080,"name":"http"}],"readinessProbe":{"httpGet":{"path":"/health","port":"http"},"initialDelaySeconds":5,"periodSeconds":10},"resources":{"limits":{"cpu":"500m","memory":"512Mi"},"requests":{"cpu":"150m","memory":"256Mi"}}}],"imagePullSecrets":[{"name":"do-regcred"}],"securityContext":{"fsGroup":101,"runAsGroup":101,"runAsNonRoot":true,"runAsUser":101}}}}}
+    creationTimestamp: "2025-10-31T01:59:06Z"
+    generation: 9
+    labels:
+      app.kubernetes.io/name: frontend
+      app.kubernetes.io/part-of: autolytiq
+    name: frontend
+    namespace: autolytiq-prod
+    resourceVersion: "1995133"
+    uid: 8d2e2d52-b26f-45ec-b444-8a5ff693b4ba
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 2
+    revisionHistoryLimit: 3
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: frontend
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: frontend
+          app.kubernetes.io/part-of: autolytiq
+      spec:
+        containers:
+        - image: registry.digitalocean.com/autolytiq/frontend:aa8f0479b8363971ee0bf8f44a80bb723ff9e2ed
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: frontend
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 150m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 101
+          runAsGroup: 101
+          runAsNonRoot: true
+          runAsUser: 101
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 2
+    conditions:
+    - lastTransitionTime: "2025-10-31T01:59:06Z"
+      lastUpdateTime: "2025-11-03T00:27:18Z"
+      message: ReplicaSet "frontend-cc888f759" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2025-11-03T16:47:15Z"
+      lastUpdateTime: "2025-11-03T16:47:15Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    observedGeneration: 9
+    readyReplicas: 2
+    replicas: 2
+    updatedReplicas: 2
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "14"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"ml-service","app.kubernetes.io/part-of":"autolytiq"},"name":"ml-service","namespace":"autolytiq-prod"},"spec":{"replicas":2,"revisionHistoryLimit":3,"selector":{"matchLabels":{"app.kubernetes.io/name":"ml-service"}},"strategy":{"rollingUpdate":{"maxSurge":1,"maxUnavailable":0},"type":"RollingUpdate"},"template":{"metadata":{"labels":{"app.kubernetes.io/name":"ml-service","app.kubernetes.io/part-of":"autolytiq"}},"spec":{"containers":[{"env":[{"name":"UVICORN_PORT","value":"8000"},{"name":"UVICORN_HOST","value":"0.0.0.0"}],"envFrom":[{"secretRef":{"name":"app-env"}}],"image":"registry.digitalocean.com/autolytiq/ml-service:b3ee3f1a21a40224df832f5e6415218692c3b109","imagePullPolicy":"IfNotPresent","livenessProbe":{"failureThreshold":3,"httpGet":{"path":"/health","port":"http"},"initialDelaySeconds":30,"periodSeconds":20,"timeoutSeconds":5},"name":"ml-service","ports":[{"containerPort":8000,"name":"http"}],"readinessProbe":{"failureThreshold":3,"httpGet":{"path":"/health","port":"http"},"initialDelaySeconds":20,"periodSeconds":15,"timeoutSeconds":5},"resources":{"limits":{"cpu":"1.5","memory":"2Gi"},"requests":{"cpu":"500m","memory":"1Gi"}},"startupProbe":{"failureThreshold":40,"httpGet":{"path":"/health","port":"http"},"initialDelaySeconds":5,"periodSeconds":5,"timeoutSeconds":3},"volumeMounts":[{"mountPath":"/ml_backend/config/scoring.yaml","name":"scoring-config-volume","subPath":"scoring.yaml"}]}],"imagePullSecrets":[{"name":"do-regcred"}],"nodeSelector":{"workload-type":"ml-heavy"},"securityContext":{"fsGroup":1001,"runAsGroup":1001,"runAsNonRoot":true,"runAsUser":1001},"tolerations":[{"effect":"NoSchedule","key":"workload-type","operator":"Equal","value":"ml-heavy"}],"volumes":[{"configMap":{"name":"scoring-config"},"name":"scoring-config-volume"}]}}}}
+    creationTimestamp: "2025-10-31T01:57:13Z"
+    generation: 14
+    labels:
+      app.kubernetes.io/name: ml-service
+      app.kubernetes.io/part-of: autolytiq
+    name: ml-service
+    namespace: autolytiq-prod
+    resourceVersion: "1086006"
+    uid: f8949e30-198d-4cc8-9fd1-c5883a553921
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 2
+    revisionHistoryLimit: 3
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: ml-service
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "1761898519"
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: ml-service
+          app.kubernetes.io/part-of: autolytiq
+      spec:
+        containers:
+        - env:
+          - name: UVICORN_PORT
+            value: "8000"
+          - name: UVICORN_HOST
+            value: 0.0.0.0
+          envFrom:
+          - secretRef:
+              name: app-env
+          image: registry.digitalocean.com/autolytiq/ml-service:b3ee3f1a21a40224df832f5e6415218692c3b109
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: ml-service
+          ports:
+          - containerPort: 8000
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          startupProbe:
+            failureThreshold: 40
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /ml_backend/config/scoring.yaml
+            name: scoring-config-volume
+            subPath: scoring.yaml
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        nodeSelector:
+          workload-type: ml-heavy
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 1001
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        terminationGracePeriodSeconds: 30
+        tolerations:
+        - effect: NoSchedule
+          key: workload-type
+          operator: Equal
+          value: ml-heavy
+        volumes:
+        - configMap:
+            defaultMode: 420
+            name: scoring-config
+          name: scoring-config-volume
+  status:
+    availableReplicas: 2
+    conditions:
+    - lastTransitionTime: "2025-10-31T18:21:36Z"
+      lastUpdateTime: "2025-10-31T18:21:36Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2025-10-31T18:13:46Z"
+      lastUpdateTime: "2025-11-01T03:52:31Z"
+      message: ReplicaSet "ml-service-865d855549" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 14
+    readyReplicas: 2
+    replicas: 2
+    updatedReplicas: 2
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "5"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"rust-pricing","app.kubernetes.io/part-of":"autolytiq"},"name":"rust-pricing","namespace":"autolytiq-prod"},"spec":{"replicas":1,"revisionHistoryLimit":3,"selector":{"matchLabels":{"app.kubernetes.io/name":"rust-pricing"}},"strategy":{"rollingUpdate":{"maxSurge":1,"maxUnavailable":0},"type":"RollingUpdate"},"template":{"metadata":{"labels":{"app.kubernetes.io/name":"rust-pricing","app.kubernetes.io/part-of":"autolytiq"}},"spec":{"containers":[{"env":[{"name":"RUST_LOG","value":"info"}],"envFrom":[{"secretRef":{"name":"app-env"}}],"image":"registry.digitalocean.com/autolytiq/rust-pricing:94ff7edb9602f9a0ca3fbed4762559164e8cc68d","imagePullPolicy":"IfNotPresent","livenessProbe":{"failureThreshold":3,"initialDelaySeconds":30,"periodSeconds":15,"tcpSocket":{"port":"grpc"},"timeoutSeconds":5},"name":"rust-pricing","ports":[{"containerPort":50051,"name":"grpc"}],"readinessProbe":{"failureThreshold":3,"initialDelaySeconds":10,"periodSeconds":10,"tcpSocket":{"port":"grpc"},"timeoutSeconds":5},"resources":{"limits":{"cpu":"750m","memory":"1Gi"},"requests":{"cpu":"250m","memory":"512Mi"}},"startupProbe":{"failureThreshold":30,"initialDelaySeconds":5,"periodSeconds":5,"tcpSocket":{"port":"grpc"},"timeoutSeconds":3}}],"imagePullSecrets":[{"name":"do-regcred"}],"securityContext":{"fsGroup":1001,"runAsGroup":1001,"runAsNonRoot":true,"runAsUser":1001}}}}}
+    creationTimestamp: "2025-10-31T01:57:26Z"
+    generation: 5
+    labels:
+      app.kubernetes.io/name: rust-pricing
+      app.kubernetes.io/part-of: autolytiq
+    name: rust-pricing
+    namespace: autolytiq-prod
+    resourceVersion: "949986"
+    uid: 188a278c-2de6-4089-904a-e929612b708c
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 3
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: rust-pricing
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2025-10-31T18:12:23Z"
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: rust-pricing
+          app.kubernetes.io/part-of: autolytiq
+      spec:
+        containers:
+        - env:
+          - name: RUST_LOG
+            value: info
+          envFrom:
+          - secretRef:
+              name: app-env
+          image: registry.digitalocean.com/autolytiq/rust-pricing:94ff7edb9602f9a0ca3fbed4762559164e8cc68d
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            successThreshold: 1
+            tcpSocket:
+              port: grpc
+            timeoutSeconds: 5
+          name: rust-pricing
+          ports:
+          - containerPort: 50051
+            name: grpc
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: grpc
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 750m
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          startupProbe:
+            failureThreshold: 30
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            tcpSocket:
+              port: grpc
+            timeoutSeconds: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 1001
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2025-10-31T19:02:34Z"
+      lastUpdateTime: "2025-10-31T19:02:34Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2025-10-31T19:01:43Z"
+      lastUpdateTime: "2025-10-31T19:02:34Z"
+      message: ReplicaSet "rust-pricing-69d97c96d" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 5
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "2"
+      deployment.kubernetes.io/max-replicas: "3"
+      deployment.kubernetes.io/revision: "50"
+    creationTimestamp: "2025-11-03T12:03:44Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/name: backend
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: 6454dcc66c
+    name: backend-6454dcc66c
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: backend
+      uid: 68b2e54e-70c9-47b7-a53e-84702e5f7fb9
+    resourceVersion: "1925081"
+    uid: 5a9fd652-d48e-4139-a0cd-889595d9ccd2
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: backend
+        pod-template-hash: 6454dcc66c
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2025-11-01T22:14:04Z"
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: backend
+          app.kubernetes.io/part-of: autolytiq
+          pod-template-hash: 6454dcc66c
+      spec:
+        containers:
+        - env:
+          - name: PORT
+            value: "5000"
+          - name: ML_SERVICE_URL
+            value: http://ml-service
+          - name: PRICE_ENGINE_URL
+            value: rust-pricing:50051
+          envFrom:
+          - secretRef:
+              name: app-env
+          image: registry.digitalocean.com/autolytiq/backend:7a39ee98af82f3d67af5e38a7dd37d8e26ff4763
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /live
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: backend
+          ports:
+          - containerPort: 5000
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          startupProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /live
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 1001
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        terminationGracePeriodSeconds: 30
+  status:
+    observedGeneration: 2
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "2"
+      deployment.kubernetes.io/max-replicas: "3"
+      deployment.kubernetes.io/revision: "51"
+      deployment.kubernetes.io/revision-history: "49"
+    creationTimestamp: "2025-11-03T00:29:42Z"
+    generation: 4
+    labels:
+      app.kubernetes.io/name: backend
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: 844d97f47c
+    name: backend-844d97f47c
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: backend
+      uid: 68b2e54e-70c9-47b7-a53e-84702e5f7fb9
+    resourceVersion: "1986719"
+    uid: ec4dc2fa-d177-4f84-80d6-e380aec259db
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: backend
+        pod-template-hash: 844d97f47c
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2025-11-01T22:14:04Z"
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: backend
+          app.kubernetes.io/part-of: autolytiq
+          pod-template-hash: 844d97f47c
+      spec:
+        containers:
+        - env:
+          - name: PORT
+            value: "5000"
+          - name: ML_SERVICE_URL
+            value: http://ml-service
+          - name: PRICE_ENGINE_URL
+            value: rust-pricing:50051
+          envFrom:
+          - secretRef:
+              name: app-env
+          image: registry.digitalocean.com/autolytiq/backend:aa8f0479b8363971ee0bf8f44a80bb723ff9e2ed
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /live
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: backend
+          ports:
+          - containerPort: 5000
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          startupProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /live
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 1001
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        terminationGracePeriodSeconds: 30
+  status:
+    observedGeneration: 4
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "2"
+      deployment.kubernetes.io/max-replicas: "3"
+      deployment.kubernetes.io/revision: "52"
+    creationTimestamp: "2025-11-03T16:12:54Z"
+    generation: 4
+    labels:
+      app.kubernetes.io/name: backend
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: 99cdf6674
+    name: backend-99cdf6674
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: backend
+      uid: 68b2e54e-70c9-47b7-a53e-84702e5f7fb9
+    resourceVersion: "1991984"
+    uid: 20477dd0-5006-4c25-a592-462735482dbd
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: backend
+        pod-template-hash: 99cdf6674
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2025-11-01T22:14:04Z"
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: backend
+          app.kubernetes.io/part-of: autolytiq
+          pod-template-hash: 99cdf6674
+      spec:
+        containers:
+        - env:
+          - name: PORT
+            value: "5000"
+          - name: ML_SERVICE_URL
+            value: http://ml-service
+          - name: PRICE_ENGINE_URL
+            value: rust-pricing:50051
+          envFrom:
+          - secretRef:
+              name: app-env
+          image: registry.digitalocean.com/autolytiq/backend:719c09b8a66ed31a7527e332f8a68e61ee2d3671
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /live
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: backend
+          ports:
+          - containerPort: 5000
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          startupProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /live
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 1001
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        terminationGracePeriodSeconds: 30
+  status:
+    observedGeneration: 4
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "2"
+      deployment.kubernetes.io/max-replicas: "3"
+      deployment.kubernetes.io/revision: "53"
+    creationTimestamp: "2025-11-03T16:29:34Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/name: backend
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: cc58d4589
+    name: backend-cc58d4589
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: backend
+      uid: 68b2e54e-70c9-47b7-a53e-84702e5f7fb9
+    resourceVersion: "1991974"
+    uid: 200c3b2a-183e-4fb4-bac6-b8322296910e
+  spec:
+    replicas: 2
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: backend
+        pod-template-hash: cc58d4589
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2025-11-01T22:14:04Z"
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: backend
+          app.kubernetes.io/part-of: autolytiq
+          pod-template-hash: cc58d4589
+      spec:
+        containers:
+        - env:
+          - name: PORT
+            value: "5000"
+          - name: ML_SERVICE_URL
+            value: http://ml-service
+          - name: PRICE_ENGINE_URL
+            value: rust-pricing:50051
+          envFrom:
+          - secretRef:
+              name: app-env
+          image: registry.digitalocean.com/autolytiq/backend:9efd166e1a2a56eeccf2e77dc0e816a5648f51fc
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /live
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: backend
+          ports:
+          - containerPort: 5000
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          startupProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /live
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 1001
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 2
+    fullyLabeledReplicas: 2
+    observedGeneration: 2
+    readyReplicas: 2
+    replicas: 2
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "2"
+      deployment.kubernetes.io/max-replicas: "3"
+      deployment.kubernetes.io/revision: "7"
+    creationTimestamp: "2025-11-01T14:06:42Z"
+    generation: 4
+    labels:
+      app.kubernetes.io/name: frontend
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: 6dd8d64dfb
+    name: frontend-6dd8d64dfb
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: frontend
+      uid: 8d2e2d52-b26f-45ec-b444-8a5ff693b4ba
+    resourceVersion: "1359126"
+    uid: 71c6eb12-eef0-4536-a6f1-d9d0aa9b843b
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: frontend
+        pod-template-hash: 6dd8d64dfb
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: frontend
+          app.kubernetes.io/part-of: autolytiq
+          pod-template-hash: 6dd8d64dfb
+      spec:
+        containers:
+        - image: registry.digitalocean.com/autolytiq/frontend:cb839606a6d180ef1d5afd92941c84d576fb8c26
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: frontend
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 150m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 101
+          runAsGroup: 101
+          runAsNonRoot: true
+          runAsUser: 101
+        terminationGracePeriodSeconds: 30
+  status:
+    observedGeneration: 4
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "2"
+      deployment.kubernetes.io/max-replicas: "3"
+      deployment.kubernetes.io/revision: "8"
+    creationTimestamp: "2025-11-01T22:00:58Z"
+    generation: 4
+    labels:
+      app.kubernetes.io/name: frontend
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: 857c8cf4c6
+    name: frontend-857c8cf4c6
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: frontend
+      uid: 8d2e2d52-b26f-45ec-b444-8a5ff693b4ba
+    resourceVersion: "1750665"
+    uid: c3caf1b4-1add-485a-997d-32567c940ef3
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: frontend
+        pod-template-hash: 857c8cf4c6
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: frontend
+          app.kubernetes.io/part-of: autolytiq
+          pod-template-hash: 857c8cf4c6
+      spec:
+        containers:
+        - image: registry.digitalocean.com/autolytiq/frontend:95c17d7c580f6bf9f2d5ca9788ee8f0831362cea
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: frontend
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 150m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 101
+          runAsGroup: 101
+          runAsNonRoot: true
+          runAsUser: 101
+        terminationGracePeriodSeconds: 30
+  status:
+    observedGeneration: 4
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "2"
+      deployment.kubernetes.io/max-replicas: "3"
+      deployment.kubernetes.io/revision: "9"
+    creationTimestamp: "2025-11-03T00:26:47Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/name: frontend
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: cc888f759
+    name: frontend-cc888f759
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: frontend
+      uid: 8d2e2d52-b26f-45ec-b444-8a5ff693b4ba
+    resourceVersion: "1995131"
+    uid: 04319f67-4153-471e-b24a-86a0b271c96f
+  spec:
+    replicas: 2
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: frontend
+        pod-template-hash: cc888f759
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: frontend
+          app.kubernetes.io/part-of: autolytiq
+          pod-template-hash: cc888f759
+      spec:
+        containers:
+        - image: registry.digitalocean.com/autolytiq/frontend:aa8f0479b8363971ee0bf8f44a80bb723ff9e2ed
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: frontend
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 150m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 101
+          runAsGroup: 101
+          runAsNonRoot: true
+          runAsUser: 101
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 2
+    fullyLabeledReplicas: 2
+    observedGeneration: 2
+    readyReplicas: 2
+    replicas: 2
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "2"
+      deployment.kubernetes.io/max-replicas: "3"
+      deployment.kubernetes.io/revision: "6"
+    creationTimestamp: "2025-11-01T13:37:45Z"
+    generation: 4
+    labels:
+      app.kubernetes.io/name: frontend
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: f684fcd6d
+    name: frontend-f684fcd6d
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: frontend
+      uid: 8d2e2d52-b26f-45ec-b444-8a5ff693b4ba
+    resourceVersion: "1241600"
+    uid: 74034a5e-5910-4c68-9311-5b7c29f63bb2
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: frontend
+        pod-template-hash: f684fcd6d
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: frontend
+          app.kubernetes.io/part-of: autolytiq
+          pod-template-hash: f684fcd6d
+      spec:
+        containers:
+        - image: registry.digitalocean.com/autolytiq/frontend:eb158d663685e936796bddb16a2dac02de8c04bf
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: frontend
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 150m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 101
+          runAsGroup: 101
+          runAsNonRoot: true
+          runAsUser: 101
+        terminationGracePeriodSeconds: 30
+  status:
+    observedGeneration: 4
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "2"
+      deployment.kubernetes.io/max-replicas: "3"
+      deployment.kubernetes.io/revision: "12"
+    creationTimestamp: "2025-10-31T14:35:14Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/name: ml-service
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: 548fd5dc98
+    name: ml-service-548fd5dc98
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: ml-service
+      uid: f8949e30-198d-4cc8-9fd1-c5883a553921
+    resourceVersion: "939096"
+    uid: c1b80394-c7b2-4cf2-9496-547bec6560c8
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: ml-service
+        pod-template-hash: 548fd5dc98
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "1761898519"
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: ml-service
+          app.kubernetes.io/part-of: autolytiq
+          pod-template-hash: 548fd5dc98
+      spec:
+        containers:
+        - env:
+          - name: UVICORN_PORT
+            value: "8000"
+          - name: UVICORN_HOST
+            value: 0.0.0.0
+          envFrom:
+          - secretRef:
+              name: app-env
+          image: registry.digitalocean.com/autolytiq/ml-service:ab492bdc52ab17b1ce483a7e9017ad898277c2b0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: ml-service
+          ports:
+          - containerPort: 8000
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          startupProbe:
+            failureThreshold: 40
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /ml_backend/config/scoring.yaml
+            name: scoring-config-volume
+            subPath: scoring.yaml
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        nodeSelector:
+          workload-type: ml-heavy
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 1001
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        terminationGracePeriodSeconds: 30
+        tolerations:
+        - effect: NoSchedule
+          key: workload-type
+          operator: Equal
+          value: ml-heavy
+        volumes:
+        - configMap:
+            defaultMode: 420
+            name: scoring-config
+          name: scoring-config-volume
+  status:
+    observedGeneration: 3
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "2"
+      deployment.kubernetes.io/max-replicas: "3"
+      deployment.kubernetes.io/revision: "11"
+    creationTimestamp: "2025-10-31T09:43:21Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/name: ml-service
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: 6db5494bb4
+    name: ml-service-6db5494bb4
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: ml-service
+      uid: f8949e30-198d-4cc8-9fd1-c5883a553921
+    resourceVersion: "938937"
+    uid: c9de2d84-3c6f-4f8d-9acb-9b3242765e55
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: ml-service
+        pod-template-hash: 6db5494bb4
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "1761898519"
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: ml-service
+          app.kubernetes.io/part-of: autolytiq
+          pod-template-hash: 6db5494bb4
+      spec:
+        containers:
+        - env:
+          - name: UVICORN_PORT
+            value: "8000"
+          - name: UVICORN_HOST
+            value: 0.0.0.0
+          envFrom:
+          - secretRef:
+              name: app-env
+          image: registry.digitalocean.com/autolytiq/ml-service:55f1edf4dcc6178ddcfc73f6d3aaa0cf021ffba0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: ml-service
+          ports:
+          - containerPort: 8000
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          startupProbe:
+            failureThreshold: 40
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        nodeSelector:
+          workload-type: ml-heavy
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 1001
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        terminationGracePeriodSeconds: 30
+        tolerations:
+        - effect: NoSchedule
+          key: workload-type
+          operator: Equal
+          value: ml-heavy
+  status:
+    observedGeneration: 3
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "2"
+      deployment.kubernetes.io/max-replicas: "3"
+      deployment.kubernetes.io/revision: "13"
+    creationTimestamp: "2025-10-31T18:13:46Z"
+    generation: 5
+    labels:
+      app.kubernetes.io/name: ml-service
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: 7d88f494
+    name: ml-service-7d88f494
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: ml-service
+      uid: f8949e30-198d-4cc8-9fd1-c5883a553921
+    resourceVersion: "1086005"
+    uid: 42c31f17-2d87-4cea-982b-26dce4306cf8
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: ml-service
+        pod-template-hash: 7d88f494
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "1761898519"
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: ml-service
+          app.kubernetes.io/part-of: autolytiq
+          pod-template-hash: 7d88f494
+      spec:
+        containers:
+        - env:
+          - name: UVICORN_PORT
+            value: "8000"
+          - name: UVICORN_HOST
+            value: 0.0.0.0
+          envFrom:
+          - secretRef:
+              name: app-env
+          image: registry.digitalocean.com/autolytiq/ml-service:061f6d76233b19450fc0fbbab71cdfa9f5a0f488
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: ml-service
+          ports:
+          - containerPort: 8000
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          startupProbe:
+            failureThreshold: 40
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /ml_backend/config/scoring.yaml
+            name: scoring-config-volume
+            subPath: scoring.yaml
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        nodeSelector:
+          workload-type: ml-heavy
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 1001
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        terminationGracePeriodSeconds: 30
+        tolerations:
+        - effect: NoSchedule
+          key: workload-type
+          operator: Equal
+          value: ml-heavy
+        volumes:
+        - configMap:
+            defaultMode: 420
+            name: scoring-config
+          name: scoring-config-volume
+  status:
+    observedGeneration: 5
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "2"
+      deployment.kubernetes.io/max-replicas: "3"
+      deployment.kubernetes.io/revision: "14"
+    creationTimestamp: "2025-11-01T03:51:39Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/name: ml-service
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: 865d855549
+    name: ml-service-865d855549
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: ml-service
+      uid: f8949e30-198d-4cc8-9fd1-c5883a553921
+    resourceVersion: "1085995"
+    uid: dd21d7d8-38d1-4446-90d5-576e9bd0149e
+  spec:
+    replicas: 2
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: ml-service
+        pod-template-hash: 865d855549
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "1761898519"
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: ml-service
+          app.kubernetes.io/part-of: autolytiq
+          pod-template-hash: 865d855549
+      spec:
+        containers:
+        - env:
+          - name: UVICORN_PORT
+            value: "8000"
+          - name: UVICORN_HOST
+            value: 0.0.0.0
+          envFrom:
+          - secretRef:
+              name: app-env
+          image: registry.digitalocean.com/autolytiq/ml-service:b3ee3f1a21a40224df832f5e6415218692c3b109
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: ml-service
+          ports:
+          - containerPort: 8000
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          startupProbe:
+            failureThreshold: 40
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /ml_backend/config/scoring.yaml
+            name: scoring-config-volume
+            subPath: scoring.yaml
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        nodeSelector:
+          workload-type: ml-heavy
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 1001
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        terminationGracePeriodSeconds: 30
+        tolerations:
+        - effect: NoSchedule
+          key: workload-type
+          operator: Equal
+          value: ml-heavy
+        volumes:
+        - configMap:
+            defaultMode: 420
+            name: scoring-config
+          name: scoring-config-volume
+  status:
+    availableReplicas: 2
+    fullyLabeledReplicas: 2
+    observedGeneration: 2
+    readyReplicas: 2
+    replicas: 2
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "2"
+      deployment.kubernetes.io/revision: "4"
+    creationTimestamp: "2025-10-31T18:12:23Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/name: rust-pricing
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: 566fbbbf7b
+    name: rust-pricing-566fbbbf7b
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: rust-pricing
+      uid: 188a278c-2de6-4089-904a-e929612b708c
+    resourceVersion: "949985"
+    uid: 2ebe0f24-8f14-43bb-bb4c-d3c81c813726
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: rust-pricing
+        pod-template-hash: 566fbbbf7b
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2025-10-31T18:12:23Z"
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: rust-pricing
+          app.kubernetes.io/part-of: autolytiq
+          pod-template-hash: 566fbbbf7b
+      spec:
+        containers:
+        - env:
+          - name: RUST_LOG
+            value: info
+          envFrom:
+          - secretRef:
+              name: app-env
+          image: registry.digitalocean.com/autolytiq/rust-pricing:55f1edf4dcc6178ddcfc73f6d3aaa0cf021ffba0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+              - /usr/local/bin/grpc_health_probe
+              - -addr=:50051
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: rust-pricing
+          ports:
+          - containerPort: 50051
+            name: grpc
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - /usr/local/bin/grpc_health_probe
+              - -addr=:50051
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 750m
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          startupProbe:
+            exec:
+              command:
+              - /usr/local/bin/grpc_health_probe
+              - -addr=:50051
+            failureThreshold: 30
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 1001
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        terminationGracePeriodSeconds: 30
+  status:
+    observedGeneration: 3
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "2"
+      deployment.kubernetes.io/revision: "2"
+    creationTimestamp: "2025-10-31T02:56:37Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/name: rust-pricing
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: 5db7794d6d
+    name: rust-pricing-5db7794d6d
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: rust-pricing
+      uid: 188a278c-2de6-4089-904a-e929612b708c
+    resourceVersion: "936324"
+    uid: b8a28f78-ef55-4b6a-9f67-3064856fe9db
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: rust-pricing
+        pod-template-hash: 5db7794d6d
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: rust-pricing
+          app.kubernetes.io/part-of: autolytiq
+          pod-template-hash: 5db7794d6d
+      spec:
+        containers:
+        - env:
+          - name: RUST_LOG
+            value: info
+          envFrom:
+          - secretRef:
+              name: app-env
+          image: registry.digitalocean.com/autolytiq/rust-pricing:76bfecb08f62a4e5093147204841501067ca548d
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+              - /usr/local/bin/grpc_health_probe
+              - -addr=:50051
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: rust-pricing
+          ports:
+          - containerPort: 50051
+            name: grpc
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - /usr/local/bin/grpc_health_probe
+              - -addr=:50051
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 750m
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          startupProbe:
+            exec:
+              command:
+              - /usr/local/bin/grpc_health_probe
+              - -addr=:50051
+            failureThreshold: 30
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    observedGeneration: 2
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "2"
+      deployment.kubernetes.io/revision: "3"
+    creationTimestamp: "2025-10-31T09:43:23Z"
+    generation: 3
+    labels:
+      app.kubernetes.io/name: rust-pricing
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: 68754545cd
+    name: rust-pricing-68754545cd
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: rust-pricing
+      uid: 188a278c-2de6-4089-904a-e929612b708c
+    resourceVersion: "949665"
+    uid: e0cd029b-a080-4d96-a210-bda2f8a0f01b
+  spec:
+    replicas: 0
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: rust-pricing
+        pod-template-hash: 68754545cd
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: rust-pricing
+          app.kubernetes.io/part-of: autolytiq
+          pod-template-hash: 68754545cd
+      spec:
+        containers:
+        - env:
+          - name: RUST_LOG
+            value: info
+          envFrom:
+          - secretRef:
+              name: app-env
+          image: registry.digitalocean.com/autolytiq/rust-pricing:55f1edf4dcc6178ddcfc73f6d3aaa0cf021ffba0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+              - /usr/local/bin/grpc_health_probe
+              - -addr=:50051
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: rust-pricing
+          ports:
+          - containerPort: 50051
+            name: grpc
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - /usr/local/bin/grpc_health_probe
+              - -addr=:50051
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 750m
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          startupProbe:
+            exec:
+              command:
+              - /usr/local/bin/grpc_health_probe
+              - -addr=:50051
+            failureThreshold: 30
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 1001
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        terminationGracePeriodSeconds: 30
+  status:
+    observedGeneration: 3
+    replicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "2"
+      deployment.kubernetes.io/revision: "5"
+    creationTimestamp: "2025-10-31T19:01:43Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/name: rust-pricing
+      app.kubernetes.io/part-of: autolytiq
+      pod-template-hash: 69d97c96d
+    name: rust-pricing-69d97c96d
+    namespace: autolytiq-prod
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: rust-pricing
+      uid: 188a278c-2de6-4089-904a-e929612b708c
+    resourceVersion: "949974"
+    uid: 6ef76313-7b44-48a7-9741-5815581f5ae9
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: rust-pricing
+        pod-template-hash: 69d97c96d
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2025-10-31T18:12:23Z"
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: rust-pricing
+          app.kubernetes.io/part-of: autolytiq
+          pod-template-hash: 69d97c96d
+      spec:
+        containers:
+        - env:
+          - name: RUST_LOG
+            value: info
+          envFrom:
+          - secretRef:
+              name: app-env
+          image: registry.digitalocean.com/autolytiq/rust-pricing:94ff7edb9602f9a0ca3fbed4762559164e8cc68d
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            successThreshold: 1
+            tcpSocket:
+              port: grpc
+            timeoutSeconds: 5
+          name: rust-pricing
+          ports:
+          - containerPort: 50051
+            name: grpc
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: grpc
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 750m
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          startupProbe:
+            failureThreshold: 30
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            tcpSocket:
+              port: grpc
+            timeoutSeconds: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: do-regcred
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 1001
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    fullyLabeledReplicas: 1
+    observedGeneration: 2
+    readyReplicas: 1
+    replicas: 1
+- apiVersion: apps/v1
+  kind: StatefulSet
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"StatefulSet","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"redis","app.kubernetes.io/part-of":"autolytiq"},"name":"redis","namespace":"autolytiq-prod"},"spec":{"replicas":1,"selector":{"matchLabels":{"app.kubernetes.io/name":"redis"}},"serviceName":"redis","template":{"metadata":{"labels":{"app.kubernetes.io/name":"redis","app.kubernetes.io/part-of":"autolytiq"}},"spec":{"containers":[{"image":"redis:7-alpine","livenessProbe":{"initialDelaySeconds":30,"periodSeconds":10,"tcpSocket":{"port":"redis"}},"name":"redis","ports":[{"containerPort":6379,"name":"redis"}],"readinessProbe":{"exec":{"command":["redis-cli","ping"]},"initialDelaySeconds":5,"periodSeconds":5},"resources":{"limits":{"cpu":"500m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"128Mi"}},"volumeMounts":[{"mountPath":"/data","name":"redis-data"}]}]}},"volumeClaimTemplates":[{"metadata":{"name":"redis-data"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}}}}]}}
+    creationTimestamp: "2025-10-31T18:09:17Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/part-of: autolytiq
+    name: redis
+    namespace: autolytiq-prod
+    resourceVersion: "1995461"
+    uid: d6064470-0e23-4e34-9a36-0dfbb6ae283e
+  spec:
+    persistentVolumeClaimRetentionPolicy:
+      whenDeleted: Retain
+      whenScaled: Retain
+    podManagementPolicy: OrderedReady
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: redis
+    serviceName: redis
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app.kubernetes.io/name: redis
+          app.kubernetes.io/part-of: autolytiq
+      spec:
+        containers:
+        - image: redis:7-alpine
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: redis
+            timeoutSeconds: 1
+          name: redis
+          ports:
+          - containerPort: 6379
+            name: redis
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - redis-cli
+              - ping
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /data
+            name: redis-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    updateStrategy:
+      rollingUpdate:
+        partition: 0
+      type: RollingUpdate
+    volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        creationTimestamp: null
+        name: redis-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+        volumeMode: Filesystem
+      status:
+        phase: Pending
+  status:
+    availableReplicas: 1
+    collisionCount: 0
+    currentReplicas: 1
+    currentRevision: redis-b5bff488
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+    updateRevision: redis-b5bff488
+    updatedReplicas: 1
+- apiVersion: v1
+  data:
+    Content-Security-Policy: 'default-src ''self''; script-src ''self'' ''unsafe-inline''
+      ''unsafe-eval'' https://cdn.jsdelivr.net https://unpkg.com; style-src ''self''
+      ''unsafe-inline'' https://fonts.googleapis.com; font-src ''self'' https://fonts.gstatic.com;
+      img-src ''self'' data: https:; connect-src ''self'' https://api.autolytiq.com
+      wss://app.autolytiq.com; frame-ancestors ''self'';'
+    Permissions-Policy: geolocation=(), microphone=(), camera=()
+    Referrer-Policy: strict-origin-when-cross-origin
+    X-Content-Type-Options: nosniff
+    X-Frame-Options: SAMEORIGIN
+    X-XSS-Protection: 1; mode=block
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"Content-Security-Policy":"default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.autolytiq.com wss://app.autolytiq.com; frame-ancestors 'self';","Permissions-Policy":"geolocation=(), microphone=(), camera=()","Referrer-Policy":"strict-origin-when-cross-origin","X-Content-Type-Options":"nosniff","X-Frame-Options":"SAMEORIGIN","X-XSS-Protection":"1; mode=block"},"kind":"ConfigMap","metadata":{"annotations":{},"name":"custom-headers","namespace":"autolytiq-prod"}}
+    creationTimestamp: "2025-10-31T19:10:47Z"
+    name: custom-headers
+    namespace: autolytiq-prod
+    resourceVersion: "952130"
+    uid: 06bedb1c-7dbf-489a-82e9-47beecb71026
+- apiVersion: v1
+  data:
+    ca.crt: |
+      -----BEGIN CERTIFICATE-----
+      MIIDJzCCAg+gAwIBAgICBnUwDQYJKoZIhvcNAQELBQAwMzEVMBMGA1UEChMMRGln
+      aXRhbE9jZWFuMRowGAYDVQQDExFrOHNhYXMgQ2x1c3RlciBDQTAeFw0yNTEwMjgy
+      MjExMDlaFw00NTEwMjgyMjExMDlaMDMxFTATBgNVBAoTDERpZ2l0YWxPY2VhbjEa
+      MBgGA1UEAxMRazhzYWFzIENsdXN0ZXIgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IB
+      DwAwggEKAoIBAQC1F6WQwu/o0+edGi5QJ/4MrKYIjW4kS+VMwBWX2E5Kz4v7yqts
+      ceHmTa90FYQk1M8PMCJWA32yN7Z/X6zWPz9Dzf59q8zUKzjyfytVsf726ko8i944
+      jakX+rGL/x+pIiPl4hVIEBT5eoN9wNyqlOklMeO5lqNy2q+ii4TRKkP1+o+J0EOF
+      uUpIW8uaMFLRllP93cJfXDq1ALimHRcFb7nUGJq9LDMM+6ZjD0+1p3a6tYSTG5Oj
+      U2s3DHKkbw/9XDdMWnFSsz2Qcc4BH8M+Xf5roZ7zhGebkoREdreSnUcQlb1zFDkO
+      Yczu5FfQAGHy/BfNrvxPTA3iSYmvVw8sagIJAgMBAAGjRTBDMA4GA1UdDwEB/wQE
+      AwIBhjASBgNVHRMBAf8ECDAGAQH/AgEAMB0GA1UdDgQWBBQTIHYlhbWOdM3uySZk
+      o+FeY8RUcTANBgkqhkiG9w0BAQsFAAOCAQEAjhGsHw7QzuwefTiUnHVzwixZu3/I
+      DWWAI3F2quW2G8Fhu/QOyhBQQLqNpIsRnLuXpzZUwLxcYPdjPSakiPM0QzmGA8zF
+      N+Q6tT7Cbpq6MC85+SjX34LVgZvWZQAKY7wc/jouhsR9JU7s+bKOnmPJ3/jTOAKH
+      umRg46NsYY1phlM5Gfz8zBaiEak3ASojrZmKvpsq8VuyKn7dxPsxTi3En84bEQz4
+      UolqcPXGESqyiJkyqOeJr/KgV/vVhjbXe//Fse6z4xhrNWSTlFRfm0LWD2A2d0H/
+      s6vT/zS4E36NTCLaGqZDf/RyI/2+Zc7qSHQWjZh+Er2QfqcEg2RCqcIjeQ==
+      -----END CERTIFICATE-----
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubernetes.io/description: Contains a CA bundle that can be used to verify the
+        kube-apiserver when using internal endpoints such as the internal service
+        IP or kubernetes.default.svc. No other usage is guaranteed across distributions
+        of Kubernetes clusters.
+    creationTimestamp: "2025-10-31T01:34:22Z"
+    name: kube-root-ca.crt
+    namespace: autolytiq-prod
+    resourceVersion: "682645"
+    uid: b62aea2a-3ed6-4616-94f6-713e4a2f6836
+- apiVersion: v1
+  data:
+    limit-rate: 100k
+    limit-rate-after: 500k
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"limit-rate":"100k","limit-rate-after":"500k"},"kind":"ConfigMap","metadata":{"annotations":{},"name":"rate-limit-config","namespace":"autolytiq-prod"}}
+    creationTimestamp: "2025-10-31T19:10:47Z"
+    name: rate-limit-config
+    namespace: autolytiq-prod
+    resourceVersion: "952131"
+    uid: e2648701-da56-4f56-86d2-5d058e9418e3
+- apiVersion: v1
+  data:
+    scoring.yaml: |
+      objectives:
+        gross_weight: 0.35
+        close_weight: 0.25
+        approval_weight: 0.25
+        payment_weight: 0.15
+      normalization:
+        gross:
+          baseline_avg: 1800
+          baseline_std: 450
+          clip_min: 300
+          clip_max: 6000
+        close_probability:
+          clip_min: 35
+          clip_max: 95
+        approval_probability:
+          clip_min: 40
+          clip_max: 98
+        payment:
+          target_multiplier: 1.0
+          tolerance: 0.12
+          penalty_weight: 0.2
+      constraints:
+        min_gross: 1200
+        max_payment_delta: 0.18
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"scoring.yaml":"objectives:\n  gross_weight: 0.35\n  close_weight: 0.25\n  approval_weight: 0.25\n  payment_weight: 0.15\nnormalization:\n  gross:\n    baseline_avg: 1800\n    baseline_std: 450\n    clip_min: 300\n    clip_max: 6000\n  close_probability:\n    clip_min: 35\n    clip_max: 95\n  approval_probability:\n    clip_min: 40\n    clip_max: 98\n  payment:\n    target_multiplier: 1.0\n    tolerance: 0.12\n    penalty_weight: 0.2\nconstraints:\n  min_gross: 1200\n  max_payment_delta: 0.18\n"},"kind":"ConfigMap","metadata":{"annotations":{},"creationTimestamp":null,"name":"scoring-config","namespace":"autolytiq-prod"}}
+    creationTimestamp: "2025-10-31T18:20:39Z"
+    name: scoring-config
+    namespace: autolytiq-prod
+    resourceVersion: "938696"
+    uid: 0c81fc60-c539-4eea-8431-12960bdb2a0a
+- apiVersion: v1
+  data:
+    DATABASE_URL: cG9zdGdyZXNxbDovL2RiLWF1dG9seXRpcTpBVk5TX3I2SFF4TFhqTFNmaVVXaGtoLXlAcGctYXV0b2x5dGlxLWRvLXVzZXItMTcwNDU4MzktMC5tLmRiLm9uZGlnaXRhbG9jZWFuLmNvbToyNTA2MC9kYi1hdXRvbHl0aXE/c3NsbW9kZT1yZXF1aXJl
+    DIRECT_URL: cG9zdGdyZXNxbDovL2RiLWF1dG9seXRpcTpBVk5TX3I2SFF4TFhqTFNmaVVXaGtoLXlAcGctYXV0b2x5dGlxLWRvLXVzZXItMTcwNDU4MzktMC5tLmRiLm9uZGlnaXRhbG9jZWFuLmNvbToyNTA2MC9kYi1hdXRvbHl0aXE/c3NsbW9kZT1yZXF1aXJl
+    JWT_SECRET: MjA4OGFlMzk3Y2MxNzYyMGY2M2RhYzZiYTQ3ZDQxYmJlMjM2YWEyODcyY2MyNDdhYmVjMDhlNzQ4OTVkNzU1Ng==
+    NODE_ENV: cHJvZHVjdGlvbg==
+    PRICE_ENGINE__DATABASE__URL: cG9zdGdyZXNxbDovL2RiLWF1dG9seXRpcTpBVk5TX3I2SFF4TFhqTFNmaVVXaGtoLXlAcGctYXV0b2x5dGlxLWRvLXVzZXItMTcwNDU4MzktMC5tLmRiLm9uZGlnaXRhbG9jZWFuLmNvbToyNTA2MC9kYi1hdXRvbHl0aXE/c3NsbW9kZT1yZXF1aXJl
+    PRICE_ENGINE__REDIS__URL: cmVkaXM6Ly9yZWRpcy5hdXRvbHl0aXEtcHJvZDo2Mzc5
+    REDIS_URL: cmVkaXM6Ly9yZWRpcy5hdXRvbHl0aXEtcHJvZDo2Mzc5
+  kind: Secret
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"DATABASE_URL":"cG9zdGdyZXNxbDovL2RiLWF1dG9seXRpcTpBVk5TX3I2SFF4TFhqTFNmaVVXaGtoLXlAcGctYXV0b2x5dGlxLWRvLXVzZXItMTcwNDU4MzktMC5tLmRiLm9uZGlnaXRhbG9jZWFuLmNvbToyNTA2MC9kYi1hdXRvbHl0aXE/c3NsbW9kZT1yZXF1aXJl","JWT_SECRET":"MjA4OGFlMzk3Y2MxNzYyMGY2M2RhYzZiYTQ3ZDQxYmJlMjM2YWEyODcyY2MyNDdhYmVjMDhlNzQ4OTVkNzU1Ng==","NODE_ENV":"cHJvZHVjdGlvbg=="},"kind":"Secret","metadata":{"annotations":{},"name":"app-env","namespace":"autolytiq-prod"}}
+    creationTimestamp: "2025-10-31T01:34:23Z"
+    name: app-env
+    namespace: autolytiq-prod
+    resourceVersion: "1361260"
+    uid: 850c505f-eb05-4ed5-8930-e29e3adda763
+  type: Opaque
+- apiVersion: v1
+  data:
+    .dockerconfigjson: eyJhdXRocyI6eyJyZWdpc3RyeS5kaWdpdGFsb2NlYW4uY29tIjp7ImF1dGgiOiJaRzl2WDNZeFh6a3lOalE0WTJFMk56UmxOMlV3WVdJMFlUWXpNekF6TmpjMU5EWmxNVEV5T1dReE9XVXlNalV5WkRVME1Ea3pPR00xTURFNVpEZGhNelZtWXpKak5XVTZaRzl2WDNZeFh6a3lOalE0WTJFMk56UmxOMlV3WVdJMFlUWXpNekF6TmpjMU5EWmxNVEV5T1dReE9XVXlNalV5WkRVME1Ea3pPR00xTURFNVpEZGhNelZtWXpKak5XVT0ifX19
+  kind: Secret
+  metadata:
+    creationTimestamp: "2025-10-31T08:22:58Z"
+    labels:
+      digitalocean.com/copy-identifier: autolytiq
+    name: autolytiq
+    namespace: autolytiq-prod
+    resourceVersion: "786199"
+    uid: 69624e7a-b7cb-464d-abdd-3a043ebd839a
+  type: kubernetes.io/dockerconfigjson
+- apiVersion: v1
+  data:
+    tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUZVakNDQkRxZ0F3SUJBZ0lTQnJsSkVTcmVrOWwyUDBod3lFNk9Ka3BmTUEwR0NTcUdTSWIzRFFFQkN3VUEKTURNeEN6QUpCZ05WQkFZVEFsVlRNUll3RkFZRFZRUUtFdzFNWlhRbmN5QkZibU55ZVhCME1Rd3dDZ1lEVlFRRApFd05TTVRNd0hoY05NalV4TURNeE1qSXpNREEwV2hjTk1qWXdNVEk1TWpJek1EQXpXakFZTVJZd0ZBWURWUVFECkV3MWhkWFJ2YkhsMGFYRXVZMjl0TUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUEKdFEvR0ZPMEhRMks1RlAydkZIT0F1NkpPZmNFdm1JcHhHbDl6ekNHVysxclZyNlAxODdmVE9XdnROeEVnRWVoUwpLRThpWFRRaTBUUyt4NDV2RXZuRGxvaVo5NkZ2cXpVVm5yRnVkbVRpR0FpY0VmUndibCtQa01nOFlpUThFSDdxCjNoQWlGSkRiQWd2bEEyVmJmcC9FOU9rYTgyWVFNTUYxUGZHK010blMrWTQ4TzgrQmhzMUx0SFBWdmtGT3A3bkcKek5NL1pHeXl0OHlNTklkR0o3TTFOZVNNZkdUM01ZaHZ0ZVFkZGJKSW0ram1ya2tJQnpnMkExa1NsVWVoZHRpaQpyMThsemdGQjFyVVNsbzlRbWsxMmljOVpFTDJQandsbno2bmJMODU4VStBbFVJYVlBcWx1RUZ5b2hUT3pySEtvCkpKamlZTlZXYVJ3ejI2ZE5CbHhLZ3dJREFRQUJvNElDZVRDQ0FuVXdEZ1lEVlIwUEFRSC9CQVFEQWdXZ01CMEcKQTFVZEpRUVdNQlFHQ0NzR0FRVUZCd01CQmdnckJnRUZCUWNEQWpBTUJnTlZIUk1CQWY4RUFqQUFNQjBHQTFVZApEZ1FXQkJTQlMrMnRJL1ZKKzBKbHhRZmJTNmd1UFdJNWlEQWZCZ05WSFNNRUdEQVdnQlRucTU4UExET2dVOU5lClQzaklzb1FPTzlhU016QXpCZ2dyQmdFRkJRY0JBUVFuTUNVd0l3WUlLd1lCQlFVSE1BS0dGMmgwZEhBNkx5OXkKTVRNdWFTNXNaVzVqY2k1dmNtY3ZNSFlHQTFVZEVRUnZNRzJDRVdGd2FTNWhkWFJ2YkhsMGFYRXVZMjl0Z2hGaApjSEF1WVhWMGIyeDVkR2x4TG1OdmJZSU5ZWFYwYjJ4NWRHbHhMbU52YllJUlpHMXpMbUYxZEc5c2VYUnBjUzVqCmIyMkNFRzFzTG1GMWRHOXNlWFJwY1M1amIyMkNFWGQzZHk1aGRYUnZiSGwwYVhFdVkyOXRNQk1HQTFVZElBUU0KTUFvd0NBWUdaNEVNQVFJQk1DNEdBMVVkSHdRbk1DVXdJNkFob0IrR0hXaDBkSEE2THk5eU1UTXVZeTVzWlc1agpjaTV2Y21jdk9UWXVZM0pzTUlJQkFnWUtLd1lCQkFIV2VRSUVBZ1NCOHdTQjhBRHVBSFVBeXpqM0ZZbDhoS0ZFClgxdkIzZnZKYnZLYVdjMUhDbWtGaGJETEZNTVVXT2NBQUFHYVBKbjFOd0FBQkFNQVJqQkVBaUFONlNjbFc0NnMKaFhleHlOaHo2Rnl2bWoyNmh4dnVzbS81aFA5SDF2ZTAxZ0lnQzdZVHhtQlVXa3huTXNkOFpKc2x4WFRwMkE1QQozUWZkOG5BcloyaFdNL1lBZFFDV2wyUy9WVmlYcmZkRGgyZzNDRUozNmZBNjFmYWs4elp1UnFRL0Q4cXB4Z0FBCkFabzhtZlZpQUFBRUF3QkdNRVFDSUVVZnZIRnZic2JUazB2L09JTGZ6cFEzelJNQVF1bEJqSUxmRldVMHI2Z0gKQWlCS2VQWE1QZTBlVHZ0NnlYKzVwUWRVNEUzbjNFWDByaTJKclVZa05BaXJKVEFOQmdrcWhraUc5dzBCQVFzRgpBQU9DQVFFQUpuaHE3NEV2YjBnWVVvNXBBQ3Q3ZzFrVDNrK1gyT012OGZaU2g3TUFTQmxNVU9MUEFFOG1YQ3hhCkVRNWcrNjZoWURidVh1a1YzbXlkQVQ3bnlUMFo2ank2eDRWelZITUFrYWlGdFZEY0NOelM5dXhPQTVxV0s2WWkKUmZLY2x4cW1aenFRSmI3NmZzVHBhd1dMclFOTVFsUXNzMTh6WXh0MEdESkI3d2J1c01XVnVRa0xlUDBoYVVvYgo0R2kyR2s5UVhDV3hRY0pwYmNVeU1JRXNQVkFmbHhobzUvc2lKQmwxSTdDNFFwTWY0Wm9yNXpraGQ4MVU0eXhICjNUbHl2ZkFDVUQwbG5jYjZaazlNVVE2RE01VzNEVDhhMGM4TUxqS1FXbjlSaFoyV3ovTTUxZEx4RTVMZklNbFMKRDNJaStvVUhaemt1RGpyMGxzWFhTaDJBQmNXNU9BPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQotLS0tLUJFR0lOIENFUlRJRklDQVRFLS0tLS0KTUlJRkJUQ0NBdTJnQXdJQkFnSVFXZ0R5RXRqVXRJRHpra0ZYNmltREJUQU5CZ2txaGtpRzl3MEJBUXNGQURCUApNUXN3Q1FZRFZRUUdFd0pWVXpFcE1DY0dBMVVFQ2hNZ1NXNTBaWEp1WlhRZ1UyVmpkWEpwZEhrZ1VtVnpaV0Z5ClkyZ2dSM0p2ZFhBeEZUQVRCZ05WQkFNVERFbFRVa2NnVW05dmRDQllNVEFlRncweU5EQXpNVE13TURBd01EQmEKRncweU56QXpNVEl5TXpVNU5UbGFNRE14Q3pBSkJnTlZCQVlUQWxWVE1SWXdGQVlEVlFRS0V3MU1aWFFuY3lCRgpibU55ZVhCME1Rd3dDZ1lEVlFRREV3TlNNVE13Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLCkFvSUJBUUNsWjNDTjBGYUJaQlVYWWMyNUJ0U3RHWkNNSmxBM21CWmprbFRiMmN5RUJaUHMwK3dJRzZCZ1VVTkkKZlN2SFNKYWV0QzNhbmNnbk8xZWhuNnZ3MWc3VURqREtiNXV4MGRha25USStXRTQxYjBWWWFIRVgvRDdZWFlLZwpMN0pSYkxBYVhiaFp6alZseUl1aHJ4QTMvK09jWGNKSkZ6VC9qQ3VMamZDOGNTeVREQjBGeExySHphckpYbnpSCnlRSDNuQVAyL0FwZDlOcDc1dHQyUW5EcjlFMGkyZ0IzYjliSlh4ZjkyblV1cFZjTTl1cGN0dUJ6cFdqUG9YVGkKZFlKK0VKL0I5YUxyQWVrNHNRcEV6TlBDaWZWSk5ZSUtOTE1jNllqQ1IwNkNEZ28yOEVkUGl2RXBCSFhhemVHYQpYUDllblppVnVwcEQwRXFpRndVQkJERFRNck9QQWdNQkFBR2pnZmd3Z2ZVd0RnWURWUjBQQVFIL0JBUURBZ0dHCk1CMEdBMVVkSlFRV01CUUdDQ3NHQVFVRkJ3TUNCZ2dyQmdFRkJRY0RBVEFTQmdOVkhSTUJBZjhFQ0RBR0FRSC8KQWdFQU1CMEdBMVVkRGdRV0JCVG5xNThQTERPZ1U5TmVUM2pJc29RT085YVNNekFmQmdOVkhTTUVHREFXZ0JSNQp0Rm5tZTdibDVBRnpnQWlJeUJwWTl1bWJiakF5QmdnckJnRUZCUWNCQVFRbU1DUXdJZ1lJS3dZQkJRVUhNQUtHCkZtaDBkSEE2THk5NE1TNXBMbXhsYm1OeUxtOXlaeTh3RXdZRFZSMGdCQXd3Q2pBSUJnWm5nUXdCQWdFd0p3WUQKVlIwZkJDQXdIakFjb0JxZ0dJWVdhSFIwY0RvdkwzZ3hMbU11YkdWdVkzSXViM0puTHpBTkJna3Foa2lHOXcwQgpBUXNGQUFPQ0FnRUFVVGRZVXFFaW16VzdUYnJPeXBMcUNmTDdWT3dZZi9RNzlPSDVjSExDWmVnZ2ZRaERjb25sCms3S2doOGIwdmkrL1h1V3U3Q044bi9VUGVnMXZvM0crdGFYaXJyeXR0aFFpbkFIR3djL1VkYk95Z0phOXp1QmMKVnlxb0gzQ1hUWERJblQrOGErYzNhRVZNSjJTdCtwU240ZWQrV2tEcDhpanNpanZFeUZ3RTQ3aHVsVzBMdHpqZwo5Zk9WNVBtcmcvenhXYlJ1TCtrMERCREhFSmVubkNzQWVuN2MzNVBteDdqcG1KL0h0Z1JoY256MHlqU0J2eUl3CjZMMVFJdXBrQ3YyU0JPRFQveEREM2dmUVF5S3Y2cm9WNEcyRWhmRXlBc1dwbW9qeGpDVUNHaXlnOTdGdkR0bS8KTksyTFNjOWx5Ykt4QjczSTIrUDJHM0NhV3B2dnBBaUhDVnUzMGpXOEdDeEtkZmhzWHRuSXkyaW1za1FxVloybQowUG14b2JiMjhUdWNyN3hCSzdDdHd2UHJiNzlvczd1MlhQM081ZjliL0g2NkdOeVJyZ2xSWGxyWWpJMW9HWUwvCmY0STFuL1NndXNkYTZXdkE2QzE5MGt4alUxNVkxMm1IVTQrQnh5UjljeDJoaEdTOWZBak1aS0pzczI4cXh2ejYKQXh1NENhRG1STlpwSy9wUXJYRjE3eVhDWGttRVdndlNPRVp5Nlo5cGNiTElWRUdja1YvaVZlcTBBT28ycGtnOQpwNFFSSXkwdEsyZGlSRU5MU0YyS3lzRndiWTZCMjZCRmVGczN2MXNZVlJoRlc5bkxrT3JRVnBvckNTMEt5Wm1mCndWRDg5cVNUbG5jdExjWm5JYXZqS3NLVXUxbkExaVUweVlNZFllcEtSN2xXYm53aGR4M2V3b2s9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+    tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcEFJQkFBS0NBUUVBdFEvR0ZPMEhRMks1RlAydkZIT0F1NkpPZmNFdm1JcHhHbDl6ekNHVysxclZyNlAxCjg3ZlRPV3Z0TnhFZ0VlaFNLRThpWFRRaTBUUyt4NDV2RXZuRGxvaVo5NkZ2cXpVVm5yRnVkbVRpR0FpY0VmUncKYmwrUGtNZzhZaVE4RUg3cTNoQWlGSkRiQWd2bEEyVmJmcC9FOU9rYTgyWVFNTUYxUGZHK010blMrWTQ4TzgrQgpoczFMdEhQVnZrRk9wN25Hek5NL1pHeXl0OHlNTklkR0o3TTFOZVNNZkdUM01ZaHZ0ZVFkZGJKSW0ram1ya2tJCkJ6ZzJBMWtTbFVlaGR0aWlyMThsemdGQjFyVVNsbzlRbWsxMmljOVpFTDJQandsbno2bmJMODU4VStBbFVJYVkKQXFsdUVGeW9oVE96ckhLb0pKamlZTlZXYVJ3ejI2ZE5CbHhLZ3dJREFRQUJBb0lCQUJVRjUxaC9xeE82YjBZTwpMSm1CemNVN2s4U0xQVlVIWWhtUFVyazFmenZoTUtXTHNwK2hUUC9DVmRGS2hrQStDdWdPUkMyeFE0ZXFDYXJQCkVYdVJENUkzZXpVakEvM0xsSjZQK0lUN3NycmFxUkIyb3VWVjZDd0Y2K2p6VHh3Vk9IMGZQMjNHNGY4TFZZUisKN05BM2lkMXNBWXFZWTdIZGpKanNMRXJvT3RScDZ2YkNRNm9hUVdyTExyMDVxUFV1bE52MWRHRFFlejhZa21kUApkSmZReUlCZGV5TlVqSy9FaFdSUjBNZGhuQ0FjR25FWjR5SXFrV21xdzdCWGpGcnBzeGNINlJFQnJQU0hMbU04CnlacVJ4c0tGYVdaeGs2alRUZ3k1VnFQZlhMQkpiWjhZQWZTeHRXTzBuTy9TMWVuMzU4UXNoS0NCUlhjbkxONnYKbnVsMFU5a0NnWUVBM0g4UEthditHcXNQdFc1NkhtSnVLRnR3UWFwUkdmcERrUkM3UDRwR0VycEtkTm5pOXlzeApCSmFzVVcydXhjck9iSUZPaTdQN3R0bjBRZ1ZWOGNTbFhVazY2WXBXQitXZE4zUk9KQUptVXA5SkRLSGIxQTF2CjRHb1hOTmJvazg4Vk1KOTN5MTV4WTgzTERMbHBVNmRxQ0hqOWFkdFM1d2J0dEYwUXI4blk5Y3NDZ1lFQTBqY3oKZkcyZ1hHcWxzWlRoNlQyWEN4SjBiRm1reFQ4UVFaTGF2MTVaOXY3T2t2Q05JcFRYdVdtZ24yWDY0YTRvaWJZawpybzBUeFM0UWFVK1ljYUNydmxvRGR2U3oyMW1aRkE4ZmhVTVlWTFE4dWM4RDE1Vjd3b0ZNT1hsaEozM290eVIvCkhLK3JKTmNaVEtldTdwRnRzWlVHR3piWE95eG1ZSHNvT3lJaEp5a0NnWUVBdTVRWUNTSjVUS1NqKzN3ZHhZV0YKSXk0T3hMNG91b25PT3pYWnBnZHk3M0d0NzlTQW9qY0xQMVVUQ1Q3ZkJRTXdNdHlhUG4wQ01aOGZqWjdPYTV3WAo5ZEZibmR3Q3Jqc25VVXJQUXhFTGpWUldwN2wyc3VJdmYrR2hGbUdSZ0ZVV09NUWcvRkMrOCtIWjBGeFhmMFFZCkQxY21kb3lQN1Z4V2tpN3VDQzRXTlpzQ2dZQU1XSk9jaGkrNTNjV1hkV0FETzh2SUtiQk93TUVObUpPUzFsWWsKa1IwRmhaZUtSN2h5UkgyYTlSb3E0bWxtb2J6ZHdhWEwzcHMvcEdId1hXMWRsd3NmSmRnNFAwems0QkUrZlZqagprYm8zRjFMTnN0dk42SWlaTnRETU8xVzZaUW1xMytqYlBYSDJ1dTlRY2pTeTdEV2VEVnVMYzZBV2FKZ21xSFVICmJBeTRhUUtCZ1FEQktCcDhBbnNmWDZRb1Y4a0o2a3VwbDEvYlJCalRRbjNhZEdEU0l2Z2plZzhrTVArUEJxVTEKUFFsbXdXb3BMRnZzSlpLMm9uRk5IYkpac0w1REdTTlUwRCtRZjMyN2VWeHZlVnpDZ2ZLdVhxWmxzc0tkTlMyVwo0d0R6RzhQSlh5MHNOWkhsS09jRm1aOW54MTZzUjdhQnpvY1JOSUNuc2NVQ1phNGNUQzkvL0E9PQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=
+  kind: Secret
+  metadata:
+    annotations:
+      cert-manager.io/alt-names: api.autolytiq.com,app.autolytiq.com,autolytiq.com,dms.autolytiq.com,ml.autolytiq.com,www.autolytiq.com
+      cert-manager.io/certificate-name: autolytiq-tls
+      cert-manager.io/common-name: autolytiq.com
+      cert-manager.io/ip-sans: ""
+      cert-manager.io/issuer-group: cert-manager.io
+      cert-manager.io/issuer-kind: ClusterIssuer
+      cert-manager.io/issuer-name: letsencrypt-prod
+      cert-manager.io/uri-sans: ""
+    creationTimestamp: "2025-10-31T23:28:34Z"
+    labels:
+      controller.cert-manager.io/fao: "true"
+    name: autolytiq-tls
+    namespace: autolytiq-prod
+    resourceVersion: "1019184"
+    uid: e86a6aaa-4cf5-4793-b97d-9d80448f6844
+  type: kubernetes.io/tls
+- apiVersion: v1
+  data:
+    .dockerconfigjson: eyJhdXRocyI6eyJyZWdpc3RyeS5kaWdpdGFsb2NlYW4uY29tIjp7ImF1dGgiOiJZV04zYVd4c2FXRnRjeTR4T0VCbmJXRnBiQzVqYjIwNlpHOXdYM1l4WDJKa09XUTBORGc0TVRkaFpqZzRZemd4WkRkbU9HTXhNRGd3WTJZek5XSmxObUUzTkRsaE1qRmxPVGczTURsaVpqYzBPREkxTWpBMU4yVXlZMlUyTlRZPSJ9fX0K
+  kind: Secret
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{".dockerconfigjson":"eyJhdXRocyI6eyJyZWdpc3RyeS5kaWdpdGFsb2NlYW4uY29tIjp7ImF1dGgiOiJZV04zYVd4c2FXRnRjeTR4T0VCbmJXRnBiQzVqYjIwNlpHOXdYM1l4WDJKa09XUTBORGc0TVRkaFpqZzRZemd4WkRkbU9HTXhNRGd3WTJZek5XSmxObUUzTkRsaE1qRmxPVGczTURsaVpqYzBPREkxTWpBMU4yVXlZMlUyTlRZPSJ9fX0K"},"kind":"Secret","metadata":{"annotations":{},"name":"do-regcred","namespace":"autolytiq-prod"},"type":"kubernetes.io/dockerconfigjson"}
+    creationTimestamp: "2025-10-31T07:58:00Z"
+    name: do-regcred
+    namespace: autolytiq-prod
+    resourceVersion: "1990120"
+    uid: 6de46549-8d84-4b97-804a-4fbf07306cfe
+  type: kubernetes.io/dockerconfigjson
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: dobs.csi.digitalocean.com
+      volume.kubernetes.io/storage-provisioner: dobs.csi.digitalocean.com
+    creationTimestamp: "2025-10-31T18:09:17Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      app.kubernetes.io/name: redis
+    name: redis-data-redis-0
+    namespace: autolytiq-prod
+    resourceVersion: "935501"
+    uid: 67dd1d17-e007-454d-8874-7cf3e13da1d2
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    storageClassName: do-block-storage
+    volumeMode: Filesystem
+    volumeName: pvc-67dd1d17-e007-454d-8874-7cf3e13da1d2
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    phase: Bound
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/cors-allow-credentials":"true","nginx.ingress.kubernetes.io/cors-allow-methods":"GET, POST, PUT, DELETE, OPTIONS","nginx.ingress.kubernetes.io/enable-cors":"true","nginx.ingress.kubernetes.io/force-ssl-redirect":"true","nginx.ingress.kubernetes.io/limit-connections":"20","nginx.ingress.kubernetes.io/limit-rps":"100","nginx.ingress.kubernetes.io/proxy-body-size":"25m","nginx.ingress.kubernetes.io/proxy-read-timeout":"120","nginx.ingress.kubernetes.io/proxy-send-timeout":"120","nginx.ingress.kubernetes.io/ssl-ciphers":"ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384","nginx.ingress.kubernetes.io/ssl-protocols":"TLSv1.2 TLSv1.3"},"name":"autolytiq-ingress","namespace":"autolytiq-prod"},"spec":{"ingressClassName":"nginx","rules":[{"host":"autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/api","pathType":"Prefix"},{"backend":{"service":{"name":"frontend","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}},{"host":"www.autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/api","pathType":"Prefix"},{"backend":{"service":{"name":"frontend","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}},{"host":"app.autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/health","pathType":"Prefix"},{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/ready","pathType":"Exact"},{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/live","pathType":"Exact"},{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/api","pathType":"Prefix"},{"backend":{"service":{"name":"frontend","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}},{"host":"api.autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/health","pathType":"Prefix"},{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/ready","pathType":"Exact"},{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/live","pathType":"Exact"},{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/api","pathType":"Prefix"},{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}},{"host":"ml.autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"ml-service","port":{"number":80}}},"path":"/health","pathType":"Exact"},{"backend":{"service":{"name":"ml-service","port":{"number":80}}},"path":"/docs","pathType":"Prefix"},{"backend":{"service":{"name":"ml-service","port":{"number":80}}},"path":"/openapi.json","pathType":"Exact"},{"backend":{"service":{"name":"ml-service","port":{"number":80}}},"path":"/metrics","pathType":"Exact"},{"backend":{"service":{"name":"ml-service","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}},{"host":"dms.autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"frontend","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["autolytiq.com","www.autolytiq.com","app.autolytiq.com","api.autolytiq.com","ml.autolytiq.com","dms.autolytiq.com"],"secretName":"autolytiq-tls"}]}}
+      nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+      nginx.ingress.kubernetes.io/cors-allow-methods: GET, POST, PUT, DELETE, OPTIONS
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/limit-connections: "20"
+      nginx.ingress.kubernetes.io/limit-rps: "100"
+      nginx.ingress.kubernetes.io/proxy-body-size: 25m
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+      nginx.ingress.kubernetes.io/ssl-ciphers: ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384
+      nginx.ingress.kubernetes.io/ssl-protocols: TLSv1.2 TLSv1.3
+    creationTimestamp: "2025-10-31T23:28:32Z"
+    generation: 2
+    name: autolytiq-ingress
+    namespace: autolytiq-prod
+    resourceVersion: "1364137"
+    uid: 6fc2bd7f-19c6-47b3-8dfc-ef796c3e4bc3
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /api
+          pathType: Prefix
+        - backend:
+            service:
+              name: frontend
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    - host: www.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /api
+          pathType: Prefix
+        - backend:
+            service:
+              name: frontend
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    - host: app.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /health
+          pathType: Prefix
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /ready
+          pathType: Exact
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /live
+          pathType: Exact
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /api
+          pathType: Prefix
+        - backend:
+            service:
+              name: frontend
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    - host: api.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /health
+          pathType: Prefix
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /ready
+          pathType: Exact
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /live
+          pathType: Exact
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /api
+          pathType: Prefix
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    - host: ml.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: ml-service
+              port:
+                number: 80
+          path: /health
+          pathType: Exact
+        - backend:
+            service:
+              name: ml-service
+              port:
+                number: 80
+          path: /docs
+          pathType: Prefix
+        - backend:
+            service:
+              name: ml-service
+              port:
+                number: 80
+          path: /openapi.json
+          pathType: Exact
+        - backend:
+            service:
+              name: ml-service
+              port:
+                number: 80
+          path: /metrics
+          pathType: Exact
+        - backend:
+            service:
+              name: ml-service
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    - host: dms.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: frontend
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - autolytiq.com
+      - www.autolytiq.com
+      - app.autolytiq.com
+      - api.autolytiq.com
+      - ml.autolytiq.com
+      - dms.autolytiq.com
+      secretName: autolytiq-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 45.55.98.200
+kind: List
+metadata:
+  resourceVersion: ""

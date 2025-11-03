@@ -1,0 +1,346 @@
+apiVersion: v1
+items:
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/cors-allow-credentials":"true","nginx.ingress.kubernetes.io/cors-allow-methods":"GET, POST, PUT, DELETE, OPTIONS","nginx.ingress.kubernetes.io/enable-cors":"true","nginx.ingress.kubernetes.io/force-ssl-redirect":"true","nginx.ingress.kubernetes.io/limit-connections":"20","nginx.ingress.kubernetes.io/limit-rps":"100","nginx.ingress.kubernetes.io/proxy-body-size":"25m","nginx.ingress.kubernetes.io/proxy-read-timeout":"120","nginx.ingress.kubernetes.io/proxy-send-timeout":"120","nginx.ingress.kubernetes.io/ssl-ciphers":"ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384","nginx.ingress.kubernetes.io/ssl-protocols":"TLSv1.2 TLSv1.3"},"name":"autolytiq-ingress","namespace":"autolytiq-prod"},"spec":{"ingressClassName":"nginx","rules":[{"host":"autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/api","pathType":"Prefix"},{"backend":{"service":{"name":"frontend","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}},{"host":"www.autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/api","pathType":"Prefix"},{"backend":{"service":{"name":"frontend","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}},{"host":"app.autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/health","pathType":"Prefix"},{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/ready","pathType":"Exact"},{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/live","pathType":"Exact"},{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/api","pathType":"Prefix"},{"backend":{"service":{"name":"frontend","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}},{"host":"api.autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/health","pathType":"Prefix"},{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/ready","pathType":"Exact"},{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/live","pathType":"Exact"},{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/api","pathType":"Prefix"},{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}},{"host":"ml.autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"ml-service","port":{"number":80}}},"path":"/health","pathType":"Exact"},{"backend":{"service":{"name":"ml-service","port":{"number":80}}},"path":"/docs","pathType":"Prefix"},{"backend":{"service":{"name":"ml-service","port":{"number":80}}},"path":"/openapi.json","pathType":"Exact"},{"backend":{"service":{"name":"ml-service","port":{"number":80}}},"path":"/metrics","pathType":"Exact"},{"backend":{"service":{"name":"ml-service","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}},{"host":"dms.autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"frontend","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["autolytiq.com","www.autolytiq.com","app.autolytiq.com","api.autolytiq.com","ml.autolytiq.com","dms.autolytiq.com"],"secretName":"autolytiq-tls"}]}}
+      nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+      nginx.ingress.kubernetes.io/cors-allow-methods: GET, POST, PUT, DELETE, OPTIONS
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/limit-connections: "20"
+      nginx.ingress.kubernetes.io/limit-rps: "100"
+      nginx.ingress.kubernetes.io/proxy-body-size: 25m
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+      nginx.ingress.kubernetes.io/ssl-ciphers: ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384
+      nginx.ingress.kubernetes.io/ssl-protocols: TLSv1.2 TLSv1.3
+    creationTimestamp: "2025-10-31T23:28:32Z"
+    generation: 2
+    name: autolytiq-ingress
+    namespace: autolytiq-prod
+    resourceVersion: "1364137"
+    uid: 6fc2bd7f-19c6-47b3-8dfc-ef796c3e4bc3
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /api
+          pathType: Prefix
+        - backend:
+            service:
+              name: frontend
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    - host: www.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /api
+          pathType: Prefix
+        - backend:
+            service:
+              name: frontend
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    - host: app.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /health
+          pathType: Prefix
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /ready
+          pathType: Exact
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /live
+          pathType: Exact
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /api
+          pathType: Prefix
+        - backend:
+            service:
+              name: frontend
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    - host: api.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /health
+          pathType: Prefix
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /ready
+          pathType: Exact
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /live
+          pathType: Exact
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /api
+          pathType: Prefix
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    - host: ml.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: ml-service
+              port:
+                number: 80
+          path: /health
+          pathType: Exact
+        - backend:
+            service:
+              name: ml-service
+              port:
+                number: 80
+          path: /docs
+          pathType: Prefix
+        - backend:
+            service:
+              name: ml-service
+              port:
+                number: 80
+          path: /openapi.json
+          pathType: Exact
+        - backend:
+            service:
+              name: ml-service
+              port:
+                number: 80
+          path: /metrics
+          pathType: Exact
+        - backend:
+            service:
+              name: ml-service
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    - host: dms.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: frontend
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - autolytiq.com
+      - www.autolytiq.com
+      - app.autolytiq.com
+      - api.autolytiq.com
+      - ml.autolytiq.com
+      - dms.autolytiq.com
+      secretName: autolytiq-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 45.55.98.200
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/whitelist-source-range: 0.0.0.0/0,::/0
+    creationTimestamp: "2025-10-31T20:41:06Z"
+    generateName: cm-acme-http-solver-
+    generation: 1
+    labels:
+      acme.cert-manager.io/http-domain: "1537542232"
+      acme.cert-manager.io/http-token: "1330515750"
+      acme.cert-manager.io/http01-solver: "true"
+    name: cm-acme-http-solver-j8q7d
+    namespace: monitoring
+    ownerReferences:
+    - apiVersion: acme.cert-manager.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Challenge
+      name: grafana-tls-1-1061170995-1962193996
+      uid: 3dbf1843-b57b-4dd1-92a5-295d5cb4ceb9
+    resourceVersion: "975905"
+    uid: 16508a6f-8230-47fc-859a-5329690b50c9
+  spec:
+    rules:
+    - host: grafana.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: cm-acme-http-solver-82p6f
+              port:
+                number: 8089
+          path: /.well-known/acme-challenge/pHetD7ElX_lmojSqZt2TPPPg7uTUk_8CpSHq4DYvxrI
+          pathType: Exact
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 45.55.98.200
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/force-ssl-redirect":"true"},"name":"grafana-ingress","namespace":"monitoring"},"spec":{"ingressClassName":"nginx","rules":[{"host":"grafana.autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"grafana","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["grafana.autolytiq.com"],"secretName":"grafana-tls"}]}}
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    creationTimestamp: "2025-10-31T20:41:04Z"
+    generation: 1
+    name: grafana-ingress
+    namespace: monitoring
+    resourceVersion: "975904"
+    uid: 3bd6b33c-31b4-4ec0-bcce-da7314a6f8cf
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: grafana.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: grafana
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - grafana.autolytiq.com
+      secretName: grafana-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 45.55.98.200
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"kubernetes.io/ingress.class":"nginx"},"name":"autolytiq-ingress","namespace":"prod"},"spec":{"rules":[{"host":"api.autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"backend","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}},{"host":"app.autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"frontend","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}},{"host":"ml.autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"ml-service","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}},{"host":"dms.autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"dms","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}}]}}
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    creationTimestamp: "2025-10-29T03:05:49Z"
+    generation: 4
+    name: autolytiq-ingress
+    namespace: prod
+    resourceVersion: "67910"
+    uid: 61ebcc86-6a9b-4e21-a9fa-c2a71eadd7e1
+  spec:
+    rules:
+    - host: api.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    - host: app.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: frontend
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    - host: ml.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: ml-service
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    - host: dms.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: dms
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - app.autolytiq.com
+      - api.autolytiq.com
+      - ml.autolytiq.com
+      - dms.autolytiq.com
+      secretName: tls-autolytiq
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 45.55.98.200
+kind: List
+metadata:
+  resourceVersion: ""

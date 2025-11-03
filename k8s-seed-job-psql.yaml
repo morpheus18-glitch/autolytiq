@@ -1,0 +1,86 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-seed-job
+  namespace: autolytiq-prod
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: db-seed
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: seed
+        image: postgres:17-alpine
+        command:
+          - sh
+          - -c
+          - |
+            # Bcrypt hash for 'DevAccess!2024'
+            PASSWORD_HASH='$2b$12$04Q5lWi7AXrkMAj6jONAEO4UhWYIfKelfui/KWgrl/jHdpZzyqF62'
+
+            # Generate UUIDs
+            TENANT_ID=$(cat /proc/sys/kernel/random/uuid)
+            USER_ID=$(cat /proc/sys/kernel/random/uuid)
+
+            echo "Creating tenant and user..."
+
+            psql "$DATABASE_URL" <<EOSQL
+            BEGIN;
+
+            -- Create tenant
+            INSERT INTO tenants (id, name, subdomain, billing_email, status, created_at, updated_at)
+            VALUES ('$TENANT_ID', 'Sunrise Motors', 'sunrise-motors', 'billing@sunrisemotors.demo', 'ACTIVE', NOW(), NOW())
+            ON CONFLICT (subdomain) DO UPDATE
+            SET updated_at = NOW();
+
+            -- Create developer user
+            INSERT INTO users (
+              id, email, password, first_name, last_name,
+              role, status, tenant_id, is_super_admin, permissions, custom_permissions,
+              created_at, updated_at
+            )
+            VALUES (
+              '$USER_ID',
+              'developer@sunrisemotors.demo',
+              '$PASSWORD_HASH',
+              'Dana',
+              'Reeves',
+              'ADMIN',
+              'ACTIVE',
+              '$TENANT_ID',
+              true,
+              '{}',
+              '{}',
+              NOW(),
+              NOW()
+            )
+            ON CONFLICT (tenant_id, email) DO UPDATE
+            SET password = EXCLUDED.password, updated_at = NOW();
+
+            COMMIT;
+            EOSQL
+
+            echo ""
+            echo "✓ Database seeded successfully!"
+            echo ""
+            echo "Login credentials:"
+            echo "  Store ID: MAIN"
+            echo "  Email: developer@sunrisemotors.demo"
+            echo "  Password: DevAccess!2024"
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: app-env
+              key: DATABASE_URL
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"

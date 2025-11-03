@@ -1,0 +1,34 @@
+replicaCount: 2
+
+image:
+  repository: registry.digitalocean.com/autolytiq/worker
+  pullPolicy: IfNotPresent
+  tag: ""
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+env:
+  - name: NODE_ENV
+    value: "production"
+  - name: DATABASE_URL
+    valueFrom:
+      secretKeyRef:
+        name: backend-secrets
+        key: database-url
+  - name: KAFKA_BROKERS
+    valueFrom:
+      secretKeyRef:
+        name: kafka-secrets
+        key: brokers
+  - name: KAFKA_CLIENT_ID
+    value: "autolytiq-outbox-worker"
+  - name: OUTBOX_POLL_INTERVAL_MS
+    value: "1000"
+  - name: OUTBOX_BATCH_SIZE
+    value: "50"

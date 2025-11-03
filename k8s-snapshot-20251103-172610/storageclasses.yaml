@@ -1,0 +1,71 @@
+apiVersion: v1
+items:
+- allowVolumeExpansion: true
+  apiVersion: storage.k8s.io/v1
+  kind: StorageClass
+  metadata:
+    annotations:
+      storageclass.kubernetes.io/is-default-class: "true"
+    creationTimestamp: "2025-10-28T22:11:59Z"
+    labels:
+      c3.doks.digitalocean.com/component: csi-controller-service
+      c3.doks.digitalocean.com/plane: data
+      doks.digitalocean.com/managed: "true"
+    name: do-block-storage
+    resourceVersion: "317"
+    uid: ce168618-d490-4aef-9f2b-31886565e470
+  provisioner: dobs.csi.digitalocean.com
+  reclaimPolicy: Delete
+  volumeBindingMode: Immediate
+- allowVolumeExpansion: true
+  apiVersion: storage.k8s.io/v1
+  kind: StorageClass
+  metadata:
+    creationTimestamp: "2025-10-28T22:11:59Z"
+    labels:
+      c3.doks.digitalocean.com/component: csi-controller-service
+      c3.doks.digitalocean.com/plane: data
+      doks.digitalocean.com/managed: "true"
+    name: do-block-storage-retain
+    resourceVersion: "318"
+    uid: d9fc6932-230c-4b4c-b9d5-cdd387f27b15
+  provisioner: dobs.csi.digitalocean.com
+  reclaimPolicy: Retain
+  volumeBindingMode: Immediate
+- allowVolumeExpansion: true
+  apiVersion: storage.k8s.io/v1
+  kind: StorageClass
+  metadata:
+    creationTimestamp: "2025-10-28T22:11:59Z"
+    labels:
+      c3.doks.digitalocean.com/component: csi-controller-service
+      c3.doks.digitalocean.com/plane: data
+      doks.digitalocean.com/managed: "true"
+    name: do-block-storage-xfs
+    resourceVersion: "319"
+    uid: 7c0ff394-7d8a-42d3-8799-cd5ce33cbd86
+  parameters:
+    fsType: xfs
+  provisioner: dobs.csi.digitalocean.com
+  reclaimPolicy: Delete
+  volumeBindingMode: Immediate
+- allowVolumeExpansion: true
+  apiVersion: storage.k8s.io/v1
+  kind: StorageClass
+  metadata:
+    creationTimestamp: "2025-10-28T22:11:59Z"
+    labels:
+      c3.doks.digitalocean.com/component: csi-controller-service
+      c3.doks.digitalocean.com/plane: data
+      doks.digitalocean.com/managed: "true"
+    name: do-block-storage-xfs-retain
+    resourceVersion: "320"
+    uid: 209c733a-6d1a-4981-bb67-8896cb56c3b0
+  parameters:
+    fsType: xfs
+  provisioner: dobs.csi.digitalocean.com
+  reclaimPolicy: Retain
+  volumeBindingMode: Immediate
+kind: List
+metadata:
+  resourceVersion: ""

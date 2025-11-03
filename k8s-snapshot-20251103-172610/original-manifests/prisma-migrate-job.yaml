@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: prisma-migrate-001
+  namespace: autolytiq-prod
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    metadata:
+      name: prisma-migrate
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: do-regcred
+      containers:
+        - name: prisma-migrate
+          image: registry.digitalocean.com/autolytiq/backend:9efd166e1a2a56eeccf2e77dc0e816a5648f51fc
+          command:
+            - sh
+            - -c
+            - |
+              echo "Running Prisma migrations..."
+              npx prisma migrate deploy
+
+              echo "Migration complete!"
+          envFrom:
+            - secretRef:
+                name: app-env
+          env:
+            - name: NODE_ENV
+              value: "production"
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi

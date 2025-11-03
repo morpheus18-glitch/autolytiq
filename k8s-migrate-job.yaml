@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrate-job
+  namespace: autolytiq-prod
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app: db-migrate
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: migrate
+        image: registry.digitalocean.com/autolytiq/backend:b3d2d7997e97d490f9678b5a59c68cbac234c550
+        command:
+          - sh
+          - -c
+          - |
+            echo "Running database migrations..."
+            cd /app/packages/db
+            npx prisma migrate deploy
+            echo "✓ Migrations complete!"
+        envFrom:
+        - secretRef:
+            name: app-env
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "300m"

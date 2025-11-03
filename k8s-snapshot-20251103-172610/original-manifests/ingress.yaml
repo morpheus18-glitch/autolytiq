@@ -1,0 +1,207 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: autolytiq-ingress
+  namespace: autolytiq-prod
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    # Force HTTPS
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-protocols: "TLSv1.2 TLSv1.3"
+    nginx.ingress.kubernetes.io/ssl-ciphers: "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384"
+    # Timeouts and size limits
+    nginx.ingress.kubernetes.io/proxy-body-size: "25m"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    # Rate limiting for DDoS protection
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+    nginx.ingress.kubernetes.io/limit-connections: "20"
+    # Enable CORS for API
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - autolytiq.com
+        - www.autolytiq.com
+        - app.autolytiq.com
+        - api.autolytiq.com
+        - ml.autolytiq.com
+        - dms.autolytiq.com
+      secretName: autolytiq-tls
+  rules:
+    # Root domain - redirect to app.autolytiq.com
+    - host: autolytiq.com
+      http:
+        paths:
+          # API endpoints - must come before / to match first
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 80
+          # Frontend assets and routes
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
+    # www subdomain
+    - host: www.autolytiq.com
+      http:
+        paths:
+          # API endpoints - must come before / to match first
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 80
+          # Frontend assets and routes
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
+    # App subdomain - serves frontend and proxies API
+    - host: app.autolytiq.com
+      http:
+        paths:
+          # Health & readiness endpoints
+          - path: /health
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 80
+          - path: /ready
+            pathType: Exact
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 80
+          - path: /live
+            pathType: Exact
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 80
+          # API endpoints
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 80
+          # Frontend assets and routes
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
+    - host: api.autolytiq.com
+      http:
+        paths:
+          # Health endpoints (no auth required)
+          - path: /health
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 80
+          - path: /ready
+            pathType: Exact
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 80
+          - path: /live
+            pathType: Exact
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 80
+          # API routes (auth required)
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 80
+          # Default fallback
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 80
+    - host: ml.autolytiq.com
+      http:
+        paths:
+          # ML service health & docs
+          - path: /health
+            pathType: Exact
+            backend:
+              service:
+                name: ml-service
+                port:
+                  number: 80
+          - path: /docs
+            pathType: Prefix
+            backend:
+              service:
+                name: ml-service
+                port:
+                  number: 80
+          - path: /openapi.json
+            pathType: Exact
+            backend:
+              service:
+                name: ml-service
+                port:
+                  number: 80
+          - path: /metrics
+            pathType: Exact
+            backend:
+              service:
+                name: ml-service
+                port:
+                  number: 80
+          # All other ML routes
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ml-service
+                port:
+                  number: 80
+    - host: dms.autolytiq.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80

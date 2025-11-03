@@ -1,0 +1,50 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: autolytiq-network-policy
+  namespace: autolytiq-prod
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow traffic from ingress controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 5000  # backend
+        - protocol: TCP
+          port: 3000  # frontend (legacy)
+        - protocol: TCP
+          port: 8080  # frontend (nginx)
+        - protocol: TCP
+          port: 8000  # ml-service
+    # Allow inter-pod communication within namespace
+    - from:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 5000
+        - protocol: TCP
+          port: 3000
+        - protocol: TCP
+          port: 8080  # frontend nginx
+        - protocol: TCP
+          port: 8000
+        - protocol: TCP
+          port: 50051  # rust-pricing gRPC
+        - protocol: TCP
+          port: 6379   # redis
+  egress:
+    # Allow all egress (can be restricted later based on requirements)
+    - to:
+        - podSelector: {}
+    - to:
+        - namespaceSelector: {}
+    - ports:
+        - protocol: TCP
+        - protocol: UDP

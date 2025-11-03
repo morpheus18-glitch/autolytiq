@@ -1,0 +1,1307 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      sidecar.istio.io/inject: "false"
+    creationTimestamp: "2025-11-01T13:53:24Z"
+    generateName: cm-acme-http-solver-
+    generation: 1
+    labels:
+      acme.cert-manager.io/http-domain: "1537542232"
+      acme.cert-manager.io/http-token: "1330515750"
+      acme.cert-manager.io/http01-solver: "true"
+    name: cm-acme-http-solver-4xbm9
+    namespace: monitoring
+    ownerReferences:
+    - apiVersion: acme.cert-manager.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Challenge
+      name: grafana-tls-1-1061170995-1962193996
+      uid: 3dbf1843-b57b-4dd1-92a5-295d5cb4ceb9
+    resourceVersion: "1237535"
+    uid: 5f557ae4-732c-4990-ad2a-7869def29d35
+  spec:
+    automountServiceAccountToken: false
+    containers:
+    - args:
+      - --listen-port=8089
+      - --domain=grafana.autolytiq.com
+      - --token=pHetD7ElX_lmojSqZt2TPPPg7uTUk_8CpSHq4DYvxrI
+      - --key=pHetD7ElX_lmojSqZt2TPPPg7uTUk_8CpSHq4DYvxrI.OuazAkjfyCpob4rVc38LbUry7lJYbu--fmDYX4AFP5E
+      image: quay.io/jetstack/cert-manager-acmesolver:v1.19.1
+      imagePullPolicy: IfNotPresent
+      name: acmesolver
+      ports:
+      - containerPort: 8089
+        name: http
+        protocol: TCP
+      resources:
+        limits:
+          cpu: 100m
+          memory: 64Mi
+        requests:
+          cpu: 10m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: false
+    imagePullSecrets:
+    - name: autolytiq
+    nodeName: pool-autolytiq-pkpci
+    nodeSelector:
+      kubernetes.io/os: linux
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: OnFailure
+    schedulerName: default-scheduler
+    securityContext:
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-01T13:53:26Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-01T13:53:24Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-01T13:53:26Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-01T13:53:26Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-01T13:53:24Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 10m
+        memory: 64Mi
+      containerID: containerd://d313740800616aac71afa1289fba6f1b2a082837c78f748e803da4b5a1b235bd
+      image: quay.io/jetstack/cert-manager-acmesolver:v1.19.1
+      imageID: quay.io/jetstack/cert-manager-acmesolver@sha256:35ed1103cb49a3e1fc2438de84f304e3fbdeb53e0366f6b1bc2ec9b2e57462db
+      lastState: {}
+      name: acmesolver
+      ready: true
+      resources:
+        limits:
+          cpu: 100m
+          memory: 64Mi
+        requests:
+          cpu: 10m
+          memory: 64Mi
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2025-11-01T13:53:25Z"
+    hostIP: 10.108.16.6
+    hostIPs:
+    - ip: 10.108.16.6
+    phase: Running
+    podIP: 10.109.0.187
+    podIPs:
+    - ip: 10.109.0.187
+    qosClass: Burstable
+    startTime: "2025-11-01T13:53:24Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: "2025-11-03T16:54:18Z"
+    generateName: grafana-85599f895d-
+    generation: 1
+    labels:
+      app: grafana
+      pod-template-hash: 85599f895d
+    name: grafana-85599f895d-649g8
+    namespace: monitoring
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: grafana-85599f895d
+      uid: b8722c87-c30c-4ea0-89fc-3b6e039eaeb0
+    resourceVersion: "1997671"
+    uid: 4e669ec7-ceb5-4e4b-894e-4f5fa9a1a4aa
+  spec:
+    containers:
+    - env:
+      - name: GF_SECURITY_ADMIN_USER
+        value: admin
+      - name: GF_SECURITY_ADMIN_PASSWORD
+        value: autolytiq2024
+      - name: GF_USERS_ALLOW_SIGN_UP
+        value: "false"
+      - name: GF_SERVER_ROOT_URL
+        value: https://grafana.autolytiq.com
+      - name: GF_AUTH_ANONYMOUS_ENABLED
+        value: "false"
+      image: grafana/grafana:11.3.2
+      imagePullPolicy: IfNotPresent
+      name: grafana
+      ports:
+      - containerPort: 3000
+        name: http
+        protocol: TCP
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 100m
+          memory: 256Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/grafana
+        name: grafana-storage
+      - mountPath: /etc/grafana/provisioning/datasources
+        name: datasources
+      - mountPath: /etc/grafana/provisioning/dashboards
+        name: dashboards-config
+      - mountPath: /var/lib/grafana/dashboards
+        name: dashboards
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-x88qz
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    imagePullSecrets:
+    - name: autolytiq
+    nodeName: pool-autolytiq-pv60k
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - emptyDir: {}
+      name: grafana-storage
+    - configMap:
+        defaultMode: 420
+        name: grafana-datasources
+      name: datasources
+    - configMap:
+        defaultMode: 420
+        name: grafana-dashboard-config
+      name: dashboards-config
+    - configMap:
+        defaultMode: 420
+        name: grafana-dashboards
+      name: dashboards
+    - name: kube-api-access-x88qz
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:54:31Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:54:18Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:54:31Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:54:31Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:54:18Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 100m
+        memory: 256Mi
+      containerID: containerd://0eb9db716f7ba98737437a51ca24ad5c056e9eda7c34d19efd9ddf2d41048081
+      image: docker.io/grafana/grafana:11.3.2
+      imageID: docker.io/grafana/grafana@sha256:28a1c9c5ba0f27f3d46b9557eacb1d92d585e07d63945f1d829970663c5d9ae5
+      lastState: {}
+      name: grafana
+      ready: true
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 100m
+          memory: 256Mi
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2025-11-03T16:54:31Z"
+      volumeMounts:
+      - mountPath: /var/lib/grafana
+        name: grafana-storage
+      - mountPath: /etc/grafana/provisioning/datasources
+        name: datasources
+      - mountPath: /etc/grafana/provisioning/dashboards
+        name: dashboards-config
+      - mountPath: /var/lib/grafana/dashboards
+        name: dashboards
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-x88qz
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.108.16.7
+    hostIPs:
+    - ip: 10.108.16.7
+    phase: Running
+    podIP: 10.109.5.93
+    podIPs:
+    - ip: 10.109.5.93
+    qosClass: Burstable
+    startTime: "2025-11-03T16:54:18Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: "2025-11-03T16:57:42Z"
+    generateName: prometheus-
+    generation: 1
+    labels:
+      app: prometheus
+      apps.kubernetes.io/pod-index: "0"
+      controller-revision-hash: prometheus-69bc6f4586
+      statefulset.kubernetes.io/pod-name: prometheus-0
+    name: prometheus-0
+    namespace: monitoring
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: StatefulSet
+      name: prometheus
+      uid: 035abf2d-6558-42f5-bcdd-bd59416719d0
+    resourceVersion: "1998674"
+    uid: d5991a28-8fa4-4cf0-957d-a50af4b29816
+  spec:
+    containers:
+    - args:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+      - --storage.tsdb.retention.size=8GB
+      - --web.enable-lifecycle
+      - --storage.tsdb.min-block-duration=2h
+      - --storage.tsdb.max-block-duration=2h
+      image: prom/prometheus:v2.55.0
+      imagePullPolicy: IfNotPresent
+      name: prometheus
+      ports:
+      - containerPort: 9090
+        name: http
+        protocol: TCP
+      resources:
+        limits:
+          cpu: "1"
+          memory: 768Mi
+        requests:
+          cpu: 200m
+          memory: 256Mi
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /etc/prometheus
+        name: config
+      - mountPath: /prometheus
+        name: storage
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-fbfnk
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    hostname: prometheus-0
+    nodeName: pool-autolytiq-pv60k
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 65534
+      runAsGroup: 65534
+      runAsUser: 65534
+    serviceAccount: prometheus
+    serviceAccountName: prometheus
+    subdomain: prometheus
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: storage
+      persistentVolumeClaim:
+        claimName: storage-prometheus-0
+    - configMap:
+        defaultMode: 420
+        name: prometheus-config
+      name: config
+    - name: kube-api-access-fbfnk
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:57:49Z"
+      status: "True"
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:57:43Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:57:49Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:57:49Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2025-11-03T16:57:43Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 200m
+        memory: 256Mi
+      containerID: containerd://dc8538946a333a093a4e65acef5f26952d720324074c8b1286325f8aa007f2f3
+      image: docker.io/prom/prometheus:v2.55.0
+      imageID: docker.io/prom/prometheus@sha256:378f4e03703557d1c6419e6caccf922f96e6d88a530f7431d66a4c4f4b1000fe
+      lastState: {}
+      name: prometheus
+      ready: true
+      resources:
+        limits:
+          cpu: "1"
+          memory: 768Mi
+        requests:
+          cpu: 200m
+          memory: 256Mi
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2025-11-03T16:57:49Z"
+      volumeMounts:
+      - mountPath: /etc/prometheus
+        name: config
+      - mountPath: /prometheus
+        name: storage
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-fbfnk
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.108.16.7
+    hostIPs:
+    - ip: 10.108.16.7
+    phase: Running
+    podIP: 10.109.5.26
+    podIPs:
+    - ip: 10.109.5.26
+    qosClass: Burstable
+    startTime: "2025-11-03T16:57:43Z"
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      auth.istio.io/8089: NONE
+    creationTimestamp: "2025-10-31T20:41:06Z"
+    generateName: cm-acme-http-solver-
+    labels:
+      acme.cert-manager.io/http-domain: "1537542232"
+      acme.cert-manager.io/http-token: "1330515750"
+      acme.cert-manager.io/http01-solver: "true"
+    name: cm-acme-http-solver-82p6f
+    namespace: monitoring
+    ownerReferences:
+    - apiVersion: acme.cert-manager.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Challenge
+      name: grafana-tls-1-1061170995-1962193996
+      uid: 3dbf1843-b57b-4dd1-92a5-295d5cb4ceb9
+    resourceVersion: "975820"
+    uid: 137373d7-b9d4-4307-a270-c35cc17cd8cf
+  spec:
+    clusterIP: 10.108.39.49
+    clusterIPs:
+    - 10.108.39.49
+    externalTrafficPolicy: Cluster
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      nodePort: 30168
+      port: 8089
+      protocol: TCP
+      targetPort: 8089
+    selector:
+      acme.cert-manager.io/http-domain: "1537542232"
+      acme.cert-manager.io/http-token: "1330515750"
+      acme.cert-manager.io/http01-solver: "true"
+    sessionAffinity: None
+    type: NodePort
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"grafana","namespace":"monitoring"},"spec":{"ports":[{"name":"http","port":80,"targetPort":3000}],"selector":{"app":"grafana"},"type":"ClusterIP"}}
+    creationTimestamp: "2025-10-31T20:41:04Z"
+    name: grafana
+    namespace: monitoring
+    resourceVersion: "975770"
+    uid: e216a84a-d658-49e7-83a3-baa04df2c83c
+  spec:
+    clusterIP: 10.108.61.92
+    clusterIPs:
+    - 10.108.61.92
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 3000
+    selector:
+      app: grafana
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"prometheus","namespace":"monitoring"},"spec":{"ports":[{"name":"http","port":9090,"targetPort":9090}],"selector":{"app":"prometheus"},"type":"ClusterIP"}}
+    creationTimestamp: "2025-10-31T20:40:52Z"
+    name: prometheus
+    namespace: monitoring
+    resourceVersion: "975691"
+    uid: fa18b1c5-2512-4fa0-aaa4-b0b89d165885
+  spec:
+    clusterIP: 10.108.37.163
+    clusterIPs:
+    - 10.108.37.163
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 9090
+      protocol: TCP
+      targetPort: 9090
+    selector:
+      app: prometheus
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "1"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"name":"grafana","namespace":"monitoring"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"grafana"}},"template":{"metadata":{"labels":{"app":"grafana"}},"spec":{"containers":[{"env":[{"name":"GF_SECURITY_ADMIN_USER","value":"admin"},{"name":"GF_SECURITY_ADMIN_PASSWORD","value":"autolytiq2024"},{"name":"GF_USERS_ALLOW_SIGN_UP","value":"false"},{"name":"GF_SERVER_ROOT_URL","value":"https://grafana.autolytiq.com"},{"name":"GF_AUTH_ANONYMOUS_ENABLED","value":"false"}],"image":"grafana/grafana:11.3.2","name":"grafana","ports":[{"containerPort":3000,"name":"http"}],"resources":{"limits":{"cpu":"500m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}},"volumeMounts":[{"mountPath":"/var/lib/grafana","name":"grafana-storage"},{"mountPath":"/etc/grafana/provisioning/datasources","name":"datasources"},{"mountPath":"/etc/grafana/provisioning/dashboards","name":"dashboards-config"},{"mountPath":"/var/lib/grafana/dashboards","name":"dashboards"}]}],"volumes":[{"emptyDir":{},"name":"grafana-storage"},{"configMap":{"name":"grafana-datasources"},"name":"datasources"},{"configMap":{"name":"grafana-dashboard-config"},"name":"dashboards-config"},{"configMap":{"name":"grafana-dashboards"},"name":"dashboards"}]}}}}
+    creationTimestamp: "2025-11-03T16:54:18Z"
+    generation: 1
+    name: grafana
+    namespace: monitoring
+    resourceVersion: "1997675"
+    uid: 6dcd0295-273d-488a-abae-1e17beb01e9a
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: grafana
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: grafana
+      spec:
+        containers:
+        - env:
+          - name: GF_SECURITY_ADMIN_USER
+            value: admin
+          - name: GF_SECURITY_ADMIN_PASSWORD
+            value: autolytiq2024
+          - name: GF_USERS_ALLOW_SIGN_UP
+            value: "false"
+          - name: GF_SERVER_ROOT_URL
+            value: https://grafana.autolytiq.com
+          - name: GF_AUTH_ANONYMOUS_ENABLED
+            value: "false"
+          image: grafana/grafana:11.3.2
+          imagePullPolicy: IfNotPresent
+          name: grafana
+          ports:
+          - containerPort: 3000
+            name: http
+            protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/grafana
+            name: grafana-storage
+          - mountPath: /etc/grafana/provisioning/datasources
+            name: datasources
+          - mountPath: /etc/grafana/provisioning/dashboards
+            name: dashboards-config
+          - mountPath: /var/lib/grafana/dashboards
+            name: dashboards
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - emptyDir: {}
+          name: grafana-storage
+        - configMap:
+            defaultMode: 420
+            name: grafana-datasources
+          name: datasources
+        - configMap:
+            defaultMode: 420
+            name: grafana-dashboard-config
+          name: dashboards-config
+        - configMap:
+            defaultMode: 420
+            name: grafana-dashboards
+          name: dashboards
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2025-11-03T16:54:31Z"
+      lastUpdateTime: "2025-11-03T16:54:31Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2025-11-03T16:54:18Z"
+      lastUpdateTime: "2025-11-03T16:54:31Z"
+      message: ReplicaSet "grafana-85599f895d" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    annotations:
+      deployment.kubernetes.io/desired-replicas: "1"
+      deployment.kubernetes.io/max-replicas: "2"
+      deployment.kubernetes.io/revision: "1"
+    creationTimestamp: "2025-11-03T16:54:18Z"
+    generation: 1
+    labels:
+      app: grafana
+      pod-template-hash: 85599f895d
+    name: grafana-85599f895d
+    namespace: monitoring
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: grafana
+      uid: 6dcd0295-273d-488a-abae-1e17beb01e9a
+    resourceVersion: "1997674"
+    uid: b8722c87-c30c-4ea0-89fc-3b6e039eaeb0
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: grafana
+        pod-template-hash: 85599f895d
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: grafana
+          pod-template-hash: 85599f895d
+      spec:
+        containers:
+        - env:
+          - name: GF_SECURITY_ADMIN_USER
+            value: admin
+          - name: GF_SECURITY_ADMIN_PASSWORD
+            value: autolytiq2024
+          - name: GF_USERS_ALLOW_SIGN_UP
+            value: "false"
+          - name: GF_SERVER_ROOT_URL
+            value: https://grafana.autolytiq.com
+          - name: GF_AUTH_ANONYMOUS_ENABLED
+            value: "false"
+          image: grafana/grafana:11.3.2
+          imagePullPolicy: IfNotPresent
+          name: grafana
+          ports:
+          - containerPort: 3000
+            name: http
+            protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/grafana
+            name: grafana-storage
+          - mountPath: /etc/grafana/provisioning/datasources
+            name: datasources
+          - mountPath: /etc/grafana/provisioning/dashboards
+            name: dashboards-config
+          - mountPath: /var/lib/grafana/dashboards
+            name: dashboards
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - emptyDir: {}
+          name: grafana-storage
+        - configMap:
+            defaultMode: 420
+            name: grafana-datasources
+          name: datasources
+        - configMap:
+            defaultMode: 420
+            name: grafana-dashboard-config
+          name: dashboards-config
+        - configMap:
+            defaultMode: 420
+            name: grafana-dashboards
+          name: dashboards
+  status:
+    availableReplicas: 1
+    fullyLabeledReplicas: 1
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+- apiVersion: apps/v1
+  kind: StatefulSet
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"StatefulSet","metadata":{"annotations":{},"name":"prometheus","namespace":"monitoring"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"prometheus"}},"serviceName":"prometheus","template":{"metadata":{"labels":{"app":"prometheus"}},"spec":{"containers":[{"args":["--config.file=/etc/prometheus/prometheus.yml","--storage.tsdb.path=/prometheus","--storage.tsdb.retention.time=7d","--storage.tsdb.retention.size=8GB","--web.enable-lifecycle","--storage.tsdb.min-block-duration=2h","--storage.tsdb.max-block-duration=2h"],"image":"prom/prometheus:v2.55.0","name":"prometheus","ports":[{"containerPort":9090,"name":"http"}],"resources":{"limits":{"cpu":"1000m","memory":"768Mi"},"requests":{"cpu":"200m","memory":"256Mi"}},"volumeMounts":[{"mountPath":"/etc/prometheus","name":"config"},{"mountPath":"/prometheus","name":"storage"}]}],"securityContext":{"fsGroup":65534,"runAsGroup":65534,"runAsUser":65534},"serviceAccountName":"prometheus","volumes":[{"configMap":{"name":"prometheus-config"},"name":"config"}]}},"volumeClaimTemplates":[{"metadata":{"name":"storage"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"10Gi"}},"storageClassName":"do-block-storage"}}]}}
+    creationTimestamp: "2025-11-03T16:57:42Z"
+    generation: 1
+    name: prometheus
+    namespace: monitoring
+    resourceVersion: "1998678"
+    uid: 035abf2d-6558-42f5-bcdd-bd59416719d0
+  spec:
+    persistentVolumeClaimRetentionPolicy:
+      whenDeleted: Retain
+      whenScaled: Retain
+    podManagementPolicy: OrderedReady
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: prometheus
+    serviceName: prometheus
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: prometheus
+      spec:
+        containers:
+        - args:
+          - --config.file=/etc/prometheus/prometheus.yml
+          - --storage.tsdb.path=/prometheus
+          - --storage.tsdb.retention.time=7d
+          - --storage.tsdb.retention.size=8GB
+          - --web.enable-lifecycle
+          - --storage.tsdb.min-block-duration=2h
+          - --storage.tsdb.max-block-duration=2h
+          image: prom/prometheus:v2.55.0
+          imagePullPolicy: IfNotPresent
+          name: prometheus
+          ports:
+          - containerPort: 9090
+            name: http
+            protocol: TCP
+          resources:
+            limits:
+              cpu: "1"
+              memory: 768Mi
+            requests:
+              cpu: 200m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /etc/prometheus
+            name: config
+          - mountPath: /prometheus
+            name: storage
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 65534
+          runAsGroup: 65534
+          runAsUser: 65534
+        serviceAccount: prometheus
+        serviceAccountName: prometheus
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - configMap:
+            defaultMode: 420
+            name: prometheus-config
+          name: config
+    updateStrategy:
+      rollingUpdate:
+        partition: 0
+      type: RollingUpdate
+    volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        creationTimestamp: null
+        name: storage
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: do-block-storage
+        volumeMode: Filesystem
+      status:
+        phase: Pending
+  status:
+    availableReplicas: 1
+    collisionCount: 0
+    currentReplicas: 1
+    currentRevision: prometheus-69bc6f4586
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+    updateRevision: prometheus-69bc6f4586
+    updatedReplicas: 1
+- apiVersion: v1
+  data:
+    dashboards.yaml: |
+      apiVersion: 1
+      providers:
+        - name: 'default'
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUiUpdates: true
+          options:
+            path: /var/lib/grafana/dashboards
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"dashboards.yaml":"apiVersion: 1\nproviders:\n  - name: 'default'\n    orgId: 1\n    folder: ''\n    type: file\n    disableDeletion: false\n    updateIntervalSeconds: 10\n    allowUiUpdates: true\n    options:\n      path: /var/lib/grafana/dashboards\n"},"kind":"ConfigMap","metadata":{"annotations":{},"name":"grafana-dashboard-config","namespace":"monitoring"}}
+    creationTimestamp: "2025-10-31T20:41:04Z"
+    name: grafana-dashboard-config
+    namespace: monitoring
+    resourceVersion: "975759"
+    uid: a574040f-50ad-4103-bcc2-f24ec90b24a9
+- apiVersion: v1
+  data:
+    autolytiq-overview.json: |
+      {
+        "dashboard": {
+          "id": null,
+          "title": "AutolytiQ Overview",
+          "tags": ["autolytiq"],
+          "timezone": "browser",
+          "schemaVersion": 16,
+          "version": 0,
+          "panels": [
+            {
+              "id": 1,
+              "title": "Pod CPU Usage",
+              "type": "graph",
+              "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+              "targets": [
+                {
+                  "expr": "rate(container_cpu_usage_seconds_total{namespace=\"autolytiq-prod\"}[5m])",
+                  "legendFormat": "{{pod}}"
+                }
+              ]
+            },
+            {
+              "id": 2,
+              "title": "Pod Memory Usage",
+              "type": "graph",
+              "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+              "targets": [
+                {
+                  "expr": "container_memory_usage_bytes{namespace=\"autolytiq-prod\"}",
+                  "legendFormat": "{{pod}}"
+                }
+              ]
+            },
+            {
+              "id": 3,
+              "title": "HTTP Request Rate",
+              "type": "graph",
+              "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+              "targets": [
+                {
+                  "expr": "rate(http_requests_total{namespace=\"autolytiq-prod\"}[5m])",
+                  "legendFormat": "{{service}}"
+                }
+              ]
+            },
+            {
+              "id": 4,
+              "title": "Response Time (p95)",
+              "type": "graph",
+              "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+              "targets": [
+                {
+                  "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{namespace=\"autolytiq-prod\"}[5m]))",
+                  "legendFormat": "{{service}}"
+                }
+              ]
+            }
+          ]
+        }
+      }
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"autolytiq-overview.json":"{\n  \"dashboard\": {\n    \"id\": null,\n    \"title\": \"AutolytiQ Overview\",\n    \"tags\": [\"autolytiq\"],\n    \"timezone\": \"browser\",\n    \"schemaVersion\": 16,\n    \"version\": 0,\n    \"panels\": [\n      {\n        \"id\": 1,\n        \"title\": \"Pod CPU Usage\",\n        \"type\": \"graph\",\n        \"gridPos\": {\"x\": 0, \"y\": 0, \"w\": 12, \"h\": 8},\n        \"targets\": [\n          {\n            \"expr\": \"rate(container_cpu_usage_seconds_total{namespace=\\\"autolytiq-prod\\\"}[5m])\",\n            \"legendFormat\": \"{{pod}}\"\n          }\n        ]\n      },\n      {\n        \"id\": 2,\n        \"title\": \"Pod Memory Usage\",\n        \"type\": \"graph\",\n        \"gridPos\": {\"x\": 12, \"y\": 0, \"w\": 12, \"h\": 8},\n        \"targets\": [\n          {\n            \"expr\": \"container_memory_usage_bytes{namespace=\\\"autolytiq-prod\\\"}\",\n            \"legendFormat\": \"{{pod}}\"\n          }\n        ]\n      },\n      {\n        \"id\": 3,\n        \"title\": \"HTTP Request Rate\",\n        \"type\": \"graph\",\n        \"gridPos\": {\"x\": 0, \"y\": 8, \"w\": 12, \"h\": 8},\n        \"targets\": [\n          {\n            \"expr\": \"rate(http_requests_total{namespace=\\\"autolytiq-prod\\\"}[5m])\",\n            \"legendFormat\": \"{{service}}\"\n          }\n        ]\n      },\n      {\n        \"id\": 4,\n        \"title\": \"Response Time (p95)\",\n        \"type\": \"graph\",\n        \"gridPos\": {\"x\": 12, \"y\": 8, \"w\": 12, \"h\": 8},\n        \"targets\": [\n          {\n            \"expr\": \"histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{namespace=\\\"autolytiq-prod\\\"}[5m]))\",\n            \"legendFormat\": \"{{service}}\"\n          }\n        ]\n      }\n    ]\n  }\n}\n"},"kind":"ConfigMap","metadata":{"annotations":{},"name":"grafana-dashboards","namespace":"monitoring"}}
+    creationTimestamp: "2025-10-31T20:41:04Z"
+    name: grafana-dashboards
+    namespace: monitoring
+    resourceVersion: "975756"
+    uid: ca027cf8-70e1-4e16-a8d9-d1fec831c083
+- apiVersion: v1
+  data:
+    prometheus.yaml: |
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://prometheus:9090
+          isDefault: true
+          editable: true
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"prometheus.yaml":"apiVersion: 1\ndatasources:\n  - name: Prometheus\n    type: prometheus\n    access: proxy\n    url: http://prometheus:9090\n    isDefault: true\n    editable: true\n"},"kind":"ConfigMap","metadata":{"annotations":{},"name":"grafana-datasources","namespace":"monitoring"}}
+    creationTimestamp: "2025-10-31T20:41:04Z"
+    name: grafana-datasources
+    namespace: monitoring
+    resourceVersion: "975755"
+    uid: f8fe4305-4d72-4548-b35b-81208c736d8c
+- apiVersion: v1
+  data:
+    ca.crt: |
+      -----BEGIN CERTIFICATE-----
+      MIIDJzCCAg+gAwIBAgICBnUwDQYJKoZIhvcNAQELBQAwMzEVMBMGA1UEChMMRGln
+      aXRhbE9jZWFuMRowGAYDVQQDExFrOHNhYXMgQ2x1c3RlciBDQTAeFw0yNTEwMjgy
+      MjExMDlaFw00NTEwMjgyMjExMDlaMDMxFTATBgNVBAoTDERpZ2l0YWxPY2VhbjEa
+      MBgGA1UEAxMRazhzYWFzIENsdXN0ZXIgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IB
+      DwAwggEKAoIBAQC1F6WQwu/o0+edGi5QJ/4MrKYIjW4kS+VMwBWX2E5Kz4v7yqts
+      ceHmTa90FYQk1M8PMCJWA32yN7Z/X6zWPz9Dzf59q8zUKzjyfytVsf726ko8i944
+      jakX+rGL/x+pIiPl4hVIEBT5eoN9wNyqlOklMeO5lqNy2q+ii4TRKkP1+o+J0EOF
+      uUpIW8uaMFLRllP93cJfXDq1ALimHRcFb7nUGJq9LDMM+6ZjD0+1p3a6tYSTG5Oj
+      U2s3DHKkbw/9XDdMWnFSsz2Qcc4BH8M+Xf5roZ7zhGebkoREdreSnUcQlb1zFDkO
+      Yczu5FfQAGHy/BfNrvxPTA3iSYmvVw8sagIJAgMBAAGjRTBDMA4GA1UdDwEB/wQE
+      AwIBhjASBgNVHRMBAf8ECDAGAQH/AgEAMB0GA1UdDgQWBBQTIHYlhbWOdM3uySZk
+      o+FeY8RUcTANBgkqhkiG9w0BAQsFAAOCAQEAjhGsHw7QzuwefTiUnHVzwixZu3/I
+      DWWAI3F2quW2G8Fhu/QOyhBQQLqNpIsRnLuXpzZUwLxcYPdjPSakiPM0QzmGA8zF
+      N+Q6tT7Cbpq6MC85+SjX34LVgZvWZQAKY7wc/jouhsR9JU7s+bKOnmPJ3/jTOAKH
+      umRg46NsYY1phlM5Gfz8zBaiEak3ASojrZmKvpsq8VuyKn7dxPsxTi3En84bEQz4
+      UolqcPXGESqyiJkyqOeJr/KgV/vVhjbXe//Fse6z4xhrNWSTlFRfm0LWD2A2d0H/
+      s6vT/zS4E36NTCLaGqZDf/RyI/2+Zc7qSHQWjZh+Er2QfqcEg2RCqcIjeQ==
+      -----END CERTIFICATE-----
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubernetes.io/description: Contains a CA bundle that can be used to verify the
+        kube-apiserver when using internal endpoints such as the internal service
+        IP or kubernetes.default.svc. No other usage is guaranteed across distributions
+        of Kubernetes clusters.
+    creationTimestamp: "2025-10-31T20:40:52Z"
+    name: kube-root-ca.crt
+    namespace: monitoring
+    resourceVersion: "975673"
+    uid: 065fcbc4-3676-4ed8-b7b7-c7287368b093
+- apiVersion: v1
+  data:
+    prometheus.yml: |
+      global:
+        scrape_interval: 15s
+        evaluation_interval: 15s
+        external_labels:
+          cluster: 'autolytiq-prod'
+          environment: 'production'
+
+      scrape_configs:
+        # Kubernetes API server
+        - job_name: 'kubernetes-apiservers'
+          kubernetes_sd_configs:
+            - role: endpoints
+          scheme: https
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+              action: keep
+              regex: default;kubernetes;https
+
+        # Kubernetes nodes
+        - job_name: 'kubernetes-nodes'
+          kubernetes_sd_configs:
+            - role: node
+          scheme: https
+          tls_config:
+            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+          relabel_configs:
+            - action: labelmap
+              regex: __meta_kubernetes_node_label_(.+)
+
+        # Kubernetes pods
+        - job_name: 'kubernetes-pods'
+          kubernetes_sd_configs:
+            - role: pod
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+              action: keep
+              regex: true
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+              action: replace
+              target_label: __metrics_path__
+              regex: (.+)
+            - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+              action: replace
+              regex: ([^:]+)(?::\d+)?;(\d+)
+              replacement: $1:$2
+              target_label: __address__
+            - action: labelmap
+              regex: __meta_kubernetes_pod_label_(.+)
+            - source_labels: [__meta_kubernetes_namespace]
+              action: replace
+              target_label: kubernetes_namespace
+            - source_labels: [__meta_kubernetes_pod_name]
+              action: replace
+              target_label: kubernetes_pod_name
+
+        # Autolytiq services
+        - job_name: 'autolytiq-backend'
+          kubernetes_sd_configs:
+            - role: pod
+              namespaces:
+                names: ['autolytiq-prod']
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+              action: keep
+              regex: backend
+            - source_labels: [__meta_kubernetes_pod_ip]
+              target_label: __address__
+              replacement: $1:5000
+
+        - job_name: 'autolytiq-ml-service'
+          kubernetes_sd_configs:
+            - role: pod
+              namespaces:
+                names: ['autolytiq-prod']
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+              action: keep
+              regex: ml-service
+            - source_labels: [__meta_kubernetes_pod_ip]
+              target_label: __address__
+              replacement: $1:8000
+
+        - job_name: 'nginx-ingress'
+          kubernetes_sd_configs:
+            - role: pod
+              namespaces:
+                names: ['ingress-nginx']
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+              action: keep
+              regex: ingress-nginx
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"prometheus.yml":"global:\n  scrape_interval: 15s\n  evaluation_interval: 15s\n  external_labels:\n    cluster: 'autolytiq-prod'\n    environment: 'production'\n\nscrape_configs:\n  # Kubernetes API server\n  - job_name: 'kubernetes-apiservers'\n    kubernetes_sd_configs:\n      - role: endpoints\n    scheme: https\n    tls_config:\n      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\n    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token\n    relabel_configs:\n      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]\n        action: keep\n        regex: default;kubernetes;https\n\n  # Kubernetes nodes\n  - job_name: 'kubernetes-nodes'\n    kubernetes_sd_configs:\n      - role: node\n    scheme: https\n    tls_config:\n      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\n    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token\n    relabel_configs:\n      - action: labelmap\n        regex: __meta_kubernetes_node_label_(.+)\n\n  # Kubernetes pods\n  - job_name: 'kubernetes-pods'\n    kubernetes_sd_configs:\n      - role: pod\n    relabel_configs:\n      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]\n        action: keep\n        regex: true\n      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]\n        action: replace\n        target_label: __metrics_path__\n        regex: (.+)\n      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]\n        action: replace\n        regex: ([^:]+)(?::\\d+)?;(\\d+)\n        replacement: $1:$2\n        target_label: __address__\n      - action: labelmap\n        regex: __meta_kubernetes_pod_label_(.+)\n      - source_labels: [__meta_kubernetes_namespace]\n        action: replace\n        target_label: kubernetes_namespace\n      - source_labels: [__meta_kubernetes_pod_name]\n        action: replace\n        target_label: kubernetes_pod_name\n\n  # Autolytiq services\n  - job_name: 'autolytiq-backend'\n    kubernetes_sd_configs:\n      - role: pod\n        namespaces:\n          names: ['autolytiq-prod']\n    relabel_configs:\n      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]\n        action: keep\n        regex: backend\n      - source_labels: [__meta_kubernetes_pod_ip]\n        target_label: __address__\n        replacement: $1:5000\n\n  - job_name: 'autolytiq-ml-service'\n    kubernetes_sd_configs:\n      - role: pod\n        namespaces:\n          names: ['autolytiq-prod']\n    relabel_configs:\n      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]\n        action: keep\n        regex: ml-service\n      - source_labels: [__meta_kubernetes_pod_ip]\n        target_label: __address__\n        replacement: $1:8000\n\n  - job_name: 'nginx-ingress'\n    kubernetes_sd_configs:\n      - role: pod\n        namespaces:\n          names: ['ingress-nginx']\n    relabel_configs:\n      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]\n        action: keep\n        regex: ingress-nginx\n"},"kind":"ConfigMap","metadata":{"annotations":{},"name":"prometheus-config","namespace":"monitoring"}}
+    creationTimestamp: "2025-10-31T20:40:52Z"
+    name: prometheus-config
+    namespace: monitoring
+    resourceVersion: "975678"
+    uid: d31580e6-0d92-436d-b2bb-86f100dfabfd
+- apiVersion: v1
+  data:
+    .dockerconfigjson: eyJhdXRocyI6eyJyZWdpc3RyeS5kaWdpdGFsb2NlYW4uY29tIjp7ImF1dGgiOiJaRzl2WDNZeFh6a3lOalE0WTJFMk56UmxOMlV3WVdJMFlUWXpNekF6TmpjMU5EWmxNVEV5T1dReE9XVXlNalV5WkRVME1Ea3pPR00xTURFNVpEZGhNelZtWXpKak5XVTZaRzl2WDNZeFh6a3lOalE0WTJFMk56UmxOMlV3WVdJMFlUWXpNekF6TmpjMU5EWmxNVEV5T1dReE9XVXlNalV5WkRVME1Ea3pPR00xTURFNVpEZGhNelZtWXpKak5XVT0ifX19
+  kind: Secret
+  metadata:
+    creationTimestamp: "2025-10-31T20:40:52Z"
+    labels:
+      digitalocean.com/copy-identifier: autolytiq
+    name: autolytiq
+    namespace: monitoring
+    resourceVersion: "975671"
+    uid: 7dd6a6ab-d6f5-47e9-bd18-a349dac0c13e
+  type: kubernetes.io/dockerconfigjson
+- apiVersion: v1
+  data:
+    tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktnd2dnU2tBZ0VBQW9JQkFRQ3lKSk9MSGFOUFVYTFQKMFpLMUF3aGg4VkVPM2xLZmRTWkV1TU9zWU0rUXhtakRMK25jc3MrNXIrVnQ3Rzd0NUNaT2NkczZraWpESmtkZApHalo3UlFDV2ZkakVVeDdZSlF6U1FGVkxTRlYwSlRFbkxWYWN6N3FGYWZZSThWUDhMMWpWd2pBQUpUcnVUNzRTCk5oUXgrZFVrdGZBeFN4WTJUZUYvcEY5dDdwM2VuVUlRTGlXY3pCRTlnbklacVJCcWVxODRuNjg5QmlDSXN3eHcKREJWY05GTUl0SG4xZlFIRTdtNzNHWStYVXB1NGVYa0xzSjlpeXdRZkFjbWRZazZqUHN1WjZJTW96Z1V1NVcyVgpRTENDN0I1UXZhckI1ZmVhNEhmTVlkd1llWlNOSEcrQnF3d2lkNE94MmZudGFiK1JzQnRFWWVvenRlSmg4K3h2CnBBV2Zxc0l6QWdNQkFBRUNnZ0VBR1hRSWNOUW5SV29KMGlJYnFDbHF4VFBKdFNvbS9BbXRFaHlrT0xrTWIwOHEKSU5senZNai96VFJJdjlBTWVZa2p3QW1jblYzTTNUVlc5UUtOemtjcHNsY0E1ZXhLZCsrelNVZFA2SlhKUC9NZwpkc3lQbDVCR3dsRkZpam1SR25OWmFoRjQ4a3hmZ3pWNW52aURJakRrTjM2WGR6T1hWT01EMlUwUEpaSDJsSnYrCmdCMnpBcEhnRnVBcmFkTFQvR2lndFhyNEk2azJaTnJtK21UYm43ckRCMVp4dmFCWXhzaFNlZTc2bVFLY3FTL2kKRmxsaW5OVlJLbnMvWm1WYnBoS3ppQ2FJK2FOWjB1TjZtTkRhZ0x2VXZvTmhTdytxOTBWbXNsRGN1WmFhdEozLwprSTFQUzlYMW1YL0VMb1k5c2pkOGJFRTZTT2lUMzFGQ3VWb0FraTRrWVFLQmdRRExvZ3VDZ3d2T251d3pSMHRMCnhjS2lVSTR0Nitid1p4eXVmKzR3Vk9renFSUDU5S1FmZVVVc2RsMmpqYjJYa0lQVU5hMVdkVmlLNEdINHRaL0EKYStZRndFeUVnYkM3emErbXRQNVBIWU1NRDRCZ25JeG1VTzFlQS93M01tN0xrN3QySlEwbEZZbzVOdmxnN29wNQprSiswdC9NWHBIc0krNzlOMHNBN1BwcUt0UUtCZ1FEZjlHcngxQzFTNUpFbkNZZCtCVjg1UHp1c0FMVitzMjUwCitmYVV2dkhRUUtPa1RxYWYxTjhqS21uSUsxYjNYZmROMW5iMHhkelNROXlzNGZHRnM3cCtDUU5ON2krc1NPWE0KT2ZJRjdwWk55Z29CNTZXN2gyV21vOFp6RXpsY3UrYnR6MDVuMXQ4SkdidVc5dTZ2dk9kUi96WGpjM3djMzhiOQpkaWlGc3dGaVJ3S0JnUUNQaU5wYUZXc1dLbmxOcjl4SVBjNXl3UnRuRFJoTXJqSE9Zb2lQY3RxcU9tekZUSWIvClZHakk3V29WcGd4VXNGM3NFQ1h0Z210MkFMR3VNTCs1VDVUa3l1WmtwRkhpSHhySUJGNFpnRERtS0dzU0xtYmMKbkFDa3UyUmx0OXZYRFh3ZXpBRVcrYmJqbTNkdXR0WE8ySDFxVWhzOHVBaXRqVjRNU2hpTDZoWGUzUUtCZ1FDVApFdkcwdE5HN0VVM2Q1QjB0L3BzbGZraFMwZmhmSjdrUGF5U3JWS1o3VENmcmZKZGllYXE4YmxzZjBJNkJUeDFjCjZjNGZPMTJrWEZxczBva0pkQm15TVhzUkQ2NFJKNko2TjBlZzY2bWJsbVp5RDgzQVZNL0YydUkxcWxkT2RqdlcKeXdERG90SEFLVDBQakVUOTlrRzNrTEcwR0tCV1dnTlZhdVo3dnkzV2V3S0JnQnZsa2pvQ256YllpV3dGUTNJUQpJMlh6elZTN2FxeGVEQnFBdDRkSnoxeVBVY0JQRm9CQ0srMG5lbmx2cGxDMUFSZ3RNelVia3RzYkQ3ZWlBUlE1ClFYNkxlY290T24xZlI4ek85VmdDdmd1cno5TWpjZEFaUU03alBRWUxReWhtOWxuOVFWM01xeDg5M2srazFhRkIKNUR0TEFRTnkzU242aFYva1Aza25IOXZ2Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K
+  kind: Secret
+  metadata:
+    creationTimestamp: "2025-10-31T20:41:05Z"
+    generateName: grafana-tls-
+    labels:
+      cert-manager.io/next-private-key: "true"
+      controller.cert-manager.io/fao: "true"
+    name: grafana-tls-crdl9
+    namespace: monitoring
+    ownerReferences:
+    - apiVersion: cert-manager.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Certificate
+      name: grafana-tls
+      uid: 98921c87-10a0-477e-ad0a-75999272de45
+    resourceVersion: "975783"
+    uid: e96cc9d5-befe-4050-954a-ffe0a8afd847
+  type: Opaque
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: dobs.csi.digitalocean.com
+      volume.kubernetes.io/storage-provisioner: dobs.csi.digitalocean.com
+    creationTimestamp: "2025-11-03T16:57:42Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      app: prometheus
+    name: storage-prometheus-0
+    namespace: monitoring
+    resourceVersion: "1998627"
+    uid: dec28de0-4fb9-4516-8a09-560dab94d995
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+    storageClassName: do-block-storage
+    volumeMode: Filesystem
+    volumeName: pvc-dec28de0-4fb9-4516-8a09-560dab94d995
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 10Gi
+    phase: Bound
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/whitelist-source-range: 0.0.0.0/0,::/0
+    creationTimestamp: "2025-10-31T20:41:06Z"
+    generateName: cm-acme-http-solver-
+    generation: 1
+    labels:
+      acme.cert-manager.io/http-domain: "1537542232"
+      acme.cert-manager.io/http-token: "1330515750"
+      acme.cert-manager.io/http01-solver: "true"
+    name: cm-acme-http-solver-j8q7d
+    namespace: monitoring
+    ownerReferences:
+    - apiVersion: acme.cert-manager.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Challenge
+      name: grafana-tls-1-1061170995-1962193996
+      uid: 3dbf1843-b57b-4dd1-92a5-295d5cb4ceb9
+    resourceVersion: "975905"
+    uid: 16508a6f-8230-47fc-859a-5329690b50c9
+  spec:
+    rules:
+    - host: grafana.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: cm-acme-http-solver-82p6f
+              port:
+                number: 8089
+          path: /.well-known/acme-challenge/pHetD7ElX_lmojSqZt2TPPPg7uTUk_8CpSHq4DYvxrI
+          pathType: Exact
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 45.55.98.200
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/force-ssl-redirect":"true"},"name":"grafana-ingress","namespace":"monitoring"},"spec":{"ingressClassName":"nginx","rules":[{"host":"grafana.autolytiq.com","http":{"paths":[{"backend":{"service":{"name":"grafana","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["grafana.autolytiq.com"],"secretName":"grafana-tls"}]}}
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    creationTimestamp: "2025-10-31T20:41:04Z"
+    generation: 1
+    name: grafana-ingress
+    namespace: monitoring
+    resourceVersion: "975904"
+    uid: 3bd6b33c-31b4-4ec0-bcce-da7314a6f8cf
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: grafana.autolytiq.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: grafana
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - grafana.autolytiq.com
+      secretName: grafana-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 45.55.98.200
+kind: List
+metadata:
+  resourceVersion: ""
