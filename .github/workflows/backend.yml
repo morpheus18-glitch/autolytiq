@@ -72,4 +72,4 @@ jobs:
             infrastructure/k8s/production/backend-deployment.yaml | \
             kubectl apply -n ${{ env.NAMESPACE }} -f -
       - name: Wait for rollout
-        run: kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }} --timeout=180s
+        run: kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }} --timeout=600s
