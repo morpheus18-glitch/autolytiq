@@ -3,9 +3,13 @@
  *
  * Global state management for Deal Studio
  * Handles deal structure, calculations, and AI recommendations
+ * Integrated with Rust pricing service and payment lock
  */
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import { useDealCalculation } from '@/hooks/useDealCalculation';
+import { useAutoAdjustPaymentLock } from '@/hooks/usePaymentLock';
+import { useLivePricing } from '@/hooks/useLivePricing';
 
 // Deal Structure Interface
 export interface DealStructure {
@@ -117,32 +121,60 @@ export function DealStudioProvider({ children, initialDeal }: DealStudioProvider
     ...initialDeal,
   });
 
-  // Payment Lock State
-  const [paymentLocked, setPaymentLocked] = useState(false);
-  const [lockedPayment, setLockedPaymentState] = useState<number | null>(null);
-
-  // Calculation State
-  const [isCalculating, setIsCalculating] = useState(false);
-  const [payment, setPayment] = useState<PaymentCalculation | null>(null);
-  const [profit, setProfit] = useState<ProfitBreakdown | null>(null);
-
   // UI State
   const [dossierCollapsed, setDossierCollapsed] = useState(false);
   const [aiExpanded, setAIExpanded] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
+  // Use Rust-powered calculation hook
+  const {
+    payment,
+    isCalculating,
+    error: calculationError,
+    clearCache,
+    lastCalculationTime,
+  } = useDealCalculation(deal, {
+    debounceMs: 50,
+    autoCalculate: true,
+    enableCache: true,
+  });
+
+  // Use payment lock hook with auto-adjustment
+  const paymentLock = useAutoAdjustPaymentLock(deal, {
+    minPrice: deal.vehicleCost,
+    maxPrice: deal.vehiclePrice * 1.5,
+    onPriceAdjust: (newPrice) => {
+      // Auto-adjust sale price when payment is locked
+      setDeal((prev) => ({ ...prev, salePrice: newPrice }));
+    },
+    onInfeasible: (reason) => {
+      console.warn('Payment lock infeasible:', reason);
+    },
+  });
+
+  // Use live pricing WebSocket
+  const livePricing = useLivePricing({
+    vehicleId: deal.vehicleId,
+    autoConnect: true,
+    onPricingUpdate: (update) => {
+      console.log('Live pricing update:', update);
+      // Could auto-update vehiclePrice here if desired
+    },
+    onRateUpdate: (update) => {
+      console.log('Live rate update:', update);
+      // Could auto-update apr here if desired
+    },
+  });
+
+  // Profit State (calculated from payment results)
+  const [profit, setProfit] = useState<ProfitBreakdown | null>(null);
+
   /**
    * Update deal structure
    */
   const updateDeal = useCallback((updates: Partial<DealStructure>) => {
-    setDeal((prev) => {
-      const newDeal = { ...prev, ...updates };
-
-      // Trigger calculation
-      calculatePayment(newDeal);
-
-      return newDeal;
-    });
+    setDeal((prev) => ({...prev, ...updates }));
+    // Calculation happens automatically via useDealCalculation hook
   }, []);
 
   /**
@@ -150,114 +182,70 @@ export function DealStudioProvider({ children, initialDeal }: DealStudioProvider
    */
   const resetDeal = useCallback(() => {
     setDeal(getDefaultDeal());
-    setPaymentLocked(false);
-    setLockedPaymentState(null);
-    setPayment(null);
+    paymentLock.unlockPayment();
     setProfit(null);
-  }, []);
+    clearCache();
+  }, [paymentLock, clearCache]);
 
   /**
    * Toggle payment lock
    */
   const togglePaymentLock = useCallback(() => {
-    if (!paymentLocked && payment) {
-      // Lock at current payment
-      setLockedPaymentState(payment.monthlyPayment);
-    } else {
-      // Unlock
-      setLockedPaymentState(null);
+    if (payment) {
+      paymentLock.toggleLock(payment.monthlyPayment);
     }
-    setPaymentLocked(!paymentLocked);
-  }, [paymentLocked, payment]);
+  }, [paymentLock, payment]);
 
   /**
    * Set specific locked payment amount
    */
   const setLockedPayment = useCallback((amount: number) => {
-    setLockedPaymentState(amount);
-    setPaymentLocked(true);
-  }, []);
+    paymentLock.lockPayment(amount);
+  }, [paymentLock]);
 
   /**
-   * Calculate payment and profit
-   * TODO: Replace with actual Rust service call
+   * Calculate profit when payment updates
+   * (Payment calculation is handled by Rust via useDealCalculation hook)
    */
-  const calculatePayment = useCallback((dealStructure: DealStructure) => {
-    setIsCalculating(true);
+  useEffect(() => {
+    if (!payment) {
+      setProfit(null);
+      return;
+    }
 
-    // Simulate async calculation (will be replaced with Rust gRPC call)
-    setTimeout(() => {
-      // Calculate net trade
-      const netTrade = dealStructure.tradeValue - dealStructure.tradePayoff;
+    // Calculate total F&I products
+    const totalFI =
+      deal.warranty +
+      deal.gap +
+      deal.maintenance +
+      deal.paintProtection;
 
-      // Calculate total F&I products
-      const totalFI =
-        dealStructure.warranty +
-        dealStructure.gap +
-        dealStructure.maintenance +
-        dealStructure.paintProtection;
+    // Calculate profit
+    const frontEndProfit = deal.salePrice - deal.vehicleCost;
 
-      // Calculate amount financed
-      const amountFinanced =
-        dealStructure.salePrice -
-        dealStructure.downPayment -
-        netTrade +
-        totalFI;
+    // Assume 30% margin on F&I products
+    const backEndProfit =
+      (deal.warranty * 0.3) +
+      (deal.gap * 0.3) +
+      (deal.maintenance * 0.3) +
+      (deal.paintProtection * 0.3);
 
-      // Calculate monthly payment (simple amortization)
-      const monthlyRate = dealStructure.apr / 100 / 12;
-      const numPayments = dealStructure.term;
+    const totalProfit = frontEndProfit + backEndProfit;
+    const vehicleMargin = deal.vehicleCost > 0
+      ? (frontEndProfit / deal.vehicleCost) * 100
+      : 0;
+    const fiMargin = totalFI > 0
+      ? (backEndProfit / totalFI) * 100
+      : 0;
 
-      let monthlyPayment = 0;
-      if (amountFinanced > 0 && monthlyRate > 0) {
-        monthlyPayment =
-          (amountFinanced * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
-          (Math.pow(1 + monthlyRate, numPayments) - 1);
-      } else if (amountFinanced > 0) {
-        monthlyPayment = amountFinanced / numPayments;
-      }
-
-      const totalInterest = monthlyPayment * numPayments - amountFinanced;
-      const totalCost = dealStructure.salePrice + totalInterest + totalFI;
-
-      // Calculate profit
-      const frontEndProfit = dealStructure.salePrice - dealStructure.vehicleCost;
-
-      // Assume 30% margin on F&I products
-      const backEndProfit =
-        (dealStructure.warranty * 0.3) +
-        (dealStructure.gap * 0.3) +
-        (dealStructure.maintenance * 0.3) +
-        (dealStructure.paintProtection * 0.3);
-
-      const totalProfit = frontEndProfit + backEndProfit;
-      const vehicleMargin = dealStructure.vehicleCost > 0
-        ? (frontEndProfit / dealStructure.vehicleCost) * 100
-        : 0;
-      const fiMargin = totalFI > 0
-        ? (backEndProfit / totalFI) * 100
-        : 0;
-
-      // Set results
-      setPayment({
-        monthlyPayment,
-        totalFinanced: amountFinanced,
-        totalInterest,
-        totalCost,
-        amountFinanced,
-      });
-
-      setProfit({
-        frontEndProfit,
-        backEndProfit,
-        totalProfit,
-        vehicleMargin,
-        fiMargin,
-      });
-
-      setIsCalculating(false);
-    }, 50); // 50ms delay to simulate calculation
-  }, []);
+    setProfit({
+      frontEndProfit,
+      backEndProfit,
+      totalProfit,
+      vehicleMargin,
+      fiMargin,
+    });
+  }, [payment, deal.salePrice, deal.vehicleCost, deal.warranty, deal.gap, deal.maintenance, deal.paintProtection]);
 
   /**
    * Toggle dossier panel
@@ -292,11 +280,11 @@ export function DealStudioProvider({ children, initialDeal }: DealStudioProvider
     deal,
     updateDeal,
     resetDeal,
-    paymentLocked,
-    lockedPayment,
+    paymentLocked: paymentLock.isLocked,
+    lockedPayment: paymentLock.lockedPayment,
     togglePaymentLock,
     setLockedPayment,
-    isCalculating,
+    isCalculating: isCalculating || paymentLock.isAdjusting,
     payment,
     profit,
     dossierCollapsed,
