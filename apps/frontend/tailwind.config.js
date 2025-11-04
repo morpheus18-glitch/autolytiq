@@ -82,37 +82,37 @@ const colors = {
 };
 
 const darkColors = {
-  background: designTokens.surface.dark.base,
+  background: '#1c1f2e',
   foreground: designTokens.colors.neutral[50],
   card: {
-    DEFAULT: designTokens.surface.dark.elevated,
-    foreground: designTokens.colors.neutral[100],
+    DEFAULT: '#262b3d',
+    foreground: designTokens.colors.neutral[50],
   },
   popover: {
-    DEFAULT: designTokens.surface.dark.elevated,
-    foreground: designTokens.colors.neutral[100],
+    DEFAULT: '#262b3d',
+    foreground: designTokens.colors.neutral[50],
   },
   muted: {
-    DEFAULT: designTokens.surface.dark.subtle,
+    DEFAULT: '#1f2433',
     foreground: designTokens.colors.neutral[300],
   },
   accent: {
-    DEFAULT: designTokens.colors.secondary[900],
-    foreground: designTokens.colors.secondary[100],
-  },
-  destructive: {
-    DEFAULT: designTokens.colors.error[700],
+    DEFAULT: '#7c3aed',
     foreground: designTokens.colors.neutral[50],
   },
-  border: designTokens.surface.dark.outline,
-  input: designTokens.surface.dark.outline,
+  destructive: {
+    DEFAULT: designTokens.colors.error[600],
+    foreground: designTokens.colors.neutral[50],
+  },
+  border: '#414862',
+  input: '#2e3548',
   ring: designTokens.colors.primary[500],
   surface: {
-    base: designTokens.surface.dark.base,
-    muted: designTokens.surface.dark.subtle,
-    strong: designTokens.surface.dark.elevated,
-    glass: 'rgba(15, 23, 42, 0.82)',
-    highlight: designTokens.surface.dark.glow,
+    base: '#1c1f2e',
+    muted: '#1f2433',
+    strong: '#262b3d',
+    glass: 'rgba(26, 31, 46, 0.85)',
+    highlight: '#2e3548',
   },
 };
 
