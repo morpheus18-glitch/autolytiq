@@ -92,7 +92,7 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
     id: 'desking',
     label: 'Desking Tools',
     icon: PencilLine,
-    path: '/desking',
+    path: '/desking/workspace',
     subItems: [
       { label: 'Initial Pencil', path: '/desking/initial-pencil', icon: PencilLine },
       { label: 'Desking Workspace', path: '/desking/workspace', icon: Briefcase },
@@ -150,31 +150,24 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
     id: 'finance',
     label: 'Finance & Insurance',
     icon: Shield,
-    path: '/finance',
+    path: '/misc/fi-dashboard',
     subItems: [
       {
         label: 'F&I Command Center',
-        path: '/finance',
+        path: '/misc/fi-dashboard',
         icon: Shield,
-        matchPaths: ['/fi-dashboard', '/fi/deal-jackets', '/fi/deals'],
+        matchPaths: ['/fi-dashboard', '/misc/fi-dashboard'],
       },
       {
-        label: 'Digital Deal Jackets',
-        path: '/fi/deal-jackets',
+        label: 'Deal Desk',
+        path: '/deals/deal-desk',
         icon: FileSignature,
-        matchPaths: ['/fi/deal-jackets', '/deals/deal-desk'],
+        matchPaths: ['/deals/deal-desk'],
       },
       {
         label: 'Lender Network',
         path: '/finance/lenders',
         icon: Handshake,
-        matchPaths: ['/fi/deals', '/fi/deals/:id/lenders'],
-      },
-      {
-        label: 'Lender Submissions',
-        path: '/fi/lender-submissions',
-        icon: ArrowUpDown,
-        matchPaths: ['/fi/submissions', '/finance/submissions'],
       },
       { label: 'Rate Sheets', path: '/finance/rates', icon: DollarSign },
       {
@@ -182,18 +175,7 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
         path: '/finance/compliance-manager',
         icon: ShieldCheck,
       },
-      {
-        label: 'Contracting',
-        path: '/fi/contracting',
-        icon: ClipboardCheck,
-        matchPaths: ['/fi/contracts', '/finance/contracts'],
-      },
       { label: 'Finance Reports', path: '/finance/reports', icon: BarChart3 },
-      {
-        label: 'F&I Dashboard',
-        path: '/misc/fi-dashboard',
-        icon: Shield,
-      },
       {
         label: 'F&I Configuration',
         path: '/misc/fi-configuration',
@@ -220,10 +202,10 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
     id: 'intelligence',
     label: 'Intelligence',
     icon: BarChart3,
-    path: '/analytics',
+    path: '/analytics/crm',
     subItems: [
-      { label: 'Performance Dashboard', path: '/analytics', icon: BarChart3 },
       { label: 'CRM Analytics', path: '/analytics/crm', icon: Users },
+      { label: 'Customer Lifecycle', path: '/analytics/customer-lifecycle', icon: Activity },
       { label: 'Market Intelligence', path: '/inventory/competitive-pricing', icon: TrendingUp },
       { label: 'ML Model Comparison', path: '/admin/ml-model-comparison', icon: Database }
     ]
@@ -343,17 +325,17 @@ export const MOBILE_PRIMARY_NAV_ITEMS: MobileNavItem[] = [
 
 export const MOBILE_ALL_NAV_ITEMS: MobileNavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home, color: 'text-blue-600', matchPaths: ['/', '/dashboard'] },
-  { name: 'Desking Tools', href: '/desking/workspace', icon: PencilLine, color: 'text-indigo-600', matchPaths: ['/desking'] },
+  { name: 'Desking Tools', href: '/desking/workspace', icon: PencilLine, color: 'text-indigo-600', matchPaths: ['/desking/'] },
   { name: 'Leads', href: '/leads/dashboard', icon: Users, color: 'text-sky-600', matchPaths: ['/leads'] },
   { name: 'Customers', href: '/customers', icon: Users, color: 'text-green-600' },
   { name: 'Inventory', href: '/inventory', icon: Car, color: 'text-purple-600' },
-  { name: 'Finance & Insurance', href: '/finance', icon: Shield, color: 'text-emerald-600', matchPaths: ['/finance', '/fi-dashboard'] },
+  { name: 'Finance & Insurance', href: '/misc/fi-dashboard', icon: Shield, color: 'text-emerald-600', matchPaths: ['/finance/', '/misc/fi-dashboard', '/misc/fi-configuration'] },
   { name: 'Accounting', href: '/accounting/dashboard', icon: Calculator, color: 'text-teal-600', matchPaths: ['/accounting/'] },
   { name: 'Deals', href: '/deals', icon: DollarSign, color: 'text-orange-600' },
   { name: 'Deal Desk', href: '/deals/deal-desk', icon: Briefcase, color: 'text-rose-600' },
   { name: 'Service', href: '/service/appointments', icon: Wrench, color: 'text-amber-600', matchPaths: ['/service/'] },
   { name: 'Communications', href: '/communications/center', icon: MessageSquare, color: 'text-cyan-600' },
-  { name: 'Analytics', href: '/analytics', icon: TrendingUp, color: 'text-pink-600' },
+  { name: 'Analytics', href: '/analytics/crm', icon: TrendingUp, color: 'text-pink-600', matchPaths: ['/analytics/'] },
   { name: 'Reports', href: '/reports/sales', icon: BarChart3, color: 'text-yellow-600', matchPaths: ['/reports/'] },
   { name: 'Settings', href: '/settings', icon: Settings, color: 'text-gray-600' },
   { name: 'Admin', href: '/admin/system-health', icon: Building, color: 'text-red-600', matchPaths: ['/admin/'] }
@@ -389,7 +371,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     label: 'F&I Dashboard',
     description: 'Manage finance & insurance',
     icon: Shield,
-    target: '/finance',
+    target: '/misc/fi-dashboard',
     accentClass: 'text-emerald-600'
   },
   {
@@ -409,7 +391,7 @@ export const MOBILE_QUICK_ACTIONS = [
   { label: 'Add Vehicle', href: '/inventory', icon: Car },
   { label: 'New Deal', href: '/deals', icon: Calculator },
   { label: 'Deal Desk', href: '/deals/deal-desk', icon: Briefcase },
-  { label: 'F&I Dashboard', href: '/finance', icon: Shield },
-  { label: 'Digital Deal Jackets', href: '/fi/deal-jackets', icon: FileSignature },
+  { label: 'F&I Dashboard', href: '/misc/fi-dashboard', icon: Shield },
+  { label: 'F&I Configuration', href: '/misc/fi-configuration', icon: Settings },
   { label: 'Service Appointment', href: '/service/appointments', icon: Wrench }
 ] as const;
