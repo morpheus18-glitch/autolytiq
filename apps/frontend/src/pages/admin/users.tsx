@@ -30,7 +30,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import UserForm from "@/components/admin/user-form";
+import UserForm from "@/components/admin/user-form.tsx";
 
 interface SystemUser {
   id: string;
