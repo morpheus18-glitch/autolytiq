@@ -14,11 +14,15 @@ WORKDIR /workspace
 # Prepare workspace manifests for targeted installs
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/tokens/package.json ./packages/tokens/
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/ui/package.json ./packages/ui/
 COPY apps/frontend/package.json ./apps/frontend/
 
 # Install workspace dependencies with dev tooling for builds
 RUN pnpm install \
     --filter @repo/tokens... \
+    --filter @repo/shared... \
+    --filter @repo/ui... \
     --filter @repo/frontend... \
     --frozen-lockfile \
     --prod=false
@@ -26,9 +30,10 @@ RUN pnpm install \
 # Copy full workspace
 COPY . .
 
-# Build shared packages before the frontend
+# Build workspace packages in dependency order before the frontend
 RUN pnpm --filter @repo/shared build
 RUN pnpm --filter @repo/tokens build
+RUN pnpm --filter @repo/ui build
 
 WORKDIR /workspace/apps/frontend
 ENV NODE_ENV=production
