@@ -6,6 +6,9 @@ const Dashboard = lazy(() => import('@/pages/dashboard'));
 const Settings = lazy(() => import('@/pages/settings'));
 const UserPermissions = lazy(() => import('@/pages/admin/user-permissions'));
 const RolePresets = lazy(() => import('@/pages/admin/role-presets'));
+const Customers = lazy(() => import('@/pages/customers'));
+const Inventory = lazy(() => import('@/pages/inventory'));
+const Deals = lazy(() => import('@/pages/deals'));
 
 interface RouteDefinition {
   path: string;
@@ -26,6 +29,9 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/settings/:tab?', component: Settings },
   { path: '/admin/user-permissions', component: UserPermissions },
   { path: '/admin/role-presets', component: RolePresets },
+  { path: '/customers', component: Customers },
+  { path: '/inventory', component: Inventory },
+  { path: '/deals', component: Deals },
 ];
 
 export const appRoutes: ResolvedRoute[] = routeDefinitions.flatMap((route) => {
