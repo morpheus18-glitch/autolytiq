@@ -41,10 +41,13 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: apps/frontend/Dockerfile
+          file: infrastructure/docker/Dockerfile.frontend
           push: true
           provenance: false
           sbom: false
+          build-args: |
+            VITE_API_URL=https://api.autolytiq.com
+            VITE_ML_SERVICE_URL=https://ml.autolytiq.com
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
@@ -79,4 +82,5 @@ jobs:
           sed "s|image:.*frontend:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
             infrastructure/k8s/production/frontend-deployment.yaml | \
             kubectl apply -n "$NAMESPACE" -f -
-          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n "$NAMESPACE" --timeout=180s
+      - name: Wait for rollout
+        run: kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n "$NAMESPACE" --timeout=180s
