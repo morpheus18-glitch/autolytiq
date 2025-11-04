@@ -7,8 +7,8 @@ on:
     paths:
       - 'apps/frontend/**'
       - 'packages/tokens/**'
-      - 'infrastructure/docker/Dockerfile.frontend'
-      - 'infrastructure/docker/nginx/**'
+      - 'apps/frontend/Dockerfile'
+      - 'apps/frontend/nginx.conf'
       - 'infrastructure/k8s/production/frontend-deployment.yaml'
       - '.github/workflows/frontend.yml'
   workflow_dispatch:
@@ -41,14 +41,11 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: infrastructure/docker/Dockerfile.frontend
+          file: apps/frontend/Dockerfile
           push: true
           provenance: false
           sbom: false
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          build-args: |
-            VITE_API_URL=https://api.autolytiq.com
-            VITE_ML_SERVICE_URL=https://ml.autolytiq.com
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
 

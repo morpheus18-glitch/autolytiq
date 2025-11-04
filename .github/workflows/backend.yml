@@ -29,7 +29,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: infrastructure/docker/Dockerfile.backend
+          file: apps/backend/Dockerfile
           push: true
           provenance: false
           sbom: false
