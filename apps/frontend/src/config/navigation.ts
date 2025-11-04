@@ -67,32 +67,34 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
     subItems: [
       { label: 'Vehicle Inventory', path: '/inventory', icon: Car },
       { label: 'Lot Management', path: '/inventory/lot-management', icon: Database },
-      { label: 'Pricing Insights', path: '/inventory/pricing', icon: TrendingUp }
+      { label: 'Pricing Insights', path: '/inventory/pricing', icon: TrendingUp },
+      { label: 'Trade Appraisals', path: '/inventory/trade-appraisals', icon: Car },
+      { label: 'Competitive Pricing', path: '/inventory/competitive-pricing', icon: TrendingUp }
     ]
   },
   {
     id: 'crm',
     label: 'CRM & Leads',
     icon: Users,
-    path: '/crm',
+    path: '/leads',
     subItems: [
-      { label: 'CRM Command Center', path: '/crm', icon: Users },
-      { label: 'Lead Pipeline', path: '/leads', icon: Handshake, matchPaths: ['/sales', '/leads'] },
-      { label: 'Market Lead Engine', path: '/market-leads', icon: Megaphone },
-      { label: 'Customer Records', path: '/customers', icon: Users }
+      { label: 'Lead Management', path: '/leads/management', icon: Users },
+      { label: 'Lead Dashboard', path: '/leads/dashboard', icon: Handshake },
+      { label: 'Market Leads', path: '/leads/market', icon: Megaphone },
+      { label: 'Customer Records', path: '/customers', icon: Users },
+      { label: 'Customer Detail', path: '/customers/detail', icon: User }
     ]
   },
   {
     id: 'sales',
     label: 'Sales Process',
     icon: DollarSign,
-    path: '/sales',
+    path: '/deals',
     subItems: [
-      { label: 'Active Deals', path: '/deals', icon: Calculator, badge: '3', matchPaths: ['/deals', '/deal-log', '/deal-pipeline', '/deals-list'] },
-      { label: 'Deal Desk', path: '/professional-deal-desk', icon: Calculator, matchPaths: ['/professional-deal-desk', '/deal-desk', '/deal-working', '/deals-finance', '/finance/structuring'] },
-      { label: 'Leads Pipeline', path: '/leads', icon: Users },
-      { label: 'Customer Management', path: '/customers', icon: Users },
-      { label: 'Trade Appraisals', path: '/trade-appraisals', icon: Car }
+      { label: 'Active Deals', path: '/deals', icon: Calculator, badge: '3' },
+      { label: 'Deal Desk', path: '/deals/deal-desk', icon: Calculator },
+      { label: 'Leads Pipeline', path: '/leads/dashboard', icon: Users },
+      { label: 'Customer Management', path: '/customers', icon: Users }
     ]
   },
   {
@@ -147,8 +149,9 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
     path: '/analytics',
     subItems: [
       { label: 'Performance Dashboard', path: '/analytics', icon: BarChart3 },
-      { label: 'Market Intelligence', path: '/competitive-pricing', icon: TrendingUp },
-      { label: 'Predictive Analytics', path: '/ml-model-comparison', icon: Database }
+      { label: 'CRM Analytics', path: '/analytics/crm', icon: Users },
+      { label: 'Market Intelligence', path: '/inventory/competitive-pricing', icon: TrendingUp },
+      { label: 'ML Model Comparison', path: '/admin/ml-model-comparison', icon: Database }
     ]
   },
   {
@@ -186,25 +189,18 @@ export const MOBILE_PRIMARY_NAV_ITEMS: MobileNavItem[] = [
 
 export const MOBILE_ALL_NAV_ITEMS: MobileNavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home, color: 'text-blue-600', matchPaths: ['/', '/dashboard'] },
-  { name: 'CRM & Leads', href: '/crm', icon: Users, color: 'text-sky-600', matchPaths: ['/crm'] },
-  { name: 'Sales & Leads', href: '/sales', icon: Handshake, color: 'text-indigo-600', matchPaths: ['/leads'] },
+  { name: 'Leads', href: '/leads/dashboard', icon: Users, color: 'text-sky-600', matchPaths: ['/leads'] },
   { name: 'Customers', href: '/customers', icon: Users, color: 'text-green-600' },
   { name: 'Inventory', href: '/inventory', icon: Car, color: 'text-purple-600' },
-  {
-    name: 'Finance & Insurance',
-    href: '/finance',
-    icon: Shield,
-    color: 'text-emerald-600',
-    matchPaths: ['/finance', '/fi-dashboard', '/fi/deals', '/finance/lenders', '/finance/rates', '/finance/compliance'],
-  },
+  { name: 'Finance & Insurance', href: '/finance', icon: Shield, color: 'text-emerald-600', matchPaths: ['/finance', '/fi-dashboard'] },
   { name: 'Accounting', href: '/accounting', icon: DollarSign, color: 'text-emerald-600', matchPaths: ['/accounting/'] },
-  { name: 'Deals', href: '/deals', icon: Calculator, color: 'text-orange-600', matchPaths: ['/deals', '/deal-log', '/deal-pipeline', '/deals-list'] },
-  { name: 'Deal Desk', href: '/professional-deal-desk', icon: Calculator, color: 'text-rose-600', matchPaths: ['/professional-deal-desk', '/deal-desk', '/deal-working', '/deals-finance', '/finance/structuring'] },
-  { name: 'Showroom', href: '/showroom', icon: Timer, color: 'text-cyan-600', matchPaths: ['/showroom-manager'] },
-  { name: 'Analytics', href: '/analytics', icon: TrendingUp, color: 'text-pink-600', matchPaths: ['/analytics/customer-lifecycle', '/competitive-pricing', '/ml-model-comparison'] },
-  { name: 'Reports', href: '/reports', icon: BarChart3, color: 'text-yellow-600', matchPaths: ['/reports/sales', '/reports/inventory', '/reports/service', '/reports/financial'] },
+  { name: 'Deals', href: '/deals', icon: Calculator, color: 'text-orange-600' },
+  { name: 'Deal Desk', href: '/deals/deal-desk', icon: Calculator, color: 'text-rose-600' },
+  { name: 'Communications', href: '/communications/center', icon: MessageSquare, color: 'text-cyan-600' },
+  { name: 'Analytics', href: '/analytics', icon: TrendingUp, color: 'text-pink-600' },
+  { name: 'Reports', href: '/reports', icon: BarChart3, color: 'text-yellow-600' },
   { name: 'Settings', href: '/settings', icon: Settings, color: 'text-gray-600' },
-  { name: 'Admin', href: '/settings/preferences', icon: Building, color: 'text-red-600', matchPaths: ['/settings', '/settings/'] }
+  { name: 'Admin', href: '/admin/system-health', icon: Building, color: 'text-red-600', matchPaths: ['/admin/'] }
 ];
 
 export const QUICK_ACTIONS: QuickAction[] = [
