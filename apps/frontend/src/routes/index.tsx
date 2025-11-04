@@ -12,6 +12,7 @@ const Deals = lazy(() => import('@/pages/deals'));
 const DemoQuickView = lazy(() => import('@/pages/demo-quick-view'));
 const DealCalculator = lazy(() => import('@/pages/desking/DealCalculator'));
 const DealStudioDemo = lazy(() => import('@/pages/deal-studio-demo'));
+const DealStudioMobileDemo = lazy(() => import('@/pages/deal-studio-mobile-demo'));
 
 // Admin pages
 const AdminUsers = lazy(() => import('@/pages/admin/users'));
@@ -216,6 +217,7 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/demo-quick-view', component: DemoQuickView },
   { path: '/desking/calculator', component: DealCalculator },
   { path: '/deal-studio-demo', component: DealStudioDemo },
+  { path: '/deal-studio-mobile-demo', component: DealStudioMobileDemo },
 
   // Admin routes
   { path: '/admin/users', component: AdminUsers },
