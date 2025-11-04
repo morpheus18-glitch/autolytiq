@@ -1,0 +1,1814 @@
+# 📋 PART 4 STANDALONE PROMPT - ACCOUNTING & FINANCIAL SUITE
+
+```
+You are building Part 4 of an enterprise automotive DMS/CRM system: the Accounting & Financial Suite.
+
+CONTEXT:
+- Tech Stack: React 18 + TypeScript + Vite + Tailwind CSS (frontend), Express.js + TypeScript + Prisma ORM (backend), PostgreSQL
+- Multi-tenant SaaS with row-level security (tenant_id on all tables)
+- JWT authentication already implemented
+- Express API on port 5000, React frontend on port 3000
+- Database has: Tenant, User, Customer, Vehicle, Deal, JournalEntry, GLAccount, SystemSetting tables
+- Parts 1-3 already completed (ML Service, Pixel Tracking, Settings)
+
+YOUR MISSION:
+Build a complete financial management system following GAAP accounting principles. This includes dashboards, financial statements (P&L, Balance Sheet, Cash Flow), journal entry system with auto-generation from deals, chart of accounts, payroll with commission tracking, and tax reports.
+
+═══════════════════════════════════════════════════════════════════
+SECTION 1: ACCOUNTING DASHBOARD (AccountingDashboard.tsx)
+═══════════════════════════════════════════════════════════════════
+
+Build comprehensive financial dashboard with:
+
+TOP KPI CARDS (4 cards in a row):
+1. Total Revenue
+   - Current period amount (large, bold)
+   - Comparison vs previous period (% change, red/green)
+   - Small trend sparkline (7 days)
+   
+2. Gross Profit
+   - Current period amount
+   - Gross profit margin % in parentheses
+   - Comparison vs previous period
+   - Small trend sparkline
+   
+3. Net Income
+   - Current period amount
+   - Net profit margin % in parentheses
+   - Comparison vs previous period
+   - Small trend sparkline
+   
+4. Operating Expenses
+   - Current period amount
+   - % of revenue in parentheses
+   - Comparison vs previous period
+   - Small trend sparkline
+
+DATE RANGE SELECTOR:
+- Preset buttons: Today, This Week, This Month, This Quarter, This Year, YTD, Custom
+- Custom date picker (start date, end date)
+- Comparison toggle: Compare to Previous Period
+- Affects all charts and metrics on page
+
+CHARTS SECTION (2x2 grid):
+
+Chart 1 - Revenue Trend (Area Chart):
+- X-axis: Time periods (days, weeks, or months based on date range)
+- Y-axis: Revenue in dollars
+- Area fill with gradient (blue)
+- Show data points on hover
+- Legend: Total Revenue
+- Use Recharts library
+
+Chart 2 - Profit Breakdown (Pie Chart):
+- Segments:
+  * New Vehicle Sales
+  * Used Vehicle Sales
+  * Service Revenue
+  * Parts Revenue
+  * F&I Revenue
+- Show percentage and dollar amount on hover
+- Legend with colors
+- Center text showing total
+
+Chart 3 - Monthly Comparison (Bar Chart):
+- Grouped bars: Revenue, Expenses, Profit
+- X-axis: Last 6 months
+- Y-axis: Dollars
+- Three colors (blue, red, green)
+- Legend
+- Values on hover
+
+Chart 4 - Department Performance (Stacked Bar Chart):
+- X-axis: Departments (New, Used, Service, Parts, F&I)
+- Y-axis: Dollars
+- Stack: Revenue (top), Cost (bottom)
+- Show gross profit margin % above each bar
+- Tooltip shows breakdown
+
+QUICK LINKS SECTION:
+- Card grid with icons linking to:
+  * P&L Statement
+  * Balance Sheet
+  * Cash Flow Statement
+  * Journal Entries
+  * Chart of Accounts
+  * Payroll
+  * Tax Reports
+  * Export All Reports
+
+RECENT TRANSACTIONS TABLE:
+- Last 10 journal entries
+- Columns: Date, Entry #, Description, Account, Debit, Credit
+- "View All" link to journal entries page
+- Clickable rows open entry detail modal
+
+API Endpoint:
+GET /api/accounting/dashboard?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&compareToLast=true
+
+Response format:
+{
+  "kpis": {
+    "totalRevenue": { "current": 450000, "previous": 420000, "change": 7.14, "trend": [45,48,46,50,52,49,54] },
+    "grossProfit": { "current": 135000, "previous": 126000, "change": 7.14, "margin": 30 },
+    "netIncome": { "current": 67500, "previous": 63000, "change": 7.14, "margin": 15 },
+    "operatingExpenses": { "current": 67500, "previous": 63000, "change": 7.14, "percentOfRevenue": 15 }
+  },
+  "revenueChart": [
+    { "date": "2025-01", "revenue": 380000 },
+    { "date": "2025-02", "revenue": 420000 },
+    ...
+  ],
+  "profitBreakdown": [
+    { "name": "New Vehicles", "value": 180000, "percentage": 40 },
+    { "name": "Used Vehicles", "value": 135000, "percentage": 30 },
+    ...
+  ],
+  "monthlyComparison": [
+    { "month": "Jan", "revenue": 380000, "expenses": 285000, "profit": 95000 },
+    ...
+  ],
+  "departmentPerformance": [
+    { "department": "New", "revenue": 180000, "cost": 140000, "margin": 22.2 },
+    ...
+  ],
+  "recentTransactions": [
+    { "id": "je_123", "date": "2025-10-15", "number": "JE-2025-1234", "description": "Vehicle Sale", "account": "Sales Revenue", "debit": 0, "credit": 35000 },
+    ...
+  ]
+}
+
+EXPORT BUTTONS:
+- Export Dashboard (PDF) - generates PDF with all charts
+- Export to Excel - downloads XLSX with all data
+- Email Report - opens modal to send via email
+- Schedule Report - opens modal to set up recurring email
+
+═══════════════════════════════════════════════════════════════════
+SECTION 2: P&L STATEMENT (PLStatement.tsx)
+═══════════════════════════════════════════════════════════════════
+
+Build Profit & Loss (Income) Statement following GAAP structure:
+
+HEADER:
+- Dealership name (from settings)
+- Statement title: "Profit & Loss Statement"
+- Period: "For the period [Start Date] to [End Date]"
+- Comparison selector: None, Previous Period, Same Period Last Year, Budget
+- Date range selector
+- Export buttons (PDF, Excel, Email, Print)
+
+STATEMENT STRUCTURE:
+
+REVENUE SECTION:
+├─ Vehicle Sales Revenue
+│  ├─ New Vehicle Sales                      $XXX,XXX
+│  ├─ Used Vehicle Sales                     $XXX,XXX
+│  └─ Certified Pre-Owned Sales             $XXX,XXX
+│  = Total Vehicle Sales                     $XXX,XXX
+│
+├─ F&I Revenue
+│  ├─ Finance Income                         $XX,XXX
+│  ├─ Extended Warranties                    $XX,XXX
+│  ├─ GAP Insurance                          $XX,XXX
+│  └─ Other F&I Products                     $XX,XXX
+│  = Total F&I Revenue                       $XXX,XXX
+│
+├─ Service Revenue
+│  ├─ Customer Pay                           $XX,XXX
+│  ├─ Warranty                               $XX,XXX
+│  └─ Internal                               $XX,XXX
+│  = Total Service Revenue                   $XX,XXX
+│
+├─ Parts Revenue
+│  ├─ Retail Parts                           $XX,XXX
+│  ├─ Wholesale Parts                        $XX,XXX
+│  └─ Internal Parts                         $XX,XXX
+│  = Total Parts Revenue                     $XX,XXX
+│
+└─ Other Revenue
+   ├─ Loaner Income                          $X,XXX
+   └─ Miscellaneous                          $X,XXX
+   = Total Other Revenue                     $XX,XXX
+
+= TOTAL REVENUE                               $XXX,XXX
+                                              ========
+
+COST OF SALES SECTION:
+├─ Vehicle COGS
+│  ├─ New Vehicle COGS                       $XXX,XXX
+│  ├─ Used Vehicle COGS                      $XXX,XXX
+│  └─ CPO COGS                               $XXX,XXX
+│  = Total Vehicle COGS                      $XXX,XXX
+│
+├─ Parts & Service COGS
+│  ├─ Parts COGS                             $XX,XXX
+│  ├─ Service Labor COGS                     $XX,XXX
+│  └─ Sublet Repairs                         $XX,XXX
+│  = Total Parts & Service COGS              $XX,XXX
+
+= TOTAL COST OF SALES                         $XXX,XXX
+                                              --------
+
+= GROSS PROFIT                                $XXX,XXX (XX.X%)
+                                              ========
+
+OPERATING EXPENSES SECTION:
+├─ Personnel Expenses
+│  ├─ Salaries                               $XX,XXX
+│  ├─ Commissions                            $XX,XXX
+│  ├─ Bonuses                                $X,XXX
+│  ├─ Payroll Taxes                          $XX,XXX
+│  ├─ Health Insurance                       $XX,XXX
+│  └─ Other Benefits                         $X,XXX
+│  = Total Personnel                         $XXX,XXX
+│
+├─ Facility Expenses
+│  ├─ Rent/Mortgage                          $XX,XXX
+│  ├─ Utilities                              $X,XXX
+│  ├─ Property Insurance                     $X,XXX
+│  ├─ Property Taxes                         $X,XXX
+│  └─ Maintenance & Repairs                  $X,XXX
+│  = Total Facility                          $XX,XXX
+│
+├─ Marketing & Advertising
+│  ├─ Digital Marketing                      $XX,XXX
+│  ├─ Traditional Advertising                $XX,XXX
+│  └─ Promotional Events                     $X,XXX
+│  = Total Marketing                         $XX,XXX
+│
+├─ Operating Supplies
+│  ├─ Office Supplies                        $X,XXX
+│  ├─ Shop Supplies                          $X,XXX
+│  └─ Cleaning Supplies                      $X,XXX
+│  = Total Supplies                          $XX,XXX
+│
+├─ Professional Services
+│  ├─ Accounting & Bookkeeping               $X,XXX
+│  ├─ Legal Fees                             $X,XXX
+│  └─ Consulting                             $X,XXX
+│  = Total Professional Services             $XX,XXX
+│
+├─ Technology & Software
+│  ├─ DMS Software                           $X,XXX
+│  ├─ Other Software                         $X,XXX
+│  └─ IT Support                             $X,XXX
+│  = Total Technology                        $XX,XXX
+│
+├─ Vehicle Operating Expenses
+│  ├─ Fuel                                   $X,XXX
+│  ├─ Insurance                              $X,XXX
+│  └─ Maintenance                            $X,XXX
+│  = Total Vehicle Operating                 $XX,XXX
+│
+├─ Depreciation & Amortization               $XX,XXX
+│
+└─ Other Operating Expenses
+   ├─ Bank Fees                              $X,XXX
+   ├─ Dues & Subscriptions                   $X,XXX
+   └─ Miscellaneous                          $X,XXX
+   = Total Other                             $XX,XXX
+
+= TOTAL OPERATING EXPENSES                    $XXX,XXX
+                                              --------
+
+= OPERATING INCOME (EBITDA)                   $XX,XXX (X.X%)
+                                              ========
+
+OTHER INCOME/EXPENSES SECTION:
+├─ Interest Income                           $X,XXX
+├─ Interest Expense                          ($XX,XXX)
+├─ Floor Plan Interest                       ($XX,XXX)
+└─ Other Income (Expense)                    $X,XXX
+
+= NET OTHER INCOME (EXPENSE)                  ($XX,XXX)
+                                              --------
+
+= NET INCOME BEFORE TAX                       $XX,XXX (X.X%)
+  Less: Income Tax Expense                    ($XX,XXX)
+                                              --------
+
+= NET INCOME                                  $XX,XXX (X.X%)
+                                              ========
+
+FEATURES:
+- Click any line item to see transaction drill-down modal
+- Expandable/collapsible sections (click section headers)
+- Percentages shown next to key metrics (% of revenue)
+- Comparison columns when comparison mode enabled
+- Variance column showing $ and % difference
+- Export to PDF with formatted layout
+- Export to Excel with formulas
+- Email report directly from page
+- Print-friendly CSS
+
+COMPARISON MODE (when enabled):
+Show 3 columns: Current Period | Comparison Period | Variance
+
+Example:
+                               Current    Previous   Variance    %
+Total Revenue                  $450,000   $420,000   $30,000    7.1%
+Total COGS                     $315,000   $294,000   $21,000    7.1%
+Gross Profit                   $135,000   $126,000   $9,000     7.1%
+
+API Endpoint:
+GET /api/accounting/pl-statement?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&comparison=PREVIOUS_PERIOD
+
+Response includes all line items with amounts, drill-down capability
+
+═══════════════════════════════════════════════════════════════════
+SECTION 3: BALANCE SHEET (BalanceSheet.tsx)
+═══════════════════════════════════════════════════════════════════
+
+Build Balance Sheet following GAAP structure:
+
+HEADER:
+- Dealership name
+- "Balance Sheet"
+- "As of [Date]"
+- Date selector (single date, not range)
+- Comparison selector: None, Previous Month, Previous Year
+- Export buttons
+
+STATEMENT STRUCTURE:
+
+ASSETS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CURRENT ASSETS
+├─ Cash & Cash Equivalents
+│  ├─ Operating Account                      $XXX,XXX
+│  ├─ Payroll Account                        $XX,XXX
+│  └─ Savings Account                        $XX,XXX
+│  = Total Cash                              $XXX,XXX
+│
+├─ Accounts Receivable
+│  ├─ Customer Receivables                   $XX,XXX
+│  ├─ Lender Receivables                     $XX,XXX
+│  └─ Other Receivables                      $X,XXX
+│  Less: Allowance for Doubtful Accounts     ($X,XXX)
+│  = Net Accounts Receivable                 $XX,XXX
+│
+├─ Inventory
+│  ├─ New Vehicle Inventory                  $XXX,XXX
+│  ├─ Used Vehicle Inventory                 $XXX,XXX
+│  ├─ Parts Inventory                        $XX,XXX
+│  └─ Accessories Inventory                  $X,XXX
+│  = Total Inventory                         $XXX,XXX
+│
+├─ Prepaid Expenses
+│  ├─ Prepaid Insurance                      $X,XXX
+│  ├─ Prepaid Rent                           $X,XXX
+│  └─ Other Prepaid                          $X,XXX
+│  = Total Prepaid                           $XX,XXX
+│
+└─ Other Current Assets                      $XX,XXX
+
+= TOTAL CURRENT ASSETS                        $XXX,XXX
+                                              ========
+
+FIXED ASSETS (Property, Plant & Equipment)
+├─ Land                                      $XXX,XXX
+├─ Buildings                                 $XXX,XXX
+├─ Leasehold Improvements                    $XX,XXX
+├─ Furniture & Fixtures                      $XX,XXX
+├─ Equipment & Tools                         $XX,XXX
+├─ Vehicles (Demo/Loaner)                    $XX,XXX
+│  Less: Accumulated Depreciation            ($XXX,XXX)
+│  = Net Fixed Assets                        $XXX,XXX
+│
+└─ Other Assets
+   ├─ Intangible Assets                      $XX,XXX
+   ├─ Goodwill                               $XX,XXX
+   └─ Other                                  $X,XXX
+   = Total Other Assets                      $XX,XXX
+
+= TOTAL FIXED ASSETS                          $XXX,XXX
+                                              ========
+
+= TOTAL ASSETS                                $X,XXX,XXX
+                                              ==========
+
+
+LIABILITIES & EQUITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CURRENT LIABILITIES
+├─ Accounts Payable                          $XX,XXX
+├─ Floor Plan Payable
+│  ├─ New Vehicle Floor Plan                 $XXX,XXX
+│  └─ Used Vehicle Floor Plan                $XX,XXX
+│  = Total Floor Plan                        $XXX,XXX
+│
+├─ Accrued Expenses
+│  ├─ Accrued Payroll                        $XX,XXX
+│  ├─ Accrued Commissions                    $XX,XXX
+│  ├─ Accrued Taxes                          $XX,XXX
+│  └─ Other Accrued                          $X,XXX
+│  = Total Accrued                           $XX,XXX
+│
+├─ Customer Deposits                         $XX,XXX
+├─ Current Portion of Long-term Debt         $XX,XXX
+└─ Other Current Liabilities                 $X,XXX
+
+= TOTAL CURRENT LIABILITIES                   $XXX,XXX
+                                              ========
+
+LONG-TERM LIABILITIES
+├─ Long-term Debt                            $XXX,XXX
+├─ Notes Payable                             $XX,XXX
+└─ Other Long-term Liabilities               $X,XXX
+
+= TOTAL LONG-TERM LIABILITIES                 $XXX,XXX
+                                              --------
+
+= TOTAL LIABILITIES                           $XXX,XXX
+                                              ========
+
+
+EQUITY
+├─ Owner's Capital                           $XXX,XXX
+├─ Retained Earnings                         $XX,XXX
+├─ Current Year Earnings                     $XX,XXX
+└─ Owner's Draws                             ($XX,XXX)
+
+= TOTAL EQUITY                                $XXX,XXX
+                                              ========
+
+= TOTAL LIABILITIES & EQUITY                  $X,XXX,XXX
+                                              ==========
+
+KEY RATIOS PANEL (side panel or bottom):
+- Current Ratio: (Current Assets / Current Liabilities) = X.XX
+- Quick Ratio: ((Current Assets - Inventory) / Current Liabilities) = X.XX
+- Debt to Equity: (Total Liabilities / Total Equity) = X.XX
+- Working Capital: (Current Assets - Current Liabilities) = $XXX,XXX
+- Inventory Turnover: (COGS / Average Inventory) = X.XX times
+- Days Sales in Inventory: (365 / Inventory Turnover) = XX days
+
+FEATURES:
+- Click line items for drill-down to transactions
+- Compare to previous period side-by-side
+- Export to PDF/Excel
+- Email report
+- Print-friendly format
+- Expandable/collapsible sections
+
+API Endpoint:
+GET /api/accounting/balance-sheet?date=YYYY-MM-DD&comparison=PREVIOUS_MONTH
+
+═══════════════════════════════════════════════════════════════════
+SECTION 4: CASH FLOW STATEMENT (CashFlowStatement.tsx)
+═══════════════════════════════════════════════════════════════════
+
+Build Cash Flow Statement (Statement of Cash Flows):
+
+HEADER:
+- Dealership name
+- "Statement of Cash Flows"
+- "For the period [Start Date] to [End Date]"
+- Method: Direct / Indirect (toggle, default: Indirect)
+- Date range selector
+- Export buttons
+
+STATEMENT STRUCTURE (Indirect Method):
+
+CASH FLOWS FROM OPERATING ACTIVITIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Net Income                                   $XX,XXX
+
+Adjustments to reconcile net income:
+├─ Depreciation & Amortization               $XX,XXX
+├─ Loss (Gain) on Sale of Assets             $X,XXX
+├─ Bad Debt Expense                          $X,XXX
+│
+├─ Changes in Operating Assets:
+│  ├─ (Increase) Decrease in AR              ($XX,XXX)
+│  ├─ (Increase) Decrease in Inventory       ($XX,XXX)
+│  └─ (Increase) Decrease in Prepaid         ($X,XXX)
+│
+└─ Changes in Operating Liabilities:
+   ├─ Increase (Decrease) in AP              $XX,XXX
+   ├─ Increase (Decrease) in Accrued         $XX,XXX
+   └─ Increase (Decrease) in Deposits        $X,XXX
+
+Net Cash Provided by Operating Activities    $XX,XXX
+                                             --------
+
+
+CASH FLOWS FROM INVESTING ACTIVITIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+├─ Purchase of Property & Equipment          ($XX,XXX)
+├─ Proceeds from Sale of Equipment           $X,XXX
+├─ Purchase of Investments                   ($X,XXX)
+└─ Proceeds from Sale of Investments         $X,XXX
+
+Net Cash Used in Investing Activities        ($XX,XXX)
+                                             --------
+
+
+CASH FLOWS FROM FINANCING ACTIVITIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+├─ Proceeds from Floor Plan Borrowing        $XXX,XXX
+├─ Repayment of Floor Plan Borrowing         ($XXX,XXX)
+├─ Proceeds from Long-term Debt              $XX,XXX
+├─ Repayment of Long-term Debt               ($XX,XXX)
+├─ Owner Contributions                       $XX,XXX
+└─ Owner Draws                               ($XX,XXX)
+
+Net Cash Provided by Financing Activities    $XX,XXX
+                                             --------
+
+
+SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Net Increase (Decrease) in Cash             $XX,XXX
+Cash at Beginning of Period                  $XXX,XXX
+                                             --------
+Cash at End of Period                        $XXX,XXX
+                                             ========
+
+CASH FLOW VISUALIZATION (below statement):
+- Waterfall chart showing:
+  * Starting cash
+  * Operating cash flow (green bar up)
+  * Investing cash flow (red bar down)
+  * Financing cash flow (blue bar up/down)
+  * Ending cash
+- Use Recharts ComposedChart for waterfall effect
+
+FEATURES:
+- Toggle between Direct and Indirect method
+- Click line items for supporting detail
+- Export to PDF/Excel
+- Email report
+- Print-friendly format
+
+API Endpoint:
+GET /api/accounting/cash-flow?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&method=indirect
+
+═══════════════════════════════════════════════════════════════════
+SECTION 5: JOURNAL ENTRIES (JournalEntries.tsx)
+═══════════════════════════════════════════════════════════════════
+
+Build journal entry management system:
+
+PAGE LAYOUT:
+
+TOP SECTION - Filters & Actions:
+├─ Search bar (entry number, description, account)
+├─ Filters:
+│  ├─ Date Range
+│  ├─ Entry Type (All, Manual, Auto-Deal, Auto-Payment, Adjustment, Recurring)
+│  ├─ Status (All, Draft, Posted, Void)
+│  └─ Account (dropdown of all GL accounts)
+├─ Sort dropdown (Date, Entry #, Amount)
+└─ Actions:
+   ├─ "New Entry" button (opens modal)
+   ├─ Export to Excel
+   └─ Import Entries (CSV upload)
+
+JOURNAL ENTRIES TABLE:
+Columns:
+- Entry # (e.g., JE-2025-1234) - clickable to view detail
+- Date
+- Description
+- Type (badge: Manual, Auto, Recurring)
+- Status (badge: Draft, Posted, Void)
+- Total Debit
+- Total Credit
+- Created By
+- Actions (View, Edit, Void, Duplicate)
+
+Row expansion: Click row to expand and show line items inline
+Expanded view shows:
+- Table within table:
+  * Account
+  * Debit
+  * Credit
+  * Memo
+- Buttons: Edit, Post (if draft), Void (if posted), Delete (if draft)
+
+PAGINATION: Show 25 entries per page with page selector
+
+NEW/EDIT JOURNAL ENTRY MODAL:
+
+Header:
+- Title: "New Journal Entry" or "Edit Journal Entry #JE-2025-1234"
+- Status badge (Draft/Posted/Void)
+
+Form Fields:
+1. Date (date picker, default: today)
+2. Entry Type (dropdown: Manual, Adjustment, Recurring, Reclassification)
+3. Description (text area)
+4. Recurring (toggle):
+   - If enabled, show: Frequency (Monthly, Quarterly, Yearly), Start Date, End Date
+5. Memo (optional text area)
+
+LINE ITEMS SECTION:
+Table with columns: Account | Debit | Credit | Memo | Actions
+
+For each line:
+- Account: Searchable dropdown of all GL accounts (show account # and name)
+- Debit: Currency input (disabled if credit has value)
+- Credit: Currency input (disabled if debit has value)
+- Memo: Text input (optional)
+- Remove button (red X icon)
+
+"Add Line" button below table
+
+BALANCE DISPLAY:
+At bottom of line items:
+- Total Debits: $XX,XXX.XX
+- Total Credits: $XX,XXX.XX
+- Difference: $XX,XXX.XX (red if not zero, green if balanced)
+- Status: "⚠ Entry not balanced" or "✓ Entry balanced"
+
+VALIDATION:
+- Entry must have at least 2 lines
+- Total debits must equal total credits
+- Each line must have either debit OR credit (not both, not neither)
+- Account must be selected for each line
+- Date required
+
+BUTTONS:
+- Save as Draft (saves even if not balanced)
+- Post Entry (only enabled if balanced, makes entry permanent)
+- Cancel
+
+VOID JOURNAL ENTRY:
+When "Void" clicked on posted entry:
+- Show confirmation modal
+- Explain: "This will create a reversing entry and mark this entry as void"
+- On confirm:
+  * Create new entry with all debits/credits reversed
+  * Link new entry to original
+  * Mark original as "Void"
+  * Set void date and user
+
+DUPLICATE ENTRY:
+- Copies all line items to new draft entry
+- Updates date to today
+- Clears entry number (assigned on post)
+- Opens in edit modal
+
+AUTO-GENERATED ENTRIES:
+When deal is closed, auto-create journal entry:
+
+Example for $35,000 vehicle sale (COGS $28,000, trade-in $8,000):
+
+Entry Description: "Vehicle Sale - Deal #D-2025-4567"
+Lines:
+DR  Cash                    $27,000  (Cash down)
+DR  Accounts Receivable     $8,000   (Financed amount)
+    CR  Vehicle Inventory            $28,000
+    CR  Sales Revenue                $35,000
+
+DR  Vehicle Inventory       $8,000   (Trade-in)
+    CR  Customer Trade Credit        $8,000
+
+DR  Cost of Goods Sold      $28,000
+    CR  Vehicle Inventory            $28,000
+
+DR  Commission Expense      $1,200
+    CR  Commission Payable           $1,200
+
+F&I Products:
+DR  Cash                    $2,500
+    CR  F&I Revenue                  $2,500
+
+Link entry to deal record so it appears on deal detail page
+
+API Endpoints:
+GET    /api/accounting/journal-entries?page=1&limit=25&search=&type=&status=&startDate=&endDate=
+POST   /api/accounting/journal-entries (create new entry)
+GET    /api/accounting/journal-entries/:id (get entry detail)
+PUT    /api/accounting/journal-entries/:id (update entry)
+DELETE /api/accounting/journal-entries/:id (delete draft entry)
+POST   /api/accounting/journal-entries/:id/post (post draft entry)
+POST   /api/accounting/journal-entries/:id/void (void posted entry)
+POST   /api/accounting/journal-entries/:id/duplicate (create copy)
+
+Database Schema:
+model JournalEntry {
+  id          String   @id @default(uuid())
+  tenantId    String
+  entryNumber String   // JE-2025-1234
+  date        DateTime
+  description String
+  type        String   // MANUAL, AUTO_DEAL, AUTO_PAYMENT, ADJUSTMENT, RECURRING
+  status      String   // DRAFT, POSTED, VOID
+  memo        String?
+  totalDebit  Decimal
+  totalCredit Decimal
+  dealId      String?  // Link to deal if auto-generated
+  voidedAt    DateTime?
+  voidedBy    String?
+  voidedByEntry String? // ID of reversing entry
+  isRecurring Boolean @default(false)
+  recurringFrequency String? // MONTHLY, QUARTERLY, YEARLY
+  recurringEndDate DateTime?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  lines       JournalEntryLine[]
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  
+  @@index([tenantId, status])
+  @@index([tenantId, date])
+  @@index([dealId])
+}
+
+model JournalEntryLine {
+  id        String   @id @default(uuid())
+  entryId   String
+  accountId String
+  debit     Decimal  @default(0)
+  credit    Decimal  @default(0)
+  memo      String?
+  
+  entry     JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  account   GLAccount    @relation(fields: [accountId], references: [id])
+  
+  @@index([entryId])
+  @@index([accountId])
+}
+
+═══════════════════════════════════════════════════════════════════
+SECTION 6: CHART OF ACCOUNTS (GLAccounts.tsx)
+═══════════════════════════════════════════════════════════════════
+
+Build chart of accounts manager:
+
+PAGE LAYOUT:
+
+TOP SECTION:
+- "New Account" button
+- "Import Standard Automotive COA" button (loads predefined accounts)
+- Search bar
+- Filter: Account Type (All, Asset, Liability, Equity, Revenue, Expense)
+- Show Inactive toggle
+
+ACCOUNTS TREE VIEW:
+Display in hierarchical tree structure:
+
+1000 - ASSETS ▼
+  ├─ 1100 - Current Assets ▼
+  │   ├─ 1110 - Cash & Cash Equivalents [$XXX,XXX] [Edit]
+  │   ├─ 1120 - Accounts Receivable [$XX,XXX] [Edit]
+  │   ├─ 1130 - Inventory [$XXX,XXX] [Edit]
+  │   │   ├─ 1131 - New Vehicle Inventory [$XXX,XXX] [Edit]
+  │   │   ├─ 1132 - Used Vehicle Inventory [$XXX,XXX] [Edit]
+  │   │   └─ 1133 - Parts Inventory [$XX,XXX] [Edit]
+  │   └─ 1140 - Prepaid Expenses [$XX,XXX] [Edit]
+  │
+  └─ 1200 - Fixed Assets ▼
+      ├─ 1210 - Land [$XXX,XXX] [Edit]
+      ├─ 1220 - Buildings [$XXX,XXX] [Edit]
+      └─ 1230 - Equipment [$XX,XXX] [Edit]
+
+2000 - LIABILITIES ▼
+  ├─ 2100 - Current Liabilities ▼
+  │   ├─ 2110 - Accounts Payable [$XX,XXX] [Edit]
+  │   └─ 2120 - Floor Plan Payable [$XXX,XXX] [Edit]
+  │
+  └─ 2200 - Long-term Liabilities ▼
+      └─ 2210 - Long-term Debt [$XXX,XXX] [Edit]
+
+3000 - EQUITY ▼
+  ├─ 3100 - Owner's Equity [$XXX,XXX] [Edit]
+  └─ 3200 - Retained Earnings [$XX,XXX] [Edit]
+
+4000 - REVENUE ▼
+  ├─ 4100 - Vehicle Sales Revenue ▼
+  │   ├─ 4110 - New Vehicle Sales [Edit]
+  │   ├─ 4120 - Used Vehicle Sales [Edit]
+  │   └─ 4130 - CPO Sales [Edit]
+  │
+  └─ 4200 - F&I Revenue ▼
+      ├─ 4210 - Finance Income [Edit]
+      └─ 4220 - Extended Warranties [Edit]
+
+5000 - EXPENSES ▼
+  ├─ 5100 - Cost of Sales ▼
+  │   ├─ 5110 - Vehicle COGS [Edit]
+  │   └─ 5120 - Parts COGS [Edit]
+  │
+  ├─ 5200 - Personnel Expenses ▼
+  │   ├─ 5210 - Salaries [Edit]
+  │   ├─ 5220 - Commissions [Edit]
+  │   └─ 5230 - Payroll Taxes [Edit]
+  │
+  └─ 5300 - Operating Expenses ▼
+      ├─ 5310 - Rent [Edit]
+      └─ 5320 - Utilities [Edit]
+
+FEATURES:
+- Click account name to view transactions (opens modal with list of all JE lines for that account)
+- Click [Edit] to edit account
+- Drag-drop to reorder (within same parent)
+- Expandable/collapsible sections (click ▼/▶)
+- Show current balance next to account name
+- Inactive accounts shown in gray with "(Inactive)" label
+- Color coding by account type
+
+NEW/EDIT ACCOUNT MODAL:
+
+Form Fields:
+1. Account Number (e.g., 1131) - must be unique
+2. Account Name (e.g., "New Vehicle Inventory")
+3. Account Type (dropdown):
+   - Asset
+   - Liability
+   - Equity
+   - Revenue
+   - Expense
+4. Category (dropdown, filtered by type):
+   For Assets: Current, Fixed, Other
+   For Expenses: COGS, Operating, Personnel, etc.
+5. Parent Account (dropdown of parent-level accounts)
+6. Description (text area, optional)
+7. Tax Line Mapping (dropdown, for tax reporting)
+8. Active Status (toggle)
+9. Allow Manual Journal Entries (toggle)
+   - If off, account can only be used by system
+
+VALIDATION:
+- Account number must be numeric, 4-7 digits
+- Account number must be unique within tenant
+- Account name required
+- Cannot inactivate account with current balance ≠ 0
+- Cannot delete account with any transactions
+
+STANDARD AUTOMOTIVE CHART OF ACCOUNTS:
+When "Import Standard COA" clicked, create these accounts:
+
+ASSETS (1000-1999)
+- 1100 Current Assets
+  - 1110 Operating Account
+  - 1120 Payroll Account
+  - 1130 Accounts Receivable
+  - 1140 New Vehicle Inventory
+  - 1150 Used Vehicle Inventory
+  - 1160 Parts Inventory
+  - 1170 Prepaid Insurance
+- 1200 Fixed Assets
+  - 1210 Land
+  - 1220 Buildings
+  - 1230 Furniture & Fixtures
+  - 1240 Equipment
+  - 1250 Vehicles (Demo/Loaner)
+  - 1260 Accumulated Depreciation
+
+LIABILITIES (2000-2999)
+- 2100 Current Liabilities
+  - 2110 Accounts Payable
+  - 2120 New Vehicle Floor Plan
+  - 2130 Used Vehicle Floor Plan
+  - 2140 Accrued Payroll
+  - 2150 Accrued Commissions
+  - 2160 Customer Deposits
+- 2200 Long-term Liabilities
+  - 2210 Notes Payable
+  - 2220 Long-term Debt
+
+EQUITY (3000-3999)
+- 3100 Owner's Equity
+- 3200 Retained Earnings
+- 3300 Current Year Earnings
+
+REVENUE (4000-4999)
+- 4100 Vehicle Sales
+  - 4110 New Vehicle Sales
+  - 4120 Used Vehicle Sales
+  - 4130 CPO Sales
+- 4200 F&I Revenue
+  - 4210 Finance Income
+  - 4220 Extended Warranties
+  - 4230 GAP Insurance
+  - 4240 Paint Protection
+- 4300 Service Revenue
+  - 4310 Customer Pay
+  - 4320 Warranty
+  - 4330 Internal
+- 4400 Parts Revenue
+  - 4410 Retail Parts
+  - 4420 Wholesale Parts
+
+EXPENSES (5000-9999)
+- 5000 Cost of Sales
+  - 5100 Vehicle COGS
+  - 5200 Parts COGS
+- 6000 Personnel
+  - 6100 Salaries
+  - 6200 Commissions
+  - 6300 Bonuses
+  - 6400 Payroll Taxes
+  - 6500 Health Insurance
+- 7000 Facility
+  - 7100 Rent
+  - 7200 Utilities
+  - 7300 Insurance
+  - 7400 Maintenance
+- 8000 Marketing
+  - 8100 Digital Marketing
+  - 8200 Traditional Advertising
+- 9000 Other Expenses
+  - 9100 Floor Plan Interest
+  - 9200 Depreciation
+
+API Endpoints:
+GET    /api/accounting/gl-accounts (returns tree structure)
+POST   /api/accounting/gl-accounts (create new account)
+GET    /api/accounting/gl-accounts/:id (get account detail)
+PUT    /api/accounting/gl-accounts/:id (update account)
+DELETE /api/accounting/gl-accounts/:id (delete if no transactions)
+POST   /api/accounting/gl-accounts/import-standard (import standard COA)
+GET    /api/accounting/gl-accounts/:id/transactions (get all JE lines)
+GET    /api/accounting/gl-accounts/:id/balance?date=YYYY-MM-DD (get balance as of date)
+
+Database Schema (already exists in Prisma):
+model GLAccount {
+  id            String   @id @default(uuid())
+  tenantId      String
+  accountNumber String   // e.g., "1131"
+  name          String
+  type          String   // ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE
+  category      String?  // Current, Fixed, etc.
+  parentId      String?
+  description   String?
+  isActive      Boolean  @default(true)
+  allowManual   Boolean  @default(true)
+  taxLineMapping String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  parent        GLAccount?  @relation("AccountHierarchy", fields: [parentId], references: [id])
+  children      GLAccount[] @relation("AccountHierarchy")
+  journalLines  JournalEntryLine[]
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+  
+  @@unique([tenantId, accountNumber])
+  @@index([tenantId, type])
+}
+
+═══════════════════════════════════════════════════════════════════
+SECTION 7: PAYROLL MODULE (Payroll.tsx & PayrollCalculation.tsx)
+═══════════════════════════════════════════════════════════════════
+
+Build payroll system with commission tracking:
+
+PAYROLL DASHBOARD (Payroll.tsx):
+
+TOP SECTION:
+- Current Pay Period selector:
+  * Frequency dropdown: Weekly, Bi-weekly, Semi-monthly, Monthly
+  * Period selector: "Oct 1 - Oct 15, 2025"
+  * Previous/Next period arrows
+- "Calculate Payroll" button (for selected period)
+- "View Previous Periods" button
+- Export buttons (Excel, ADP, QuickBooks)
+
+EMPLOYEE SUMMARY TABLE:
+Columns:
+- Employee Name
+- Role
+- Status (Hourly/Salary/Commission)
+- Gross Pay (current period)
+- Deductions
+- Net Pay
+- YTD Gross
+- YTD Net
+- Actions (View Detail, Generate Pay Stub)
+
+Footer row shows totals
+
+PAYROLL CALCULATION MODAL (PayrollCalculation.tsx):
+
+Opens when "Calculate Payroll" clicked
+
+HEADER:
+- Pay Period: Oct 1 - Oct 15, 2025
+- Status: Draft / Finalized
+- Total Gross: $XX,XXX
+- Total Net: $XX,XXX
+
+EMPLOYEE CARDS (scrollable list):
+
+For each employee:
+┌─────────────────────────────────────────────────────────┐
+│ John Smith - Sales Consultant                           │
+├─────────────────────────────────────────────────────────┤
+│ BASE COMPENSATION                                        │
+│ ├─ Base Salary/Hourly: $2,000.00                       │
+│ └─ Hours Worked: 80 @ $25/hr                           │
+│                                                         │
+│ COMMISSIONS (from deals closed this period)            │
+│ ├─ Deal #D-2025-4567: $450.00 (3% of $15k front gross)│
+│ ├─ Deal #D-2025-4568: $600.00 (4% of $15k front gross)│
+│ ├─ Deal #D-2025-4569: $120.00 (5% of $2.4k F&I)      │
+│ └─ Volume Bonus: $500.00 (sold 10+ cars this month)   │
+│ = Total Commissions: $1,670.00                         │
+│                                                         │
+│ BONUSES & ADJUSTMENTS                                   │
+│ ├─ CSI Bonus: $250.00                                  │
+│ └─ Spiff (Toyota Campaign): $100.00                    │
+│                                                         │
+│ GROSS PAY: $4,020.00                                   │
+│                                                         │
+│ DEDUCTIONS                                              │
+│ ├─ Federal Income Tax: -$603.00 (15%)                 │
+│ ├─ State Income Tax: -$201.00 (5%)                    │
+│ ├─ Social Security: -$249.24 (6.2%)                   │
+│ ├─ Medicare: -$58.29 (1.45%)                          │
+│ ├─ Health Insurance: -$150.00                         │
+│ ├─ 401(k): -$160.80 (4%)                              │
+│ └─ Garnishments: $0.00                                 │
+│ = Total Deductions: -$1,422.33                         │
+│                                                         │
+│ NET PAY: $2,597.67                                     │
+│                                                         │
+│ [Edit Manually] [View Pay Stub] [Exclude from Payroll] │
+└─────────────────────────────────────────────────────────┘
+
+COMMISSION CALCULATION LOGIC:
+
+Frontend Gross Commission:
+- Percentage of front-end gross profit
+- Tiered: 3% on first $1k, 4% on next $1k, 5% above $2k
+- Configured in Settings > Pricing Rules
+
+Backend Gross Commission:
+- Percentage of F&I gross (warranty, GAP, etc.)
+- Flat: 5% of all F&I products
+
+Volume Bonuses:
+- 10-14 cars: $500
+- 15-19 cars: $1,000
+- 20+ cars: $1,500
+
+Spiffs:
+- Manufacturer-specific bonuses
+- Entered manually or auto-applied based on rules
+
+Manager Override:
+- Managers earn 1% of all deals closed by their team
+
+Chargebacks:
+- If deal cancelled within 90 days, commission is reversed
+- Deducted from next payroll
+
+MANUAL EDIT MODAL:
+When "Edit Manually" clicked:
+- Allow override of any calculated value
+- Require reason (text field)
+- Log audit trail (who changed, when, why)
+
+BUTTONS:
+- Save Draft (saves calculations, not final)
+- Finalize Payroll (locks calculations, creates JE, marks as paid)
+- Cancel
+
+WHEN FINALIZED:
+1. Create journal entry:
+   DR  Salary Expense         $XX,XXX
+   DR  Commission Expense     $XX,XXX
+   DR  Payroll Tax Expense    $XX,XXX
+       CR  Payroll Payable             $XX,XXX (net amount)
+       CR  Tax Withholding Payable     $X,XXX
+       CR  401k Payable                $X,XXX
+
+2. Generate pay stubs for all employees
+3. Export direct deposit file (NACHA format)
+4. Update employee YTD totals
+5. Mark period as "Paid"
+
+PAY STUB GENERATION:
+When "View Pay Stub" or "Generate Pay Stub" clicked:
+
+Generate PDF with:
+- Dealership name, address, logo
+- Employee name, address, SSN (last 4 digits)
+- Pay period dates
+- Check date
+- Check number (if applicable)
+- Table:
+  * Earnings: Description | Hours | Rate | Current | YTD
+  * Deductions: Description | Current | YTD
+- Gross Pay, Deductions, Net Pay (current & YTD)
+- Footer with direct deposit info or check instructions
+
+TAX REPORTS:
+
+941 Quarterly Report (PayrollTaxReports.tsx):
+- Quarter selector
+- Shows:
+  * Total wages paid
+  * Federal income tax withheld
+  * Social Security tax (employee + employer)
+  * Medicare tax (employee + employer)
+  * Total tax liability
+- Export as PDF for filing
+
+W-2 Year-End Report:
+- Year selector
+- Generate W-2 for each employee
+- Shows all boxes: wages, federal tax, SS tax, Medicare tax, state tax
+- Export as PDF
+- Bulk print all W-2s
+
+1099 Contractor Report:
+- Year selector
+- For independent contractors (non-employee)
+- Shows payments made
+- Generate 1099-NEC forms
+
+API Endpoints:
+GET    /api/accounting/payroll?startDate=&endDate=
+POST   /api/accounting/payroll/calculate (calculate for period)
+GET    /api/accounting/payroll/:id (get payroll detail)
+PUT    /api/accounting/payroll/:id (update draft payroll)
+POST   /api/accounting/payroll/:id/finalize (finalize payroll)
+GET    /api/accounting/payroll/:id/:employeeId/paystub (generate pay stub PDF)
+POST   /api/accounting/payroll/:id/export-dd (export direct deposit file)
+GET    /api/accounting/payroll/tax-reports/941?quarter=Q1&year=2025
+GET    /api/accounting/payroll/tax-reports/w2?year=2025
+GET    /api/accounting/payroll/tax-reports/1099?year=2025
+
+Database Schema:
+model Payroll {
+  id           String   @id @default(uuid())
+  tenantId     String
+  startDate    DateTime
+  endDate      DateTime
+  status       String   // DRAFT, FINALIZED, PAID
+  totalGross   Decimal
+  totalNet     Decimal
+  journalEntryId String?
+  finalizedAt  DateTime?
+  finalizedBy  String?
+  createdAt    DateTime @default(now())
+  
+  lines        PayrollLine[]
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+}
+
+model PayrollLine {
+  id               String   @id @default(uuid())
+  payrollId        String
+  employeeId       String
+  basePay          Decimal
+  commissions      Decimal
+  bonuses          Decimal
+  grossPay         Decimal
+  federalTax       Decimal
+  stateTax         Decimal
+  socialSecurity   Decimal
+  medicare         Decimal
+  otherDeductions  Json     // {healthIns: 150, 401k: 160}
+  netPay           Decimal
+  
+  payroll          Payroll  @relation(fields: [payrollId], references: [id])
+  employee         User     @relation(fields: [employeeId], references: [id])
+}
+
+model Commission {
+  id          String   @id @default(uuid())
+  tenantId    String
+  employeeId  String
+  dealId      String
+  type        String   // FRONTEND, BACKEND, VOLUME, SPIFF, CHARGEBACK
+  amount      Decimal
+  description String
+  paidInPayrollId String?
+  createdAt   DateTime @default(now())
+  
+  employee    User     @relation(fields: [employeeId], references: [id])
+  deal        Deal     @relation(fields: [dealId], references: [id])
+}
+
+═══════════════════════════════════════════════════════════════════
+SECTION 8: FINANCIAL REPORTS & EXPORTS
+═══════════════════════════════════════════════════════════════════
+
+Build report generation and export functionality:
+
+EXPORT TO PDF:
+Use jsPDF library to generate PDFs:
+
+For P&L Statement:
+- Professional header with dealership logo
+- Period information
+- Formatted statement with proper spacing
+- Page breaks for long statements
+- Footer with generation date, page numbers
+
+For Balance Sheet:
+- Similar formatting
+- Two-column layout (Assets | Liabilities & Equity)
+
+For Cash Flow:
+- Single column layout
+- Proper indentation for sub-items
+
+EXPORT TO EXCEL:
+Use xlsx library (SheetJS):
+
+For each report:
+- Create workbook
+- Add worksheet with report name
+- Format headers (bold, colored background)
+- Format currency cells (accounting format: $#,##0.00)
+- Add formulas where appropriate
+- Freeze header row
+- Auto-size columns
+- Add summary row with totals
+- Include generation timestamp in footer
+
+Example code structure:
+```typescript
+import * as XLSX from 'xlsx';
+
+export const exportPLToExcel = (data: PLData, period: DateRange) => {
+  const wb = XLSX.utils.book_new();
+  
+  const wsData = [
+    ['Profit & Loss Statement'],
+    [`For the period ${period.start} to ${period.end}`],
+    [],
+    ['REVENUE'],
+    ['Vehicle Sales Revenue', data.vehicleSales],
+    ['F&I Revenue', data.fiRevenue],
+    ['Service Revenue', data.serviceRevenue],
+    ['Total Revenue', data.totalRevenue],
+    [],
+    ['COST OF SALES'],
+    // ... continue building data array
+  ];
+  
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  
+  // Format currency columns
+  const range = XLSX.utils.decode_range(ws['!ref']!);
+  for (let R = range.s.r; R <= range.e.r; ++R) {
+    const cellAddress = XLSX.utils.encode_cell({ r: R, c: 1 });
+    if (ws[cellAddress] && typeof ws[cellAddress].v === 'number') {
+      ws[cellAddress].z = '$#,##0.00';
+    }
+  }
+  
+  XLSX.utils.book_append_sheet(wb, ws, 'P&L');
+  XLSX.writeFile(wb, `PL_Statement_${period.start}_${period.end}.xlsx`);
+};
+```
+
+EMAIL REPORT:
+When “Email Report” clicked:
+
+Modal with:
+
+- To: (email input, can add multiple)
+- CC: (optional)
+- Subject: (pre-filled: “P&L Statement for [Period]”)
+- Message: (text area, optional custom message)
+- Format: (checkboxes: PDF, Excel, both)
+- Send button
+
+Backend creates email with:
+
+- HTML email with dealership branding
+- Attached PDF and/or Excel files
+- Links to view online (if implemented)
+
+QUICKBOOKS EXPORT:
+Export journal entries in QuickBooks IIF format:
+
+Format:
+!TRNS  TRNSID  TRNSTYPE  DATE  ACCNT  NAME  AMOUNT  MEMO
+!SPL   SPLID   TRNSTYPE  DATE  ACCNT  NAME  AMOUNT  MEMO
+!ENDTRNS
+
+Example:
+!TRNS  1  GENERAL JOURNAL  10/15/2025  -SPLIT-    35000  Vehicle Sale
+!SPL   1  GENERAL JOURNAL  10/15/2025  1131  Customer  -28000  Vehicle COGS
+!SPL   1  GENERAL JOURNAL  10/15/2025  4110    35000  Sales Revenue
+!ENDTRNS
+
+SAGE/XERO EXPORT:
+Similar format, CSV-based:
+
+Date,Account Code,Account Name,Debit,Credit,Description
+10/15/2025,1110,Operating Account,35000,,Vehicle Sale
+10/15/2025,4110,Sales Revenue,,35000,Vehicle Sale
+
+═══════════════════════════════════════════════════════════════════
+SECTION 9: TAX REPORTS (TaxReports.tsx)
+═══════════════════════════════════════════════════════════════════
+
+Build tax reporting interface:
+
+PAGE TABS:
+
+1. Sales Tax Report
+1. Payroll Tax (941)
+1. 1099 Contractors
+1. Year-End Summary
+
+TAB 1 - SALES TAX REPORT:
+
+Filters:
+
+- Date Range selector
+- Jurisdiction dropdown (if multi-state)
+- Export buttons (PDF, Excel)
+
+TABLE:
+Columns:
+
+- Invoice #
+- Date
+- Customer Name
+- Subtotal
+- Tax Rate
+- Tax Amount
+- Total
+
+Footer row:
+
+- Total Sales: $XXX,XXX
+- Total Tax Collected: $XX,XXX
+
+By jurisdiction breakdown (if applicable):
+
+- California (7.5%): $X,XXX
+- Nevada (6.85%): $X,XXX
+
+REMIT TO STATE button (marks as filed, logs filing date)
+
+TAB 2 - PAYROLL TAX (941):
+
+Quarter selector: Q1, Q2, Q3, Q4, Year
+
+Form 941 Preview:
+Lines from actual IRS Form 941:
+
+1. Number of employees: XX
+1. Wages, tips, other compensation: $XXX,XXX
+1. Federal income tax withheld: $XX,XXX
+1. Taxable social security wages: $XXX,XXX × 12.4% = $XX,XXX
+   5c. Taxable Medicare wages: $XXX,XXX × 2.9% = $X,XXX
+1. Total taxes: $XX,XXX
+
+Export as PDF (pre-filled form)
+Mark as Filed button
+
+TAB 3 - 1099 CONTRACTORS:
+
+Year selector
+
+TABLE of contractors:
+
+- Name
+- SSN/EIN
+- Address
+- Total Paid
+- Generate 1099 button
+
+Bulk actions:
+
+- Generate All 1099s
+- Export to CSV
+- E-file (if integrated with IRS e-file system)
+
+TAB 4 - YEAR-END SUMMARY:
+
+Tax summary for CPA:
+
+- Total Revenue by category
+- Total Expenses by category
+- Depreciation schedule
+- Asset purchases
+- Debt principal payments
+- Owner draws
+- Key tax deductions
+- Estimated tax liability
+
+Export full package button (generates ZIP with all reports)
+
+API Endpoints:
+GET /api/accounting/tax-reports/sales-tax?startDate=&endDate=&jurisdiction=
+GET /api/accounting/tax-reports/941?quarter=Q1&year=2025
+GET /api/accounting/tax-reports/1099?year=2025
+GET /api/accounting/tax-reports/year-end?year=2025
+POST /api/accounting/tax-reports/:type/mark-filed
+
+═══════════════════════════════════════════════════════════════════
+BACKEND IMPLEMENTATION
+═══════════════════════════════════════════════════════════════════
+
+File: /backend/src/routes/accounting.routes.ts
+
+import express from ‘express’;
+import { authenticate } from ‘../middleware/auth.middleware’;
+import { requireRole } from ‘../middleware/role.middleware’;
+import * as accountingController from ‘../controllers/accounting.controller’;
+
+const router = express.Router();
+
+// All routes require authentication
+router.use(authenticate);
+
+// Dashboard
+router.get(’/dashboard’, accountingController.getDashboard);
+
+// Financial Statements
+router.get(’/pl-statement’, accountingController.getPLStatement);
+router.get(’/balance-sheet’, accountingController.getBalanceSheet);
+router.get(’/cash-flow’, accountingController.getCashFlow);
+
+// Journal Entries
+router.get(’/journal-entries’, accountingController.getJournalEntries);
+router.post(’/journal-entries’, accountingController.createJournalEntry);
+router.get(’/journal-entries/:id’, accountingController.getJournalEntry);
+router.put(’/journal-entries/:id’, accountingController.updateJournalEntry);
+router.delete(’/journal-entries/:id’, accountingController.deleteJournalEntry);
+router.post(’/journal-entries/:id/post’, accountingController.postJournalEntry);
+router.post(’/journal-entries/:id/void’, accountingController.voidJournalEntry);
+router.post(’/journal-entries/:id/duplicate’, accountingController.duplicateJournalEntry);
+
+// GL Accounts
+router.get(’/gl-accounts’, accountingController.getGLAccounts);
+router.post(’/gl-accounts’, requireRole([‘ADMIN’, ‘MANAGER’]), accountingController.createGLAccount);
+router.get(’/gl-accounts/:id’, accountingController.getGLAccount);
+router.put(’/gl-accounts/:id’, requireRole([‘ADMIN’, ‘MANAGER’]), accountingController.updateGLAccount);
+router.delete(’/gl-accounts/:id’, requireRole([‘ADMIN’]), accountingController.deleteGLAccount);
+router.post(’/gl-accounts/import-standard’, requireRole([‘ADMIN’]), accountingController.importStandardCOA);
+router.get(’/gl-accounts/:id/transactions’, accountingController.getAccountTransactions);
+router.get(’/gl-accounts/:id/balance’, accountingController.getAccountBalance);
+
+// Payroll
+router.get(’/payroll’, accountingController.getPayrollPeriods);
+router.post(’/payroll/calculate’, accountingController.calculatePayroll);
+router.get(’/payroll/:id’, accountingController.getPayroll);
+router.put(’/payroll/:id’, accountingController.updatePayroll);
+router.post(’/payroll/:id/finalize’, accountingController.finalizePayroll);
+router.get(’/payroll/:id/:employeeId/paystub’, accountingController.generatePaystub);
+router.post(’/payroll/:id/export-dd’, accountingController.exportDirectDeposit);
+
+// Tax Reports
+router.get(’/tax-reports/sales-tax’, accountingController.getSalesTaxReport);
+router.get(’/tax-reports/941’, accountingController.get941Report);
+router.get(’/tax-reports/1099’, accountingController.get1099Report);
+router.get(’/tax-reports/year-end’, accountingController.getYearEndSummary);
+router.post(’/tax-reports/:type/mark-filed’, accountingController.markTaxReportFiled);
+
+// Exports
+router.post(’/export/pl’, accountingController.exportPL);
+router.post(’/export/balance-sheet’, accountingController.exportBalanceSheet);
+router.post(’/export/cash-flow’, accountingController.exportCashFlow);
+router.post(’/export/quickbooks’, accountingController.exportToQuickBooks);
+router.post(’/export/journal-entries’, accountingController.exportJournalEntries);
+
+export default router;
+
+═══════════════════════════════════════════════════════════════════
+
+File: /backend/src/controllers/accounting.controller.ts
+
+Implement all controller functions. Each should:
+
+1. Extract tenantId from req.user
+1. Validate query parameters
+1. Call service layer
+1. Return JSON response
+1. Handle errors properly
+
+═══════════════════════════════════════════════════════════════════
+
+File: /backend/src/services/accounting.service.ts
+
+Implement business logic for all accounting operations:
+
+Key functions:
+
+1. generatePLStatement(tenantId, startDate, endDate, comparisonPeriod?)
+
+- Query all journal entries in period
+- Aggregate by account type and category
+- Calculate totals, subtotals, percentages
+- If comparison enabled, query comparison period and calculate variance
+
+1. generateBalanceSheet(tenantId, date, comparisonDate?)
+
+- Calculate running balances for all balance sheet accounts as of date
+- Group by account type (Asset, Liability, Equity)
+- Calculate totals and ratios
+
+1. generateCashFlow(tenantId, startDate, endDate, method)
+
+- If indirect: start with net income, adjust for non-cash items
+- Calculate changes in working capital accounts
+- Separate into Operating, Investing, Financing activities
+
+1. autoGenerateJournalEntry(deal)
+
+- When deal is closed, automatically create JE
+- Debit/credit appropriate accounts based on deal structure
+- Handle vehicle sale, trade-in, F&I products, commissions
+- Link JE to deal
+
+1. calculatePayroll(tenantId, startDate, endDate)
+
+- Get all employees
+- Calculate base pay (salary or hourly)
+- Calculate commissions from deals closed in period
+- Apply bonuses, spiffs
+- Calculate deductions (taxes, insurance, 401k)
+- Return gross and net pay for each employee
+
+1. importStandardCOA(tenantId)
+
+- Create standard automotive chart of accounts
+- Check if accounts already exist (prevent duplicates)
+- Return success/failure for each account
+
+═══════════════════════════════════════════════════════════════════
+
+File: /backend/src/utils/journal-entry-generator.ts
+
+Auto-generation logic for journal entries:
+
+export const generateDealJournalEntry = async (deal: Deal) => {
+const lines: JournalEntryLine[] = [];
+
+// Vehicle sale entry
+lines.push({
+accountNumber: ‘1110’, // Cash
+debit: deal.cashDown,
+credit: 0,
+memo: ‘Cash down payment’
+});
+
+lines.push({
+accountNumber: ‘1120’, // AR
+debit: deal.amountFinanced,
+credit: 0,
+memo: ‘Financed amount’
+});
+
+lines.push({
+accountNumber: ‘4110’, // Sales Revenue
+debit: 0,
+credit: deal.sellingPrice,
+memo: ‘Vehicle sale’
+});
+
+// COGS entry
+lines.push({
+accountNumber: ‘5100’, // COGS
+debit: deal.vehicleCost,
+credit: 0,
+memo: ‘Cost of vehicle sold’
+});
+
+lines.push({
+accountNumber: ‘1140’, // Inventory
+debit: 0,
+credit: deal.vehicleCost,
+memo: ‘Remove from inventory’
+});
+
+// Trade-in entry (if applicable)
+if (deal.tradeInValue > 0) {
+lines.push({
+accountNumber: ‘1140’, // Inventory
+debit: deal.tradeInValue,
+credit: 0,
+memo: ‘Trade-in vehicle’
+});
+
+```
+lines.push({
+  accountNumber: '2160', // Customer deposit liability
+  debit: 0,
+  credit: deal.tradeInValue,
+  memo: 'Trade-in credit'
+});
+```
+
+}
+
+// F&I products entry
+if (deal.fiProducts > 0) {
+lines.push({
+accountNumber: ‘1110’, // Cash
+debit: deal.fiProducts,
+credit: 0,
+memo: ‘F&I products’
+});
+
+```
+lines.push({
+  accountNumber: '4200', // F&I Revenue
+  debit: 0,
+  credit: deal.fiProducts,
+  memo: 'F&I products sold'
+});
+```
+
+}
+
+// Commission entry
+const commission = calculateCommission(deal);
+if (commission > 0) {
+lines.push({
+accountNumber: ‘6200’, // Commission Expense
+debit: commission,
+credit: 0,
+memo: `Commission - ${deal.salespersonName}`
+});
+
+```
+lines.push({
+  accountNumber: '2150', // Commission Payable
+  debit: 0,
+  credit: commission,
+  memo: 'Commission payable'
+});
+```
+
+}
+
+return {
+date: deal.closedDate,
+description: `Vehicle Sale - Deal #${deal.dealNumber}`,
+type: ‘AUTO_DEAL’,
+dealId: [deal.id](http://deal.id),
+lines
+};
+};
+
+const calculateCommission = (deal: Deal) => {
+const frontGross = deal.sellingPrice - deal.vehicleCost;
+const backGross = deal.fiProducts * 0.5; // Assume 50% margin on F&I
+
+// Tiered commission on front gross
+let frontCommission = 0;
+if (frontGross <= 1000) {
+frontCommission = frontGross * 0.03;
+} else if (frontGross <= 2000) {
+frontCommission = 30 + (frontGross - 1000) * 0.04;
+} else {
+frontCommission = 30 + 40 + (frontGross - 2000) * 0.05;
+}
+
+// Flat commission on back gross
+const backCommission = backGross * 0.05;
+
+return frontCommission + backCommission;
+};
+
+═══════════════════════════════════════════════════════════════════
+DELIVERABLES CHECKLIST
+═══════════════════════════════════════════════════════════════════
+
+Frontend Pages:
+✅ AccountingDashboard.tsx - Full dashboard with KPIs and charts
+✅ PLStatement.tsx - Complete P&L with drill-down
+✅ BalanceSheet.tsx - Full balance sheet with ratios
+✅ CashFlowStatement.tsx - Cash flow with waterfall chart
+✅ JournalEntries.tsx - List view with filters
+✅ JournalEntryForm.tsx - Create/edit modal with validation
+✅ GLAccounts.tsx - Tree view with balances
+✅ GLAccountForm.tsx - Create/edit account modal
+✅ Payroll.tsx - Payroll dashboard
+✅ PayrollCalculation.tsx - Calculate payroll for period
+✅ TaxReports.tsx - All tax reports
+
+Shared Components:
+✅ FinancialChart.tsx - Reusable chart component (Recharts)
+✅ AccountTree.tsx - Recursive tree display for GL accounts
+✅ JournalEntryLine.tsx - Reusable line item component
+✅ BalanceDisplay.tsx - Formatted balance with debit/credit indicator
+✅ StatementHeader.tsx - Reusable header for financial statements
+✅ ExportButton.tsx - Reusable export dropdown (PDF/Excel/Email)
+
+Backend Files:
+✅ accounting.routes.ts - All API routes
+✅ accounting.controller.ts - All controller functions
+✅ accounting.service.ts - Business logic
+✅ journal-entry-generator.ts - Auto-generation utility
+✅ financial-statement-generator.ts - Report generation
+✅ payroll-calculator.ts - Payroll calculation logic
+✅ export-handlers.ts - PDF/Excel/Email export functions
+
+Database:
+✅ JournalEntry model (should exist)
+✅ JournalEntryLine model (should exist)
+✅ GLAccount model (should exist)
+✅ Payroll model (add if missing)
+✅ PayrollLine model (add if missing)
+✅ Commission model (add if missing)
+
+Features:
+✅ Multi-tenant isolation
+✅ GAAP-compliant accounting
+✅ Auto-generation of journal entries from deals
+✅ Drill-down from statements to transactions
+✅ Financial statement comparison
+✅ Commission calculation with tiers
+✅ Payroll with all deductions
+✅ Tax reports (Sales, Payroll, 1099)
+✅ Export to PDF/Excel/QuickBooks
+✅ Email reports
+✅ Audit trail on all changes
+
+═══════════════════════════════════════════════════════════════════
+IMPLEMENTATION INSTRUCTIONS
+═══════════════════════════════════════════════════════════════════
+
+1. INSTALL DEPENDENCIES:
+   Frontend:
+   npm install recharts jspdf xlsx @react-pdf/renderer
+   
+   Backend:
+   npm install pdfkit exceljs nodemailer
+1. CREATE FRONTEND STRUCTURE:
+
+- Create all page components in /frontend/src/pages/accounting/
+- Create shared components in /frontend/src/components/accounting/
+- Use Recharts for all charts
+- Use React Hook Form for forms
+- Use TanStack Query for API calls
+
+1. CREATE BACKEND STRUCTURE:
+
+- Create routes, controllers, services
+- Implement auto-generation logic
+- Add export functionality
+- Ensure multi-tenant isolation on all queries
+
+1. UPDATE APP ROUTING:
+   <Route path=”/accounting” element={<AccountingLayout />}>
+   <Route index element={<AccountingDashboard />} />
+   <Route path=“pl-statement” element={<PLStatement />} />
+   <Route path=“balance-sheet” element={<BalanceSheet />} />
+   <Route path=“cash-flow” element={<CashFlowStatement />} />
+   <Route path=“journal-entries” element={<JournalEntries />} />
+   <Route path=“gl-accounts” element={<GLAccounts />} />
+   <Route path=“payroll” element={<Payroll />} />
+   <Route path=“tax-reports” element={<TaxReports />} />
+   </Route>
+1. UPDATE BACKEND APP:
+   import accountingRoutes from ‘./routes/accounting.routes’;
+   app.use(’/api/accounting’, accountingRoutes);
+1. DATABASE MIGRATIONS:
+   If models don’t exist, add them and run:
+   npx prisma migrate dev –name add-accounting-models
+1. TEST AUTO-GENERATION:
+
+- Create a deal in the system
+- Verify journal entry auto-generated
+- Check all accounts properly debited/credited
+- Verify entry balance (debits = credits)
+
+1. TEST FINANCIAL STATEMENTS:
+
+- Create sample journal entries
+- Generate P&L, Balance Sheet, Cash Flow
+- Verify calculations correct
+- Test comparison mode
+- Test drill-down to transactions
+
+1. TEST EXPORTS:
+
+- Export each report to PDF (verify formatting)
+- Export to Excel (verify formulas, formatting)
+- Test email functionality
+- Test QuickBooks export format
+
+═══════════════════════════════════════════════════════════════════
+
+NOW BUILD ALL OF PART 4 WITH COMPLETE, PRODUCTION-READY CODE.
+
+Remember:
+
+- GAAP accounting principles
+- All debits must equal credits
+- Auto-generate journal entries from deals
+- Multi-tenant isolation on ALL queries
+- Proper number formatting (currency, percentages)
+- Drill-down capability on statements
+- Professional PDF/Excel exports
+- Commission calculations with tiers
+- Full payroll with all deductions
+- Tax reports for compliance
+- No placeholders or TODOs
+- Complete, runnable code
+
+```
+---
+
+Copy the prompt above and paste it into Claude to have Part 4 built! 🚀​​​​​​​​​​​​​​​​
+```

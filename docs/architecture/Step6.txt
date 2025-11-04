@@ -1,0 +1,753 @@
+═══════════════════════════════════════════════════════════════════
+PART 6: COMPLETE INVENTORY MANAGEMENT & PRICING SUITE
+═══════════════════════════════════════════════════════════════════
+
+CONTEXT:
+You're building Part 6 of an enterprise automotive DMS/CRM system: Complete Inventory 
+Management from acquisition to sale, including trade appraisals, pricing intelligence, 
+wholesale/auction tools, and marketing automation.
+
+TECH STACK:
+- Frontend: React 18 + TypeScript + Vite + Tailwind CSS
+- Backend: Express.js + TypeScript + Prisma ORM
+- Database: PostgreSQL (multi-tenant with tenantId)
+- ML Service: Python FastAPI (for price predictions)
+- Parts 1-5 completed: ML, Pixel Tracking, Settings, Accounting, Infrastructure
+
+YOUR MISSION:
+Build a comprehensive inventory management system that handles the entire vehicle 
+lifecycle from acquisition (trade-in, auction, wholesale) to sale, with AI-powered 
+pricing, market insights, and automated reconditioning workflows.
+
+═══════════════════════════════════════════════════════════════════
+SECTION 1: TRADE-IN APPRAISAL SYSTEM
+═══════════════════════════════════════════════════════════════════
+
+Build complete trade-in appraisal workflow:
+
+PAGE: TradeAppraisal.tsx
+
+LAYOUT - Three-Step Wizard:
+
+STEP 1: VEHICLE INFORMATION
+┌─────────────────────────────────────────────────────────────────┐
+│ Trade-In Appraisal                                [Save Draft]   │
+├─────────────────────────────────────────────────────────────────┤
+│ ● Vehicle Info    ○ Condition    ○ Valuation                    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│ VIN Decoder: [___________________] [Decode]                     │
+│                                                                  │
+│ Year:     [2020 ▼]                                              │
+│ Make:     [Toyota ▼]                                            │
+│ Model:    [Camry ▼]                                             │
+│ Trim:     [XLE ▼]                                               │
+│                                                                  │
+│ Mileage:  [_________] miles                                     │
+│ Color:    [Silver Metallic ▼]                                   │
+│ VIN:      [_________________________________]                    │
+│                                                                  │
+│ Ownership:                                                       │
+│ ○ First Owner  ○ Second Owner  ○ Third+ Owner                  │
+│                                                                  │
+│ Service History:                                                 │
+│ ○ Full dealer service  ○ Some service  ○ No records            │
+│                                                                  │
+│ Accident History:                                                │
+│ ○ Clean CARFAX  ○ Minor accident  ○ Major accident             │
+│                                                                  │
+│                                    [Cancel]  [Next: Condition]  │
+└─────────────────────────────────────────────────────────────────┘
+
+STEP 2: CONDITION ASSESSMENT
+┌─────────────────────────────────────────────────────────────────┐
+│ ○ Vehicle Info    ● Condition    ○ Valuation                    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│ EXTERIOR CONDITION:                                              │
+│ Overall: [Excellent ▼] [Good] [Fair] [Poor]                    │
+│                                                                  │
+│ Paint:         ★★★★★ (Select rating)                           │
+│ Body Panels:   ★★★★☆                                            │
+│ Glass:         ★★★★★                                            │
+│ Tires:         ★★★☆☆                                            │
+│ Wheels:        ★★★★☆                                            │
+│                                                                  │
+│ Damage Notes:                                                    │
+│ [Text area for notes...]                                         │
+│                                                                  │
+│ INTERIOR CONDITION:                                              │
+│ Overall: [Good ▼]                                               │
+│                                                                  │
+│ Seats:         ★★★★☆                                            │
+│ Carpet:        ★★★★☆                                            │
+│ Dashboard:     ★★★★★                                            │
+│ Electronics:   ★★★★☆                                            │
+│ Odors:         ★★★★★ (5 = no odor)                             │
+│                                                                  │
+│ MECHANICAL:                                                      │
+│ Engine:        ★★★★☆                                            │
+│ Transmission:  ★★★★★                                            │
+│ Brakes:        ★★★☆☆                                            │
+│ Suspension:    ★★★★☆                                            │
+│                                                                  │
+│ Warning Lights: □ Check Engine  □ ABS  □ Airbag  □ Other       │
+│                                                                  │
+│ Test Drive Completed: ☑                                         │
+│                                                                  │
+│ PHOTO UPLOAD:                                                    │
+│ [Drag & Drop or Click to Upload Photos]                        │
+│ ┌────┐ ┌────┐ ┌────┐ ┌────┐                                   │
+│ │ 📷 │ │ 📷 │ │ 📷 │ │ +  │                                   │
+│ └────┘ └────┘ └────┘ └────┘                                   │
+│                                                                  │
+│                              [Back]  [Next: Valuation]          │
+└─────────────────────────────────────────────────────────────────┘
+
+STEP 3: VALUATION
+┌─────────────────────────────────────────────────────────────────┐
+│ ○ Vehicle Info    ○ Condition    ● Valuation                    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│ MARKET VALUES:                            [Refresh Prices]      │
+│                                                                  │
+│ ┌─────────────────────────────────────────────────────────────┐│
+│ │ KBB Trade-In Value                                          ││
+│ │ Excellent:  $18,500    Good: $17,200    Fair: $15,800      ││
+│ └─────────────────────────────────────────────────────────────┘│
+│                                                                  │
+│ ┌─────────────────────────────────────────────────────────────┐│
+│ │ NADA Trade-In Value                                         ││
+│ │ Clean:      $18,200    Average: $17,000  Rough: $15,500    ││
+│ └─────────────────────────────────────────────────────────────┘│
+│                                                                  │
+│ ┌─────────────────────────────────────────────────────────────┐│
+│ │ Black Book Value                                            ││
+│ │ Average:    $17,400    Rough: $16,200                       ││
+│ └─────────────────────────────────────────────────────────────┘│
+│                                                                  │
+│ ┌─────────────────────────────────────────────────────────────┐│
+│ │ 🤖 AI Recommended Value                                     ││
+│ │ Based on your market and condition: $17,600                 ││
+│ │ Confidence: 94%                                             ││
+│ │                                                             ││
+│ │ Reasoning:                                                  ││
+│ │ • Vehicle in good condition                                 ││
+│ │ • High demand in your area (45 days avg. market time)      ││
+│ │ • Service history complete                                  ││
+│ │ • Similar vehicles selling 8% above book                    ││
+│ └─────────────────────────────────────────────────────────────┘│
+│                                                                  │
+│ RECONDITIONING ESTIMATE:                                        │
+│ • Detail & Cleanup:           $150                              │
+│ • Tire Replacement:           $600                              │
+│ • Minor Paint Touch-up:       $350                              │
+│ • State Inspection:           $50                               │
+│ ───────────────────────────────                                │
+│ Total Recon:                  $1,150                            │
+│                                                                  │
+│ YOUR APPRAISAL:                                                  │
+│ Trade-In Offer:     [$17,000]                                   │
+│ If Customer Sells:  [$16,000] (lower because we skip recon)    │
+│                                                                  │
+│ PROFIT ANALYSIS:                                                 │
+│ Est. Retail Value:  $22,500                                     │
+│ Trade-In Cost:      $17,000                                     │
+│ Recon Cost:         $1,150                                      │
+│ Total Investment:   $18,150                                     │
+│ ───────────────────────────────                                │
+│ Expected Profit:    $4,350 (24% margin)                        │
+│                                                                  │
+│ Market Time: 38 days    Turn Rate: Good                        │
+│                                                                  │
+│ Customer Info:                                                   │
+│ Name:  [John Smith]                                             │
+│ Phone: [(555) 123-4567]                                         │
+│ Email: [john@email.com]                                         │
+│                                                                  │
+│ Notes for Manager:                                               │
+│ [Text area...]                                                   │
+│                                                                  │
+│          [Back]  [Save Draft]  [Submit for Approval]           │
+└─────────────────────────────────────────────────────────────────┘
+
+FEATURES:
+- VIN decoder integration (NHTSA API)
+- Auto-populate year/make/model/trim from VIN
+- Real-time pricing from KBB, NADA, Black Book APIs
+- AI/ML predicted value from your ML service
+- Photo upload with compression and tagging
+- Condition scoring with star ratings
+- Automated reconditioning estimate
+- Profit calculator
+- Manager approval workflow
+- Print appraisal sheet for customer
+
+API ENDPOINTS:
+POST   /api/appraisals
+GET    /api/appraisals/:id
+PUT    /api/appraisals/:id
+POST   /api/appraisals/:id/approve
+POST   /api/appraisals/:id/reject
+GET    /api/appraisals/pending (manager view)
+POST   /api/appraisals/decode-vin
+GET    /api/appraisals/market-values?vin=...
+GET    /api/appraisals/ai-value (calls ML service)
+
+DATABASE SCHEMA:
+model Appraisal {
+  id                String   @id @default(uuid())
+  tenantId          String
+  customerId        String?
+  appraisalNumber   String   @unique
+  status            String   // DRAFT, PENDING, APPROVED, REJECTED, EXPIRED
+  
+  // Vehicle Info
+  vin               String
+  year              Int
+  make              String
+  model             String
+  trim              String?
+  mileage           Int
+  color             String?
+  ownership         String?  // FIRST, SECOND, MULTIPLE
+  serviceHistory    String?
+  accidentHistory   String?
+  
+  // Condition Scores (1-5)
+  exteriorRating    Int
+  paintRating       Int
+  bodyRating        Int
+  glassRating       Int
+  tiresRating       Int
+  wheelsRating      Int
+  interiorRating    Int
+  seatsRating       Int
+  carpetRating      Int
+  dashboardRating   Int
+  electronicsRating Int
+  engineRating      Int
+  transmissionRating Int
+  brakesRating      Int
+  suspensionRating  Int
+  
+  // Condition Notes
+  damageNotes       String?
+  mechanicalNotes   String?
+  warningLights     String[] // Array of active warnings
+  
+  // Photos
+  photos            String[] // Array of S3 URLs
+  
+  // Valuations
+  kbbTradeInExcellent Decimal?
+  kbbTradeInGood    Decimal?
+  kbbTradeInFair    Decimal?
+  nadaClean         Decimal?
+  nadaAverage       Decimal?
+  nadaRough         Decimal?
+  blackBookAverage  Decimal?
+  blackBookRough    Decimal?
+  aiRecommended     Decimal?
+  aiConfidence      Decimal?
+  
+  // Reconditioning
+  reconEstimate     Json     // Breakdown of recon costs
+  totalReconCost    Decimal
+  
+  // Offer
+  tradeInOffer      Decimal
+  cashOffer         Decimal?
+  
+  // Profit Analysis
+  estimatedRetail   Decimal?
+  expectedProfit    Decimal?
+  profitMargin      Decimal?
+  estimatedMarketDays Int?
+  
+  // Workflow
+  appraisedBy       String   // User ID
+  approvedBy        String?
+  approvedAt        DateTime?
+  rejectedReason    String?
+  notes             String?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  expiresAt         DateTime // Appraisals expire after 7 days
+  
+  tenant            Tenant   @relation(fields: [tenantId], references: [id])
+  customer          Customer? @relation(fields: [customerId], references: [id])
+  appraiser         User     @relation("Appraiser", fields: [appraisedBy], references: [id])
+  approver          User?    @relation("Approver", fields: [approvedBy], references: [id])
+  
+  @@index([tenantId])
+  @@index([status])
+  @@index([vin])
+}
+
+═══════════════════════════════════════════════════════════════════
+SECTION 2: INVENTORY DASHBOARD
+═══════════════════════════════════════════════════════════════════
+
+PAGE: InventoryDashboard.tsx
+
+LAYOUT:
+┌─────────────────────────────────────────────────────────────────┐
+│ Inventory Overview                        [+ Add Vehicle] [⚙]  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│ KPI CARDS:                                                       │
+│ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌─────────┐│
+│ │ Total Units  │ │ Total Value  │ │ Avg Days in  │ │ Turn    ││
+│ │     156      │ │   $3.2M      │ │   Stock: 42  │ │ Rate    ││
+│ │              │ │              │ │              │ │  8.5x   ││
+│ │ ↑ 12 vs LM   │ │ ↑ $450K LM   │ │ ↓ 5 days LM  │ │ ↑ 0.3x  ││
+│ └──────────────┘ └──────────────┘ └──────────────┘ └─────────┘│
+│                                                                  │
+│ FILTERS:                                                         │
+│ Status: [All ▼] Type: [All ▼] Make: [All ▼] Age: [All ▼]      │
+│ Search: [___________________] 🔍                                │
+│                                                                  │
+│ INVENTORY TABLE:                                                 │
+│ ┌────────────────────────────────────────────────────────────┐ │
+│ │Stock# │Year Make Model  │Cost   │Price │Age│Status│Actions││ │
+│ ├────────────────────────────────────────────────────────────┤ │
+│ │A12345 │2021 Toyota Camry│$18.5K │$24K  │32 │●List │[•••] ││ │
+│ │A12346 │2020 Honda Accord│$16.2K │$22K  │18 │●List │[•••] ││ │
+│ │A12347 │2019 Ford F-150  │$28.5K │$35K  │67 │⚠Age  │[•••] ││ │
+│ │A12348 │2022 Chevy Malibu│$19.8K │$25.5K│12 │●List │[•••] ││ │
+│ └────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│ AGING REPORT (Right Panel):                                      │
+│ ┌──────────────────────────────────┐                           │
+│ │ Vehicles by Age                   │                           │
+│ │ ████████████ 0-30 days (48)      │                           │
+│ │ ███████ 31-60 days (32)          │                           │
+│ │ ████ 61-90 days (18)             │                           │
+│ │ ██ 90+ days (8) ⚠                │                           │
+│ └──────────────────────────────────┘                           │
+│                                                                  │
+│ QUICK ACTIONS:                                                   │
+│ • Price aged inventory (8 vehicles)                             │
+│ • Send to wholesale (3 candidates)                              │
+│ • Run recon report                                               │
+└─────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════
+SECTION 3: VEHICLE DETAIL PAGE
+═══════════════════════════════════════════════════════════════════
+
+PAGE: VehicleDetail.tsx
+
+LAYOUT - Tabbed Interface:
+┌─────────────────────────────────────────────────────────────────┐
+│ ← Back to Inventory                                    [Edit]   │
+├─────────────────────────────────────────────────────────────────┤
+│ 2021 Toyota Camry XLE                    Stock #A12345          │
+│ VIN: 4T1B11HK8MU123456                                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│ [Overview] [Pricing] [Marketing] [History] [Recon] [Analytics] │
+│                                                                  │
+│ OVERVIEW TAB:                                                    │
+│ ┌────────────────┐                                              │
+│ │   [Vehicle]    │  Details:                                    │
+│ │   [  Photo ]   │  Year: 2021                                  │
+│ │   [ Gallery ]  │  Make: Toyota                                │
+│ │                │  Model: Camry                                │
+│ └────────────────┘  Trim: XLE                                   │
+│                     Mileage: 32,450                             │
+│                     Color: Celestial Silver Metallic            │
+│                     Stock #: A12345                             │
+│                                                                  │
+│ Financial:                                                       │
+│ Cost:           $18,500                                         │
+│ List Price:     $24,000                                         │
+│ Current Price:  $24,000                                         │
+│ Front Gross:    $5,500 (29.7%)                                  │
+│                                                                  │
+│ Acquisition:                                                     │
+│ Source: Trade-In                                                │
+│ Date: Oct 1, 2025                                               │
+│ Days in Stock: 32                                               │
+│                                                                  │
+│ Status: ● Listed                                                │
+│                                                                  │
+│ Quick Actions:                                                   │
+│ [🎨 Send to Recon] [💰 Adjust Price] [📸 Add Photos]          │
+│ [🌐 Publish Online] [📧 Email Blast] [🔄 Send to Auction]     │
+└─────────────────────────────────────────────────────────────────┘
+
+PRICING TAB:
+┌─────────────────────────────────────────────────────────────────┐
+│ PRICING INTELLIGENCE                          [Update Prices]   │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│ CURRENT PRICING:                                                 │
+│ List Price:     $24,000                                         │
+│ Internet Price: $23,500 (advertised online)                     │
+│ Floor Price:    $22,000 (minimum acceptable)                    │
+│                                                                  │
+│ MARKET COMPS:                                                    │
+│ ┌──────────────────────────────────────────────────────────────┐│
+│ │ Dealer        │Miles │Price  │Days Listed│Distance         ││
+│ ├──────────────────────────────────────────────────────────────┤│
+│ │ ABC Motors    │28K   │$24,500│12         │8 mi            ││
+│ │ XYZ Auto      │35K   │$23,200│18         │15 mi           ││
+│ │ 123 Cars      │30K   │$24,800│6          │12 mi           ││
+│ │ Best Deals    │32K   │$23,800│22         │18 mi           ││
+│ └──────────────────────────────────────────────────────────────┘│
+│                                                                  │
+│ Market Average: $24,075                                         │
+│ Your Position: $75 below average (competitive)                  │
+│                                                                  │
+│ 🤖 AI RECOMMENDATION:                                           │
+│ ┌──────────────────────────────────────────────────────────────┐│
+│ │ Suggested Price: $24,200                                    ││
+│ │ Reason: High demand, low supply in market                   ││
+│ │ Expected market time: 18-24 days                            ││
+│ │ Confidence: 87%                                             ││
+│ │                                                             ││
+│ │ [Apply Recommendation]                                      ││
+│ └──────────────────────────────────────────────────────────────┘│
+│                                                                  │
+│ PRICING HISTORY:                                                 │
+│ • Oct 15: Price reduced to $24,000 (from $24,500)              │
+│ • Oct 1: Initial listing at $24,500                             │
+│                                                                  │
+│ PERFORMANCE:                                                     │
+│ VDP Views: 124 (avg: 3.9/day)                                  │
+│ Leads Generated: 8                                              │
+│ Test Drives: 3                                                  │
+│ Offers Received: 1 ($23,000)                                   │
+│                                                                  │
+│ [Adjust Price] [Price History Graph]                           │
+└─────────────────────────────────────────────────────────────────┘
+
+MARKETING TAB:
+┌─────────────────────────────────────────────────────────────────┐
+│ MARKETING & DISTRIBUTION                                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│ LISTING STATUS:                                                  │
+│ ☑ Dealer Website                 Live since: Oct 1              │
+│ ☑ Autotrader                     Live since: Oct 1              │
+│ ☑ Cars.com                       Live since: Oct 2              │
+│ ☑ Facebook Marketplace           Live since: Oct 1              │
+│ ☐ CarGurus                       [Publish Now]                  │
+│ ☐ Craigslist                     [Publish Now]                  │
+│                                                                  │
+│ DESCRIPTION:                                                     │
+│ [Rich text editor with current description...]                  │
+│                                                                  │
+│ [🤖 AI: Generate Description] [🤖 AI: Improve Description]     │
+│                                                                  │
+│ PHOTOS: (14 photos)                                             │
+│ ┌────┐┌────┐┌────┐┌────┐┌────┐┌────┐                         │
+│ │📷 ││📷 ││📷 ││📷 ││📷 ││📷 │ + Upload                    │
+│ └────┘└────┘└────┘└────┘└────┘└────┘                         │
+│                                                                  │
+│ [🤖 AI: Auto-enhance Photos]  [Reorder Photos]                │
+│                                                                  │
+│ KEYWORDS:                                                        │
+│ [toyota] [camry] [sedan] [fuel-efficient] [reliable] [+Add]   │
+│                                                                  │
+│ PERFORMANCE:                                                     │
+│ Total Views: 124                                                │
+│ • Website: 45                                                   │
+│ • Autotrader: 52                                                │
+│ • Cars.com: 27                                                  │
+│                                                                  │
+│ Lead Source Breakdown:                                           │
+│ 🔵 ████████ Autotrader (50%)                                   │
+│ 🟢 ██████ Website (37.5%)                                      │
+│ 🔴 ██ Cars.com (12.5%)                                         │
+│                                                                  │
+│ [Boost Listing] [Send to Email List] [Create Ad Campaign]     │
+└─────────────────────────────────────────────────────────────────┘
+
+HISTORY TAB:
+- Complete timeline of vehicle events
+- Acquisition details
+- Recon work performed
+- Price changes
+- Marketing activities
+- Customer interactions
+- Service performed
+- Sale details (when sold)
+
+RECON TAB:
+- Checklist of recon tasks
+- Completed items with dates
+- Pending work
+- Costs incurred
+- Photos before/after
+- Inspection reports
+
+ANALYTICS TAB:
+- Detailed performance metrics
+- VDP views over time (chart)
+- Lead conversion funnel
+- Engagement metrics
+- Price performance vs market
+- Predicted sell date
+- ROI calculator
+
+API ENDPOINTS:
+GET    /api/vehicles
+GET    /api/vehicles/:id
+POST   /api/vehicles
+PUT    /api/vehicles/:id
+DELETE /api/vehicles/:id
+GET    /api/vehicles/:id/market-comps
+GET    /api/vehicles/:id/pricing-recommendation
+POST   /api/vehicles/:id/adjust-price
+POST   /api/vehicles/:id/publish-listings
+GET    /api/vehicles/:id/analytics
+GET    /api/vehicles/:id/history
+
+DATABASE SCHEMA:
+model Vehicle {
+  id              String   @id @default(uuid())
+  tenantId        String
+  stockNumber     String   @unique
+  vin             String   @unique
+  
+  // Basic Info
+  year            Int
+  make            String
+  model           String
+  trim            String?
+  bodyStyle       String?
+  mileage         Int
+  exteriorColor   String?
+  interiorColor   String?
+  transmission    String?
+  drivetrain      String?
+  fuelType        String?
+  engine          String?
+  
+  // Acquisition
+  acquisitionType String   // TRADE_IN, AUCTION, WHOLESALE, PURCHASE, DEALER_TRADE
+  acquisitionDate DateTime
+  acquisitionSource String?
+  cost            Decimal
+  
+  // Pricing
+  listPrice       Decimal
+  internetPrice   Decimal?
+  floorPrice      Decimal?
+  
+  // Status
+  status          String   // AVAILABLE, IN_RECON, LISTED, SOLD, WHOLESALE, AUCTION
+  condition       String?  // EXCELLENT, GOOD, FAIR, POOR
+  
+  // Location
+  lotLocation     String?
+  
+  // Marketing
+  description     String?
+  features        String[]
+  photos          String[] // S3 URLs
+  videoUrl        String?
+  
+  // Listing Status
+  listedOnWebsite Boolean  @default(false)
+  listedAutotrader Boolean @default(false)
+  listedCars Boolean      @default(false)
+  listedFacebook Boolean   @default(false)
+  listedCarGurus Boolean   @default(false)
+  
+  // Metrics
+  views           Int      @default(0)
+  leads           Int      @default(0)
+  testDrives      Int      @default(0)
+  
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  soldAt          DateTime?
+  
+  // Relations
+  tenant          Tenant   @relation(fields: [tenantId], references: [id])
+  deals           Deal[]
+  reconItems      ReconItem[]
+  priceHistory    PriceHistory[]
+  
+  @@index([tenantId])
+  @@index([status])
+  @@index([make, model])
+}
+
+model ReconItem {
+  id          String   @id @default(uuid())
+  tenantId    String
+  vehicleId   String
+  category    String   // MECHANICAL, COSMETIC, DETAILING, INSPECTION
+  description String
+  cost        Decimal
+  status      String   // PENDING, IN_PROGRESS, COMPLETED
+  completedAt DateTime?
+  notes       String?
+  
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+  
+  @@index([vehicleId])
+}
+
+model PriceHistory {
+  id          String   @id @default(uuid())
+  vehicleId   String
+  oldPrice    Decimal
+  newPrice    Decimal
+  reason      String?
+  changedBy   String
+  changedAt   DateTime @default(now())
+  
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+  
+  @@index([vehicleId])
+}
+
+═══════════════════════════════════════════════════════════════════
+SECTION 4: AUCTION & WHOLESALE TOOLS
+═══════════════════════════════════════════════════════════════════
+
+PAGE: AuctionDashboard.tsx
+
+FEATURES:
+1. AUCTION BUYING:
+   - Integration with Manheim, ADESA, AuctionEdge
+   - Live bid monitoring
+   - Pre-bid vehicle research
+   - Max bid calculator
+   - If condition reports
+   - Post-sale invoice tracking
+   - Transport arrangements
+
+2. WHOLESALE MANAGEMENT:
+   - Send inventory to wholesale
+   - Wholesale dealer network
+   - Offer management
+   - Batch wholesale tools
+   - Market pulse (what's hot)
+
+3. AUCTION SELLING:
+   - List vehicles for auction
+   - Set reserve prices
+   - Monitor bids
+   - Accept/reject offers
+   - Arbitration process
+
+API Integration for:
+- Manheim API
+- ADESA API
+- AuctionEdge API
+- Send vehicle data
+- Receive condition reports
+- Place bids programmatically
+- Receive sale results
+
+═══════════════════════════════════════════════════════════════════
+SECTION 5: AI-POWERED FEATURES
+═══════════════════════════════════════════════════════════════════
+
+Integrate ML Service for:
+
+1. SMART PRICING:
+   - Real-time price recommendations
+   - Market trend analysis
+   - Competitor monitoring
+   - Demand prediction
+   - Optimal price point calculation
+
+2. ACQUISITION SCORING:
+   - Score trade-ins (buy or pass?)
+   - Score auction vehicles
+   - Risk assessment
+   - Profit prediction
+
+3. LISTING OPTIMIZATION:
+   - Auto-generate descriptions
+   - Keyword optimization
+   - Photo enhancement
+   - Best platforms to list
+
+4. INVENTORY OPTIMIZATION:
+   - Age vehicle pricing
+   - Wholesale recommendations
+   - Stocking suggestions
+   - Turn rate optimization
+
+5. MARKET INSIGHTS:
+   - What's selling fast
+   - What to avoid
+   - Best time to sell
+   - Market saturation alerts
+
+ML API Endpoints:
+POST /ml/predict-price
+POST /ml/score-acquisition
+POST /ml/optimize-listing
+POST /ml/inventory-recommendations
+GET  /ml/market-insights
+
+═══════════════════════════════════════════════════════════════════
+DELIVERABLES FOR PART 6
+═══════════════════════════════════════════════════════════════════
+
+Frontend Pages:
+✅ TradeAppraisal.tsx - Complete 3-step wizard
+✅ InventoryDashboard.tsx - Overview with KPIs
+✅ VehicleDetail.tsx - 6-tab detailed view
+✅ AuctionBuying.tsx - Auction purchase tools
+✅ WholesaleManager.tsx - Wholesale operations
+✅ PricingIntelligence.tsx - Market analysis
+✅ ReconWorkflow.tsx - Recon management
+
+Shared Components:
+✅ VehicleCard.tsx - Reusable vehicle display
+✅ PriceComparison.tsx - Market comp display
+✅ ConditionRating.tsx - Star rating system
+✅ PhotoGallery.tsx - Vehicle photo viewer
+✅ PriceAdjuster.tsx - Quick price change
+✅ ListingManager.tsx - Multi-platform publishing
+
+Backend Files:
+✅ appraisal.routes.ts & controller & service
+✅ vehicle.routes.ts & controller & service
+✅ auction.routes.ts & controller & service
+✅ wholesale.routes.ts & controller & service
+✅ pricing.service.ts - Market data aggregation
+✅ vin-decoder.service.ts - VIN decoding
+✅ external-apis/ - KBB, NADA, BlackBook, Manheim
+
+Database Models:
+✅ Appraisal (complete)
+✅ Vehicle (complete)
+✅ ReconItem
+✅ PriceHistory
+✅ AuctionPurchase
+✅ WholesaleListing
+✅ MarketComp
+
+Features:
+✅ Full trade appraisal workflow
+✅ VIN decoder integration
+✅ Real-time market pricing (KBB/NADA/BlackBook)
+✅ AI price recommendations
+✅ Photo management with S3
+✅ Multi-platform listing
+✅ Auction integration
+✅ Wholesale tools
+✅ Recon workflow
+✅ Price intelligence
+✅ Profit calculators
+✅ Aging reports
+✅ Performance analytics
+
+═══════════════════════════════════════════════════════════════════
+
+BUILD ALL OF PART 6 WITH COMPLETE, PRODUCTION-READY CODE.
+Make it revolutionary with AI/ML integration throughout.

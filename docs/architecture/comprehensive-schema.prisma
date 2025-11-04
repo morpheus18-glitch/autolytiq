@@ -1,0 +1,1237 @@
+// Comprehensive Enterprise Application Schema
+// Similar depth to the uploaded CRM system but with different naming
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// CORE USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id                String          @id @default(cuid())
+  email             String          @unique
+  passwordHash      String
+  firstName         String
+  lastName          String
+  phone             String?
+  avatarUrl         String?
+  isActive          Boolean         @default(true)
+  lastLoginAt       DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  organizationId    String
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  roleId            String
+  role              Role            @relation(fields: [roleId], references: [id])
+  
+  sessions          Session[]
+  auditLogs         AuditLog[]
+  createdClients    Client[]        @relation("ClientCreator")
+  assignedClients   ClientAssignment[]
+  sentMessages      Message[]       @relation("MessageSender")
+  notifications     Notification[]
+  reportSchedules   ReportSchedule[]
+  dashboardPrefs    DashboardPreference[]
+  workflowActions   WorkflowAction[]
+  
+  @@index([organizationId])
+  @@index([email])
+}
+
+model Organization {
+  id                String          @id @default(cuid())
+  name              String
+  slug              String          @unique
+  domain            String?
+  logoUrl           String?
+  timezone          String          @default("UTC")
+  currency          String          @default("USD")
+  isActive          Boolean         @default(true)
+  subscriptionTier  String          @default("free") // free, starter, professional, enterprise
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  users             User[]
+  clients           Client[]
+  roles             Role[]
+  systemConfigs     SystemConfiguration[]
+  integrations      Integration[]
+  customFields      CustomField[]
+  
+  @@index([slug])
+}
+
+model Role {
+  id                String          @id @default(cuid())
+  name              String
+  description       String?
+  isSystemRole      Boolean         @default(false)
+  organizationId    String
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  permissions       Permission[]
+  users             User[]
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model Permission {
+  id                String          @id @default(cuid())
+  module            String          // clients, outreach, campaigns, analytics, admin, etc.
+  action            String          // view, create, edit, delete, export, etc.
+  resourceType      String?         // specific resource if applicable
+  
+  roles             Role[]
+  
+  @@unique([module, action, resourceType])
+  @@index([module])
+}
+
+model Session {
+  id                String          @id @default(cuid())
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token             String          @unique
+  expiresAt         DateTime
+  ipAddress         String?
+  userAgent         String?
+  createdAt         DateTime        @default(now())
+  
+  @@index([userId])
+  @@index([token])
+}
+
+// ============================================
+// CLIENT MANAGEMENT (Similar to "Customers")
+// ============================================
+
+model Client {
+  id                String          @id @default(cuid())
+  organizationId    String
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // Basic Info
+  companyName       String?
+  firstName         String
+  lastName          String
+  email             String
+  phone             String?
+  mobilePhone       String?
+  status            String          @default("active") // active, inactive, prospect, churned
+  source            String?
+  priority          String          @default("medium") // low, medium, high, critical
+  
+  // Address
+  addressLine1      String?
+  addressLine2      String?
+  city              String?
+  state             String?
+  postalCode        String?
+  country           String          @default("US")
+  
+  // Business Info
+  industry          String?
+  annualRevenue     Decimal?        @db.Decimal(15, 2)
+  employeeCount     Int?
+  website           String?
+  taxId             String?
+  
+  // Lifecycle
+  lifecycleStage    String          @default("lead") // lead, prospect, opportunity, client, advocate
+  assignedDate      DateTime?
+  firstContactDate  DateTime?
+  lastContactDate   DateTime?
+  
+  // Metadata
+  tags              String[]
+  notes             String?
+  customData        Json?           // Flexible storage for custom fields
+  
+  createdById       String
+  createdBy         User            @relation("ClientCreator", fields: [createdById], references: [id])
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  assignments       ClientAssignment[]
+  interactions      Interaction[]
+  opportunities     Opportunity[]
+  projects          Project[]
+  invoices          Invoice[]
+  contracts         Contract[]
+  documents         Document[]
+  activities        Activity[]
+  segmentMembers    SegmentMember[]
+  customFieldValues CustomFieldValue[]
+  satisfactionScores SatisfactionScore[]
+  
+  @@index([organizationId])
+  @@index([email])
+  @@index([status])
+  @@index([lifecycleStage])
+  @@index([createdAt])
+}
+
+model ClientAssignment {
+  id                String          @id @default(cuid())
+  clientId          String
+  client            Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role              String          // owner, account_manager, support_rep, etc.
+  isPrimary         Boolean         @default(false)
+  assignedAt        DateTime        @default(now())
+  
+  @@unique([clientId, userId, role])
+  @@index([clientId])
+  @@index([userId])
+}
+
+model Interaction {
+  id                String          @id @default(cuid())
+  clientId          String
+  client            Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  type              String          // call, email, meeting, note, task
+  direction         String?         // inbound, outbound
+  subject           String?
+  description       String?
+  outcome           String?
+  duration          Int?            // in minutes
+  
+  scheduledAt       DateTime?
+  completedAt       DateTime?
+  
+  recordingUrl      String?
+  attachments       String[]
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  @@index([clientId])
+  @@index([type])
+  @@index([scheduledAt])
+}
+
+// ============================================
+// OUTREACH & ENGAGEMENT (Similar to "Engage")
+// ============================================
+
+model Campaign {
+  id                String          @id @default(cuid())
+  organizationId    String
+  
+  name              String
+  description       String?
+  type              String          // email, sms, voice, multi_channel
+  status            String          @default("draft") // draft, scheduled, active, paused, completed
+  
+  startDate         DateTime?
+  endDate           DateTime?
+  
+  // Targeting
+  targetSegmentId   String?
+  targetSegment     Segment?        @relation(fields: [targetSegmentId], references: [id])
+  includeFilters    Json?
+  excludeFilters    Json?
+  
+  // Performance
+  totalSent         Int             @default(0)
+  totalDelivered    Int             @default(0)
+  totalOpened       Int             @default(0)
+  totalClicked      Int             @default(0)
+  totalConverted    Int             @default(0)
+  totalBounced      Int             @default(0)
+  totalUnsubscribed Int             @default(0)
+  
+  // Budget & Goals
+  budget            Decimal?        @db.Decimal(15, 2)
+  goalMetric        String?
+  goalValue         Decimal?        @db.Decimal(15, 2)
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  messages          Message[]
+  sequences         CampaignSequence[]
+  analytics         CampaignAnalytics[]
+  
+  @@index([organizationId])
+  @@index([status])
+  @@index([startDate])
+}
+
+model CampaignSequence {
+  id                String          @id @default(cuid())
+  campaignId        String
+  campaign          Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  
+  stepNumber        Int
+  name              String
+  delayDays         Int             @default(0)
+  delayHours        Int             @default(0)
+  
+  // Content
+  templateId        String?
+  template          MessageTemplate? @relation(fields: [templateId], references: [id])
+  subject           String?
+  content           String?
+  
+  // Conditions
+  sendConditions    Json?           // Rules for when to send this step
+  
+  isActive          Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  @@unique([campaignId, stepNumber])
+  @@index([campaignId])
+}
+
+model Message {
+  id                String          @id @default(cuid())
+  campaignId        String?
+  campaign          Campaign?       @relation(fields: [campaignId], references: [id])
+  
+  senderId          String?
+  sender            User?           @relation("MessageSender", fields: [senderId], references: [id])
+  
+  recipientEmail    String
+  recipientPhone    String?
+  recipientName     String?
+  
+  type              String          // email, sms, push, in_app
+  channel           String?         // specific provider
+  
+  subject           String?
+  content           String
+  htmlContent       String?
+  
+  status            String          @default("queued") // queued, sent, delivered, opened, clicked, bounced, failed
+  
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  openedAt          DateTime?
+  clickedAt         DateTime?
+  bouncedAt         DateTime?
+  
+  // Tracking
+  openCount         Int             @default(0)
+  clickCount        Int             @default(0)
+  trackingId        String?         @unique
+  
+  // Metadata
+  metadata          Json?
+  errorMessage      String?
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  @@index([campaignId])
+  @@index([recipientEmail])
+  @@index([status])
+  @@index([sentAt])
+}
+
+model MessageTemplate {
+  id                String          @id @default(cuid())
+  organizationId    String
+  
+  name              String
+  description       String?
+  type              String          // email, sms, push
+  category          String?         // welcome, nurture, promotional, transactional
+  
+  subject           String?
+  content           String
+  htmlContent       String?
+  
+  // Variables for personalization
+  variables         Json?
+  
+  isActive          Boolean         @default(true)
+  isDefault         Boolean         @default(false)
+  
+  // A/B Testing
+  variants          Json?
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  sequences         CampaignSequence[]
+  
+  @@index([organizationId])
+  @@index([type])
+}
+
+model Segment {
+  id                String          @id @default(cuid())
+  organizationId    String
+  
+  name              String
+  description       String?
+  type              String          // static, dynamic
+  
+  // Filter criteria (JSON stored rules)
+  criteria          Json
+  
+  // Computed
+  memberCount       Int             @default(0)
+  lastComputedAt    DateTime?
+  
+  isActive          Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  members           SegmentMember[]
+  campaigns         Campaign[]
+  
+  @@index([organizationId])
+}
+
+model SegmentMember {
+  id                String          @id @default(cuid())
+  segmentId         String
+  segment           Segment         @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  clientId          String
+  client            Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  addedAt           DateTime        @default(now())
+  
+  @@unique([segmentId, clientId])
+  @@index([segmentId])
+  @@index([clientId])
+}
+
+// ============================================
+// AUTOMATION & WORKFLOWS
+// ============================================
+
+model Workflow {
+  id                String          @id @default(cuid())
+  organizationId    String
+  
+  name              String
+  description       String?
+  type              String          // lead_nurture, onboarding, renewal, escalation
+  
+  trigger           Json            // What starts the workflow
+  conditions        Json?           // Conditions to enter workflow
+  
+  isActive          Boolean         @default(true)
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  steps             WorkflowStep[]
+  executions        WorkflowExecution[]
+  
+  @@index([organizationId])
+  @@index([type])
+}
+
+model WorkflowStep {
+  id                String          @id @default(cuid())
+  workflowId        String
+  workflow          Workflow        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  
+  stepNumber        Int
+  name              String
+  type              String          // send_email, send_sms, create_task, update_field, wait, condition
+  
+  configuration     Json            // Step-specific config
+  
+  delayDays         Int             @default(0)
+  delayHours        Int             @default(0)
+  
+  @@unique([workflowId, stepNumber])
+  @@index([workflowId])
+}
+
+model WorkflowExecution {
+  id                String          @id @default(cuid())
+  workflowId        String
+  workflow          Workflow        @relation(fields: [workflowId], references: [id])
+  
+  clientId          String?
+  
+  status            String          @default("running") // running, completed, failed, cancelled
+  currentStep       Int             @default(0)
+  
+  startedAt         DateTime        @default(now())
+  completedAt       DateTime?
+  
+  // Relations
+  actions           WorkflowAction[]
+  
+  @@index([workflowId])
+  @@index([status])
+}
+
+model WorkflowAction {
+  id                String          @id @default(cuid())
+  executionId       String
+  execution         WorkflowExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  
+  stepNumber        Int
+  actionType        String
+  
+  status            String          @default("pending") // pending, completed, failed
+  
+  performedById     String?
+  performedBy       User?           @relation(fields: [performedById], references: [id])
+  
+  executedAt        DateTime?
+  errorMessage      String?
+  
+  metadata          Json?
+  
+  @@index([executionId])
+}
+
+// ============================================
+// SALES & OPPORTUNITIES
+// ============================================
+
+model Opportunity {
+  id                String          @id @default(cuid())
+  clientId          String
+  client            Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  name              String
+  description       String?
+  
+  stage             String          @default("qualification") // qualification, proposal, negotiation, closed_won, closed_lost
+  probability       Int             @default(0) // 0-100
+  
+  amount            Decimal         @db.Decimal(15, 2)
+  expectedCloseDate DateTime?
+  actualCloseDate   DateTime?
+  
+  source            String?
+  lostReason        String?
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  products          OpportunityProduct[]
+  activities        Activity[]
+  
+  @@index([clientId])
+  @@index([stage])
+  @@index([expectedCloseDate])
+}
+
+model OpportunityProduct {
+  id                String          @id @default(cuid())
+  opportunityId     String
+  opportunity       Opportunity     @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  productId         String
+  product           Product         @relation(fields: [productId], references: [id])
+  
+  quantity          Int             @default(1)
+  unitPrice         Decimal         @db.Decimal(15, 2)
+  discount          Decimal?        @db.Decimal(5, 2) // percentage
+  totalPrice        Decimal         @db.Decimal(15, 2)
+  
+  @@index([opportunityId])
+  @@index([productId])
+}
+
+model Product {
+  id                String          @id @default(cuid())
+  organizationId    String
+  
+  sku               String          @unique
+  name              String
+  description       String?
+  category          String?
+  
+  basePrice         Decimal         @db.Decimal(15, 2)
+  cost              Decimal?        @db.Decimal(15, 2)
+  
+  isActive          Boolean         @default(true)
+  isRecurring       Boolean         @default(false)
+  billingCycle      String?         // monthly, quarterly, annually
+  
+  metadata          Json?
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  opportunityProducts OpportunityProduct[]
+  invoiceItems      InvoiceItem[]
+  
+  @@index([organizationId])
+  @@index([category])
+}
+
+// ============================================
+// FINANCIAL & BILLING
+// ============================================
+
+model Invoice {
+  id                String          @id @default(cuid())
+  organizationId    String
+  clientId          String
+  client            Client          @relation(fields: [clientId], references: [id])
+  
+  invoiceNumber     String          @unique
+  
+  status            String          @default("draft") // draft, sent, paid, overdue, cancelled
+  
+  subtotal          Decimal         @db.Decimal(15, 2)
+  taxAmount         Decimal         @db.Decimal(15, 2)
+  discountAmount    Decimal?        @db.Decimal(15, 2)
+  totalAmount       Decimal         @db.Decimal(15, 2)
+  
+  currency          String          @default("USD")
+  
+  issueDate         DateTime        @default(now())
+  dueDate           DateTime
+  paidDate          DateTime?
+  
+  notes             String?
+  termsConditions   String?
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  items             InvoiceItem[]
+  payments          Payment[]
+  
+  @@index([organizationId])
+  @@index([clientId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model InvoiceItem {
+  id                String          @id @default(cuid())
+  invoiceId         String
+  invoice           Invoice         @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  productId         String?
+  product           Product?        @relation(fields: [productId], references: [id])
+  
+  description       String
+  quantity          Int             @default(1)
+  unitPrice         Decimal         @db.Decimal(15, 2)
+  discount          Decimal?        @db.Decimal(5, 2)
+  taxRate           Decimal?        @db.Decimal(5, 2)
+  totalPrice        Decimal         @db.Decimal(15, 2)
+  
+  @@index([invoiceId])
+}
+
+model Payment {
+  id                String          @id @default(cuid())
+  invoiceId         String
+  invoice           Invoice         @relation(fields: [invoiceId], references: [id])
+  
+  amount            Decimal         @db.Decimal(15, 2)
+  currency          String          @default("USD")
+  
+  method            String          // credit_card, ach, wire, check, cash
+  reference         String?         // Transaction ID, check number, etc.
+  
+  status            String          @default("pending") // pending, completed, failed, refunded
+  
+  paidAt            DateTime        @default(now())
+  
+  notes             String?
+  
+  @@index([invoiceId])
+  @@index([status])
+}
+
+model Contract {
+  id                String          @id @default(cuid())
+  clientId          String
+  client            Client          @relation(fields: [clientId], references: [id])
+  
+  contractNumber    String          @unique
+  title             String
+  type              String          // service_agreement, subscription, project, nda
+  
+  status            String          @default("draft") // draft, pending, active, expired, terminated
+  
+  value             Decimal?        @db.Decimal(15, 2)
+  
+  startDate         DateTime
+  endDate           DateTime?
+  
+  renewalType       String?         // auto, manual, none
+  renewalNotice     Int?            // days before renewal
+  
+  terms             String?
+  documentUrl       String?
+  
+  signedDate        DateTime?
+  signedBy          String?
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  @@index([clientId])
+  @@index([status])
+  @@index([endDate])
+}
+
+// ============================================
+// PROJECT MANAGEMENT
+// ============================================
+
+model Project {
+  id                String          @id @default(cuid())
+  organizationId    String
+  clientId          String?
+  client            Client?         @relation(fields: [clientId], references: [id])
+  
+  name              String
+  description       String?
+  status            String          @default("planning") // planning, active, on_hold, completed, cancelled
+  priority          String          @default("medium")
+  
+  startDate         DateTime?
+  targetEndDate     DateTime?
+  actualEndDate     DateTime?
+  
+  budget            Decimal?        @db.Decimal(15, 2)
+  actualCost        Decimal?        @db.Decimal(15, 2)
+  
+  progress          Int             @default(0) // 0-100
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  tasks             Task[]
+  milestones        Milestone[]
+  timeEntries       TimeEntry[]
+  
+  @@index([organizationId])
+  @@index([clientId])
+  @@index([status])
+}
+
+model Task {
+  id                String          @id @default(cuid())
+  projectId         String?
+  project           Project?        @relation(fields: [projectId], references: [id])
+  
+  title             String
+  description       String?
+  status            String          @default("todo") // todo, in_progress, review, done, cancelled
+  priority          String          @default("medium")
+  
+  assignedToId      String?
+  
+  dueDate           DateTime?
+  completedAt       DateTime?
+  
+  estimatedHours    Decimal?        @db.Decimal(6, 2)
+  actualHours       Decimal?        @db.Decimal(6, 2)
+  
+  parentTaskId      String?
+  parentTask        Task?           @relation("SubTasks", fields: [parentTaskId], references: [id])
+  subTasks          Task[]          @relation("SubTasks")
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  timeEntries       TimeEntry[]
+  
+  @@index([projectId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model Milestone {
+  id                String          @id @default(cuid())
+  projectId         String
+  project           Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  name              String
+  description       String?
+  dueDate           DateTime
+  completedAt       DateTime?
+  
+  status            String          @default("pending") // pending, completed
+  
+  @@index([projectId])
+  @@index([dueDate])
+}
+
+model TimeEntry {
+  id                String          @id @default(cuid())
+  projectId         String?
+  project           Project?        @relation(fields: [projectId], references: [id])
+  taskId            String?
+  task              Task?           @relation(fields: [taskId], references: [id])
+  
+  userId            String
+  
+  description       String?
+  hours             Decimal         @db.Decimal(6, 2)
+  
+  date              DateTime        @default(now())
+  
+  isBillable        Boolean         @default(true)
+  hourlyRate        Decimal?        @db.Decimal(10, 2)
+  
+  createdAt         DateTime        @default(now())
+  
+  @@index([projectId])
+  @@index([taskId])
+  @@index([userId])
+  @@index([date])
+}
+
+// ============================================
+// DOCUMENT MANAGEMENT
+// ============================================
+
+model Document {
+  id                String          @id @default(cuid())
+  organizationId    String
+  clientId          String?
+  client            Client?         @relation(fields: [clientId], references: [id])
+  
+  name              String
+  description       String?
+  type              String          // contract, proposal, invoice, report, other
+  category          String?
+  
+  fileUrl           String
+  fileName          String
+  fileSize          Int             // in bytes
+  mimeType          String
+  
+  version           Int             @default(1)
+  
+  tags              String[]
+  
+  uploadedBy        String
+  uploadedAt        DateTime        @default(now())
+  
+  isPublic          Boolean         @default(false)
+  expiresAt         DateTime?
+  
+  metadata          Json?
+  
+  @@index([organizationId])
+  @@index([clientId])
+  @@index([type])
+  @@index([uploadedAt])
+}
+
+// ============================================
+// ANALYTICS & REPORTING
+// ============================================
+
+model Report {
+  id                String          @id @default(cuid())
+  organizationId    String
+  
+  name              String
+  description       String?
+  type              String          // sales, marketing, financial, operational, custom
+  category          String?
+  
+  // Report Configuration
+  dataSource        String          // Which entities/models
+  metrics           Json            // What to measure
+  dimensions        Json?           // How to group/segment
+  filters           Json?           // Applied filters
+  
+  visualization     String          @default("table") // table, line, bar, pie, funnel, etc.
+  chartConfig       Json?
+  
+  // Scheduling
+  isScheduled       Boolean         @default(false)
+  scheduleFrequency String?         // daily, weekly, monthly
+  scheduleCron      String?
+  
+  isPublic          Boolean         @default(false)
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  schedules         ReportSchedule[]
+  
+  @@index([organizationId])
+  @@index([type])
+}
+
+model ReportSchedule {
+  id                String          @id @default(cuid())
+  reportId          String
+  report            Report          @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  
+  userId            String
+  user              User            @relation(fields: [userId], references: [id])
+  
+  frequency         String          // daily, weekly, monthly
+  deliveryMethod    String          @default("email") // email, slack, webhook
+  deliveryConfig    Json?
+  
+  isActive          Boolean         @default(true)
+  lastRunAt         DateTime?
+  nextRunAt         DateTime?
+  
+  createdAt         DateTime        @default(now())
+  
+  @@index([reportId])
+  @@index([userId])
+}
+
+model CampaignAnalytics {
+  id                String          @id @default(cuid())
+  campaignId        String
+  campaign          Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  
+  date              DateTime        @db.Date
+  
+  sent              Int             @default(0)
+  delivered         Int             @default(0)
+  opened            Int             @default(0)
+  clicked           Int             @default(0)
+  converted         Int             @default(0)
+  bounced           Int             @default(0)
+  unsubscribed      Int             @default(0)
+  
+  revenue           Decimal?        @db.Decimal(15, 2)
+  cost              Decimal?        @db.Decimal(15, 2)
+  
+  @@unique([campaignId, date])
+  @@index([campaignId])
+  @@index([date])
+}
+
+model Dashboard {
+  id                String          @id @default(cuid())
+  organizationId    String
+  
+  name              String
+  description       String?
+  
+  layout            Json            // Widget arrangement
+  widgets           Json            // Widget configurations
+  
+  isDefault         Boolean         @default(false)
+  isPublic          Boolean         @default(false)
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  preferences       DashboardPreference[]
+  
+  @@index([organizationId])
+}
+
+model DashboardPreference {
+  id                String          @id @default(cuid())
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dashboardId       String
+  dashboard         Dashboard       @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  
+  isDefault         Boolean         @default(false)
+  customLayout      Json?
+  
+  @@unique([userId, dashboardId])
+  @@index([userId])
+}
+
+// ============================================
+// CUSTOMER SATISFACTION & FEEDBACK
+// ============================================
+
+model SatisfactionScore {
+  id                String          @id @default(cuid())
+  clientId          String
+  client            Client          @relation(fields: [clientId], references: [id])
+  
+  type              String          // nps, csat, ces, custom
+  score             Int             // Typically 0-10 or 1-5
+  maxScore          Int             @default(10)
+  
+  comment           String?
+  
+  surveyId          String?
+  
+  recordedAt        DateTime        @default(now())
+  
+  @@index([clientId])
+  @@index([type])
+  @@index([recordedAt])
+}
+
+model Survey {
+  id                String          @id @default(cuid())
+  organizationId    String
+  
+  name              String
+  description       String?
+  type              String          // nps, csat, onboarding, churn, custom
+  
+  questions         Json            // Array of questions with config
+  
+  isActive          Boolean         @default(true)
+  
+  // Delivery
+  deliveryMethod    String?         // email, in_app, link
+  triggerEvent      String?         // after_purchase, after_support, periodic
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  responses         SurveyResponse[]
+  
+  @@index([organizationId])
+  @@index([type])
+}
+
+model SurveyResponse {
+  id                String          @id @default(cuid())
+  surveyId          String
+  survey            Survey          @relation(fields: [surveyId], references: [id])
+  
+  respondentEmail   String?
+  respondentId      String?         // If authenticated
+  
+  responses         Json            // Answers to all questions
+  
+  completedAt       DateTime?
+  submittedAt       DateTime        @default(now())
+  
+  @@index([surveyId])
+  @@index([submittedAt])
+}
+
+// ============================================
+// ACTIVITY TRACKING
+// ============================================
+
+model Activity {
+  id                String          @id @default(cuid())
+  organizationId    String
+  
+  type              String          // client_created, email_sent, meeting_scheduled, etc.
+  entityType        String          // client, opportunity, project, etc.
+  entityId          String
+  
+  clientId          String?
+  client            Client?         @relation(fields: [clientId], references: [id])
+  opportunityId     String?
+  opportunity       Opportunity?    @relation(fields: [opportunityId], references: [id])
+  
+  description       String
+  metadata          Json?
+  
+  performedBy       String?
+  
+  occurredAt        DateTime        @default(now())
+  
+  @@index([organizationId])
+  @@index([entityType, entityId])
+  @@index([clientId])
+  @@index([occurredAt])
+}
+
+model AuditLog {
+  id                String          @id @default(cuid())
+  organizationId    String
+  
+  userId            String?
+  user              User?           @relation(fields: [userId], references: [id])
+  
+  action            String          // create, update, delete, login, export, etc.
+  entityType        String
+  entityId          String?
+  
+  changes           Json?           // Before/after values
+  
+  ipAddress         String?
+  userAgent         String?
+  
+  timestamp         DateTime        @default(now())
+  
+  @@index([organizationId])
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([timestamp])
+}
+
+// ============================================
+// INTEGRATIONS
+// ============================================
+
+model Integration {
+  id                String          @id @default(cuid())
+  organizationId    String
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  provider          String          // salesforce, hubspot, mailchimp, stripe, etc.
+  name              String
+  
+  status            String          @default("inactive") // inactive, active, error
+  
+  credentials       String          // Encrypted
+  config            Json?
+  
+  lastSyncAt        DateTime?
+  syncFrequency     String?         // manual, hourly, daily
+  
+  errorMessage      String?
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  syncLogs          IntegrationSyncLog[]
+  
+  @@index([organizationId])
+  @@index([provider])
+}
+
+model IntegrationSyncLog {
+  id                String          @id @default(cuid())
+  integrationId     String
+  integration       Integration     @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  
+  status            String          // success, partial, failed
+  direction         String          // import, export, bidirectional
+  
+  recordsProcessed  Int             @default(0)
+  recordsSucceeded  Int             @default(0)
+  recordsFailed     Int             @default(0)
+  
+  errorDetails      Json?
+  
+  startedAt         DateTime        @default(now())
+  completedAt       DateTime?
+  
+  @@index([integrationId])
+  @@index([startedAt])
+}
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+model Notification {
+  id                String          @id @default(cuid())
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type              String          // info, warning, error, success
+  category          String          // system, client, campaign, billing, etc.
+  
+  title             String
+  message           String
+  actionUrl         String?
+  
+  isRead            Boolean         @default(false)
+  readAt            DateTime?
+  
+  createdAt         DateTime        @default(now())
+  
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+// ============================================
+// CUSTOM FIELDS & CONFIGURATIONS
+// ============================================
+
+model CustomField {
+  id                String          @id @default(cuid())
+  organizationId    String
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  entityType        String          // client, opportunity, project, etc.
+  name              String
+  label             String
+  fieldType         String          // text, number, date, boolean, select, multi_select
+  
+  options           Json?           // For select fields
+  defaultValue      String?
+  
+  isRequired        Boolean         @default(false)
+  isActive          Boolean         @default(true)
+  
+  displayOrder      Int             @default(0)
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  values            CustomFieldValue[]
+  
+  @@unique([organizationId, entityType, name])
+  @@index([organizationId])
+  @@index([entityType])
+}
+
+model CustomFieldValue {
+  id                String          @id @default(cuid())
+  customFieldId     String
+  customField       CustomField     @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
+  
+  entityId          String          // ID of the client, opportunity, etc.
+  clientId          String?
+  client            Client?         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  value             String          // Stored as string, parsed based on fieldType
+  
+  @@unique([customFieldId, entityId])
+  @@index([customFieldId])
+  @@index([entityId])
+}
+
+model SystemConfiguration {
+  id                String          @id @default(cuid())
+  organizationId    String
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  module            String          // email, sms, billing, notifications, etc.
+  key               String
+  value             String
+  dataType          String          @default("string") // string, number, boolean, json
+  
+  description       String?
+  isEncrypted       Boolean         @default(false)
+  
+  updatedAt         DateTime        @updatedAt
+  
+  @@unique([organizationId, module, key])
+  @@index([organizationId])
+  @@index([module])
+}
