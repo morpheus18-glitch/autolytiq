@@ -16,6 +16,8 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/frontend/package.json apps/frontend/
 COPY packages/tokens/package.json packages/tokens/
+COPY packages/shared/package.json packages/shared/
+COPY packages/db/package.json packages/db/
 RUN pnpm install --frozen-lockfile --filter @repo/frontend...
 
 FROM dependencies AS builder
