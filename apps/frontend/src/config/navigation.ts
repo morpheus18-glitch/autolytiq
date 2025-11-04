@@ -49,7 +49,9 @@ import {
   FolderOpen,
   CheckSquare,
   Send,
-  FileCheck
+  FileCheck,
+  Columns,
+  Store
 } from 'lucide-react';
 
 export interface NavigationItem {
@@ -122,15 +124,15 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
     id: 'crm',
     label: 'CRM & Leads',
     icon: Users,
-    path: '/leads',
+    path: '/crm/pipeline',
     subItems: [
+      { label: 'Lead Pipeline', path: '/crm/pipeline', icon: Columns },
+      { label: 'Showroom Manager', path: '/showroom/manager', icon: Store },
       { label: 'Lead Management', path: '/leads/management', icon: Users },
       { label: 'Lead Dashboard', path: '/leads/dashboard', icon: Handshake },
-      { label: 'Lead Detail', path: '/leads/detail', icon: User },
       { label: 'Market Leads', path: '/leads/market', icon: Megaphone },
       { label: 'Customer Records', path: '/customers', icon: Users },
       { label: 'Customer Detail', path: '/customers/detail/1', icon: User },
-      { label: 'Customer Profile', path: '/customers/profile/1', icon: UserCheck },
       { label: 'Texting Portal', path: '/customers/texting-portal', icon: MessageCircle },
       { label: 'Phone Calls', path: '/customers/phone-calls', icon: Phone },
       { label: 'Customer Lifecycle', path: '/analytics/customer-lifecycle', icon: Activity }

@@ -112,6 +112,12 @@ const LeadDetail = lazy(() => import('@/pages/leads/LeadDetail'));
 const LeadsManagement = lazy(() => import('@/pages/leads/lead-management'));
 const LeadsMarket = lazy(() => import('@/pages/leads/market-leads'));
 
+// CRM pages
+const LeadPipeline = lazy(() => import('@/pages/crm/lead-pipeline'));
+
+// Showroom pages
+const ShowroomManager = lazy(() => import('@/pages/showroom/showroom-manager'));
+
 // Misc pages
 const MiscProfessionalDealDesk = lazy(() => import('@/pages/misc/professional-deal-desk'));
 const MiscMultiStoreManagement = lazy(() => import('@/pages/misc/multi-store-management'));
@@ -265,6 +271,12 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/leads/:id', component: LeadDetail },
   { path: '/leads/management', component: LeadsManagement },
   { path: '/leads/market', component: LeadsMarket },
+
+  // CRM routes
+  { path: '/crm/pipeline', component: LeadPipeline },
+
+  // Showroom routes
+  { path: '/showroom/manager', component: ShowroomManager },
 
   // Accounting routes
   { path: '/accounting/vehicle-profit', component: AccountingVehicleProfit },
