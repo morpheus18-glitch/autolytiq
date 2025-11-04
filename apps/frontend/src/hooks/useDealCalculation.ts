@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { calculatePayment } from '@/lib/pricingService';
+import { calculatePayment as calculatePaymentAPI } from '@/services/pricingApi';
 import type { DealStructure, PaymentCalculation } from '@/contexts/DealStudioContext';
 
 interface UseDealCalculationOptions {
@@ -101,16 +101,18 @@ export function useDealCalculation(
         dealData.maintenance +
         dealData.paintProtection;
 
-      // Call Rust pricing service (via HTTP bridge or gRPC)
-      const result = await calculatePayment({
-        vehiclePrice: dealData.salePrice,
-        downPayment: dealData.downPayment,
-        tradeValue: dealData.tradeValue,
-        tradePayoff: dealData.tradePayoff,
-        apr: dealData.apr,
-        term: dealData.term,
-        addOns: totalAddOns,
-      });
+      // Calculate amount financed
+      const amountFinanced = dealData.salePrice - dealData.downPayment - netTrade + totalAddOns;
+
+      // Call Rust pricing service via REST API
+      const result = await calculatePaymentAPI(
+        {
+          amountFinanced,
+          apr: dealData.apr,
+          termMonths: dealData.term,
+        },
+        abortControllerRef.current?.signal
+      );
 
       const calculationTime = performance.now() - startTime;
       setLastCalculationTime(calculationTime);
@@ -118,10 +120,10 @@ export function useDealCalculation(
       // Map to PaymentCalculation format
       const paymentData: PaymentCalculation = {
         monthlyPayment: result.monthlyPayment,
-        totalFinanced: result.totalFinanced,
+        totalFinanced: amountFinanced,
         totalInterest: result.totalInterest,
-        totalCost: result.totalCost,
-        amountFinanced: dealData.salePrice - dealData.downPayment - netTrade + totalAddOns,
+        totalCost: result.totalPayment,
+        amountFinanced,
       };
 
       // Cache result

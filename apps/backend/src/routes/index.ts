@@ -17,6 +17,7 @@ import { deskingRouter } from './desking.routes.js';
 import { healthRouter } from './health.routes.js';
 import timelineRouter from './timeline.routes.js';
 import { authRouter } from './auth.routes.js';
+import { pricingRouter } from './pricing.routes.js';
 
 export function registerRoutes(app: Express) {
   // Health check routes (no auth required)
@@ -40,6 +41,7 @@ export function registerRoutes(app: Express) {
   apiRouter.use('/ml', mlRouter);
   apiRouter.use('/fi', fiRouter);
   apiRouter.use('/desking', deskingRouter);
+  apiRouter.use('/pricing', pricingRouter);
 
   const leadRoutingRoles: Role[] = ['ADMIN', 'BDC', 'SALES'];
   apiRouter.post(
