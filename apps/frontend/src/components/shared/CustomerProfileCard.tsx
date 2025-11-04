@@ -20,11 +20,79 @@ import {
   Edit,
   Calendar,
   TrendingUp,
-  FileText
+  FileText,
+  Car
 } from 'lucide-react';
 import { Link } from 'wouter';
 import { cn } from '@/lib/utils';
+import { VehicleLink, DealLink } from './QuickViewLinks';
 import type { Customer } from '@shared/schema';
+
+// Related items component
+function RelatedItems({ customerId }: { customerId: string }) {
+  const { data: deals } = useQuery<any[]>({
+    queryKey: [`/api/customers/${customerId}/deals`],
+    placeholderData: [],
+  });
+
+  const { data: vehicles } = useQuery<any[]>({
+    queryKey: [`/api/customers/${customerId}/vehicles`],
+    placeholderData: [],
+  });
+
+  const hasRelatedItems = (deals && deals.length > 0) || (vehicles && vehicles.length > 0);
+
+  if (!hasRelatedItems) return null;
+
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+        Related Items
+      </h3>
+
+      {deals && deals.length > 0 && (
+        <div className="space-y-2">
+          <div className="text-xs font-semibold text-muted-foreground">Recent Deals</div>
+          {deals.slice(0, 3).map((deal) => (
+            <div
+              key={deal.id}
+              className="flex items-center justify-between p-2 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+            >
+              <DealLink
+                dealId={deal.id}
+                dealName={`Deal #${deal.id.slice(0, 8)}`}
+                showIcon
+                className="text-sm"
+              />
+              <Badge variant="secondary" className="text-xs">
+                {deal.status}
+              </Badge>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {vehicles && vehicles.length > 0 && (
+        <div className="space-y-2">
+          <div className="text-xs font-semibold text-muted-foreground">Owned Vehicles</div>
+          {vehicles.slice(0, 3).map((vehicle) => (
+            <div
+              key={vehicle.id}
+              className="flex items-center justify-between p-2 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+            >
+              <VehicleLink
+                vehicleId={vehicle.id}
+                vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                showIcon
+                className="text-sm"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface CustomerProfileCardProps {
   customerId: string | null;
@@ -235,6 +303,10 @@ export function CustomerProfileCard({ customerId, open, onOpenChange }: Customer
                   </div>
                 </>
               )}
+
+              {/* Related Items */}
+              <Separator />
+              <RelatedItems customerId={customer.id} />
 
               {/* Action Buttons */}
               <div className="pt-4 space-y-2">
