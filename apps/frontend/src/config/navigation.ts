@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   Home,
   Users,
+  User,
   Car,
   DollarSign,
   Wrench,
