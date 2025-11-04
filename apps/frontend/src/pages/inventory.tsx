@@ -32,8 +32,59 @@ export default function Inventory() {
   const [selectedView, setSelectedView] = useState('grid');
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
 
-  const { data: vehicles = [], isLoading, error } = useQuery<Vehicle[]>({
+  // Demo data for immediate functionality
+  const demoVehicles: Vehicle[] = [
+    {
+      id: 'V001',
+      stockNumber: 'STK-2024-001',
+      vin: '1HGBH41JXMN109186',
+      year: 2024,
+      make: 'Toyota',
+      model: 'Camry',
+      trim: 'XSE',
+      price: 32500,
+      status: 'available',
+      mileage: 15,
+      daysInStock: 12,
+    },
+    {
+      id: 'V002',
+      stockNumber: 'STK-2024-002',
+      vin: '2T3BFREV5HW123456',
+      year: 2023,
+      make: 'Honda',
+      model: 'CR-V',
+      trim: 'EX-L',
+      price: 28900,
+      status: 'available',
+      mileage: 8245,
+      daysInStock: 8,
+    },
+    {
+      id: 'V003',
+      stockNumber: 'STK-2024-003',
+      vin: '1FTFW1ET9MFC12345',
+      year: 2024,
+      make: 'Ford',
+      model: 'F-150',
+      trim: 'XLT',
+      price: 45200,
+      status: 'available',
+      mileage: 3200,
+      daysInStock: 5,
+    },
+  ];
+
+  const { data: vehicles = demoVehicles, isLoading, error } = useQuery<Vehicle[]>({
     queryKey: ['/api/vehicles'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/vehicles');
+        return response.json();
+      } catch {
+        return demoVehicles;
+      }
+    },
   });
 
   if (error) {

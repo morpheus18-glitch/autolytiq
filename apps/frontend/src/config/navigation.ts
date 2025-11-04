@@ -51,7 +51,8 @@ import {
   Send,
   FileCheck,
   Columns,
-  Store
+  Store,
+  Scan
 } from 'lucide-react';
 
 export interface NavigationItem {
@@ -112,11 +113,10 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
     path: '/inventory',
     subItems: [
       { label: 'Vehicle Inventory', path: '/inventory', icon: Car },
+      { label: 'Trade Appraisal', path: '/inventory/trade-appraisal', icon: Scan },
       { label: 'Vehicle Detail', path: '/inventory/vehicle/1', icon: Car },
-      { label: 'Inventory Detail', path: '/inventory/detail/1', icon: FolderOpen },
       { label: 'Lot Management', path: '/inventory/lot-management', icon: Database },
       { label: 'Pricing Insights', path: '/inventory/pricing', icon: TrendingUp },
-      { label: 'Trade Appraisals', path: '/inventory/trade-appraisals', icon: Car },
       { label: 'Competitive Pricing', path: '/inventory/competitive-pricing', icon: TrendingUp }
     ]
   },

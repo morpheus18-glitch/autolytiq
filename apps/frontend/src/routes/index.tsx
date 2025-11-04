@@ -94,6 +94,7 @@ const InventoryVehicleDetail = lazy(() => import('@/pages/inventory/vehicle-deta
 const InventoryTradeAppraisals = lazy(() => import('@/pages/inventory/trade-appraisals'));
 const InventoryCompetitivePricing = lazy(() => import('@/pages/inventory/competitive-pricing'));
 const InventoryLotManagement = lazy(() => import('@/pages/inventory/lot-management'));
+const TradeAppraisal = lazy(() => import('@/pages/inventory/TradeAppraisal'));
 
 // Finance pages
 const FinanceRates = lazy(() => import('@/pages/finance/rates'));
@@ -263,6 +264,7 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/inventory/pricing', component: InventoryPricing },
   { path: '/inventory/vehicle/:id', component: InventoryVehicleDetail },
   { path: '/inventory/trade-appraisals', component: InventoryTradeAppraisals },
+  { path: '/inventory/trade-appraisal', component: TradeAppraisal },
   { path: '/inventory/competitive-pricing', component: InventoryCompetitivePricing },
   { path: '/inventory/lot-management', component: InventoryLotManagement },
 
