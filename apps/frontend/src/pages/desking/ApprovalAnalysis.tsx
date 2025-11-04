@@ -10,8 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { CheckCircle2, Sparkles, Printer, Save } from 'lucide-react';
 import { useApprovalPredictions, useDeal, useSimilarDeals } from '@/features/desking/hooks';
-import PencilPrintPreview from '@/components/desking/PencilPrintPreview';
-import PanelErrorBoundary from '@/components/desking/PanelErrorBoundary';
+import PencilPrintPreview from '@/components/desking/PencilPrintPreview.tsx';
+import PanelErrorBoundary from '@/components/desking/PanelErrorBoundary.tsx';
 
 const DEAL_ID = 'demo-deal-001';
 

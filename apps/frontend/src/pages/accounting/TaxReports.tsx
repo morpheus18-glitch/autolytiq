@@ -19,7 +19,7 @@ import {
   markTaxReportFiled,
 } from '@/lib/accountingApi';
 import AccountingLayout from './AccountingLayout';
-import { StatementHeader } from '@/components/accounting/StatementHeader';
+import { StatementHeader } from '@/components/accounting/StatementHeader.tsx';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

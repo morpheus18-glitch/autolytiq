@@ -10,8 +10,8 @@ import { apiRequest } from '@/lib/queryClient';
 import { Sparkles, Printer, Save, ArrowRight, BarChart3 } from 'lucide-react';
 import { useApprovalPredictions, useDeal, useOptimizeDeal, useSimilarDeals } from '@/features/desking/hooks';
 import type { DeskingDeal, PaymentScenario } from '@/features/desking/types';
-import PanelErrorBoundary from '@/components/desking/PanelErrorBoundary';
-import PencilPrintPreview from '@/components/desking/PencilPrintPreview';
+import PanelErrorBoundary from '@/components/desking/PanelErrorBoundary.tsx';
+import PencilPrintPreview from '@/components/desking/PencilPrintPreview.tsx';
 
 const DEAL_ID = 'demo-deal-001';
 

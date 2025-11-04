@@ -9,8 +9,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { TemplatePicker } from '@/components/communications/TemplatePicker';
-import { RichTextEditor } from '@/components/settings/RichTextEditor';
+import { TemplatePicker } from '@/components/communications/TemplatePicker.tsx';
+import { RichTextEditor } from '@/components/settings/RichTextEditor.tsx';
 import {
   CommunicationRecord,
   TemplateDefinition,

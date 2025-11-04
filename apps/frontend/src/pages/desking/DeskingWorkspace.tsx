@@ -19,13 +19,13 @@ import {
   Lightbulb,
   LineChart,
 } from 'lucide-react';
-import PaymentScenarioCard from '@/components/desking/PaymentScenarioCard';
-import GrossMeter from '@/components/desking/GrossMeter';
-import ProbabilityIndicator from '@/components/desking/ProbabilityIndicator';
-import LenderRecommendationCard from '@/components/desking/LenderRecommendationCard';
-import DealTimelineTracker from '@/components/desking/DealTimelineTracker';
-import AIInsightPanel from '@/components/desking/AIInsightPanel';
-import PencilPrintPreview from '@/components/desking/PencilPrintPreview';
+import PaymentScenarioCard from '@/components/desking/PaymentScenarioCard.tsx';
+import GrossMeter from '@/components/desking/GrossMeter.tsx';
+import ProbabilityIndicator from '@/components/desking/ProbabilityIndicator.tsx';
+import LenderRecommendationCard from '@/components/desking/LenderRecommendationCard.tsx';
+import DealTimelineTracker from '@/components/desking/DealTimelineTracker.tsx';
+import AIInsightPanel from '@/components/desking/AIInsightPanel.tsx';
+import PencilPrintPreview from '@/components/desking/PencilPrintPreview.tsx';
 import {
   useDeal,
   useOptimizeDeal,

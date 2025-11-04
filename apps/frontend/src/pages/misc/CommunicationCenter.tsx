@@ -9,8 +9,8 @@ import {
   groupCommunicationsByThread,
   useCommunicationsStore,
 } from '@/stores/communications-store';
-import { UnifiedFilters } from '@/components/communications/UnifiedFilters';
-import { TemplatePicker } from '@/components/communications/TemplatePicker';
+import { UnifiedFilters } from '@/components/communications/UnifiedFilters.tsx';
+import { TemplatePicker } from '@/components/communications/TemplatePicker.tsx';
 import {
   Avatar,
   AvatarFallback,

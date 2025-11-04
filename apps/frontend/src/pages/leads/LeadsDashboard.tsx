@@ -31,8 +31,8 @@ import { useLeadDashboardStore } from '@/stores/lead-dashboard-store';
 import { useLeadSocket } from '@/hooks/use-lead-socket';
 import { fetchLeads, updateLeadStatus } from '@/lib/leadsApi';
 import type { Lead, LeadStatus } from '@/types/leads';
-import LeadCard from '@/components/leads/LeadCard';
-import LeadScoreBadge from '@/components/leads/LeadScoreBadge';
+import LeadCard from '@/components/leads/LeadCard.tsx';
+import LeadScoreBadge from '@/components/leads/LeadScoreBadge.tsx';
 import type { DateRange } from 'react-day-picker';
 import relativeTime from 'dayjs/plugin/relativeTime';
 

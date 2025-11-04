@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, startOfMonth } from 'date-fns';
 import { ChevronDown, ChevronRight, Download, FileInput, MoreHorizontal, PlusCircle, RefreshCcw } from 'lucide-react';
 import AccountingLayout from './AccountingLayout';
-import { StatementHeader } from '@/components/accounting/StatementHeader';
+import { StatementHeader } from '@/components/accounting/StatementHeader.tsx';
 import {
   fetchAccounts,
   fetchJournalEntries,

@@ -12,8 +12,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { RolePresetCard, type RolePreset } from '@/components/settings/RolePresetCard';
-import { PermissionSelector, type Permission } from '@/components/settings/PermissionSelector';
+import { RolePresetCard, type RolePreset } from '@/components/settings/RolePresetCard.tsx';
+import { PermissionSelector, type Permission } from '@/components/settings/PermissionSelector.tsx';
 import { Plus, Search, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';

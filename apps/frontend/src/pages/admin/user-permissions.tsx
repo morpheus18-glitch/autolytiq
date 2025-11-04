@@ -20,8 +20,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PermissionSelector, type Permission } from '@/components/settings/PermissionSelector';
-import { RolePresetCard, type RolePreset } from '@/components/settings/RolePresetCard';
+import { PermissionSelector, type Permission } from '@/components/settings/PermissionSelector.tsx';
+import { RolePresetCard, type RolePreset } from '@/components/settings/RolePresetCard.tsx';
 import { Search, UserCog, Shield, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';

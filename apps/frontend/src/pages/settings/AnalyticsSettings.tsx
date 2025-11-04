@@ -38,8 +38,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ToggleSwitch } from '@/components/settings/ToggleSwitch';
-import { TestConnectionButton } from '@/components/settings/TestConnectionButton';
+import { ToggleSwitch } from '@/components/settings/ToggleSwitch.tsx';
+import { TestConnectionButton } from '@/components/settings/TestConnectionButton.tsx';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useSettingsSection } from './useSettingsSection';

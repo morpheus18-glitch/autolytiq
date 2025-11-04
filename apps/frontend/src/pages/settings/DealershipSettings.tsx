@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
-import { ImageUploader } from '@/components/settings/ImageUploader';
+import { ImageUploader } from '@/components/settings/ImageUploader.tsx';
 import {
   DAY_LABELS,
   dealershipSettingsSchema,

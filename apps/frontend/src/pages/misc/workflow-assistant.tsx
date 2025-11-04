@@ -1,4 +1,4 @@
-import WorkflowIntegration from "@/components/workflow-integration";
+import WorkflowIntegration from "@/components/loose/workflow-integration.tsx";
 
 export default function WorkflowAssistant() {
   return (

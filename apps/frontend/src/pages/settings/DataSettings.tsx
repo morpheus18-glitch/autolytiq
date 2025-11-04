@@ -50,7 +50,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ToggleSwitch } from '@/components/settings/ToggleSwitch';
+import { ToggleSwitch } from '@/components/settings/ToggleSwitch.tsx';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useSettingsSection } from './useSettingsSection';

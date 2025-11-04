@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
-import { ToggleSwitch } from '@/components/settings/ToggleSwitch';
+import { ToggleSwitch } from '@/components/settings/ToggleSwitch.tsx';
 import { useSettingsSection } from './useSettingsSection';
 
 const adjustmentRangeSchema = z

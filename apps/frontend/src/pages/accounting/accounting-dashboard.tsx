@@ -7,8 +7,8 @@ import { useQuery } from "@tanstack/react-query";
 import { DollarSign, FileText, Calculator, TrendingUp, Building, CreditCard, Users, Car, BarChart3, Target, PieChart, Wallet } from "lucide-react";
 import DealFinalization from "./deal-finalization";
 import ChartOfAccounts from "./chart-of-accounts";
-import CRMIntegration from "@/components/accounting/crm-integration";
-import InventoryIntegration from "@/components/accounting/inventory-integration";
+import CRMIntegration from '@/components/accounting/crm-integration.tsx';
+import InventoryIntegration from '@/components/accounting/inventory-integration.tsx';
 
 export default function AccountingDashboard() {
   const [activeTab, setActiveTab] = useState("overview");

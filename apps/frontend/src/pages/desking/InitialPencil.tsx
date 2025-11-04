@@ -24,10 +24,10 @@ import {
 } from 'lucide-react';
 import { useDeal, useOptimizeDeal, useApprovalPredictions, useSimilarDeals } from '@/features/desking/hooks';
 import type { DeskingDeal, PaymentScenario } from '@/features/desking/types';
-import PencilPrintPreview from '@/components/desking/PencilPrintPreview';
-import PanelErrorBoundary from '@/components/desking/PanelErrorBoundary';
-import GrossCalculator from '@/components/calculators/GrossCalculator';
-import PaymentCalculator from '@/components/calculators/PaymentCalculator';
+import PencilPrintPreview from '@/components/desking/PencilPrintPreview.tsx';
+import PanelErrorBoundary from '@/components/desking/PanelErrorBoundary.tsx';
+import GrossCalculator from '@/components/calculators/GrossCalculator.tsx';
+import PaymentCalculator from '@/components/calculators/PaymentCalculator.tsx';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 
 const DEAL_ID = 'demo-deal-001';

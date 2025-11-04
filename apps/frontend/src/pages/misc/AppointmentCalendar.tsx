@@ -11,7 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarGrid, CalendarView } from '@/components/communications/CalendarGrid';
+import { CalendarGrid, CalendarView } from '@/components/communications/CalendarGrid.tsx';
 import {
   AppointmentRecord,
   Reminder,

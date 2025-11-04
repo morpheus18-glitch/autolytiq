@@ -18,7 +18,7 @@ import { Link, useLocation } from 'wouter';
 import AccountingLayout from './AccountingLayout';
 import { fetchPayrolls } from '@/lib/accountingApi';
 import { fetchUsers } from '@/lib/settingsUsersApi';
-import { StatementHeader } from '@/components/accounting/StatementHeader';
+import { StatementHeader } from '@/components/accounting/StatementHeader.tsx';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

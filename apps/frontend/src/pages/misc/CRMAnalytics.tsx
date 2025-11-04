@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { KPIGroup } from '@/components/communications/KPIGroup';
+import { KPIGroup } from '@/components/communications/KPIGroup.tsx';
 import { useCommunicationsStore } from '@/stores/communications-store';
 import { format, parseISO, subDays } from 'date-fns';
 import { Download, Filter, Mail, MessageCircle, PhoneCall, TrendingUp, Users } from 'lucide-react';

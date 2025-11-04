@@ -30,7 +30,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { TestConnectionButton } from '@/components/settings/TestConnectionButton';
+import { TestConnectionButton } from '@/components/settings/TestConnectionButton.tsx';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useForm } from 'react-hook-form';

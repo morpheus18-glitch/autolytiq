@@ -18,7 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { StatementHeader } from '@/components/accounting/StatementHeader';
+import { StatementHeader } from '@/components/accounting/StatementHeader.tsx';
 
 const ACCOUNT_TYPES = [
   { label: 'Asset', value: 'ASSET' },

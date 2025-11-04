@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
-import { TestConnectionButton } from '@/components/settings/TestConnectionButton';
+import { TestConnectionButton } from '@/components/settings/TestConnectionButton.tsx';
 import { apiRequest } from '@/lib/queryClient';
 import { useSettingsSection } from './useSettingsSection';
 

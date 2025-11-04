@@ -26,8 +26,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { RichTextEditor } from '@/components/settings/RichTextEditor';
-import { TestConnectionButton } from '@/components/settings/TestConnectionButton';
+import { RichTextEditor } from '@/components/settings/RichTextEditor.tsx';
+import { TestConnectionButton } from '@/components/settings/TestConnectionButton.tsx';
 import { useToast } from '@/hooks/use-toast';
 import { fetchSettingsSection } from '@/lib/settingsApi';
 import {

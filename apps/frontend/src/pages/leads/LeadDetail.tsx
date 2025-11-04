@@ -16,12 +16,12 @@ import { z } from 'zod';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { ArrowLeft, CalendarClock, CheckCircle2, Mail, MessageSquare, PhoneCall, Sparkles } from 'lucide-react';
-import ActivityFeed from '@/components/leads/ActivityFeed';
-import AIInsights from '@/components/leads/AIInsights';
-import AppointmentCard from '@/components/leads/AppointmentCard';
-import CallWidget from '@/components/leads/CallWidget';
-import SMSThread from '@/components/leads/SMSThread';
-import LeadScoreBadge from '@/components/leads/LeadScoreBadge';
+import ActivityFeed from '@/components/leads/ActivityFeed.tsx';
+import AIInsights from '@/components/leads/AIInsights.tsx';
+import AppointmentCard from '@/components/leads/AppointmentCard.tsx';
+import CallWidget from '@/components/leads/CallWidget.tsx';
+import SMSThread from '@/components/leads/SMSThread.tsx';
+import LeadScoreBadge from '@/components/leads/LeadScoreBadge.tsx';
 import { useLeadSocket } from '@/hooks/use-lead-socket';
 import { fetchLeadDetail, fetchLeadTimeline, createLeadActivity } from '@/lib/leadsApi';
 import type {

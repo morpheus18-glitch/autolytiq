@@ -13,7 +13,7 @@ import {
   Reminder,
   useCommunicationsStore,
 } from '@/stores/communications-store';
-import DispositionModal, { DispositionForm } from '@/components/communications/DispositionModal';
+import DispositionModal, { DispositionForm } from '@/components/communications/DispositionModal.tsx';
 import { formatDistanceToNow } from 'date-fns';
 import { AlertCircle, Clock, Headset, PhoneIncoming, PhoneOutgoing, Sparkles } from 'lucide-react';
 

@@ -17,7 +17,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import AccountingLayout from './AccountingLayout';
-import { StatementHeader } from '@/components/accounting/StatementHeader';
+import { StatementHeader } from '@/components/accounting/StatementHeader.tsx';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

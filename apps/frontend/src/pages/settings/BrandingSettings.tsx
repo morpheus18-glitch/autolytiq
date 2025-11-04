@@ -25,10 +25,10 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ColorPicker } from '@/components/settings/ColorPicker';
-import { ImageUploader } from '@/components/settings/ImageUploader';
-import { RichTextEditor } from '@/components/settings/RichTextEditor';
-import { ToggleSwitch } from '@/components/settings/ToggleSwitch';
+import { ColorPicker } from '@/components/settings/ColorPicker.tsx';
+import { ImageUploader } from '@/components/settings/ImageUploader.tsx';
+import { RichTextEditor } from '@/components/settings/RichTextEditor.tsx';
+import { ToggleSwitch } from '@/components/settings/ToggleSwitch.tsx';
 import {
   brandingSettingsSchema,
   defaultBrandingSettings,

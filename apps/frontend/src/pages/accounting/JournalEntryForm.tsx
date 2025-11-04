@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { ChevronsUpDown, Loader2, Plus, Trash2 } from 'lucide-react';
 import { useLocation, useRoute } from 'wouter';
 import AccountingLayout from './AccountingLayout';
-import { StatementHeader } from '@/components/accounting/StatementHeader';
+import { StatementHeader } from '@/components/accounting/StatementHeader.tsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
