@@ -29,6 +29,10 @@ const AdminDepartments = lazy(() => import('@/pages/admin/departments'));
 const AdminDealerConfiguration = lazy(() => import('@/pages/admin/dealer-configuration'));
 const AdminComprehensiveSettings = lazy(() => import('@/pages/admin/comprehensive-settings'));
 const AdminCommunicationSettings = lazy(() => import('@/pages/admin/communication-settings'));
+const AdminMLDeveloper = lazy(() => import('@/pages/admin/ml-developer'));
+const AdminMLModelComparison = lazy(() => import('@/pages/admin/ml-model-comparison'));
+const AdminSystemHealth = lazy(() => import('@/pages/admin/system-health'));
+const AdminMultiStore = lazy(() => import('@/pages/admin/multi-store'));
 
 // Accounting pages
 const AccountingVehicleProfit = lazy(() => import('@/pages/accounting/vehicle-profit'));
@@ -54,10 +58,24 @@ const AccountingDashboardAlt = lazy(() => import('@/pages/accounting/AccountingD
 
 // Analytics pages
 const AnalyticsCustomerLifecycle = lazy(() => import('@/pages/analytics/customer-lifecycle'));
+const AnalyticsCRM = lazy(() => import('@/pages/analytics/crm-analytics'));
+
+// Auth pages
+const AuthForgotPassword = lazy(() => import('@/pages/auth/forgot-password'));
+const AuthResetPassword = lazy(() => import('@/pages/auth/reset-password'));
+
+// Communications pages
+const CommunicationsCenter = lazy(() => import('@/pages/communications/communication-center'));
+const CommunicationsCallCenter = lazy(() => import('@/pages/communications/call-center'));
+const CommunicationsEmail = lazy(() => import('@/pages/communications/email-composer'));
+const CommunicationsSMS = lazy(() => import('@/pages/communications/sms-inbox'));
+const CommunicationsDemo = lazy(() => import('@/pages/communications/demo'));
 
 // Customers pages
 const CustomersTextingPortal = lazy(() => import('@/pages/customers/texting-portal'));
 const CustomersPhoneCalls = lazy(() => import('@/pages/customers/phone-calls'));
+const CustomersDetail = lazy(() => import('@/pages/customers/detail'));
+const CustomersProfile = lazy(() => import('@/pages/customers/profile'));
 
 // Desking pages
 const DeskingInitialPencil = lazy(() => import('@/pages/desking/InitialPencil'));
@@ -65,6 +83,17 @@ const DeskingWorkspace = lazy(() => import('@/pages/desking/DeskingWorkspace'));
 const DeskingDealComparison = lazy(() => import('@/pages/desking/DealComparison'));
 const DeskingCustomerCounter = lazy(() => import('@/pages/desking/CustomerCounter'));
 const DeskingApprovalAnalysis = lazy(() => import('@/pages/desking/ApprovalAnalysis'));
+
+// Deals pages  
+const DealsDealDesk = lazy(() => import('@/pages/deals/deal-desk'));
+
+// Inventory pages
+const InventoryDetail = lazy(() => import('@/pages/inventory/detail'));
+const InventoryPricing = lazy(() => import('@/pages/inventory/pricing'));
+const InventoryVehicleDetail = lazy(() => import('@/pages/inventory/vehicle-detail'));
+const InventoryTradeAppraisals = lazy(() => import('@/pages/inventory/trade-appraisals'));
+const InventoryCompetitivePricing = lazy(() => import('@/pages/inventory/competitive-pricing'));
+const InventoryLotManagement = lazy(() => import('@/pages/inventory/lot-management'));
 
 // Finance pages
 const FinanceRates = lazy(() => import('@/pages/finance/rates'));
@@ -75,6 +104,8 @@ const FinanceComplianceManager = lazy(() => import('@/pages/finance/compliance-m
 // Leads pages
 const LeadsDashboard = lazy(() => import('@/pages/leads/LeadsDashboard'));
 const LeadDetail = lazy(() => import('@/pages/leads/LeadDetail'));
+const LeadsManagement = lazy(() => import('@/pages/leads/lead-management'));
+const LeadsMarket = lazy(() => import('@/pages/leads/market-leads'));
 
 // Misc pages
 const MiscProfessionalDealDesk = lazy(() => import('@/pages/misc/professional-deal-desk'));
