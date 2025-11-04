@@ -26,7 +26,8 @@ RUN pnpm install \
 # Copy full workspace
 COPY . .
 
-# Build shared tokens before the frontend
+# Build shared packages before the frontend
+RUN pnpm --filter @repo/shared build
 RUN pnpm --filter @repo/tokens build
 
 WORKDIR /workspace/apps/frontend
