@@ -9,6 +9,7 @@ const Settings = lazy(() => import('@/pages/settings'));
 const Customers = lazy(() => import('@/pages/customers'));
 const Inventory = lazy(() => import('@/pages/inventory'));
 const Deals = lazy(() => import('@/pages/deals'));
+const DemoQuickView = lazy(() => import('@/pages/demo-quick-view'));
 
 // Admin pages
 const AdminUsers = lazy(() => import('@/pages/admin/users'));
@@ -210,6 +211,7 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/customers', component: Customers },
   { path: '/inventory', component: Inventory },
   { path: '/deals', component: Deals },
+  { path: '/demo-quick-view', component: DemoQuickView },
 
   // Admin routes
   { path: '/admin/users', component: AdminUsers },

@@ -5,6 +5,7 @@ import { queryClient } from './lib/queryClient';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ThemeProvider } from '@/contexts/theme-context';
+import { QuickViewProvider } from '@/contexts/QuickViewContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
 import Landing from '@/pages/landing';
@@ -87,8 +88,10 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <TooltipProvider>
-            <Router />
-            <Toaster />
+            <QuickViewProvider>
+              <Router />
+              <Toaster />
+            </QuickViewProvider>
           </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>
