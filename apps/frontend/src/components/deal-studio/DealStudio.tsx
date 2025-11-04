@@ -10,6 +10,7 @@
 
 import { useState, useEffect } from 'react';
 import { DealStudioMobile } from './mobile/DealStudioMobile';
+import { DealStudioDesktop } from './desktop/DealStudioDesktop';
 import { DealStudioProvider } from '@/contexts/DealStudioContext';
 
 export interface DealStudioProps {
@@ -68,25 +69,12 @@ export function DealStudio({
 
   // Desktop layout (three-panel interface)
   const renderDesktop = () => {
-    // TODO: Import and render DealStudioDesktop when desktop layout is created
-    // For now, show a placeholder
     return (
-      <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">
-            Desktop Layout Coming Soon
-          </h2>
-          <p className="text-slate-600 mb-4">
-            Desktop three-panel interface is under construction
-          </p>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
-          >
-            Close
-          </button>
-        </div>
-      </div>
+      <DealStudioDesktop
+        open={open}
+        onClose={onClose}
+        onPasteToChat={onPasteToChat}
+      />
     );
   };
 
