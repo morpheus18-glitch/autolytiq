@@ -6,82 +6,86 @@
  */
 
 import { useDealStudio } from '@/contexts/DealStudioContext';
-import { Sparkles, TrendingUp, Target, Scale } from 'lucide-react';
+import { Sparkles, TrendingUp, Target, Scale, AlertCircle, Loader2 } from 'lucide-react';
 import { formatCurrency } from '../shared/DealSlider';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { getAIRecommendations, type AIRecommendation, type DealAnalysis } from '@/services/aiDealService';
 
 export function AICoachTab() {
-  const { updateDeal } = useDealStudio();
+  const { deal, updateDeal } = useDealStudio();
   const [customerOffer, setCustomerOffer] = useState({ payment: '', downPayment: '' });
+  const [analysis, setAnalysis] = useState<DealAnalysis | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock AI recommendations (will be replaced with actual ML service)
-  const mockRecommendations = [
-    {
-      type: 'max_profit' as const,
-      label: 'Maximum Profit',
-      icon: TrendingUp,
-      color: 'green',
-      structure: {
-        salePrice: 46500,
-        downPayment: 3500,
-        term: 60,
-        warranty: 2495,
-      },
-      metrics: {
-        monthlyPayment: 525,
-        grossProfit: 2850,
-        closeProb: 0.62,
-        approvalProb: 0.89,
-      },
-      talkingPoint: "We're close! To get to your payment, we just need a bit more down. This gets you the best warranty coverage too.",
-      confidence: 'high' as const,
-    },
-    {
-      type: 'best_close' as const,
-      label: 'Best Close',
-      icon: Target,
-      color: 'blue',
-      structure: {
-        salePrice: 45900,
-        downPayment: 2500,
-        term: 72,
-        warranty: 0,
-      },
-      metrics: {
-        monthlyPayment: 478,
-        grossProfit: 1650,
-        closeProb: 0.87,
-        approvalProb: 0.92,
-      },
-      talkingPoint: "I can't do $450, but I can do $478 right now with less down. This keeps it affordable and gets you approved fast.",
-      confidence: 'high' as const,
-    },
-    {
-      type: 'balanced' as const,
-      label: 'Balanced',
-      icon: Scale,
-      color: 'purple',
-      structure: {
-        salePrice: 46200,
-        downPayment: 3000,
-        term: 60,
-        warranty: 2495,
-        gap: 595,
-      },
-      metrics: {
-        monthlyPayment: 502,
-        grossProfit: 2275,
-        closeProb: 0.74,
-        approvalProb: 0.90,
-      },
-      talkingPoint: "Let's meet in the middle at $502. I'll throw in GAP insurance and warranty to protect your investment.",
-      confidence: 'high' as const,
-    },
-  ];
+  const handleGetStrategy = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
 
-  const handleStage = (recommendation: typeof mockRecommendations[0]) => {
-    updateDeal(recommendation.structure);
+    try {
+      const result = await getAIRecommendations({
+        currentDeal: {
+          salePrice: deal.salePrice,
+          downPayment: deal.downPayment,
+          term: deal.term,
+          apr: deal.apr,
+          warranty: deal.warranty,
+          gap: deal.gap,
+          maintenance: deal.maintenance,
+          paintProtection: deal.paintProtection,
+          tradeValue: deal.tradeValue,
+          tradePayoff: deal.tradePayoff,
+        },
+        customerOffer: customerOffer.payment || customerOffer.downPayment ? {
+          desiredPayment: parseFloat(customerOffer.payment) || 0,
+          desiredDownPayment: parseFloat(customerOffer.downPayment) || 0,
+        } : undefined,
+        customerProfile: {
+          creditScore: deal.creditScore,
+          walkProbability: 0.6,
+        },
+        vehicleContext: {
+          vehicleId: deal.vehicleId || 'demo-vehicle',
+          daysInStock: 58,
+          currentPrice: deal.vehiclePrice,
+          cost: deal.vehicleCost,
+        },
+        constraints: {
+          minProfit: 1000,
+        },
+      });
+
+      setAnalysis(result);
+    } catch (err) {
+      console.error('Failed to get AI recommendations:', err);
+      setError('Failed to get AI recommendations. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [deal, customerOffer]);
+
+  const handleStage = useCallback((recommendation: AIRecommendation) => {
+    // Update deal with recommended structure
+    updateDeal({
+      salePrice: recommendation.structure.salePrice,
+      downPayment: recommendation.structure.downPayment,
+      term: recommendation.structure.term,
+      warranty: recommendation.structure.warranty,
+      gap: recommendation.structure.gap || 0,
+      maintenance: recommendation.structure.maintenance || 0,
+      paintProtection: recommendation.structure.paintProtection || 0,
+    });
+
+    // Show success feedback (could add toast notification)
+    console.log('Deal staged:', recommendation.label);
+  }, [updateDeal]);
+
+  // Icon mapping
+  const iconMap = {
+    max_profit: TrendingUp,
+    best_close: Target,
+    balanced: Scale,
   };
 
   return (
@@ -130,75 +134,128 @@ export function AICoachTab() {
             </div>
           </div>
 
-          <button className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-sm hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg shadow-purple-300/50">
+          <button
+            onClick={handleGetStrategy}
+            disabled={isLoading}
+            className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-sm hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg shadow-purple-300/50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <div className="flex items-center justify-center gap-2">
-              <Sparkles className="h-4 w-4" />
-              <span>Get AI Strategy</span>
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              <span>{isLoading ? 'Analyzing...' : 'Get AI Strategy'}</span>
             </div>
           </button>
         </div>
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 rounded-lg border border-red-200 p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-red-800">{error}</div>
+          </div>
+        </div>
+      )}
+
       {/* AI Analysis */}
-      <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg border border-purple-300 p-4">
-        <div className="flex items-start gap-3">
-          <div className="p-2 bg-purple-600 rounded-lg flex-shrink-0">
-            <Sparkles className="h-4 w-4 text-white" />
+      {analysis && (
+        <>
+          <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg border border-purple-300 p-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-purple-600 rounded-lg flex-shrink-0">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+              <div className="flex-1 text-sm text-purple-900">
+                <div className="font-bold mb-1">AI Analysis</div>
+                <p className="leading-relaxed text-xs">
+                  {analysis.gapFromTarget !== 0 && (
+                    <>
+                      Customer offer is <span className="font-bold text-red-600">${Math.abs(analysis.gapFromTarget).toFixed(0)} {analysis.gapFromTarget < 0 ? 'below' : 'above'}</span> target.{' '}
+                    </>
+                  )}
+                  Customer has <span className="font-bold">{analysis.customerProfile.creditScore} FICO</span> with{' '}
+                  <span className="font-bold text-orange-600">{(analysis.customerProfile.walkProbability * 100).toFixed(0)}% walk probability</span>.{' '}
+                  Vehicle is <span className="font-bold text-orange-600">{analysis.vehicleContext.daysInStock} days</span> on lot - consider aggressive counter.
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="flex-1 text-sm text-purple-900">
-            <div className="font-bold mb-1">AI Analysis</div>
-            <p className="leading-relaxed text-xs">
-              Customer offer is <span className="font-bold text-red-600">$1,150 below</span> minimum profit.
-              Customer has <span className="font-bold">680 FICO</span> with <span className="font-bold text-orange-600">60% walk probability</span>.
-              Vehicle is <span className="font-bold text-orange-600">58 days</span> on lot - consider aggressive counter.
-            </p>
+
+          {/* Recommendations */}
+          <div className="space-y-3">
+            {analysis.recommendations.map((rec) => (
+              <MobileAIRecommendationCard
+                key={rec.type}
+                recommendation={rec}
+                icon={iconMap[rec.type]}
+                onStage={() => handleStage(rec)}
+              />
+            ))}
           </div>
+
+          {/* Deal History */}
+          {analysis.dealHistory.length > 0 && (
+            <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm">
+              <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-blue-600" />
+                Deal History
+              </h3>
+
+              <div className="space-y-2 text-xs text-slate-700">
+                {analysis.dealHistory.map((insight, idx) => (
+                  <div key={idx} className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 flex-shrink-0" />
+                    <div>
+                      <span className="font-semibold">{insight.value}</span> - {insight.description}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Warnings */}
+          {analysis.warnings.length > 0 && (
+            <div className="bg-orange-50 rounded-lg border border-orange-200 p-4">
+              <h3 className="text-sm font-bold text-orange-900 mb-2">⚠️ Warnings</h3>
+              <div className="space-y-1.5 text-xs text-orange-800">
+                {analysis.warnings.map((warning, idx) => (
+                  <div key={idx}>• {warning}</div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Insights */}
+          {analysis.insights.length > 0 && (
+            <div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
+              <h3 className="text-sm font-bold text-blue-900 mb-2">💡 Insights</h3>
+              <div className="space-y-1.5 text-xs text-blue-800">
+                {analysis.insights.map((insight, idx) => (
+                  <div key={idx}>• {insight}</div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Initial State - No Analysis Yet */}
+      {!analysis && !isLoading && (
+        <div className="bg-slate-50 rounded-lg border-2 border-dashed border-slate-300 p-8 text-center">
+          <Sparkles className="h-12 w-12 text-slate-400 mx-auto mb-3" />
+          <h3 className="text-sm font-bold text-slate-700 mb-1">
+            Ready for AI Insights
+          </h3>
+          <p className="text-xs text-slate-500">
+            Enter customer's desired payment and down payment, then click "Get AI Strategy" to receive intelligent deal recommendations
+          </p>
         </div>
-      </div>
-
-      {/* Recommendations */}
-      <div className="space-y-3">
-        {mockRecommendations.map((rec) => (
-          <MobileAIRecommendationCard
-            key={rec.type}
-            recommendation={rec}
-            onStage={() => handleStage(rec)}
-          />
-        ))}
-      </div>
-
-      {/* Deal History */}
-      <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm">
-        <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
-          <TrendingUp className="h-4 w-4 text-blue-600" />
-          Deal History
-        </h3>
-
-        <div className="space-y-2 text-xs text-slate-700">
-          <div className="flex items-start gap-2">
-            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 flex-shrink-0" />
-            <div><span className="font-semibold">12 similar deals</span> closed on this vehicle type</div>
-          </div>
-          <div className="flex items-start gap-2">
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5 flex-shrink-0" />
-            <div>Avg close at <span className="font-semibold">$482/mo</span>, <span className="font-semibold">$2,300 down</span></div>
-          </div>
-          <div className="flex items-start gap-2">
-            <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-1.5 flex-shrink-0" />
-            <div><span className="font-semibold">68% close rate</span> with 72-month term</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Warnings */}
-      <div className="bg-orange-50 rounded-lg border border-orange-200 p-4">
-        <h3 className="text-sm font-bold text-orange-900 mb-2">⚠️ Warnings</h3>
-        <div className="space-y-1.5 text-xs text-orange-800">
-          <div>• High LTV (95%) - Consider larger down payment</div>
-          <div>• PTI approaching 20% - Customer is payment sensitive</div>
-          <div>• Customer previously walked at $500/mo</div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -207,41 +264,29 @@ export function AICoachTab() {
  * Mobile AI Recommendation Card
  */
 interface MobileAIRecommendationCardProps {
-  recommendation: {
-    type: 'max_profit' | 'best_close' | 'balanced';
-    label: string;
-    icon: React.ComponentType<{ className?: string }>;
-    color: string;
-    structure: any;
-    metrics: {
-      monthlyPayment: number;
-      grossProfit: number;
-      closeProb: number;
-      approvalProb: number;
-    };
-    talkingPoint: string;
-    confidence: 'high' | 'medium' | 'low';
-  };
+  recommendation: AIRecommendation;
+  icon: React.ComponentType<{ className?: string }>;
   onStage: () => void;
 }
 
-function MobileAIRecommendationCard({ recommendation, onStage }: MobileAIRecommendationCardProps) {
-  const { type, label, icon: Icon, color, metrics, talkingPoint, confidence } = recommendation;
+function MobileAIRecommendationCard({ recommendation, icon: Icon, onStage }: MobileAIRecommendationCardProps) {
+  const { label, metrics, talkingPoint, confidence } = recommendation;
 
+  // Color scheme mapping
   const colorScheme = {
-    green: {
+    max_profit: {
       bg: 'from-green-50 to-emerald-50',
       border: 'border-green-300',
       icon: 'text-green-600',
       badge: 'bg-green-100 text-green-700',
     },
-    blue: {
+    best_close: {
       bg: 'from-blue-50 to-cyan-50',
       border: 'border-blue-300',
       icon: 'text-blue-600',
       badge: 'bg-blue-100 text-blue-700',
     },
-    purple: {
+    balanced: {
       bg: 'from-purple-50 to-pink-50',
       border: 'border-purple-300',
       icon: 'text-purple-600',
@@ -249,7 +294,7 @@ function MobileAIRecommendationCard({ recommendation, onStage }: MobileAIRecomme
     },
   };
 
-  const colors = colorScheme[color as keyof typeof colorScheme];
+  const colors = colorScheme[recommendation.type];
 
   const formatProb = (prob: number) => `${(prob * 100).toFixed(0)}%`;
 
