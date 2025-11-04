@@ -29,6 +29,7 @@ export default defineConfig({
     outDir: "dist",
     emptyOutDir: true,
     chunkSizeWarningLimit: 1000,
+    reportCompressedSize: false, // Disable gzip size reporting to save memory
     rollupOptions: {
       output: {
         manualChunks: {
