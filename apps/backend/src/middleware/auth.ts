@@ -51,7 +51,27 @@ function normalizeRoles(rawRoles: TokenPayload['roles']): Role[] {
 
 const publicKey = env.JWT_PUBLIC_KEY;
 
-export const authenticate: RequestHandler = (req, res, next) => {
+export const authenticate: RequestHandler = async (req, res, next) => {
+  // BYPASS MODE: If BYPASS_AUTH is enabled, skip JWT validation and auto-login
+  if (process.env.BYPASS_AUTH === 'true') {
+    console.log('[AUTH BYPASS] Skipping JWT validation, auto-logging in first active user');
+
+    // Use hardcoded user context for bypass mode
+    // In a real scenario, you'd fetch from database, but for simplicity we use known values
+    req.context = {
+      ...req.context,
+      user: {
+        id: 'c0600bf6-def8-4e56-98cd-73bff976acf4',
+        email: 'developer@sunrisemotors.demo',
+        name: 'Dana Reeves',
+        tenantId: 'fdc31355-36b9-4e44-8982-7a231f74e1fd',
+      },
+      roles: ['ADMIN'] as Role[],
+    };
+
+    return next();
+  }
+
   const authorization = req.headers.authorization;
 
   if (!authorization || !authorization.toLowerCase().startsWith('bearer ')) {
