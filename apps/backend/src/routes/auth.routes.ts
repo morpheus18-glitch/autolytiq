@@ -125,6 +125,53 @@ router.post('/login', async (req, res, next) => {
  */
 router.get('/user', async (req, res, next) => {
   try {
+    // BYPASS MODE: If BYPASS_AUTH is enabled, skip JWT and auto-login the first active user
+    if (process.env.BYPASS_AUTH === 'true') {
+      console.log('[AUTH BYPASS] Auto-logging in first active user');
+
+      const users = await prisma.$queryRawUnsafe<Array<{
+        id: string;
+        tenantId: string;
+        email: string;
+        firstName: string;
+        lastName: string;
+        role: string;
+        isSuperAdmin: boolean;
+        permissions: any;
+        customPermissions: any;
+        status: string;
+      }>>(`
+        SELECT u.id, u.tenant_id as "tenantId", u.email, u.first_name as "firstName", u.last_name as "lastName",
+               u.role, u.is_super_admin as "isSuperAdmin", u.permissions, u.custom_permissions as "customPermissions", u.status
+        FROM users u
+        WHERE u.status = 'ACTIVE'
+        LIMIT 1
+      `);
+
+      if (users && users.length > 0) {
+        const user = users[0];
+        console.log('[AUTH BYPASS] Logged in as:', user.email);
+
+        return res.json({
+          id: user.id,
+          tenantId: user.tenantId,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          isSuperAdmin: user.isSuperAdmin,
+          permissions: user.permissions,
+          customPermissions: user.customPermissions,
+          access: {
+            homePath: '/dashboard',
+            allowedRoutes: ['*'],
+            navigationSections: ['inventory', 'crm', 'sales', 'finance', 'reports'],
+            quickActions: ['/customers', '/inventory', '/deals'],
+          },
+        });
+      }
+    }
+
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
       throw new ApiError('UNAUTHORIZED', 'No authorization token provided', { status: 401 });
