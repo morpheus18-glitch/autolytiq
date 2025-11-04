@@ -101,6 +101,11 @@ const FinanceLenders = lazy(() => import('@/pages/finance/lenders'));
 const FinanceReports = lazy(() => import('@/pages/finance/finance-reports'));
 const FinanceComplianceManager = lazy(() => import('@/pages/finance/compliance-manager'));
 
+// F&I pages
+const FIDealJackets = lazy(() => import('@/pages/fi/deal-jackets'));
+const FILenderSubmissions = lazy(() => import('@/pages/fi/lender-submissions'));
+const FIContracting = lazy(() => import('@/pages/fi/contracting'));
+
 // Leads pages
 const LeadsDashboard = lazy(() => import('@/pages/leads/LeadsDashboard'));
 const LeadDetail = lazy(() => import('@/pages/leads/LeadDetail'));
@@ -218,6 +223,48 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/admin/dealer-configuration', component: AdminDealerConfiguration },
   { path: '/admin/comprehensive-settings', component: AdminComprehensiveSettings },
   { path: '/admin/communication-settings', component: AdminCommunicationSettings },
+  { path: '/admin/ml-developer', component: AdminMLDeveloper },
+  { path: '/admin/ml-model-comparison', component: AdminMLModelComparison },
+  { path: '/admin/system-health', component: AdminSystemHealth },
+  { path: '/admin/multi-store', component: AdminMultiStore },
+
+  // Analytics routes
+  { path: '/analytics/customer-lifecycle', component: AnalyticsCustomerLifecycle },
+  { path: '/analytics/crm', component: AnalyticsCRM },
+
+  // Auth routes
+  { path: '/auth/forgot-password', component: AuthForgotPassword },
+  { path: '/auth/reset-password', component: AuthResetPassword },
+
+  // Communications routes
+  { path: '/communications/center', component: CommunicationsCenter },
+  { path: '/communications/call-center', component: CommunicationsCallCenter },
+  { path: '/communications/email', component: CommunicationsEmail },
+  { path: '/communications/sms', component: CommunicationsSMS },
+  { path: '/communications/demo', component: CommunicationsDemo },
+
+  // Customer routes
+  { path: '/customers/texting-portal', component: CustomersTextingPortal },
+  { path: '/customers/phone-calls', component: CustomersPhoneCalls },
+  { path: '/customers/detail/:id', component: CustomersDetail },
+  { path: '/customers/profile/:id', component: CustomersProfile },
+
+  // Deals routes
+  { path: '/deals/deal-desk', component: DealsDealDesk },
+
+  // Inventory routes
+  { path: '/inventory/detail/:id', component: InventoryDetail },
+  { path: '/inventory/pricing', component: InventoryPricing },
+  { path: '/inventory/vehicle/:id', component: InventoryVehicleDetail },
+  { path: '/inventory/trade-appraisals', component: InventoryTradeAppraisals },
+  { path: '/inventory/competitive-pricing', component: InventoryCompetitivePricing },
+  { path: '/inventory/lot-management', component: InventoryLotManagement },
+
+  // Leads routes
+  { path: '/leads/dashboard', component: LeadsDashboard },
+  { path: '/leads/:id', component: LeadDetail },
+  { path: '/leads/management', component: LeadsManagement },
+  { path: '/leads/market', component: LeadsMarket },
 
   // Accounting routes
   { path: '/accounting/vehicle-profit', component: AccountingVehicleProfit },
@@ -260,6 +307,11 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/finance/lenders', component: FinanceLenders },
   { path: '/finance/reports', component: FinanceReports },
   { path: '/finance/compliance-manager', component: FinanceComplianceManager },
+
+  // F&I routes
+  { path: '/fi/deal-jackets', component: FIDealJackets },
+  { path: '/fi/lender-submissions', component: FILenderSubmissions },
+  { path: '/fi/contracting', component: FIContracting },
 
   // Leads routes
   { path: '/leads/dashboard', component: LeadsDashboard },

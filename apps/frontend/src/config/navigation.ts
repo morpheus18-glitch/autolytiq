@@ -47,7 +47,9 @@ import {
   ArrowUpDown,
   FileSignature,
   FolderOpen,
-  CheckSquare
+  CheckSquare,
+  Send,
+  FileCheck
 } from 'lucide-react';
 
 export interface NavigationItem {
@@ -163,6 +165,21 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
         path: '/deals/deal-desk',
         icon: FileSignature,
         matchPaths: ['/deals/deal-desk'],
+      },
+      {
+        label: 'Digital Deal Jackets',
+        path: '/fi/deal-jackets',
+        icon: FileText,
+      },
+      {
+        label: 'Lender Submissions',
+        path: '/fi/lender-submissions',
+        icon: Send,
+      },
+      {
+        label: 'Contracting',
+        path: '/fi/contracting',
+        icon: FileCheck,
       },
       {
         label: 'Lender Network',
