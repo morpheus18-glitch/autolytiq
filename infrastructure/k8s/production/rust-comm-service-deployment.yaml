@@ -46,6 +46,11 @@ spec:
               value: "50052"
             - name: COMM_SERVICE__SERVICE__HOST
               value: "0.0.0.0"
+            - name: COMM_SERVICE__DATABASE__URL
+              valueFrom:
+                secretKeyRef:
+                  name: app-env
+                  key: DATABASE_URL
             - name: COMM_SERVICE__REDIS__URL
               value: "redis://redis.autolytiq-prod.svc.cluster.local:6379"
             - name: COMM_SERVICE__LOGGING__LEVEL
