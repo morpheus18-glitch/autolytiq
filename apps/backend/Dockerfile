@@ -52,10 +52,20 @@ COPY --from=builder /workspace/apps/backend/package.json ./package.json
 COPY --from=builder /workspace/apps/backend/dist ./dist
 COPY --from=builder /workspace/apps/backend/prisma ./prisma
 
+# Copy @repo/db package (now marked as external in tsup config)
+COPY --from=builder /workspace/packages/db ./node_modules/@repo/db
+
+# Copy Prisma client generated files
+COPY --from=builder /workspace/apps/backend/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /workspace/apps/backend/node_modules/@prisma ./node_modules/@prisma
+
+# Install tsx for TypeScript runtime support (needed for @repo/db)
+RUN npm install --global tsx@4.19.1
+
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001 -G nodejs && \
     chown -R nodejs:nodejs /app
 USER nodejs
 
 EXPOSE 5000
-CMD ["node", "dist/index.js"]
+CMD ["tsx", "dist/index.js"]

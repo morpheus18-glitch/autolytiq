@@ -15,6 +15,7 @@ export default defineConfig({
   skipNodeModulesBundle: false,
   treeshake: false,
   external: [
+    "@repo/db",
     "@prisma/client",
     ".prisma/client",
     "better-sqlite3",
