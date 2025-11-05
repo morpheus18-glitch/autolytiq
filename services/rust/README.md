@@ -445,3 +445,5 @@ cargo flamegraph --bin price-engine
 ## License
 
 MIT
+
+<!-- Deployment trigger: 2025-11-05T13:18:57Z -->
