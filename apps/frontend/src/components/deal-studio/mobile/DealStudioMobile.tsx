@@ -7,6 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import { useDealStudio } from '@/contexts/DealStudioContext';
+import { CustomerVehicleSelector } from '../shared/CustomerVehicleSelector';
 import { CompactDossierHeader } from './CompactDossierHeader';
 import { TabControl, type DealStudioTab } from './TabControl';
 import { SimulatorTab } from './SimulatorTab';
@@ -82,6 +83,11 @@ ${totalFI > 0 ? `Includes: ${[
       {/* Drag Handle */}
       <div className="flex-shrink-0 flex items-center justify-center py-2 bg-slate-50">
         <div className="w-12 h-1 bg-slate-300 rounded-full" />
+      </div>
+
+      {/* Customer & Vehicle Selection */}
+      <div className="flex-shrink-0">
+        <CustomerVehicleSelector />
       </div>
 
       {/* Compact Dossier Header */}
