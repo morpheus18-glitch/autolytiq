@@ -43,7 +43,8 @@ WORKDIR /workspace
 RUN pnpm --filter @repo/backend --prod deploy /workspace/pruned/backend
 
 FROM base AS runner
-ENV NODE_ENV=production
+ENV NODE_ENV=production \
+    DOCKER_ENV=true
 WORKDIR /app
 
 # Copy production dependencies and build artifacts
