@@ -1,4 +1,5 @@
 import { Link } from 'wouter';
+import { designTokens } from '@repo/tokens';
 import {
   Calculator,
   DollarSign,
@@ -14,6 +15,8 @@ import {
   FolderOpen
 } from 'lucide-react';
 
+const { colors, spacing, shadows, borders, typography, animation } = designTokens;
+
 export default function AccountingOverview() {
   const stats = [
     {
@@ -22,8 +25,8 @@ export default function AccountingOverview() {
       change: '+12.5%',
       trend: 'up',
       icon: DollarSign,
-      color: 'text-green-600',
-      bg: 'bg-green-50',
+      colorBg: colors.success[50],
+      colorIcon: colors.success[600],
     },
     {
       label: 'Outstanding AR',
@@ -31,8 +34,8 @@ export default function AccountingOverview() {
       change: '-8.3%',
       trend: 'down',
       icon: Wallet,
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
+      colorBg: colors.info[50],
+      colorIcon: colors.info[600],
     },
     {
       label: 'Gross Profit Margin',
@@ -40,8 +43,8 @@ export default function AccountingOverview() {
       change: '+2.1%',
       trend: 'up',
       icon: TrendingUp,
-      color: 'text-purple-600',
-      bg: 'bg-purple-50',
+      colorBg: colors.secondary[50],
+      colorIcon: colors.secondary[600],
     },
     {
       label: 'Open GL Entries',
@@ -49,8 +52,8 @@ export default function AccountingOverview() {
       change: 'Pending Review',
       trend: 'neutral',
       icon: FileText,
-      color: 'text-amber-600',
-      bg: 'bg-amber-50',
+      colorBg: colors.warning[50],
+      colorIcon: colors.warning[600],
     },
   ];
 
@@ -60,48 +63,48 @@ export default function AccountingOverview() {
       description: 'View and manage transactions',
       icon: FileText,
       href: '/accounting/transactions',
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
+      colorBg: colors.info[50],
+      colorIcon: colors.info[600],
     },
     {
       title: 'Chart of Accounts',
       description: 'Manage account structure',
       icon: FolderOpen,
       href: '/accounting/chart-of-accounts',
-      color: 'text-indigo-600',
-      bg: 'bg-indigo-50',
+      colorBg: colors.primary[50],
+      colorIcon: colors.primary[600],
     },
     {
       title: 'Journal Entries',
       description: 'Create and review entries',
       icon: FileText,
       href: '/accounting/journal-entries',
-      color: 'text-purple-600',
-      bg: 'bg-purple-50',
+      colorBg: colors.secondary[50],
+      colorIcon: colors.secondary[600],
     },
     {
       title: 'Vehicle Profit',
       description: 'Track deal profitability',
       icon: DollarSign,
       href: '/accounting/vehicle-profit',
-      color: 'text-green-600',
-      bg: 'bg-green-50',
+      colorBg: colors.success[50],
+      colorIcon: colors.success[600],
     },
     {
       title: 'Finance Reserves',
       description: 'Monitor F&I reserves',
       icon: PiggyBank,
       href: '/accounting/finance-reserves',
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-50',
+      colorBg: '#d1fae5',
+      colorIcon: '#059669',
     },
     {
       title: 'P&L Statement',
       description: 'Profit and loss reports',
       icon: BarChart3,
       href: '/accounting/pl-statement',
-      color: 'text-cyan-600',
-      bg: 'bg-cyan-50',
+      colorBg: '#cffafe',
+      colorIcon: '#0891b2',
     },
   ];
 
@@ -140,17 +143,34 @@ export default function AccountingOverview() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: '100vh', background: `linear-gradient(to bottom right, ${colors.neutral[50]}, ${colors.neutral[50]}, ${colors.success[50]})` }}>
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-teal-100 rounded-lg">
-              <Calculator className="w-6 h-6 text-teal-600" />
+      <div style={{
+        backgroundColor: colors.neutral[0],
+        borderBottom: `1px solid ${colors.neutral[200]}`,
+        boxShadow: shadows.sm
+      }}>
+        <div style={{ maxWidth: designTokens.layout.maxWidth['2xl'], margin: '0 auto', padding: `${spacing[6]} ${spacing[8]}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[4] }}>
+            <div style={{
+              padding: spacing[3],
+              background: 'linear-gradient(to bottom right, #14b8a6, #0d9488)',
+              borderRadius: borders.radius.xl,
+              boxShadow: shadows.lg
+            }}>
+              <Calculator style={{ width: '28px', height: '28px', color: colors.neutral[0] }} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Accounting</h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <h1 style={{
+                fontSize: typography.fontSize['3xl'],
+                fontWeight: typography.fontWeight.bold,
+                color: colors.neutral[900]
+              }}>Accounting</h1>
+              <p style={{
+                fontSize: typography.fontSize.sm,
+                color: colors.neutral[600],
+                marginTop: spacing[1]
+              }}>
                 Manage financials, transactions, and reporting
               </p>
             </div>
@@ -158,50 +178,94 @@ export default function AccountingOverview() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div style={{ maxWidth: designTokens.layout.maxWidth['2xl'], margin: '0 auto', padding: spacing[8] }}>
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr',
+          gap: spacing[6],
+          marginBottom: spacing[8]
+        }} className="md:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, idx) => {
             const Icon = stat.icon;
             const trendColor =
               stat.trend === 'up'
-                ? 'text-green-600'
+                ? colors.success[600]
                 : stat.trend === 'down'
-                ? 'text-red-600'
-                : 'text-gray-600';
+                ? colors.error[600]
+                : colors.neutral[600];
 
             return (
-              <div key={idx} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-gray-600">{stat.label}</p>
-                  <div className={`p-2 rounded-lg ${stat.bg}`}>
-                    <Icon className={`w-5 h-5 ${stat.color}`} />
+              <div key={idx} style={{
+                backgroundColor: colors.neutral[0],
+                borderRadius: borders.radius.xl,
+                boxShadow: shadows.md,
+                border: `1px solid ${colors.neutral[100]}`,
+                padding: spacing[6]
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[2] }}>
+                  <p style={{ fontSize: typography.fontSize.sm, color: colors.neutral[600] }}>{stat.label}</p>
+                  <div style={{
+                    padding: spacing[2],
+                    borderRadius: borders.radius.lg,
+                    backgroundColor: stat.colorBg
+                  }}>
+                    <Icon style={{ width: '20px', height: '20px', color: stat.colorIcon }} />
                   </div>
                 </div>
-                <p className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</p>
-                <p className={`text-sm font-medium ${trendColor}`}>{stat.change}</p>
+                <p style={{
+                  fontSize: typography.fontSize['3xl'],
+                  fontWeight: typography.fontWeight.bold,
+                  color: colors.neutral[900],
+                  marginBottom: spacing[1]
+                }}>{stat.value}</p>
+                <p style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: trendColor }}>{stat.change}</p>
               </div>
             );
           })}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: spacing[8] }} className="lg:grid-cols-3">
           {/* Quick Links */}
-          <div className="lg:col-span-2">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Access</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div style={{ gridColumn: 'span 1' }} className="lg:col-span-2">
+            <h2 style={{
+              fontSize: typography.fontSize.xl,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.neutral[900],
+              marginBottom: spacing[4]
+            }}>Quick Access</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: spacing[4], marginBottom: spacing[8] }} className="md:grid-cols-2">
               {quickLinks.map((link, idx) => {
                 const Icon = link.icon;
                 return (
                   <Link key={idx} href={link.href}>
-                    <a className="block bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-gray-300 transition-all">
-                      <div className="flex items-start gap-4">
-                        <div className={`p-3 rounded-lg ${link.bg} shrink-0`}>
-                          <Icon className={`w-6 h-6 ${link.color}`} />
+                    <a style={{
+                      display: 'block',
+                      backgroundColor: colors.neutral[0],
+                      borderRadius: borders.radius.xl,
+                      boxShadow: shadows.md,
+                      border: `1px solid ${colors.neutral[100]}`,
+                      padding: spacing[6],
+                      transition: `all ${animation.duration.base} ${animation.easing.smooth}`,
+                      textDecoration: 'none'
+                    }}
+                    className="hover:shadow-xl hover:-translate-y-1">
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[4] }}>
+                        <div style={{
+                          padding: spacing[3],
+                          borderRadius: borders.radius.xl,
+                          backgroundColor: link.colorBg,
+                          flexShrink: 0
+                        }}>
+                          <Icon style={{ width: '24px', height: '24px', color: link.colorIcon }} />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 mb-1">{link.title}</h3>
-                          <p className="text-sm text-gray-600">{link.description}</p>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <h3 style={{
+                            fontWeight: typography.fontWeight.bold,
+                            color: colors.neutral[900],
+                            marginBottom: spacing[1]
+                          }}>{link.title}</h3>
+                          <p style={{ fontSize: typography.fontSize.sm, color: colors.neutral[600] }}>{link.description}</p>
                         </div>
                       </div>
                     </a>
@@ -211,19 +275,38 @@ export default function AccountingOverview() {
             </div>
 
             {/* Recent Activity */}
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="divide-y divide-gray-200">
+            <h2 style={{
+              fontSize: typography.fontSize.xl,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.neutral[900],
+              marginBottom: spacing[4]
+            }}>Recent Activity</h2>
+            <div style={{
+              backgroundColor: colors.neutral[0],
+              borderRadius: borders.radius.xl,
+              boxShadow: shadows.md,
+              border: `1px solid ${colors.neutral[100]}`
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {recentActivity.map((activity, idx) => (
-                  <div key={idx} className="p-4">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-900">{activity.event}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <p className="text-xs text-gray-600">{activity.user}</p>
-                          <span className="text-xs text-gray-400">•</span>
-                          <p className="text-xs text-gray-500">{activity.time}</p>
+                  <div key={idx} style={{
+                    padding: spacing[4],
+                    borderBottom: idx < recentActivity.length - 1 ? `1px solid ${colors.neutral[200]}` : 'none'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3] }}>
+                      <CheckCircle style={{
+                        width: '20px',
+                        height: '20px',
+                        color: colors.success[500],
+                        marginTop: '2px',
+                        flexShrink: 0
+                      }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: typography.fontSize.sm, color: colors.neutral[900] }}>{activity.event}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginTop: spacing[1] }}>
+                          <p style={{ fontSize: typography.fontSize.xs, color: colors.neutral[600] }}>{activity.user}</p>
+                          <span style={{ fontSize: typography.fontSize.xs, color: colors.neutral[400] }}>•</span>
+                          <p style={{ fontSize: typography.fontSize.xs, color: colors.neutral[500] }}>{activity.time}</p>
                         </div>
                       </div>
                     </div>
@@ -235,34 +318,71 @@ export default function AccountingOverview() {
 
           {/* Pending Tasks */}
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Pending Tasks</h2>
-            <div className="space-y-4">
+            <h2 style={{
+              fontSize: typography.fontSize.xl,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.neutral[900],
+              marginBottom: spacing[4]
+            }}>Pending Tasks</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4] }}>
               {pendingTasks.map((task, idx) => {
                 const priorityColor =
                   task.priority === 'high'
-                    ? 'bg-red-100 text-red-700'
+                    ? { bg: colors.error[100], text: colors.error[700] }
                     : task.priority === 'medium'
-                    ? 'bg-yellow-100 text-yellow-700'
-                    : 'bg-gray-100 text-gray-700';
+                    ? { bg: colors.warning[100], text: colors.warning[700] }
+                    : { bg: colors.neutral[100], text: colors.neutral[700] };
 
                 return (
-                  <div key={idx} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                    <div className="flex items-start gap-3">
+                  <div key={idx} style={{
+                    backgroundColor: colors.neutral[0],
+                    borderRadius: borders.radius.xl,
+                    boxShadow: shadows.md,
+                    border: `1px solid ${colors.neutral[100]}`,
+                    padding: spacing[4]
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3] }}>
                       {task.priority === 'high' ? (
-                        <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
+                        <AlertCircle style={{
+                          width: '20px',
+                          height: '20px',
+                          color: colors.error[500],
+                          marginTop: '2px',
+                          flexShrink: 0
+                        }} />
                       ) : (
-                        <Clock className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
+                        <Clock style={{
+                          width: '20px',
+                          height: '20px',
+                          color: colors.neutral[400],
+                          marginTop: '2px',
+                          flexShrink: 0
+                        }} />
                       )}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-semibold text-gray-900 mb-1">{task.title}</h3>
-                        <p className="text-xs text-gray-600 mb-2">{task.dueDate}</p>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`text-xs px-2 py-0.5 rounded-full font-medium ${priorityColor}`}
-                          >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h3 style={{
+                          fontSize: typography.fontSize.sm,
+                          fontWeight: typography.fontWeight.bold,
+                          color: colors.neutral[900],
+                          marginBottom: spacing[1]
+                        }}>{task.title}</h3>
+                        <p style={{
+                          fontSize: typography.fontSize.xs,
+                          color: colors.neutral[600],
+                          marginBottom: spacing[2]
+                        }}>{task.dueDate}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                          <span style={{
+                            fontSize: typography.fontSize.xs,
+                            padding: `${spacing[0.5]} ${spacing[2]}`,
+                            borderRadius: borders.radius.full,
+                            fontWeight: typography.fontWeight.medium,
+                            backgroundColor: priorityColor.bg,
+                            color: priorityColor.text
+                          }}>
                             {task.priority}
                           </span>
-                          <span className="text-xs text-gray-600">{task.status}</span>
+                          <span style={{ fontSize: typography.fontSize.xs, color: colors.neutral[600] }}>{task.status}</span>
                         </div>
                       </div>
                     </div>
@@ -272,7 +392,21 @@ export default function AccountingOverview() {
             </div>
 
             <Link href="/accounting/dashboard">
-              <a className="mt-6 block w-full text-center px-4 py-3 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors">
+              <a style={{
+                marginTop: spacing[6],
+                display: 'block',
+                width: '100%',
+                textAlign: 'center',
+                padding: `${spacing[3]} ${spacing[4]}`,
+                background: 'linear-gradient(to right, #14b8a6, #0d9488)',
+                color: colors.neutral[0],
+                borderRadius: borders.radius.xl,
+                fontWeight: typography.fontWeight.medium,
+                textDecoration: 'none',
+                transition: `transform ${animation.duration.base}`,
+                boxShadow: shadows.lg
+              }}
+              className="hover:opacity-90">
                 Go to Full Dashboard
               </a>
             </Link>

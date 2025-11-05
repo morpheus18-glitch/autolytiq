@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
+import { designTokens } from '@repo/tokens';
 import {
   Wrench,
   Calendar,
@@ -34,6 +34,8 @@ interface ServiceAppointment {
   technicianName: string;
   estimatedCompletion: string;
 }
+
+const { colors, spacing, shadows, borders, typography, animation } = designTokens;
 
 export default function ServiceOverview() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -80,9 +82,9 @@ export default function ServiceOverview() {
       change: '+2 from yesterday',
       trend: 'up',
       icon: Calendar,
-      color: 'text-blue-600',
-      bg: 'bg-gradient-to-br from-blue-50 to-blue-100',
-      iconBg: 'bg-blue-500'
+      colorBg: colors.info[50],
+      colorText: colors.info[600],
+      colorIcon: colors.info[500]
     },
     {
       label: 'In Progress',
@@ -90,9 +92,9 @@ export default function ServiceOverview() {
       change: '2 awaiting parts',
       trend: 'neutral',
       icon: ClipboardCheck,
-      color: 'text-amber-600',
-      bg: 'bg-gradient-to-br from-amber-50 to-amber-100',
-      iconBg: 'bg-amber-500'
+      colorBg: colors.warning[50],
+      colorText: colors.warning[700],
+      colorIcon: colors.warning[500]
     },
     {
       label: 'Technicians Active',
@@ -100,9 +102,9 @@ export default function ServiceOverview() {
       change: '2 available',
       trend: 'up',
       icon: Users,
-      color: 'text-green-600',
-      bg: 'bg-gradient-to-br from-green-50 to-green-100',
-      iconBg: 'bg-green-500'
+      colorBg: colors.success[50],
+      colorText: colors.success[700],
+      colorIcon: colors.success[500]
     },
     {
       label: 'Avg Completion',
@@ -110,56 +112,88 @@ export default function ServiceOverview() {
       change: '15% faster than avg',
       trend: 'up',
       icon: Clock,
-      color: 'text-purple-600',
-      bg: 'bg-gradient-to-br from-purple-50 to-purple-100',
-      iconBg: 'bg-purple-500'
+      colorBg: colors.secondary[50],
+      colorText: colors.secondary[700],
+      colorIcon: colors.secondary[500]
     },
   ];
 
   const quickActions = [
-    { label: 'Schedule Appointment', icon: Calendar, color: 'bg-blue-600 hover:bg-blue-700' },
-    { label: 'Create Service Order', icon: ClipboardCheck, color: 'bg-green-600 hover:bg-green-700' },
-    { label: 'Check Parts', icon: Package, color: 'bg-purple-600 hover:bg-purple-700' },
+    { label: 'Schedule Appointment', icon: Calendar, bgColor: colors.primary[600], hoverBg: colors.primary[700] },
+    { label: 'Create Service Order', icon: ClipboardCheck, bgColor: colors.success[600], hoverBg: colors.success[700] },
+    { label: 'Check Parts', icon: Package, bgColor: colors.secondary[600], hoverBg: colors.secondary[700] },
   ];
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      'scheduled': { bg: 'bg-blue-100', text: 'text-blue-700', icon: Clock, label: 'Scheduled' },
-      'in-progress': { bg: 'bg-amber-100', text: 'text-amber-700', icon: Activity, label: 'In Progress' },
-      'completed': { bg: 'bg-green-100', text: 'text-green-700', icon: CheckCircle2, label: 'Completed' },
-      'cancelled': { bg: 'bg-red-100', text: 'text-red-700', icon: XCircle, label: 'Cancelled' },
+      'scheduled': { bg: colors.info[100], text: colors.info[700], icon: Clock, label: 'Scheduled' },
+      'in-progress': { bg: colors.warning[100], text: colors.warning[700], icon: Activity, label: 'In Progress' },
+      'completed': { bg: colors.success[100], text: colors.success[700], icon: CheckCircle2, label: 'Completed' },
+      'cancelled': { bg: colors.error[100], text: colors.error[700], icon: XCircle, label: 'Cancelled' },
     };
     return statusConfig[status] || statusConfig.scheduled;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-blue-50/30">
+    <div style={{ minHeight: '100vh', background: `linear-gradient(to bottom right, ${colors.neutral[50]}, ${colors.neutral[50]}, ${colors.info[50]})` }}>
       {/* Enhanced Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl shadow-lg">
-                <Wrench className="w-7 h-7 text-white" />
+      <div style={{
+        backgroundColor: colors.neutral[0],
+        borderBottom: `1px solid ${colors.neutral[200]}`,
+        boxShadow: shadows.sm
+      }}>
+        <div style={{ maxWidth: designTokens.layout.maxWidth['2xl'], margin: '0 auto', padding: `${spacing[6]} ${spacing[8]}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[4] }}>
+              <div style={{
+                padding: spacing[3],
+                background: 'linear-gradient(to bottom right, #f59e0b, #ea580c)',
+                borderRadius: borders.radius.xl,
+                boxShadow: shadows.lg
+              }}>
+                <Wrench style={{ width: '28px', height: '28px', color: colors.neutral[0] }} />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Service Center</h1>
-                <p className="text-sm text-gray-600 mt-1">
+                <h1 style={{
+                  fontSize: typography.fontSize['3xl'],
+                  fontWeight: typography.fontWeight.bold,
+                  color: colors.neutral[900]
+                }}>Service Center</h1>
+                <p style={{
+                  fontSize: typography.fontSize.sm,
+                  color: colors.neutral[600],
+                  marginTop: spacing[1]
+                }}>
                   Manage appointments, orders, and technician schedules
                 </p>
               </div>
             </div>
 
             {/* Quick Actions */}
-            <div className="hidden lg:flex gap-3">
+            <div style={{ display: 'flex', gap: spacing[3] }} className="hidden lg:flex">
               {quickActions.map((action, idx) => {
                 const Icon = action.icon;
                 return (
                   <button
                     key={idx}
-                    className={`flex items-center gap-2 px-4 py-2.5 ${action.color} text-white rounded-lg font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200`}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing[2],
+                      padding: `${spacing[2.5]} ${spacing[4]}`,
+                      backgroundColor: action.bgColor,
+                      color: colors.neutral[0],
+                      borderRadius: borders.radius.lg,
+                      fontWeight: typography.fontWeight.medium,
+                      boxShadow: shadows.md,
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: `all ${animation.duration.base} ${animation.easing.smooth}`
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = action.hoverBg}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = action.bgColor}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon style={{ width: '16px', height: '16px' }} />
                     <span className="hidden xl:inline">{action.label}</span>
                   </button>
                 );
@@ -169,59 +203,129 @@ export default function ServiceOverview() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Enhanced Stats Grid with animations */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div style={{ maxWidth: designTokens.layout.maxWidth['2xl'], margin: '0 auto', padding: spacing[8] }}>
+        {/* Enhanced Stats Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: spacing[6], marginBottom: spacing[8] }}>
           {stats.map((stat, idx) => {
             const Icon = stat.icon;
             return (
               <div
                 key={idx}
-                className="group bg-white rounded-2xl shadow-md hover:shadow-xl border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+                style={{
+                  backgroundColor: colors.neutral[0],
+                  borderRadius: borders.radius['2xl'],
+                  boxShadow: shadows.md,
+                  border: `1px solid ${colors.neutral[100]}`,
+                  padding: spacing[6],
+                  transition: `all ${animation.duration.base} ${animation.easing.smooth}`,
+                  cursor: 'pointer'
+                }}
+                className="group hover:shadow-xl hover:-translate-y-1"
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">{stat.label}</p>
-                    <p className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</p>
-                    <p className="text-xs text-gray-500">{stat.change}</p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[4] }}>
+                  <div style={{ flex: 1 }}>
+                    <p style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.neutral[600],
+                      marginBottom: spacing[1]
+                    }}>{stat.label}</p>
+                    <p style={{
+                      fontSize: typography.fontSize['3xl'],
+                      fontWeight: typography.fontWeight.bold,
+                      color: colors.neutral[900],
+                      marginBottom: spacing[1]
+                    }}>{stat.value}</p>
+                    <p style={{
+                      fontSize: typography.fontSize.xs,
+                      color: colors.neutral[500]
+                    }}>{stat.change}</p>
                   </div>
-                  <div className={`p-4 ${stat.iconBg} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    <Icon className="w-6 h-6 text-white" />
+                  <div style={{
+                    padding: spacing[4],
+                    backgroundColor: stat.colorBg,
+                    borderRadius: borders.radius.xl,
+                    boxShadow: shadows.lg,
+                    transition: `transform ${animation.duration.base} ${animation.easing.spring}`
+                  }}
+                  className="group-hover:scale-110">
+                    <Icon style={{ width: '24px', height: '24px', color: stat.colorIcon }} />
                   </div>
                 </div>
-                <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
-                  <div className={`h-full ${stat.iconBg} rounded-full`} style={{ width: '75%' }} />
+                <div style={{
+                  height: '4px',
+                  backgroundColor: colors.neutral[100],
+                  borderRadius: borders.radius.full,
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    height: '100%',
+                    backgroundColor: stat.colorIcon,
+                    borderRadius: borders.radius.full,
+                    width: '75%'
+                  }} />
                 </div>
               </div>
             );
           })}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Today's Appointments - Enhanced */}
-          <div className="lg:col-span-2">
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: spacing[8] }} className="lg:grid-cols-3">
+          {/* Today's Appointments */}
+          <div style={{ gridColumn: 'span 2' }} className="lg:col-span-2">
             {/* Search and Filter Bar */}
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Today's Appointments</h2>
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[6] }}>
+              <h2 style={{
+                fontSize: typography.fontSize.xl,
+                fontWeight: typography.fontWeight.bold,
+                color: colors.neutral[900]
+              }}>Today's Appointments</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3] }}>
+                <div style={{ position: 'relative' }}>
+                  <Search style={{
+                    position: 'absolute',
+                    left: spacing[3],
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: '16px',
+                    height: '16px',
+                    color: colors.neutral[400]
+                  }} />
                   <input
                     type="text"
                     placeholder="Search appointments..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    style={{
+                      paddingLeft: spacing[10],
+                      paddingRight: spacing[4],
+                      paddingTop: spacing[2],
+                      paddingBottom: spacing[2],
+                      backgroundColor: colors.neutral[0],
+                      border: `1px solid ${colors.neutral[300]}`,
+                      borderRadius: borders.radius.lg,
+                      fontSize: typography.fontSize.sm,
+                      transition: `all ${animation.duration.fast} ${animation.easing.smooth}`
+                    }}
+                    onFocus={(e) => e.currentTarget.style.boxShadow = shadows.glow}
+                    onBlur={(e) => e.currentTarget.style.boxShadow = 'none'}
                   />
                 </div>
-                <button className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Filter className="w-4 h-4 text-gray-600" />
+                <button style={{
+                  padding: spacing[2],
+                  backgroundColor: colors.neutral[0],
+                  border: `1px solid ${colors.neutral[300]}`,
+                  borderRadius: borders.radius.lg,
+                  cursor: 'pointer',
+                  transition: `background-color ${animation.duration.fast}`
+                }}>
+                  <Filter style={{ width: '16px', height: '16px', color: colors.neutral[600] }} />
                 </button>
               </div>
             </div>
 
             {/* Appointments List */}
-            <div className="space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4] }}>
               {appointments.map((appointment) => {
                 const statusBadge = getStatusBadge(appointment.status);
                 const StatusIcon = statusBadge.icon;
@@ -229,52 +333,138 @@ export default function ServiceOverview() {
                 return (
                   <div
                     key={appointment.id}
-                    className="bg-white rounded-xl shadow-md hover:shadow-xl border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-0.5 group"
+                    style={{
+                      backgroundColor: colors.neutral[0],
+                      borderRadius: borders.radius.xl,
+                      boxShadow: shadows.md,
+                      border: `1px solid ${colors.neutral[100]}`,
+                      padding: spacing[6],
+                      transition: `all ${animation.duration.base} ${animation.easing.smooth}`
+                    }}
+                    className="group hover:shadow-xl hover:-translate-y-0.5"
                   >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-start gap-4 flex-1">
-                        <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-                          <Wrench className="w-5 h-5 text-blue-600" />
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: spacing[4] }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[4], flex: 1 }}>
+                        <div style={{
+                          padding: spacing[3],
+                          background: `linear-gradient(to bottom right, ${colors.info[50]}, ${colors.info[100]})`,
+                          borderRadius: borders.radius.lg
+                        }}>
+                          <Wrench style={{ width: '20px', height: '20px', color: colors.info[600] }} />
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-bold text-gray-900 text-lg">{appointment.customerName}</h3>
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusBadge.bg} ${statusBadge.text} flex items-center gap-1.5`}>
-                              <StatusIcon className="w-3.5 h-3.5" />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], marginBottom: spacing[2] }}>
+                            <h3 style={{
+                              fontWeight: typography.fontWeight.bold,
+                              color: colors.neutral[900],
+                              fontSize: typography.fontSize.lg
+                            }}>{appointment.customerName}</h3>
+                            <span style={{
+                              padding: `${spacing[1]} ${spacing[3]}`,
+                              borderRadius: borders.radius.full,
+                              fontSize: typography.fontSize.xs,
+                              fontWeight: typography.fontWeight.semibold,
+                              backgroundColor: statusBadge.bg,
+                              color: statusBadge.text,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: spacing[1.5]
+                            }}>
+                              <StatusIcon style={{ width: '14px', height: '14px' }} />
                               {statusBadge.label}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-600 mb-1">{appointment.vehicleInfo}</p>
-                          <p className="text-sm font-medium text-gray-900">{appointment.serviceType}</p>
+                          <p style={{
+                            fontSize: typography.fontSize.sm,
+                            color: colors.neutral[600],
+                            marginBottom: spacing[1]
+                          }}>{appointment.vehicleInfo}</p>
+                          <p style={{
+                            fontSize: typography.fontSize.sm,
+                            fontWeight: typography.fontWeight.medium,
+                            color: colors.neutral[900]
+                          }}>{appointment.serviceType}</p>
                         </div>
                       </div>
-                      <button className="p-2 opacity-0 group-hover:opacity-100 hover:bg-gray-100 rounded-lg transition-all">
-                        <MoreVertical className="w-5 h-5 text-gray-600" />
+                      <button style={{
+                        padding: spacing[2],
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        borderRadius: borders.radius.lg,
+                        cursor: 'pointer',
+                        opacity: 0,
+                        transition: `all ${animation.duration.fast}`
+                      }}
+                      className="group-hover:opacity-100 hover:bg-gray-100">
+                        <MoreVertical style={{ width: '20px', height: '20px', color: colors.neutral[600] }} />
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, 1fr)',
+                      gap: spacing[4],
+                      paddingTop: spacing[4],
+                      borderTop: `1px solid ${colors.neutral[100]}`
+                    }}>
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">Scheduled</p>
-                        <p className="text-sm font-semibold text-gray-900">{appointment.scheduledTime}</p>
+                        <p style={{ fontSize: typography.fontSize.xs, color: colors.neutral[500], marginBottom: spacing[1] }}>Scheduled</p>
+                        <p style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold, color: colors.neutral[900] }}>{appointment.scheduledTime}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">Technician</p>
-                        <p className="text-sm font-semibold text-gray-900">{appointment.technicianName}</p>
+                        <p style={{ fontSize: typography.fontSize.xs, color: colors.neutral[500], marginBottom: spacing[1] }}>Technician</p>
+                        <p style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold, color: colors.neutral[900] }}>{appointment.technicianName}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">Est. Completion</p>
-                        <p className="text-sm font-semibold text-gray-900">{appointment.estimatedCompletion}</p>
+                        <p style={{ fontSize: typography.fontSize.xs, color: colors.neutral[500], marginBottom: spacing[1] }}>Est. Completion</p>
+                        <p style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold, color: colors.neutral[900] }}>{appointment.estimatedCompletion}</p>
                       </div>
                     </div>
 
-                    <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
-                      <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                        <Eye className="w-4 h-4" />
+                    <div style={{
+                      display: 'flex',
+                      gap: spacing[2],
+                      marginTop: spacing[4],
+                      paddingTop: spacing[4],
+                      borderTop: `1px solid ${colors.neutral[100]}`
+                    }}>
+                      <button style={{
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: spacing[2],
+                        padding: `${spacing[2]} ${spacing[4]}`,
+                        backgroundColor: colors.primary[600],
+                        color: colors.neutral[0],
+                        borderRadius: borders.radius.lg,
+                        fontWeight: typography.fontWeight.medium,
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: `background-color ${animation.duration.fast}`
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = colors.primary[700]}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = colors.primary[600]}>
+                        <Eye style={{ width: '16px', height: '16px' }} />
                         View Details
                       </button>
-                      <button className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors">
-                        <Edit className="w-4 h-4" />
+                      <button style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: spacing[2],
+                        padding: `${spacing[2]} ${spacing[4]}`,
+                        backgroundColor: colors.neutral[100],
+                        color: colors.neutral[700],
+                        borderRadius: borders.radius.lg,
+                        fontWeight: typography.fontWeight.medium,
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: `background-color ${animation.duration.fast}`
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = colors.neutral[200]}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = colors.neutral[100]}>
+                        <Edit style={{ width: '16px', height: '16px' }} />
                         Edit
                       </button>
                     </div>
@@ -284,40 +474,95 @@ export default function ServiceOverview() {
             </div>
 
             <Link href="/service/appointments">
-              <a className="mt-6 flex items-center justify-center gap-2 w-full px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all">
+              <a style={{
+                marginTop: spacing[6],
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: spacing[2],
+                width: '100%',
+                padding: `${spacing[3]} ${spacing[6]}`,
+                backgroundColor: colors.neutral[0],
+                border: `2px solid ${colors.neutral[300]}`,
+                color: colors.neutral[700],
+                borderRadius: borders.radius.xl,
+                fontWeight: typography.fontWeight.semibold,
+                textDecoration: 'none',
+                transition: `all ${animation.duration.fast}`
+              }}
+              className="hover:bg-gray-50 hover:border-gray-400">
                 View All Appointments
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight style={{ width: '16px', height: '16px' }} />
               </a>
             </Link>
           </div>
 
-          {/* Sidebar with Alerts and Quick Links */}
-          <div className="space-y-6">
+          {/* Sidebar */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[6] }}>
             {/* Priority Alerts */}
-            <div className="bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200 rounded-xl p-6 shadow-md">
-              <div className="flex items-start gap-3 mb-4">
-                <div className="p-2 bg-red-100 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
+            <div style={{
+              background: `linear-gradient(to bottom right, ${colors.error[50]}, ${colors.warning[50]})`,
+              border: `2px solid ${colors.error[200]}`,
+              borderRadius: borders.radius.xl,
+              padding: spacing[6],
+              boxShadow: shadows.md
+            }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3], marginBottom: spacing[4] }}>
+                <div style={{
+                  padding: spacing[2],
+                  backgroundColor: colors.error[100],
+                  borderRadius: borders.radius.lg
+                }}>
+                  <AlertTriangle style={{ width: '20px', height: '20px', color: colors.error[600] }} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-red-900 mb-1">Attention Required</h3>
-                  <p className="text-sm text-red-800">
+                  <h3 style={{
+                    fontWeight: typography.fontWeight.bold,
+                    color: colors.error[900],
+                    marginBottom: spacing[1]
+                  }}>Attention Required</h3>
+                  <p style={{ fontSize: typography.fontSize.sm, color: colors.error[800] }}>
                     3 service orders awaiting parts delivery
                   </p>
                 </div>
               </div>
               <Link href="/service/orders">
-                <a className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors">
+                <a style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: spacing[2],
+                  width: '100%',
+                  padding: `${spacing[2]} ${spacing[4]}`,
+                  backgroundColor: colors.error[600],
+                  color: colors.neutral[0],
+                  borderRadius: borders.radius.lg,
+                  fontWeight: typography.fontWeight.medium,
+                  textDecoration: 'none',
+                  transition: `background-color ${animation.duration.fast}`
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = colors.error[700]}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = colors.error[600]}>
                   View Orders
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight style={{ width: '16px', height: '16px' }} />
                 </a>
               </Link>
             </div>
 
             {/* Quick Links Card */}
-            <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
-              <h3 className="font-bold text-gray-900 mb-4">Quick Access</h3>
-              <div className="space-y-3">
+            <div style={{
+              backgroundColor: colors.neutral[0],
+              borderRadius: borders.radius.xl,
+              boxShadow: shadows.md,
+              border: `1px solid ${colors.neutral[100]}`,
+              padding: spacing[6]
+            }}>
+              <h3 style={{
+                fontWeight: typography.fontWeight.bold,
+                color: colors.neutral[900],
+                marginBottom: spacing[4]
+              }}>Quick Access</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
                 {[
                   { label: 'Service History', href: '/service/history', icon: FileText },
                   { label: 'Parts Inventory', href: '/service/parts', icon: Package },
@@ -327,14 +572,41 @@ export default function ServiceOverview() {
                   const Icon = link.icon;
                   return (
                     <Link key={idx} href={link.href}>
-                      <a className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors group">
-                        <div className="flex items-center gap-3">
-                          <Icon className="w-4 h-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
-                          <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
+                      <a style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: spacing[3],
+                        borderRadius: borders.radius.lg,
+                        textDecoration: 'none',
+                        transition: `background-color ${animation.duration.fast}`
+                      }}
+                      className="group hover:bg-gray-50">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3] }}>
+                          <Icon style={{
+                            width: '16px',
+                            height: '16px',
+                            color: colors.neutral[600],
+                            transition: `color ${animation.duration.fast}`
+                          }}
+                          className="group-hover:text-blue-600" />
+                          <span style={{
+                            fontSize: typography.fontSize.sm,
+                            fontWeight: typography.fontWeight.medium,
+                            color: colors.neutral[700],
+                            transition: `color ${animation.duration.fast}`
+                          }}
+                          className="group-hover:text-gray-900">
                             {link.label}
                           </span>
                         </div>
-                        <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                        <ArrowRight style={{
+                          width: '16px',
+                          height: '16px',
+                          color: colors.neutral[400],
+                          transition: `color ${animation.duration.fast}`
+                        }}
+                        className="group-hover:text-blue-600" />
                       </a>
                     </Link>
                   );
@@ -343,24 +615,30 @@ export default function ServiceOverview() {
             </div>
 
             {/* Performance Card */}
-            <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
-              <div className="flex items-start gap-3 mb-4">
-                <TrendingUp className="w-6 h-6" />
+            <div style={{
+              background: 'linear-gradient(to bottom right, #22c55e, #10b981)',
+              borderRadius: borders.radius.xl,
+              padding: spacing[6],
+              color: colors.neutral[0],
+              boxShadow: shadows.lg
+            }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3], marginBottom: spacing[4] }}>
+                <TrendingUp style={{ width: '24px', height: '24px' }} />
                 <div>
-                  <h3 className="font-bold mb-1">Today's Performance</h3>
-                  <p className="text-sm text-green-100">
+                  <h3 style={{ fontWeight: typography.fontWeight.bold, marginBottom: spacing[1] }}>Today's Performance</h3>
+                  <p style={{ fontSize: typography.fontSize.sm, opacity: 0.9 }}>
                     Revenue: $3,450
                   </p>
                 </div>
               </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-green-100">Completed</span>
-                  <span className="font-bold">4 orders</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[2] }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: typography.fontSize.sm }}>
+                  <span style={{ opacity: 0.9 }}>Completed</span>
+                  <span style={{ fontWeight: typography.fontWeight.bold }}>4 orders</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-green-100">Avg Ticket</span>
-                  <span className="font-bold">$862</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: typography.fontSize.sm }}>
+                  <span style={{ opacity: 0.9 }}>Avg Ticket</span>
+                  <span style={{ fontWeight: typography.fontWeight.bold }}>$862</span>
                 </div>
               </div>
             </div>

@@ -1,4 +1,5 @@
 import { Link } from 'wouter';
+import { designTokens } from '@repo/tokens';
 import {
   Building,
   Users,
@@ -18,6 +19,8 @@ import {
   AlertCircle
 } from 'lucide-react';
 
+const { colors, spacing, shadows, borders, typography, animation } = designTokens;
+
 export default function AdminOverview() {
   const systemStats = [
     {
@@ -25,32 +28,32 @@ export default function AdminOverview() {
       value: '98%',
       status: 'healthy',
       icon: Activity,
-      color: 'text-green-600',
-      bg: 'bg-green-50',
+      colorBg: colors.success[50],
+      colorIcon: colors.success[600],
     },
     {
       label: 'Active Users',
       value: 24,
       status: 'normal',
       icon: Users,
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
+      colorBg: colors.info[50],
+      colorIcon: colors.info[600],
     },
     {
       label: 'Pending Approvals',
       value: 3,
       status: 'warning',
       icon: CheckCircle,
-      color: 'text-amber-600',
-      bg: 'bg-amber-50',
+      colorBg: colors.warning[50],
+      colorIcon: colors.warning[600],
     },
     {
       label: 'Security Score',
       value: '95/100',
       status: 'secure',
       icon: Shield,
-      color: 'text-purple-600',
-      bg: 'bg-purple-50',
+      colorBg: colors.secondary[50],
+      colorIcon: colors.secondary[600],
     },
   ];
 
@@ -60,8 +63,8 @@ export default function AdminOverview() {
       description: 'Manage users, roles, and permissions',
       icon: Users,
       href: '/admin/user-management',
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
+      colorBg: colors.info[50],
+      colorIcon: colors.info[600],
       items: ['Users', 'Roles', 'Permissions', 'Departments'],
     },
     {
@@ -69,8 +72,8 @@ export default function AdminOverview() {
       description: 'Configure system-wide settings',
       icon: Settings,
       href: '/admin/system-settings',
-      color: 'text-gray-600',
-      bg: 'bg-gray-50',
+      colorBg: colors.neutral[50],
+      colorIcon: colors.neutral[600],
       items: ['General', 'Dealer Config', 'Multi-Store', 'Integrations'],
     },
     {
@@ -78,8 +81,8 @@ export default function AdminOverview() {
       description: 'Manage security and compliance',
       icon: Lock,
       href: '/admin/security-center',
-      color: 'text-purple-600',
-      bg: 'bg-purple-50',
+      colorBg: colors.secondary[50],
+      colorIcon: colors.secondary[600],
       items: ['Access Logs', 'Security Policies', 'Audit Trail', 'Encryption'],
     },
     {
@@ -87,8 +90,8 @@ export default function AdminOverview() {
       description: 'Monitor system performance',
       icon: Activity,
       href: '/admin/system-health',
-      color: 'text-green-600',
-      bg: 'bg-green-50',
+      colorBg: colors.success[50],
+      colorIcon: colors.success[600],
       items: ['Performance', 'Database', 'API Status', 'Uptime'],
     },
     {
@@ -96,8 +99,8 @@ export default function AdminOverview() {
       description: 'Training materials and onboarding',
       icon: School,
       href: '/admin/training-center',
-      color: 'text-indigo-600',
-      bg: 'bg-indigo-50',
+      colorBg: colors.primary[50],
+      colorIcon: colors.primary[600],
       items: ['Courses', 'Materials', 'Progress', 'Certifications'],
     },
     {
@@ -105,8 +108,8 @@ export default function AdminOverview() {
       description: 'Manage ML models and analytics',
       icon: Database,
       href: '/admin/ml-developer',
-      color: 'text-cyan-600',
-      bg: 'bg-cyan-50',
+      colorBg: '#cffafe',
+      colorIcon: '#0891b2',
       items: ['Models', 'Training', 'Performance', 'Comparison'],
     },
   ];
@@ -160,17 +163,34 @@ export default function AdminOverview() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: '100vh', background: `linear-gradient(to bottom right, ${colors.neutral[50]}, ${colors.neutral[50]}, ${colors.error[50]})` }}>
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <Building className="w-6 h-6 text-red-600" />
+      <div style={{
+        backgroundColor: colors.neutral[0],
+        borderBottom: `1px solid ${colors.neutral[200]}`,
+        boxShadow: shadows.sm
+      }}>
+        <div style={{ maxWidth: designTokens.layout.maxWidth['2xl'], margin: '0 auto', padding: `${spacing[6]} ${spacing[8]}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[4] }}>
+            <div style={{
+              padding: spacing[3],
+              background: 'linear-gradient(to bottom right, #ef4444, #dc2626)',
+              borderRadius: borders.radius.xl,
+              boxShadow: shadows.lg
+            }}>
+              <Building style={{ width: '28px', height: '28px', color: colors.neutral[0] }} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Administration</h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <h1 style={{
+                fontSize: typography.fontSize['3xl'],
+                fontWeight: typography.fontWeight.bold,
+                color: colors.neutral[900]
+              }}>Administration</h1>
+              <p style={{
+                fontSize: typography.fontSize.sm,
+                color: colors.neutral[600],
+                marginTop: spacing[1]
+              }}>
                 System configuration, user management, and settings
               </p>
             </div>
@@ -178,51 +198,99 @@ export default function AdminOverview() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div style={{ maxWidth: designTokens.layout.maxWidth['2xl'], margin: '0 auto', padding: spacing[8] }}>
         {/* System Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr',
+          gap: spacing[6],
+          marginBottom: spacing[8]
+        }} className="md:grid-cols-2 lg:grid-cols-4">
           {systemStats.map((stat, idx) => {
             const Icon = stat.icon;
             return (
-              <div key={idx} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-gray-600">{stat.label}</p>
-                  <div className={`p-2 rounded-lg ${stat.bg}`}>
-                    <Icon className={`w-5 h-5 ${stat.color}`} />
+              <div key={idx} style={{
+                backgroundColor: colors.neutral[0],
+                borderRadius: borders.radius.xl,
+                boxShadow: shadows.md,
+                border: `1px solid ${colors.neutral[100]}`,
+                padding: spacing[6]
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[2] }}>
+                  <p style={{ fontSize: typography.fontSize.sm, color: colors.neutral[600] }}>{stat.label}</p>
+                  <div style={{
+                    padding: spacing[2],
+                    borderRadius: borders.radius.lg,
+                    backgroundColor: stat.colorBg
+                  }}>
+                    <Icon style={{ width: '20px', height: '20px', color: stat.colorIcon }} />
                   </div>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                <p style={{
+                  fontSize: typography.fontSize['3xl'],
+                  fontWeight: typography.fontWeight.bold,
+                  color: colors.neutral[900]
+                }}>{stat.value}</p>
               </div>
             );
           })}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: spacing[8] }} className="lg:grid-cols-3">
           {/* Admin Sections */}
-          <div className="lg:col-span-2">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Administration</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div style={{ gridColumn: 'span 1' }} className="lg:col-span-2">
+            <h2 style={{
+              fontSize: typography.fontSize.xl,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.neutral[900],
+              marginBottom: spacing[4]
+            }}>Administration</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: spacing[4], marginBottom: spacing[8] }} className="md:grid-cols-2">
               {adminSections.map((section, idx) => {
                 const Icon = section.icon;
                 return (
                   <Link key={idx} href={section.href}>
-                    <a className="block bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all">
-                      <div className="p-6">
-                        <div className="flex items-start gap-4 mb-4">
-                          <div className={`p-3 rounded-lg ${section.bg} shrink-0`}>
-                            <Icon className={`w-6 h-6 ${section.color}`} />
+                    <a style={{
+                      display: 'block',
+                      backgroundColor: colors.neutral[0],
+                      borderRadius: borders.radius.xl,
+                      boxShadow: shadows.md,
+                      border: `1px solid ${colors.neutral[100]}`,
+                      transition: `all ${animation.duration.base} ${animation.easing.smooth}`,
+                      textDecoration: 'none'
+                    }}
+                    className="hover:shadow-xl hover:-translate-y-1">
+                      <div style={{ padding: spacing[6] }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[4], marginBottom: spacing[4] }}>
+                          <div style={{
+                            padding: spacing[3],
+                            borderRadius: borders.radius.xl,
+                            backgroundColor: section.colorBg,
+                            flexShrink: 0
+                          }}>
+                            <Icon style={{ width: '24px', height: '24px', color: section.colorIcon }} />
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-900 mb-1">{section.title}</h3>
-                            <p className="text-sm text-gray-600">{section.description}</p>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <h3 style={{
+                              fontWeight: typography.fontWeight.bold,
+                              color: colors.neutral[900],
+                              marginBottom: spacing[1]
+                            }}>{section.title}</h3>
+                            <p style={{ fontSize: typography.fontSize.sm, color: colors.neutral[600] }}>{section.description}</p>
                           </div>
                         </div>
-                        <div className="border-t border-gray-200 pt-3">
-                          <div className="flex flex-wrap gap-2">
+                        <div style={{ borderTop: `1px solid ${colors.neutral[200]}`, paddingTop: spacing[3] }}>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: spacing[2] }}>
                             {section.items.map((item, iidx) => (
                               <span
                                 key={iidx}
-                                className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded"
+                                style={{
+                                  fontSize: typography.fontSize.xs,
+                                  padding: `${spacing[1]} ${spacing[2]}`,
+                                  backgroundColor: colors.neutral[100],
+                                  color: colors.neutral[700],
+                                  borderRadius: borders.radius.md
+                                }}
                               >
                                 {item}
                               </span>
@@ -237,9 +305,19 @@ export default function AdminOverview() {
             </div>
 
             {/* Recent Activity */}
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="divide-y divide-gray-200">
+            <h2 style={{
+              fontSize: typography.fontSize.xl,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.neutral[900],
+              marginBottom: spacing[4]
+            }}>Recent Activity</h2>
+            <div style={{
+              backgroundColor: colors.neutral[0],
+              borderRadius: borders.radius.xl,
+              boxShadow: shadows.md,
+              border: `1px solid ${colors.neutral[100]}`
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {recentActivity.map((activity, idx) => {
                   const typeIcons = {
                     security: Shield,
@@ -250,15 +328,24 @@ export default function AdminOverview() {
                   const Icon = typeIcons[activity.type] || Activity;
 
                   return (
-                    <div key={idx} className="p-4">
-                      <div className="flex items-start gap-3">
-                        <Icon className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-900">{activity.action}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <p className="text-xs text-gray-600">{activity.user}</p>
-                            <span className="text-xs text-gray-400">•</span>
-                            <p className="text-xs text-gray-500">{activity.time}</p>
+                    <div key={idx} style={{
+                      padding: spacing[4],
+                      borderBottom: idx < recentActivity.length - 1 ? `1px solid ${colors.neutral[200]}` : 'none'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3] }}>
+                        <Icon style={{
+                          width: '20px',
+                          height: '20px',
+                          color: colors.neutral[400],
+                          marginTop: '2px',
+                          flexShrink: 0
+                        }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontSize: typography.fontSize.sm, color: colors.neutral[900] }}>{activity.action}</p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginTop: spacing[1] }}>
+                            <p style={{ fontSize: typography.fontSize.xs, color: colors.neutral[600] }}>{activity.user}</p>
+                            <span style={{ fontSize: typography.fontSize.xs, color: colors.neutral[400] }}>•</span>
+                            <p style={{ fontSize: typography.fontSize.xs, color: colors.neutral[500] }}>{activity.time}</p>
                           </div>
                         </div>
                       </div>
@@ -271,13 +358,18 @@ export default function AdminOverview() {
 
           {/* Alerts & Quick Actions */}
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Alerts</h2>
-            <div className="space-y-4 mb-6">
+            <h2 style={{
+              fontSize: typography.fontSize.xl,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.neutral[900],
+              marginBottom: spacing[4]
+            }}>Alerts</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4], marginBottom: spacing[6] }}>
               {alerts.map((alert, idx) => {
                 const severityColors = {
-                  high: 'border-red-200 bg-red-50',
-                  medium: 'border-yellow-200 bg-yellow-50',
-                  low: 'border-gray-200 bg-gray-50',
+                  high: { border: colors.error[200], bg: colors.error[50] },
+                  medium: { border: colors.warning[200], bg: colors.warning[50] },
+                  low: { border: colors.neutral[200], bg: colors.neutral[50] },
                 };
 
                 const severityIcons = {
@@ -287,28 +379,52 @@ export default function AdminOverview() {
                 };
 
                 const severityIconColors = {
-                  high: 'text-red-500',
-                  medium: 'text-yellow-500',
-                  low: 'text-gray-400',
+                  high: colors.error[500],
+                  medium: colors.warning[500],
+                  low: colors.neutral[400],
                 };
 
                 const Icon = severityIcons[alert.severity] || AlertCircle;
-                const iconColor = severityIconColors[alert.severity] || 'text-gray-400';
-                const bgColor = severityColors[alert.severity] || 'border-gray-200 bg-gray-50';
+                const iconColor = severityIconColors[alert.severity] || colors.neutral[400];
+                const bgColor = severityColors[alert.severity] || { border: colors.neutral[200], bg: colors.neutral[50] };
 
                 return (
                   <div
                     key={idx}
-                    className={`rounded-lg border p-4 ${bgColor}`}
+                    style={{
+                      borderRadius: borders.radius.xl,
+                      border: `1px solid ${bgColor.border}`,
+                      backgroundColor: bgColor.bg,
+                      padding: spacing[4]
+                    }}
                   >
-                    <div className="flex items-start gap-3">
-                      <Icon className={`w-5 h-5 ${iconColor} mt-0.5 shrink-0`} />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3] }}>
+                      <Icon style={{
+                        width: '20px',
+                        height: '20px',
+                        color: iconColor,
+                        marginTop: '2px',
+                        flexShrink: 0
+                      }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h3 style={{
+                          fontSize: typography.fontSize.sm,
+                          fontWeight: typography.fontWeight.bold,
+                          color: colors.neutral[900],
+                          marginBottom: spacing[2]
+                        }}>
                           {alert.title}
                         </h3>
                         <Link href={alert.href}>
-                          <a className="text-sm font-medium text-blue-600 hover:text-blue-700">
+                          <a style={{
+                            fontSize: typography.fontSize.sm,
+                            fontWeight: typography.fontWeight.medium,
+                            color: colors.primary[600],
+                            textDecoration: 'none',
+                            transition: `color ${animation.duration.fast}`
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.color = colors.primary[700]}
+                          onMouseOut={(e) => e.currentTarget.style.color = colors.primary[600]}>
                             {alert.action} →
                           </a>
                         </Link>
@@ -320,26 +436,68 @@ export default function AdminOverview() {
             </div>
 
             {/* Quick Links */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-              <h3 className="font-semibold text-gray-900 mb-3">Quick Links</h3>
-              <div className="space-y-2">
+            <div style={{
+              backgroundColor: colors.neutral[0],
+              borderRadius: borders.radius.xl,
+              boxShadow: shadows.md,
+              border: `1px solid ${colors.neutral[100]}`,
+              padding: spacing[4]
+            }}>
+              <h3 style={{
+                fontWeight: typography.fontWeight.bold,
+                color: colors.neutral[900],
+                marginBottom: spacing[3]
+              }}>Quick Links</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[2] }}>
                 <Link href="/admin/role-presets">
-                  <a className="block text-sm text-blue-600 hover:text-blue-700">
+                  <a style={{
+                    display: 'block',
+                    fontSize: typography.fontSize.sm,
+                    color: colors.primary[600],
+                    textDecoration: 'none',
+                    transition: `color ${animation.duration.fast}`
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.color = colors.primary[700]}
+                  onMouseOut={(e) => e.currentTarget.style.color = colors.primary[600]}>
                     Role Presets →
                   </a>
                 </Link>
                 <Link href="/admin/integration-setup">
-                  <a className="block text-sm text-blue-600 hover:text-blue-700">
+                  <a style={{
+                    display: 'block',
+                    fontSize: typography.fontSize.sm,
+                    color: colors.primary[600],
+                    textDecoration: 'none',
+                    transition: `color ${animation.duration.fast}`
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.color = colors.primary[700]}
+                  onMouseOut={(e) => e.currentTarget.style.color = colors.primary[600]}>
                     Integration Setup →
                   </a>
                 </Link>
                 <Link href="/admin/lead-distribution">
-                  <a className="block text-sm text-blue-600 hover:text-blue-700">
+                  <a style={{
+                    display: 'block',
+                    fontSize: typography.fontSize.sm,
+                    color: colors.primary[600],
+                    textDecoration: 'none',
+                    transition: `color ${animation.duration.fast}`
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.color = colors.primary[700]}
+                  onMouseOut={(e) => e.currentTarget.style.color = colors.primary[600]}>
                     Lead Distribution →
                   </a>
                 </Link>
                 <Link href="/admin/performance-tracking">
-                  <a className="block text-sm text-blue-600 hover:text-blue-700">
+                  <a style={{
+                    display: 'block',
+                    fontSize: typography.fontSize.sm,
+                    color: colors.primary[600],
+                    textDecoration: 'none',
+                    transition: `color ${animation.duration.fast}`
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.color = colors.primary[700]}
+                  onMouseOut={(e) => e.currentTarget.style.color = colors.primary[600]}>
                     Performance Tracking →
                   </a>
                 </Link>
