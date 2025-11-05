@@ -97,8 +97,10 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
     id: 'desking',
     label: 'Desking Tools',
     icon: PencilLine,
-    path: '/desking/workspace',
+    path: '/deal-studio-demo',
     subItems: [
+      { label: 'Deal Studio (Desktop)', path: '/deal-studio-demo', icon: Calculator },
+      { label: 'Deal Studio (Mobile)', path: '/deal-studio-mobile-demo', icon: Calculator },
       { label: 'Initial Pencil', path: '/desking/initial-pencil', icon: PencilLine },
       { label: 'Desking Workspace', path: '/desking/workspace', icon: Briefcase },
       { label: 'Deal Comparison', path: '/desking/deal-comparison', icon: GitCompare },
@@ -344,6 +346,7 @@ export const MOBILE_PRIMARY_NAV_ITEMS: MobileNavItem[] = [
 
 export const MOBILE_ALL_NAV_ITEMS: MobileNavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home, color: 'text-blue-600', matchPaths: ['/', '/dashboard'] },
+  { name: 'Deal Studio', href: '/deal-studio-mobile-demo', icon: Calculator, color: 'text-indigo-600', matchPaths: ['/deal-studio'] },
   { name: 'Desking Tools', href: '/desking/workspace', icon: PencilLine, color: 'text-indigo-600', matchPaths: ['/desking/'] },
   { name: 'Leads', href: '/leads/dashboard', icon: Users, color: 'text-sky-600', matchPaths: ['/leads'] },
   { name: 'Customers', href: '/customers', icon: Users, color: 'text-green-600' },
@@ -362,12 +365,20 @@ export const MOBILE_ALL_NAV_ITEMS: MobileNavItem[] = [
 
 export const QUICK_ACTIONS: QuickAction[] = [
   {
+    id: 'deal-studio',
+    label: 'Deal Studio',
+    description: 'AI-powered deal desking cockpit',
+    icon: Calculator,
+    target: '/deal-studio-demo',
+    accentClass: 'text-indigo-600'
+  },
+  {
     id: 'desking-workspace',
     label: 'Desking Workspace',
-    description: 'Start desking a deal',
+    description: 'Traditional deal desk',
     icon: PencilLine,
     target: '/desking/workspace',
-    accentClass: 'text-indigo-600'
+    accentClass: 'text-indigo-400'
   },
   {
     id: 'new-deal',
@@ -404,6 +415,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
 ];
 
 export const MOBILE_QUICK_ACTIONS = [
+  { label: 'Deal Studio', href: '/deal-studio-mobile-demo', icon: Calculator },
   { label: 'Desking Workspace', href: '/desking/workspace', icon: PencilLine },
   { label: 'Initial Pencil', href: '/desking/initial-pencil', icon: PencilLine },
   { label: 'Add Customer', href: '/customers', icon: Users },
