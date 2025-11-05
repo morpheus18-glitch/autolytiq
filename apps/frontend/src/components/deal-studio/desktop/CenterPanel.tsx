@@ -88,23 +88,23 @@ export function CenterPanel() {
           <div className="grid grid-cols-2 gap-4">
             <ProfitCard
               label="Front-End Gross"
-              value={profit?.frontGross || 0}
+              value={profit?.frontEndProfit || 0}
               color="blue"
             />
             <ProfitCard
               label="Back-End Gross"
-              value={profit?.backGross || 0}
+              value={profit?.backEndProfit || 0}
               color="violet"
             />
             <ProfitCard
               label="Total Gross"
-              value={profit?.totalGross || 0}
+              value={profit?.totalProfit || 0}
               color="emerald"
               large
             />
             <ProfitCard
-              label="Reserve"
-              value={profit?.reserve || 0}
+              label="Vehicle Margin"
+              value={profit?.vehicleMargin || 0}
               color="cyan"
             />
           </div>
