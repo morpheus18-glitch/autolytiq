@@ -51,7 +51,6 @@ import {
   Send,
   FileCheck,
   Columns,
-  Store,
   Scan
 } from 'lucide-react';
 
@@ -101,10 +100,7 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
     subItems: [
       { label: 'Deal Studio (Desktop)', path: '/deal-studio-demo', icon: Calculator },
       { label: 'Deal Studio (Mobile)', path: '/deal-studio-mobile-demo', icon: Calculator },
-      { label: 'Initial Pencil', path: '/desking/initial-pencil', icon: PencilLine },
       { label: 'Desking Workspace', path: '/desking/workspace', icon: Briefcase },
-      { label: 'Deal Comparison', path: '/desking/deal-comparison', icon: GitCompare },
-      { label: 'Customer Counter', path: '/desking/customer-counter', icon: UserCheck },
       { label: 'Approval Analysis', path: '/desking/approval-analysis', icon: CheckSquare }
     ]
   },
@@ -147,7 +143,6 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
     path: '/deals',
     subItems: [
       { label: 'Active Deals', path: '/deals', icon: Calculator, badge: '3' },
-      { label: 'Deal Desk', path: '/deals/deal-desk', icon: Calculator },
       { label: 'Leads Pipeline', path: '/leads/dashboard', icon: Users },
       { label: 'Customer Management', path: '/customers', icon: Users }
     ]
@@ -163,12 +158,6 @@ export const WORKFLOW_SECTIONS: NavigationSection[] = [
         path: '/misc/fi-dashboard',
         icon: Shield,
         matchPaths: ['/fi-dashboard', '/misc/fi-dashboard'],
-      },
-      {
-        label: 'Deal Desk',
-        path: '/deals/deal-desk',
-        icon: FileSignature,
-        matchPaths: ['/deals/deal-desk'],
       },
       {
         label: 'Digital Deal Jackets',
@@ -354,7 +343,6 @@ export const MOBILE_ALL_NAV_ITEMS: MobileNavItem[] = [
   { name: 'Finance & Insurance', href: '/misc/fi-dashboard', icon: Shield, color: 'text-emerald-600', matchPaths: ['/finance/', '/misc/fi-dashboard', '/misc/fi-configuration'] },
   { name: 'Accounting', href: '/accounting/dashboard', icon: Calculator, color: 'text-teal-600', matchPaths: ['/accounting/'] },
   { name: 'Deals', href: '/deals', icon: DollarSign, color: 'text-orange-600' },
-  { name: 'Deal Desk', href: '/deals/deal-desk', icon: Briefcase, color: 'text-rose-600' },
   { name: 'Service', href: '/service/appointments', icon: Wrench, color: 'text-amber-600', matchPaths: ['/service/'] },
   { name: 'Communications', href: '/communications/center', icon: MessageSquare, color: 'text-cyan-600' },
   { name: 'Analytics', href: '/analytics/crm', icon: TrendingUp, color: 'text-pink-600', matchPaths: ['/analytics/'] },
@@ -417,11 +405,9 @@ export const QUICK_ACTIONS: QuickAction[] = [
 export const MOBILE_QUICK_ACTIONS = [
   { label: 'Deal Studio', href: '/deal-studio-mobile-demo', icon: Calculator },
   { label: 'Desking Workspace', href: '/desking/workspace', icon: PencilLine },
-  { label: 'Initial Pencil', href: '/desking/initial-pencil', icon: PencilLine },
   { label: 'Add Customer', href: '/customers', icon: Users },
   { label: 'Add Vehicle', href: '/inventory', icon: Car },
   { label: 'New Deal', href: '/deals', icon: Calculator },
-  { label: 'Deal Desk', href: '/deals/deal-desk', icon: Briefcase },
   { label: 'F&I Dashboard', href: '/misc/fi-dashboard', icon: Shield },
   { label: 'F&I Configuration', href: '/misc/fi-configuration', icon: Settings },
   { label: 'Service Appointment', href: '/service/appointments', icon: Wrench }

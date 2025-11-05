@@ -82,14 +82,8 @@ const CustomersDetail = lazy(() => import('@/pages/customers/detail'));
 const CustomersProfile = lazy(() => import('@/pages/customers/profile'));
 
 // Desking pages
-const DeskingInitialPencil = lazy(() => import('@/pages/desking/InitialPencil'));
 const DeskingWorkspace = lazy(() => import('@/pages/desking/DeskingWorkspace'));
-const DeskingDealComparison = lazy(() => import('@/pages/desking/DealComparison'));
-const DeskingCustomerCounter = lazy(() => import('@/pages/desking/CustomerCounter'));
 const DeskingApprovalAnalysis = lazy(() => import('@/pages/desking/ApprovalAnalysis'));
-
-// Deals pages  
-const DealsDealDesk = lazy(() => import('@/pages/deals/deal-desk'));
 
 // Inventory pages
 const InventoryDetail = lazy(() => import('@/pages/inventory/detail'));
@@ -124,7 +118,6 @@ const LeadPipeline = lazy(() => import('@/pages/crm/lead-pipeline'));
 const ShowroomManager = lazy(() => import('@/pages/showroom/showroom-manager'));
 
 // Misc pages
-const MiscProfessionalDealDesk = lazy(() => import('@/pages/misc/professional-deal-desk'));
 const MiscMultiStoreManagement = lazy(() => import('@/pages/misc/multi-store-management'));
 const MiscMLModelComparison = lazy(() => import('@/pages/misc/ml-model-comparison'));
 const MiscMLDeveloperAdmin = lazy(() => import('@/pages/misc/ml-developer-admin'));
@@ -264,9 +257,6 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/customers/detail/:id', component: CustomersDetail },
   { path: '/customers/profile/:id', component: CustomersProfile },
 
-  // Deals routes
-  { path: '/deals/deal-desk', component: DealsDealDesk },
-
   // Inventory routes
   { path: '/inventory/detail/:id', component: InventoryDetail },
   { path: '/inventory/pricing', component: InventoryPricing },
@@ -318,10 +308,7 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/customers/phone-calls', component: CustomersPhoneCalls },
 
   // Desking routes
-  { path: '/desking/initial-pencil', component: DeskingInitialPencil },
   { path: '/desking/workspace', component: DeskingWorkspace },
-  { path: '/desking/deal-comparison', component: DeskingDealComparison },
-  { path: '/desking/customer-counter', component: DeskingCustomerCounter },
   { path: '/desking/approval-analysis', component: DeskingApprovalAnalysis },
 
   // Finance routes
@@ -340,7 +327,6 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/leads/detail', component: LeadDetail },
 
   // Misc routes
-  { path: '/misc/professional-deal-desk', component: MiscProfessionalDealDesk },
   { path: '/misc/multi-store-management', component: MiscMultiStoreManagement },
   { path: '/misc/ml-model-comparison', component: MiscMLModelComparison },
   { path: '/misc/ml-developer-admin', component: MiscMLDeveloperAdmin },
