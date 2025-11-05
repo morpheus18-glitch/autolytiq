@@ -9,6 +9,11 @@ const Settings = lazy(() => import('@/pages/settings'));
 const Customers = lazy(() => import('@/pages/customers'));
 const Inventory = lazy(() => import('@/pages/inventory'));
 const Deals = lazy(() => import('@/pages/deals'));
+const Service = lazy(() => import('@/pages/service'));
+const Reports = lazy(() => import('@/pages/reports'));
+const Accounting = lazy(() => import('@/pages/accounting'));
+const Communications = lazy(() => import('@/pages/communications'));
+const Admin = lazy(() => import('@/pages/admin'));
 
 // Dashboard pages (role-based)
 const DashboardSales = lazy(() => import('@/pages/dashboard/sales'));
@@ -217,6 +222,11 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/customers', component: Customers },
   { path: '/inventory', component: Inventory },
   { path: '/deals', component: Deals },
+  { path: '/service', component: Service },
+  { path: '/reports', component: Reports },
+  { path: '/accounting', component: Accounting },
+  { path: '/communications', component: Communications },
+  { path: '/admin', component: Admin },
   { path: '/demo-quick-view', component: DemoQuickView },
   { path: '/desking/calculator', component: DealCalculator },
   { path: '/deal-studio-demo', component: DealStudioDemo },
