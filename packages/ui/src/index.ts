@@ -16,6 +16,30 @@ export {
   cardVariants,
   type CardProps,
 } from './components/Card.js';
+export { Badge, badgeVariants, type BadgeProps } from './components/Badge.js';
+export { PageHeader, type PageHeaderProps } from './components/PageHeader.js';
+export { StatCard, statCardVariants, type StatCardProps } from './components/StatCard.js';
+export { SearchInput, type SearchInputProps } from './components/SearchInput.js';
+export { Avatar, avatarVariants, type AvatarProps } from './components/Avatar.js';
+export { Skeleton, skeletonVariants, type SkeletonProps } from './components/Skeleton.js';
+
+// Hooks
+export {
+  useMobile,
+  useBreakpoint,
+  useViewport,
+  useMediaQuery,
+  useTouchDevice,
+  useResponsiveValue,
+  BREAKPOINTS,
+  type Breakpoint,
+} from './hooks/useMobile.js';
+
+export {
+  useTheme,
+  usePrefersDarkMode,
+  usePrefersReducedMotion,
+} from './hooks/useTheme.js';
 
 // Utilities
 export { cn } from './utils/cn.js';
