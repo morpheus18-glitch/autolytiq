@@ -161,7 +161,97 @@ module.exports = {
 
 ---
 
-## Issue 4: Routing Architecture Complexity ⚠️ CRITICAL
+## Issue 4: Page File Duplication & Scattered Structure ⚠️ CRITICAL
+
+### Problem
+**Symptom:** Pages scattered across 3+ directories with 112 dead backup files
+
+### Discovered Structure
+```
+apps/frontend/src/
+├── _backup/pages/          # 112 UNUSED backup files (DEAD CODE)
+│   ├── accounting/         # 10 old accounting pages
+│   ├── admin/             # Old admin pages
+│   ├── leads/             # Old lead pages
+│   └── ...                # 13 subdirectories total
+├── features/fi/pages/      # 10 ACTIVE F&I pages
+│   ├── CreditApplication.tsx
+│   ├── DealJacket.tsx
+│   └── ...
+└── pages/                  # 170 ACTIVE main pages
+    ├── accounting/
+    ├── admin/
+    ├── customers/
+    └── ...
+```
+
+### Analysis
+1. **`_backup/pages` (112 files)** - DEAD CODE
+   - Not imported anywhere in active codebase
+   - Taking up 112 files of disk space
+   - **Action:** DELETE IMMEDIATELY
+
+2. **`features/fi/pages` (10 files)** - ACTIVE but INCONSISTENT
+   - Only used by: `pages/misc/fi-dashboard.tsx`
+   - Breaks page organization pattern
+   - **Action:** Move to `pages/fi/` or establish feature pattern
+
+3. **`pages/` (170 files)** - ACTIVE but MESSY
+   - Mix of flat files and nested directories
+   - No consistent organization
+   - **Action:** Reorganize with clear hierarchy
+
+### Root Cause
+- No enforced file organization standards
+- Backup files never cleaned up after refactors
+- Feature-based vs. route-based organization conflict
+
+### Impact
+- **Developer confusion:** "Where do I put new pages?"
+- **Code search difficulty:** Searching 3+ directories
+- **Bundle bloat:** 112 unused files in source (not in bundle, but clutter)
+- **Maintenance burden:** Uncertain which files are active
+
+### Solution: Page Consolidation Plan
+
+#### Phase 1: Cleanup (Immediate)
+```bash
+# Delete dead code - 112 files
+rm -rf apps/frontend/src/_backup/pages
+
+# Verify no imports exist (already verified - zero results)
+grep -r "_backup/pages" apps/frontend/src
+```
+
+#### Phase 2: Consolidate F&I Pages (Week 1)
+```bash
+# Move F&I pages to main pages directory
+mkdir -p apps/frontend/src/pages/fi
+mv apps/frontend/src/features/fi/pages/* apps/frontend/src/pages/fi/
+
+# Update imports
+# Change: import X from '@/features/fi/pages/FIManagerDashboard';
+# To: import X from '@/pages/fi/FIManagerDashboard';
+```
+
+#### Phase 3: Enforce Organization (Week 2)
+Create `.eslintrc` rule:
+```javascript
+{
+  rules: {
+    'no-restricted-imports': ['error', {
+      patterns: [{
+        group: ['@/features/*/pages/*'],
+        message: 'Import pages from @/pages instead. All pages must be in apps/frontend/src/pages/'
+      }]
+    }]
+  }
+}
+```
+
+---
+
+## Issue 5: Routing Architecture Complexity ⚠️ CRITICAL
 
 ### Problem
 **Symptom:** 441-line monolithic route file managing 170+ pages
