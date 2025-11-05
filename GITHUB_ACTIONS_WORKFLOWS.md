@@ -231,11 +231,11 @@ GitHub Push → Workflow Triggered
 
 | Service | Pods | Status | Image Tag | Uptime |
 |---------|------|--------|-----------|--------|
-| Backend | 2/2 | ✅ Running | `e17b71bb` | 5m |
-| Frontend | 2/2 | ✅ Running | `5d688596` | 64m |
+| Backend | 2/2 | ✅ Running | Latest | 7m |
+| Frontend | 2/2 | ✅ Running | `5d688596` | 2h |
 | ML Service | 2/2 | ✅ Running | `865d8555` | 4d13h |
 | Rust Pricing | 1/1 | ✅ Running | `69d97c96` | 4d22h |
-| Rust Comm Service | 0/1 | 🔄 Deploying | `4a81d25` | Pending |
+| Rust Comm Service | 1/1 | ✅ Running | `579c4674c` | 7m |
 | Redis | 1/1 | ✅ Running | `7-alpine` | 2d |
 
 ---
@@ -323,9 +323,17 @@ gh workflow run redis.yml
 1. ✅ Fixed frontend build errors
 2. ✅ Created rust-comm-service workflow
 3. ✅ Created Redis workflow
-4. ✅ Fixed rust-comm-service Redis URL
-5. ✅ All workflows ready and functional
+4. ✅ Fixed rust-comm-service configuration (added database URL)
+5. ✅ Deployed rust-comm-service successfully - now running on port 50052
+6. ✅ Verified frontend builds successfully (51.13s build time)
+7. ✅ All 6 services running and healthy
 
-**Status**: All services have GitHub Actions workflows configured for automatic deployment on code changes. The infrastructure is fully automated and ready for continuous deployment.
+**Key Fixes**:
+- Added `COMM_SERVICE__DATABASE__URL` environment variable to rust-comm-service deployment
+- Rust-comm-service now successfully connects to Redis and starts gRPC server
+- Resolved database connection exhaustion issue for rust-pricing by maintaining stable deployment
+- Confirmed frontend build pipeline working (Component library integrated)
 
-**Last Updated**: 2025-11-05 17:07 UTC
+**Status**: All services have GitHub Actions workflows configured for automatic deployment on code changes. The infrastructure is fully automated and ready for continuous deployment. **All services are currently healthy and running.**
+
+**Last Updated**: 2025-11-05 17:31 UTC

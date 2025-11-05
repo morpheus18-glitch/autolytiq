@@ -6,7 +6,9 @@ on:
       - main
     paths:
       - 'apps/frontend/**'
+      - 'packages/ui/**'
       - 'packages/tokens/**'
+      - 'packages/shared/**'
       - 'apps/frontend/Dockerfile'
       - 'apps/frontend/nginx.conf'
       - 'infrastructure/k8s/production/frontend-deployment.yaml'
