@@ -1,0 +1,36 @@
+name: Redis Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'infrastructure/k8s/production/redis-deployment.yaml'
+      - '.github/workflows/redis.yml'
+  workflow_dispatch:
+
+env:
+  CLUSTER: autolytiq-cluster
+  NAMESPACE: autolytiq-prod
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+      - name: Configure kubectl
+        run: doctl kubernetes cluster kubeconfig save "$CLUSTER"
+      - name: Ensure namespace exists
+        run: kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+      - name: Deploy Redis StatefulSet
+        run: |
+          kubectl apply -f infrastructure/k8s/production/redis-deployment.yaml
+          kubectl rollout status statefulset/redis -n "$NAMESPACE" --timeout=180s
+      - name: Verify Redis is running
+        run: |
+          kubectl get statefulset redis -n "$NAMESPACE"
+          kubectl get pods -l app.kubernetes.io/name=redis -n "$NAMESPACE"
