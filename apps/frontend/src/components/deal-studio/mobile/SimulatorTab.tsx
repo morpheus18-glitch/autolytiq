@@ -7,7 +7,7 @@
 
 import { useDealStudio } from '@/contexts/DealStudioContext';
 import { LivePaymentDisplayCompact } from '../shared/LivePaymentDisplay';
-import { DealSliderCompact, formatCurrency, formatPercentage } from '../shared/DealSlider';
+import { DealInputWithSlider, formatCurrency, formatPercentage } from '../shared/DealInputWithSlider';
 import { ProfitBreakdown } from '../shared/ProfitBadge';
 import { CheckSquare, Square } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -47,11 +47,11 @@ export function SimulatorTab() {
         {paymentLocked ? '🔒 Unlock Payment' : '🔓 Lock Payment'}
       </button>
 
-      {/* Deal Structure Sliders */}
+      {/* Deal Structure Inputs */}
       <div className="bg-gradient-to-br from-blue-50/50 to-purple-50/50 rounded-xl p-4 border border-blue-200/50 space-y-4">
         <h3 className="text-sm font-bold text-slate-900">Deal Structure</h3>
 
-        <DealSliderCompact
+        <DealInputWithSlider
           label="Sale Price"
           value={deal.salePrice}
           min={deal.vehicleCost}
@@ -59,10 +59,11 @@ export function SimulatorTab() {
           step={100}
           onChange={(value) => updateDeal({ salePrice: value })}
           formatValue={formatCurrency}
+          prefix="$"
           locked={paymentLocked}
         />
 
-        <DealSliderCompact
+        <DealInputWithSlider
           label="Down Payment"
           value={deal.downPayment}
           min={0}
@@ -70,9 +71,10 @@ export function SimulatorTab() {
           step={100}
           onChange={(value) => updateDeal({ downPayment: value })}
           formatValue={formatCurrency}
+          prefix="$"
         />
 
-        <DealSliderCompact
+        <DealInputWithSlider
           label="Trade-In Value"
           value={deal.tradeValue}
           min={0}
@@ -80,11 +82,12 @@ export function SimulatorTab() {
           step={100}
           onChange={(value) => updateDeal({ tradeValue: value })}
           formatValue={formatCurrency}
+          prefix="$"
         />
 
         {deal.tradeValue > 0 && (
           <>
-            <DealSliderCompact
+            <DealInputWithSlider
               label="Trade Payoff"
               value={deal.tradePayoff}
               min={0}
@@ -92,6 +95,7 @@ export function SimulatorTab() {
               step={100}
               onChange={(value) => updateDeal({ tradePayoff: value })}
               formatValue={formatCurrency}
+              prefix="$"
             />
 
             <div className="bg-white rounded-lg p-3 border border-slate-200">
@@ -109,7 +113,7 @@ export function SimulatorTab() {
         )}
       </div>
 
-      {/* Term Selection */}
+      {/* Financing Terms */}
       <div className="bg-gradient-to-br from-purple-50/50 to-pink-50/50 rounded-xl p-4 border border-purple-200/50 space-y-3">
         <h3 className="text-sm font-bold text-slate-900">Financing Terms</h3>
 
@@ -133,14 +137,15 @@ export function SimulatorTab() {
           </div>
         </div>
 
-        <DealSliderCompact
-          label="APR"
+        <DealInputWithSlider
+          label="APR (Interest Rate)"
           value={deal.apr}
           min={0}
           max={25}
           step={0.01}
           onChange={(value) => updateDeal({ apr: value })}
           formatValue={formatPercentage}
+          suffix="%"
         />
       </div>
 

@@ -1,0 +1,27 @@
+#!/bin/bash
+# Manual Frontend Deployment Trigger
+# Use when frontend changes haven't auto-deployed
+
+echo "Manually triggering frontend deployment..."
+echo ""
+echo "Since Deal Studio components are in apps/frontend/, the workflow"
+echo "should have triggered automatically. But if it didn't, you can:"
+echo ""
+echo "Option 1: GitHub Web Interface"
+echo "  1. Go to: https://github.com/morpheus18-glitch/autolytiq/actions/workflows/frontend.yml"
+echo "  2. Click 'Run workflow'"
+echo "  3. Select 'main' branch"
+echo "  4. Click 'Run workflow' button"
+echo ""
+echo "Option 2: Using GitHub CLI (gh)"
+echo "  gh workflow run frontend.yml --ref main"
+echo ""
+echo "Option 3: Make a small change to trigger auto-deploy"
+echo "  # Add a comment to any frontend file"
+echo "  echo '// trigger deploy' >> apps/frontend/src/main.tsx"
+echo "  git add apps/frontend/src/main.tsx"
+echo "  git commit -m 'chore: trigger frontend deployment'"
+echo "  git push origin main"
+echo ""
+echo "Current frontend image: $(kubectl get deployment frontend -n autolytiq-prod -o jsonpath='{.spec.template.spec.containers[0].image}')"
+echo ""

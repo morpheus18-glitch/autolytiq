@@ -75,7 +75,7 @@ export function CustomerVehicleSelector() {
   const vehicles = vehiclesData?.data || [];
 
   // Handle customer selection
-  const handleCustomerSelect = useCallback((customer: Customer) => {
+  const handleCustomerSelect = useCallback(async (customer: Customer) => {
     setSelectedCustomer(customer);
     setCustomerOpen(false);
     setCustomerSearch('');
@@ -84,13 +84,32 @@ export function CustomerVehicleSelector() {
     updateDeal({
       customerId: customer.id,
       creditScore: customer.creditScore || 700,
-      // Store zip for tax calculation
-      ...(customer.addressZip && { customerZip: customer.addressZip }),
     });
-  }, [updateDeal]);
+
+    // Auto-calculate taxes if customer has zip and deal has a sale price
+    if (customer.addressZip && deal.salePrice > 0) {
+      try {
+        const taxResult = await apiRequest('POST', '/api/desking/calculate-tax', {
+          salePrice: deal.salePrice,
+          zipCode: customer.addressZip,
+        });
+
+        if (taxResult?.data) {
+          // Update deal with calculated taxes
+          updateDeal({
+            taxes: taxResult.data.salesTaxAmount,
+            fees: taxResult.data.docFee + taxResult.data.titleFee +
+                  taxResult.data.registrationFee + taxResult.data.plateFee,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to calculate taxes:', error);
+      }
+    }
+  }, [updateDeal, deal.salePrice]);
 
   // Handle vehicle selection
-  const handleVehicleSelect = useCallback((vehicle: Vehicle) => {
+  const handleVehicleSelect = useCallback(async (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
     setVehicleOpen(false);
     setVehicleSearch('');
@@ -102,7 +121,28 @@ export function CustomerVehicleSelector() {
       vehicleCost: vehicle.cost,
       salePrice: vehicle.price, // Initial sale price = list price
     });
-  }, [updateDeal]);
+
+    // Auto-calculate taxes if customer has zip
+    if (selectedCustomer?.addressZip && vehicle.price > 0) {
+      try {
+        const taxResult = await apiRequest('POST', '/api/desking/calculate-tax', {
+          salePrice: vehicle.price,
+          zipCode: selectedCustomer.addressZip,
+        });
+
+        if (taxResult?.data) {
+          // Update deal with calculated taxes
+          updateDeal({
+            taxes: taxResult.data.salesTaxAmount,
+            fees: taxResult.data.docFee + taxResult.data.titleFee +
+                  taxResult.data.registrationFee + taxResult.data.plateFee,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to calculate taxes:', error);
+      }
+    }
+  }, [updateDeal, selectedCustomer]);
 
   // Clear selections
   const clearCustomer = () => {

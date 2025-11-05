@@ -1,0 +1,10 @@
+#!/bin/bash
+echo "Manually triggering frontend workflow via workflow_dispatch..."
+echo ""
+echo "Option 1: GitHub Web Interface"
+echo "  1. Go to: https://github.com/morpheus18-glitch/autolytiq/actions/workflows/frontend.yml"
+echo "  2. Click 'Run workflow'"
+echo "  3. Select 'main' branch"
+echo "  4. Click 'Run workflow' button"
+echo ""
+echo "The workflow should start within 10-30 seconds."
