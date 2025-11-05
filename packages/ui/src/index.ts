@@ -22,6 +22,11 @@ export { StatCard, statCardVariants, type StatCardProps } from './components/Sta
 export { SearchInput, type SearchInputProps } from './components/SearchInput.js';
 export { Avatar, avatarVariants, type AvatarProps } from './components/Avatar.js';
 export { Skeleton, skeletonVariants, type SkeletonProps } from './components/Skeleton.js';
+export { Alert, alertVariants, type AlertProps } from './components/Alert.js';
+export { Tabs, TabsList, TabsTrigger, TabsContent, type TabsProps } from './components/Tabs.js';
+export { EmptyState, type EmptyStateProps } from './components/EmptyState.js';
+export { QuickAction, type QuickActionProps } from './components/QuickAction.js';
+export { Progress, progressVariants, progressBarVariants, type ProgressProps } from './components/Progress.js';
 
 // Hooks
 export {

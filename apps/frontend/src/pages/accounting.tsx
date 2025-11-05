@@ -1,5 +1,12 @@
 import { Link } from 'wouter';
-import { designTokens } from '@repo/tokens';
+import {
+  PageHeader,
+  StatCard,
+  Card,
+  CardContent,
+  Badge,
+  QuickAction
+} from '@repo/ui';
 import {
   Calculator,
   DollarSign,
@@ -8,14 +15,11 @@ import {
   TrendingUp,
   PiggyBank,
   Wallet,
-  Receipt,
   Clock,
   AlertCircle,
   CheckCircle,
   FolderOpen
 } from 'lucide-react';
-
-const { colors, spacing, shadows, borders, typography, animation } = designTokens;
 
 export default function AccountingOverview() {
   const stats = [
@@ -25,8 +29,6 @@ export default function AccountingOverview() {
       change: '+12.5%',
       trend: 'up',
       icon: DollarSign,
-      colorBg: colors.success[50],
-      colorIcon: colors.success[600],
     },
     {
       label: 'Outstanding AR',
@@ -34,8 +36,6 @@ export default function AccountingOverview() {
       change: '-8.3%',
       trend: 'down',
       icon: Wallet,
-      colorBg: colors.info[50],
-      colorIcon: colors.info[600],
     },
     {
       label: 'Gross Profit Margin',
@@ -43,17 +43,13 @@ export default function AccountingOverview() {
       change: '+2.1%',
       trend: 'up',
       icon: TrendingUp,
-      colorBg: colors.secondary[50],
-      colorIcon: colors.secondary[600],
     },
     {
       label: 'Open GL Entries',
-      value: 8,
+      value: '8',
       change: 'Pending Review',
       trend: 'neutral',
       icon: FileText,
-      colorBg: colors.warning[50],
-      colorIcon: colors.warning[600],
     },
   ];
 
@@ -63,48 +59,36 @@ export default function AccountingOverview() {
       description: 'View and manage transactions',
       icon: FileText,
       href: '/accounting/transactions',
-      colorBg: colors.info[50],
-      colorIcon: colors.info[600],
     },
     {
       title: 'Chart of Accounts',
       description: 'Manage account structure',
       icon: FolderOpen,
       href: '/accounting/chart-of-accounts',
-      colorBg: colors.primary[50],
-      colorIcon: colors.primary[600],
     },
     {
       title: 'Journal Entries',
       description: 'Create and review entries',
       icon: FileText,
       href: '/accounting/journal-entries',
-      colorBg: colors.secondary[50],
-      colorIcon: colors.secondary[600],
     },
     {
       title: 'Vehicle Profit',
       description: 'Track deal profitability',
       icon: DollarSign,
       href: '/accounting/vehicle-profit',
-      colorBg: colors.success[50],
-      colorIcon: colors.success[600],
     },
     {
       title: 'Finance Reserves',
       description: 'Monitor F&I reserves',
       icon: PiggyBank,
       href: '/accounting/finance-reserves',
-      colorBg: '#d1fae5',
-      colorIcon: '#059669',
     },
     {
       title: 'P&L Statement',
       description: 'Profit and loss reports',
       icon: BarChart3,
       href: '/accounting/pl-statement',
-      colorBg: '#cffafe',
-      colorIcon: '#0891b2',
     },
   ];
 
@@ -142,270 +126,126 @@ export default function AccountingOverview() {
     { time: '3 hours ago', event: 'Invoice #INV-2024-234 paid', user: 'Accounts Receivable' },
   ];
 
+  const getPriorityVariant = (priority: string): 'error' | 'warning' | 'default' => {
+    if (priority === 'high') return 'error';
+    if (priority === 'medium') return 'warning';
+    return 'default';
+  };
+
   return (
     <div>
-      {/* Page Header */}
-      <div style={{ marginBottom: spacing[6] }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3] }}>
-          <div style={{
-            padding: spacing[2.5],
-            background: 'linear-gradient(to bottom right, #14b8a6, #0d9488)',
-            borderRadius: borders.radius.lg,
-            boxShadow: shadows.md
-          }}>
-            <Calculator style={{ width: '24px', height: '24px', color: colors.neutral[0] }} />
-          </div>
-          <div>
-            <h1 style={{
-              fontSize: typography.fontSize['2xl'],
-              fontWeight: typography.fontWeight.bold,
-              color: colors.neutral[900],
-              margin: 0
-            }}>Accounting</h1>
-            <p style={{
-              fontSize: typography.fontSize.sm,
-              color: colors.neutral[600],
-              margin: 0
-            }}>
-              Manage financials, transactions, and reporting
-            </p>
-          </div>
-        </div>
+      <PageHeader
+        icon={<Calculator className="w-6 h-6" />}
+        title="Accounting"
+        description="Manage financials, transactions, and reporting"
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {stats.map((stat, idx) => (
+          <StatCard
+            key={idx}
+            label={stat.label}
+            value={stat.value}
+            change={stat.change}
+            icon={<stat.icon className="w-5 h-5" />}
+          />
+        ))}
       </div>
 
-      <div>
-        {/* Stats Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gap: spacing[6],
-          marginBottom: spacing[8]
-        }} className="md:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat, idx) => {
-            const Icon = stat.icon;
-            const trendColor =
-              stat.trend === 'up'
-                ? colors.success[600]
-                : stat.trend === 'down'
-                ? colors.error[600]
-                : colors.neutral[600];
-
-            return (
-              <div key={idx} style={{
-                backgroundColor: colors.neutral[0],
-                borderRadius: borders.radius.xl,
-                boxShadow: shadows.md,
-                border: `1px solid ${colors.neutral[100]}`,
-                padding: spacing[6]
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[2] }}>
-                  <p style={{ fontSize: typography.fontSize.sm, color: colors.neutral[600] }}>{stat.label}</p>
-                  <div style={{
-                    padding: spacing[2],
-                    borderRadius: borders.radius.lg,
-                    backgroundColor: stat.colorBg
-                  }}>
-                    <Icon style={{ width: '20px', height: '20px', color: stat.colorIcon }} />
-                  </div>
-                </div>
-                <p style={{
-                  fontSize: typography.fontSize['3xl'],
-                  fontWeight: typography.fontWeight.bold,
-                  color: colors.neutral[900],
-                  marginBottom: spacing[1]
-                }}>{stat.value}</p>
-                <p style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: trendColor }}>{stat.change}</p>
-              </div>
-            );
-          })}
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: spacing[8] }} className="lg:grid-cols-3">
-          {/* Quick Links */}
-          <div style={{ gridColumn: 'span 1' }} className="lg:col-span-2">
-            <h2 style={{
-              fontSize: typography.fontSize.xl,
-              fontWeight: typography.fontWeight.bold,
-              color: colors.neutral[900],
-              marginBottom: spacing[4]
-            }}>Quick Access</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: spacing[4], marginBottom: spacing[8] }} className="md:grid-cols-2">
-              {quickLinks.map((link, idx) => {
-                const Icon = link.icon;
-                return (
-                  <Link key={idx} href={link.href}>
-                    <a style={{
-                      display: 'block',
-                      backgroundColor: colors.neutral[0],
-                      borderRadius: borders.radius.xl,
-                      boxShadow: shadows.md,
-                      border: `1px solid ${colors.neutral[100]}`,
-                      padding: spacing[6],
-                      transition: `all ${animation.duration.base} ${animation.easing.smooth}`,
-                      textDecoration: 'none'
-                    }}
-                    className="hover:shadow-xl hover:-translate-y-1">
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[4] }}>
-                        <div style={{
-                          padding: spacing[3],
-                          borderRadius: borders.radius.xl,
-                          backgroundColor: link.colorBg,
-                          flexShrink: 0
-                        }}>
-                          <Icon style={{ width: '24px', height: '24px', color: link.colorIcon }} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <h2 className="text-xl font-bold text-neutral-900 mb-4">Quick Access</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            {quickLinks.map((link, idx) => {
+              const Icon = link.icon;
+              return (
+                <Link key={idx} href={link.href}>
+                  <a className="block no-underline">
+                    <Card padding="lg" hover>
+                      <CardContent>
+                        <div className="flex items-start gap-4">
+                          <div className="p-3 rounded-xl bg-neutral-100 flex-shrink-0">
+                            <Icon className="w-6 h-6 text-neutral-700" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-neutral-900 mb-1">{link.title}</h3>
+                            <p className="text-sm text-neutral-600">{link.description}</p>
+                          </div>
                         </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <h3 style={{
-                            fontWeight: typography.fontWeight.bold,
-                            color: colors.neutral[900],
-                            marginBottom: spacing[1]
-                          }}>{link.title}</h3>
-                          <p style={{ fontSize: typography.fontSize.sm, color: colors.neutral[600] }}>{link.description}</p>
-                        </div>
-                      </div>
-                    </a>
-                  </Link>
-                );
-              })}
-            </div>
+                      </CardContent>
+                    </Card>
+                  </a>
+                </Link>
+              );
+            })}
+          </div>
 
-            {/* Recent Activity */}
-            <h2 style={{
-              fontSize: typography.fontSize.xl,
-              fontWeight: typography.fontWeight.bold,
-              color: colors.neutral[900],
-              marginBottom: spacing[4]
-            }}>Recent Activity</h2>
-            <div style={{
-              backgroundColor: colors.neutral[0],
-              borderRadius: borders.radius.xl,
-              boxShadow: shadows.md,
-              border: `1px solid ${colors.neutral[100]}`
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h2 className="text-xl font-bold text-neutral-900 mb-4">Recent Activity</h2>
+          <Card padding="none">
+            <CardContent>
+              <div className="flex flex-col">
                 {recentActivity.map((activity, idx) => (
-                  <div key={idx} style={{
-                    padding: spacing[4],
-                    borderBottom: idx < recentActivity.length - 1 ? `1px solid ${colors.neutral[200]}` : 'none'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3] }}>
-                      <CheckCircle style={{
-                        width: '20px',
-                        height: '20px',
-                        color: colors.success[500],
-                        marginTop: '2px',
-                        flexShrink: 0
-                      }} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: typography.fontSize.sm, color: colors.neutral[900] }}>{activity.event}</p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginTop: spacing[1] }}>
-                          <p style={{ fontSize: typography.fontSize.xs, color: colors.neutral[600] }}>{activity.user}</p>
-                          <span style={{ fontSize: typography.fontSize.xs, color: colors.neutral[400] }}>•</span>
-                          <p style={{ fontSize: typography.fontSize.xs, color: colors.neutral[500] }}>{activity.time}</p>
+                  <div
+                    key={idx}
+                    className="p-4 border-b border-neutral-200 last:border-b-0"
+                  >
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-success-500 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-neutral-900">{activity.event}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-xs text-neutral-600">{activity.user}</p>
+                          <span className="text-xs text-neutral-400">•</span>
+                          <p className="text-xs text-neutral-500">{activity.time}</p>
                         </div>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
+        </div>
 
-          {/* Pending Tasks */}
-          <div>
-            <h2 style={{
-              fontSize: typography.fontSize.xl,
-              fontWeight: typography.fontWeight.bold,
-              color: colors.neutral[900],
-              marginBottom: spacing[4]
-            }}>Pending Tasks</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4] }}>
-              {pendingTasks.map((task, idx) => {
-                const priorityColor =
-                  task.priority === 'high'
-                    ? { bg: colors.error[100], text: colors.error[700] }
-                    : task.priority === 'medium'
-                    ? { bg: colors.warning[100], text: colors.warning[700] }
-                    : { bg: colors.neutral[100], text: colors.neutral[700] };
+        <div>
+          <h2 className="text-xl font-bold text-neutral-900 mb-4">Pending Tasks</h2>
+          <div className="flex flex-col gap-4">
+            {pendingTasks.map((task, idx) => {
+              const Icon = task.priority === 'high' ? AlertCircle : Clock;
 
-                return (
-                  <div key={idx} style={{
-                    backgroundColor: colors.neutral[0],
-                    borderRadius: borders.radius.xl,
-                    boxShadow: shadows.md,
-                    border: `1px solid ${colors.neutral[100]}`,
-                    padding: spacing[4]
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3] }}>
-                      {task.priority === 'high' ? (
-                        <AlertCircle style={{
-                          width: '20px',
-                          height: '20px',
-                          color: colors.error[500],
-                          marginTop: '2px',
-                          flexShrink: 0
-                        }} />
-                      ) : (
-                        <Clock style={{
-                          width: '20px',
-                          height: '20px',
-                          color: colors.neutral[400],
-                          marginTop: '2px',
-                          flexShrink: 0
-                        }} />
-                      )}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <h3 style={{
-                          fontSize: typography.fontSize.sm,
-                          fontWeight: typography.fontWeight.bold,
-                          color: colors.neutral[900],
-                          marginBottom: spacing[1]
-                        }}>{task.title}</h3>
-                        <p style={{
-                          fontSize: typography.fontSize.xs,
-                          color: colors.neutral[600],
-                          marginBottom: spacing[2]
-                        }}>{task.dueDate}</p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-                          <span style={{
-                            fontSize: typography.fontSize.xs,
-                            padding: `${spacing[0.5]} ${spacing[2]}`,
-                            borderRadius: borders.radius.full,
-                            fontWeight: typography.fontWeight.medium,
-                            backgroundColor: priorityColor.bg,
-                            color: priorityColor.text
-                          }}>
+              return (
+                <Card key={idx} padding="md">
+                  <CardContent>
+                    <div className="flex items-start gap-3">
+                      <Icon
+                        className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
+                          task.priority === 'high' ? 'text-error-500' : 'text-neutral-400'
+                        }`}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-bold text-neutral-900 mb-1">
+                          {task.title}
+                        </h3>
+                        <p className="text-xs text-neutral-600 mb-2">{task.dueDate}</p>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={getPriorityVariant(task.priority)}>
                             {task.priority}
-                          </span>
-                          <span style={{ fontSize: typography.fontSize.xs, color: colors.neutral[600] }}>{task.status}</span>
+                          </Badge>
+                          <span className="text-xs text-neutral-600">{task.status}</span>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <Link href="/accounting/dashboard">
-              <a style={{
-                marginTop: spacing[6],
-                display: 'block',
-                width: '100%',
-                textAlign: 'center',
-                padding: `${spacing[3]} ${spacing[4]}`,
-                background: 'linear-gradient(to right, #14b8a6, #0d9488)',
-                color: colors.neutral[0],
-                borderRadius: borders.radius.xl,
-                fontWeight: typography.fontWeight.medium,
-                textDecoration: 'none',
-                transition: `transform ${animation.duration.base}`,
-                boxShadow: shadows.lg
-              }}
-              className="hover:opacity-90">
-                Go to Full Dashboard
-              </a>
-            </Link>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
+
+          <Link href="/accounting/dashboard">
+            <a className="mt-6 block w-full text-center px-4 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl font-medium shadow-lg hover:opacity-90 transition-opacity no-underline">
+              Go to Full Dashboard
+            </a>
+          </Link>
         </div>
       </div>
     </div>

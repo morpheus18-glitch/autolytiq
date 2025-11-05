@@ -1,5 +1,11 @@
 import { Link } from 'wouter';
-import { designTokens } from '@repo/tokens';
+import {
+  PageHeader,
+  Card,
+  CardContent,
+  Button,
+  Badge
+} from '@repo/ui';
 import {
   FileText,
   DollarSign,
@@ -12,8 +18,6 @@ import {
   Eye
 } from 'lucide-react';
 
-const { colors, spacing, shadows, borders, typography, animation } = designTokens;
-
 export default function ReportsOverview() {
   const reportCategories = [
     {
@@ -21,8 +25,6 @@ export default function ReportsOverview() {
       description: 'Track sales performance, deal metrics, and revenue',
       icon: DollarSign,
       href: '/reports/sales',
-      colorBg: colors.success[50],
-      colorIcon: colors.success[600],
       reports: [
         'Sales Summary',
         'Deal Performance',
@@ -35,8 +37,6 @@ export default function ReportsOverview() {
       description: 'Monitor inventory turnover, aging, and pricing',
       icon: Car,
       href: '/reports/inventory',
-      colorBg: colors.secondary[50],
-      colorIcon: colors.secondary[600],
       reports: [
         'Inventory Summary',
         'Vehicle Aging',
@@ -49,8 +49,6 @@ export default function ReportsOverview() {
       description: 'Analyze service department performance and efficiency',
       icon: Wrench,
       href: '/reports/service',
-      colorBg: colors.warning[50],
-      colorIcon: colors.warning[600],
       reports: [
         'Service Revenue',
         'Technician Performance',
@@ -63,8 +61,6 @@ export default function ReportsOverview() {
       description: 'View P&L, balance sheet, and financial metrics',
       icon: BarChart3,
       href: '/reports/financial',
-      colorBg: colors.info[50],
-      colorIcon: colors.info[600],
       reports: [
         'P&L Statement',
         'Balance Sheet',
@@ -109,265 +105,122 @@ export default function ReportsOverview() {
 
   return (
     <div>
-      {/* Page Header */}
-      <div style={{ marginBottom: spacing[6] }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[4] }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3] }}>
-            <div style={{
-              padding: spacing[2.5],
-              background: `linear-gradient(to bottom right, ${colors.info[400]}, ${colors.info[600]})`,
-              borderRadius: borders.radius.lg,
-              boxShadow: shadows.md
-            }}>
-              <FileText style={{ width: '24px', height: '24px', color: colors.neutral[0] }} />
-            </div>
-            <div>
-              <h1 style={{
-                fontSize: typography.fontSize['2xl'],
-                fontWeight: typography.fontWeight.bold,
-                color: colors.neutral[900],
-                margin: 0
-              }}>Reports Center</h1>
-              <p style={{
-                fontSize: typography.fontSize.sm,
-                color: colors.neutral[600],
-                margin: 0
-              }}>
-                Access and generate business intelligence reports
-              </p>
-            </div>
+      <PageHeader
+        icon={<FileText className="w-6 h-6" />}
+        title="Reports Center"
+        description="Access and generate business intelligence reports"
+        actions={
+          <div className="hidden lg:flex gap-2">
+            {quickActions.map((action, idx) => (
+              <Button key={idx} variant="outline" size="md">
+                <action.icon className="w-4 h-4 mr-2" />
+                {action.label}
+              </Button>
+            ))}
           </div>
+        }
+      />
 
-          <div style={{ display: 'flex', gap: spacing[2] }} className="hidden lg:flex">
-            {quickActions.map((action, idx) => {
-              const Icon = action.icon;
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <h2 className="text-xl font-bold text-neutral-900 mb-4">Report Categories</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {reportCategories.map((category, idx) => {
+              const Icon = category.icon;
               return (
-                <button
-                  key={idx}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: spacing[2],
-                    padding: `${spacing[2]} ${spacing[3]}`,
-                    backgroundColor: colors.neutral[0],
-                    border: `1px solid ${colors.neutral[300]}`,
-                    borderRadius: borders.radius.md,
-                    fontSize: typography.fontSize.sm,
-                    fontWeight: typography.fontWeight.medium,
-                    color: colors.neutral[700],
-                    cursor: 'pointer',
-                    transition: `all ${animation.duration.base} ${animation.easing.smooth}`
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = colors.neutral[50]}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = colors.neutral[0]}
-                >
-                  <Icon style={{ width: '16px', height: '16px' }} />
-                  {action.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: spacing[8] }} className="lg:grid-cols-3">
-          {/* Report Categories */}
-          <div style={{ gridColumn: 'span 1' }} className="lg:col-span-2">
-            <h2 style={{
-              fontSize: typography.fontSize.xl,
-              fontWeight: typography.fontWeight.bold,
-              color: colors.neutral[900],
-              marginBottom: spacing[4]
-            }}>Report Categories</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: spacing[6] }} className="md:grid-cols-2">
-              {reportCategories.map((category, idx) => {
-                const Icon = category.icon;
-                return (
-                  <Link key={idx} href={category.href}>
-                    <a style={{
-                      display: 'block',
-                      backgroundColor: colors.neutral[0],
-                      borderRadius: borders.radius.xl,
-                      boxShadow: shadows.md,
-                      border: `1px solid ${colors.neutral[100]}`,
-                      transition: `all ${animation.duration.base} ${animation.easing.smooth}`,
-                      textDecoration: 'none'
-                    }}
-                    className="hover:shadow-xl hover:-translate-y-1">
-                      <div style={{ padding: spacing[6] }}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[4], marginBottom: spacing[4] }}>
-                          <div style={{
-                            padding: spacing[3],
-                            borderRadius: borders.radius.xl,
-                            backgroundColor: category.colorBg,
-                            flexShrink: 0
-                          }}>
-                            <Icon style={{ width: '24px', height: '24px', color: category.colorIcon }} />
+                <Link key={idx} href={category.href}>
+                  <a className="block no-underline">
+                    <Card padding="lg" hover>
+                      <CardContent>
+                        <div className="flex items-start gap-4 mb-4">
+                          <div className="p-3 rounded-xl bg-neutral-100 flex-shrink-0">
+                            <Icon className="w-6 h-6 text-neutral-700" />
                           </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <h3 style={{
-                              fontWeight: typography.fontWeight.bold,
-                              color: colors.neutral[900],
-                              marginBottom: spacing[1]
-                            }}>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-neutral-900 mb-1">
                               {category.title}
                             </h3>
-                            <p style={{ fontSize: typography.fontSize.sm, color: colors.neutral[600] }}>{category.description}</p>
+                            <p className="text-sm text-neutral-600">{category.description}</p>
                           </div>
                         </div>
-                        <div style={{ borderTop: `1px solid ${colors.neutral[200]}`, paddingTop: spacing[4] }}>
-                          <p style={{
-                            fontSize: typography.fontSize.xs,
-                            fontWeight: typography.fontWeight.medium,
-                            color: colors.neutral[700],
-                            marginBottom: spacing[2]
-                          }}>Available Reports:</p>
-                          <ul style={{ display: 'flex', flexDirection: 'column', gap: spacing[1] }}>
+                        <div className="border-t border-neutral-200 pt-4">
+                          <p className="text-xs font-medium text-neutral-700 mb-2">
+                            Available Reports:
+                          </p>
+                          <ul className="flex flex-col gap-1">
                             {category.reports.map((report, ridx) => (
-                              <li key={ridx} style={{
-                                fontSize: typography.fontSize.sm,
-                                color: colors.neutral[600],
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: spacing[2]
-                              }}>
-                                <div style={{
-                                  width: '4px',
-                                  height: '4px',
-                                  backgroundColor: colors.neutral[400],
-                                  borderRadius: borders.radius.full
-                                }} />
+                              <li key={ridx} className="text-sm text-neutral-600 flex items-center gap-2">
+                                <div className="w-1 h-1 bg-neutral-400 rounded-full" />
                                 {report}
                               </li>
                             ))}
                           </ul>
                         </div>
-                      </div>
-                    </a>
-                  </Link>
-                );
-              })}
-            </div>
+                      </CardContent>
+                    </Card>
+                  </a>
+                </Link>
+              );
+            })}
           </div>
+        </div>
 
-          {/* Recent Reports */}
-          <div>
-            <h2 style={{
-              fontSize: typography.fontSize.xl,
-              fontWeight: typography.fontWeight.bold,
-              color: colors.neutral[900],
-              marginBottom: spacing[4]
-            }}>Recent Reports</h2>
-            <div style={{
-              backgroundColor: colors.neutral[0],
-              borderRadius: borders.radius.xl,
-              boxShadow: shadows.md,
-              border: `1px solid ${colors.neutral[100]}`
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div>
+          <h2 className="text-xl font-bold text-neutral-900 mb-4">Recent Reports</h2>
+          <Card padding="none">
+            <CardContent>
+              <div className="flex flex-col">
                 {recentReports.map((report, idx) => (
-                  <div key={idx} style={{
-                    padding: spacing[4],
-                    borderBottom: idx < recentReports.length - 1 ? `1px solid ${colors.neutral[200]}` : 'none',
-                    transition: `background-color ${animation.duration.fast}`
-                  }}
-                  className="hover:bg-gray-50">
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing[3] }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <h3 style={{
-                          fontWeight: typography.fontWeight.medium,
-                          color: colors.neutral[900],
-                          fontSize: typography.fontSize.sm,
-                          marginBottom: spacing[1]
-                        }}>
+                  <div
+                    key={idx}
+                    className="p-4 hover:bg-neutral-50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-neutral-900 text-sm mb-1">
                           {report.name}
                         </h3>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: spacing[3],
-                          fontSize: typography.fontSize.xs,
-                          color: colors.neutral[600]
-                        }}>
+                        <div className="flex items-center gap-3 text-xs text-neutral-600">
                           <span>{report.type}</span>
                           <span>•</span>
                           <span>{report.date}</span>
                         </div>
-                        <p style={{ fontSize: typography.fontSize.xs, color: colors.neutral[500], marginTop: spacing[1] }}>{report.size}</p>
+                        <p className="text-xs text-neutral-500 mt-1">{report.size}</p>
                       </div>
-                      <div style={{ display: 'flex', gap: spacing[2], flexShrink: 0 }}>
-                        <button style={{
-                          padding: spacing[2],
-                          backgroundColor: 'transparent',
-                          border: 'none',
-                          borderRadius: borders.radius.lg,
-                          cursor: 'pointer',
-                          transition: `background-color ${animation.duration.fast}`
-                        }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = colors.neutral[200]}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                          <Eye style={{ width: '16px', height: '16px', color: colors.neutral[600] }} />
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button className="p-2 hover:bg-neutral-200 rounded-lg transition-colors">
+                          <Eye className="w-4 h-4 text-neutral-600" />
                         </button>
-                        <button style={{
-                          padding: spacing[2],
-                          backgroundColor: 'transparent',
-                          border: 'none',
-                          borderRadius: borders.radius.lg,
-                          cursor: 'pointer',
-                          transition: `background-color ${animation.duration.fast}`
-                        }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = colors.neutral[200]}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                          <Download style={{ width: '16px', height: '16px', color: colors.neutral[600] }} />
+                        <button className="p-2 hover:bg-neutral-200 rounded-lg transition-colors">
+                          <Download className="w-4 h-4 text-neutral-600" />
                         </button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div style={{ padding: spacing[4], borderTop: `1px solid ${colors.neutral[200]}` }}>
-                <button style={{
-                  width: '100%',
-                  textAlign: 'center',
-                  fontSize: typography.fontSize.sm,
-                  fontWeight: typography.fontWeight.medium,
-                  color: colors.primary[600],
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: `color ${animation.duration.fast}`
-                }}
-                onMouseOver={(e) => e.currentTarget.style.color = colors.primary[700]}
-                onMouseOut={(e) => e.currentTarget.style.color = colors.primary[600]}>
+              <div className="p-4 border-t border-neutral-200">
+                <button className="w-full text-center text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors">
                   View All Reports →
                 </button>
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Quick Stats */}
-            <div style={{
-              marginTop: spacing[6],
-              background: 'linear-gradient(to bottom right, #3b82f6, #2563eb)',
-              borderRadius: borders.radius.xl,
-              padding: spacing[6],
-              color: colors.neutral[0],
-              boxShadow: shadows.lg
-            }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3], marginBottom: spacing[4] }}>
-                <TrendingUp style={{ width: '20px', height: '20px', flexShrink: 0 }} />
-                <div>
-                  <h3 style={{ fontWeight: typography.fontWeight.bold, marginBottom: spacing[1] }}>Performance Insights</h3>
-                  <p style={{ fontSize: typography.fontSize.sm, opacity: 0.9 }}>
-                    Reports generated this month
-                  </p>
-                </div>
+          <div className="mt-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+            <div className="flex items-start gap-3 mb-4">
+              <TrendingUp className="w-5 h-5 flex-shrink-0" />
+              <div>
+                <h3 className="font-bold mb-1">Performance Insights</h3>
+                <p className="text-sm opacity-90">
+                  Reports generated this month
+                </p>
               </div>
-              <p style={{ fontSize: typography.fontSize['4xl'], fontWeight: typography.fontWeight.bold, marginBottom: spacing[2] }}>127</p>
-              <p style={{ fontSize: typography.fontSize.sm, opacity: 0.9 }}>
-                +23% vs last month
-              </p>
             </div>
+            <p className="text-4xl font-bold mb-2">127</p>
+            <p className="text-sm opacity-90">
+              +23% vs last month
+            </p>
           </div>
         </div>
       </div>

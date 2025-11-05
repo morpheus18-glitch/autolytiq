@@ -1,5 +1,12 @@
 import { Link } from 'wouter';
-import { designTokens } from '@repo/tokens';
+import {
+  PageHeader,
+  StatCard,
+  Card,
+  CardContent,
+  Badge,
+  Button
+} from '@repo/ui';
 import {
   MessageSquare,
   Phone,
@@ -7,44 +14,33 @@ import {
   MessageCircle,
   Users,
   Send,
-  Inbox,
-  PhoneCall,
   Clock,
+  AlertCircle,
   CheckCircle,
-  AlertCircle
+  PhoneCall
 } from 'lucide-react';
-
-const { colors, spacing, shadows, borders, typography, animation } = designTokens;
 
 export default function CommunicationsOverview() {
   const stats = [
     {
       label: 'Unread Messages',
-      value: 12,
+      value: '12',
       icon: MessageCircle,
-      colorBg: colors.info[50],
-      colorIcon: colors.info[600],
     },
     {
       label: 'Pending Calls',
-      value: 5,
+      value: '5',
       icon: Phone,
-      colorBg: colors.success[50],
-      colorIcon: colors.success[600],
     },
     {
       label: 'Emails Today',
-      value: 34,
+      value: '34',
       icon: Mail,
-      colorBg: colors.secondary[50],
-      colorIcon: colors.secondary[600],
     },
     {
       label: 'Response Time',
       value: '1.2h',
       icon: Clock,
-      colorBg: colors.warning[50],
-      colorIcon: colors.warning[600],
     },
   ];
 
@@ -54,8 +50,6 @@ export default function CommunicationsOverview() {
       description: 'Unified inbox for all messages',
       icon: MessageSquare,
       href: '/communications/center',
-      colorBg: '#cffafe',
-      colorIcon: '#0891b2',
       badge: '12 new',
     },
     {
@@ -63,8 +57,6 @@ export default function CommunicationsOverview() {
       description: 'Make and manage phone calls',
       icon: Phone,
       href: '/communications/call-center',
-      colorBg: colors.success[50],
-      colorIcon: colors.success[600],
       badge: '5 pending',
     },
     {
@@ -72,8 +64,6 @@ export default function CommunicationsOverview() {
       description: 'Send emails to customers',
       icon: Mail,
       href: '/communications/email',
-      colorBg: colors.secondary[50],
-      colorIcon: colors.secondary[600],
       badge: null,
     },
     {
@@ -81,8 +71,6 @@ export default function CommunicationsOverview() {
       description: 'Text messaging with customers',
       icon: MessageCircle,
       href: '/communications/sms',
-      colorBg: colors.info[50],
-      colorIcon: colors.info[600],
       badge: '8 new',
     },
     {
@@ -90,8 +78,6 @@ export default function CommunicationsOverview() {
       description: 'Interactive communication demo',
       icon: Users,
       href: '/communications/demo',
-      colorBg: colors.primary[50],
-      colorIcon: colors.primary[600],
       badge: null,
     },
   ];
@@ -150,326 +136,150 @@ export default function CommunicationsOverview() {
     },
   ];
 
+  const getPriorityVariant = (priority: string): 'error' | 'warning' | 'default' => {
+    if (priority === 'high') return 'error';
+    if (priority === 'medium') return 'warning';
+    return 'default';
+  };
+
   return (
     <div>
-      {/* Page Header */}
-      <div style={{ marginBottom: spacing[6] }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3] }}>
-          <div style={{
-            padding: spacing[2.5],
-            background: 'linear-gradient(to bottom right, #06b6d4, #0891b2)',
-            borderRadius: borders.radius.lg,
-            boxShadow: shadows.md
-          }}>
-            <MessageSquare style={{ width: '24px', height: '24px', color: colors.neutral[0] }} />
-          </div>
-          <div>
-            <h1 style={{
-              fontSize: typography.fontSize['2xl'],
-              fontWeight: typography.fontWeight.bold,
-              color: colors.neutral[900],
-              margin: 0
-            }}>Communications Center</h1>
-            <p style={{
-              fontSize: typography.fontSize.sm,
-              color: colors.neutral[600],
-              margin: 0
-            }}>
-              Manage all customer communications in one place
-            </p>
-          </div>
-        </div>
+      <PageHeader
+        icon={<MessageSquare className="w-6 h-6" />}
+        title="Communications Center"
+        description="Manage all customer communications in one place"
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {stats.map((stat, idx) => (
+          <StatCard
+            key={idx}
+            label={stat.label}
+            value={stat.value}
+            icon={<stat.icon className="w-5 h-5" />}
+          />
+        ))}
       </div>
 
-      <div>
-        {/* Stats Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gap: spacing[6],
-          marginBottom: spacing[8]
-        }} className="md:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat, idx) => {
-            const Icon = stat.icon;
-            return (
-              <div key={idx} style={{
-                backgroundColor: colors.neutral[0],
-                borderRadius: borders.radius.xl,
-                boxShadow: shadows.md,
-                border: `1px solid ${colors.neutral[100]}`,
-                padding: spacing[6]
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <p style={{ fontSize: typography.fontSize.sm, color: colors.neutral[600], marginBottom: spacing[1] }}>{stat.label}</p>
-                    <p style={{ fontSize: typography.fontSize['3xl'], fontWeight: typography.fontWeight.bold, color: colors.neutral[900] }}>{stat.value}</p>
-                  </div>
-                  <div style={{
-                    padding: spacing[3],
-                    borderRadius: borders.radius.lg,
-                    backgroundColor: stat.colorBg
-                  }}>
-                    <Icon style={{ width: '24px', height: '24px', color: stat.colorIcon }} />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: spacing[8] }} className="lg:grid-cols-3">
-          {/* Communication Channels */}
-          <div style={{ gridColumn: 'span 1' }} className="lg:col-span-2">
-            <h2 style={{
-              fontSize: typography.fontSize.xl,
-              fontWeight: typography.fontWeight.bold,
-              color: colors.neutral[900],
-              marginBottom: spacing[4]
-            }}>Communication Channels</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: spacing[4], marginBottom: spacing[8] }} className="md:grid-cols-2">
-              {communicationChannels.map((channel, idx) => {
-                const Icon = channel.icon;
-                return (
-                  <Link key={idx} href={channel.href}>
-                    <a style={{
-                      display: 'block',
-                      backgroundColor: colors.neutral[0],
-                      borderRadius: borders.radius.xl,
-                      boxShadow: shadows.md,
-                      border: `1px solid ${colors.neutral[100]}`,
-                      padding: spacing[6],
-                      transition: `all ${animation.duration.base} ${animation.easing.smooth}`,
-                      textDecoration: 'none'
-                    }}
-                    className="hover:shadow-xl hover:-translate-y-1">
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[4] }}>
-                        <div style={{
-                          padding: spacing[3],
-                          borderRadius: borders.radius.xl,
-                          backgroundColor: channel.colorBg,
-                          flexShrink: 0
-                        }}>
-                          <Icon style={{ width: '24px', height: '24px', color: channel.colorIcon }} />
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing[2], marginBottom: spacing[1] }}>
-                            <h3 style={{ fontWeight: typography.fontWeight.bold, color: colors.neutral[900] }}>{channel.title}</h3>
-                            {channel.badge && (
-                              <span style={{
-                                fontSize: typography.fontSize.xs,
-                                padding: `${spacing[0.5]} ${spacing[2]}`,
-                                backgroundColor: colors.error[100],
-                                color: colors.error[700],
-                                borderRadius: borders.radius.full,
-                                fontWeight: typography.fontWeight.medium,
-                                flexShrink: 0
-                              }}>
-                                {channel.badge}
-                              </span>
-                            )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <h2 className="text-xl font-bold text-neutral-900 mb-4">Communication Channels</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            {communicationChannels.map((channel, idx) => {
+              const Icon = channel.icon;
+              return (
+                <Link key={idx} href={channel.href}>
+                  <a className="block no-underline">
+                    <Card padding="lg" hover>
+                      <CardContent>
+                        <div className="flex items-start gap-4">
+                          <div className="p-3 rounded-xl bg-neutral-100 flex-shrink-0">
+                            <Icon className="w-6 h-6 text-neutral-700" />
                           </div>
-                          <p style={{ fontSize: typography.fontSize.sm, color: colors.neutral[600] }}>{channel.description}</p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-1">
+                              <h3 className="font-bold text-neutral-900">{channel.title}</h3>
+                              {channel.badge && (
+                                <Badge variant="error">{channel.badge}</Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-neutral-600">{channel.description}</p>
+                          </div>
                         </div>
-                      </div>
-                    </a>
-                  </Link>
-                );
-              })}
-            </div>
+                      </CardContent>
+                    </Card>
+                  </a>
+                </Link>
+              );
+            })}
+          </div>
 
-            {/* Recent Messages */}
-            <h2 style={{
-              fontSize: typography.fontSize.xl,
-              fontWeight: typography.fontWeight.bold,
-              color: colors.neutral[900],
-              marginBottom: spacing[4]
-            }}>Recent Messages</h2>
-            <div style={{
-              backgroundColor: colors.neutral[0],
-              borderRadius: borders.radius.xl,
-              boxShadow: shadows.md,
-              border: `1px solid ${colors.neutral[100]}`
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h2 className="text-xl font-bold text-neutral-900 mb-4">Recent Messages</h2>
+          <Card padding="none">
+            <CardContent>
+              <div className="flex flex-col">
                 {recentMessages.map((msg, idx) => (
                   <div
                     key={idx}
-                    style={{
-                      padding: spacing[4],
-                      backgroundColor: msg.status === 'unread' ? colors.info[50] : colors.neutral[0],
-                      borderBottom: idx < recentMessages.length - 1 ? `1px solid ${colors.neutral[200]}` : 'none',
-                      transition: `background-color ${animation.duration.fast}`
-                    }}
-                    className="hover:bg-gray-50"
+                    className={`p-4 border-b border-neutral-200 last:border-b-0 hover:bg-neutral-50 transition-colors ${
+                      msg.status === 'unread' ? 'bg-info-50' : ''
+                    }`}
                   >
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3] }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[1] }}>
-                          <h3 style={{
-                            fontWeight: typography.fontWeight.bold,
-                            color: colors.neutral[900],
-                            fontSize: typography.fontSize.sm
-                          }}>{msg.customer}</h3>
-                          <span style={{
-                            fontSize: typography.fontSize.xs,
-                            padding: `${spacing[0.5]} ${spacing[2]}`,
-                            backgroundColor: colors.neutral[100],
-                            color: colors.neutral[700],
-                            borderRadius: borders.radius.md
-                          }}>
-                            {msg.channel}
-                          </span>
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-bold text-neutral-900 text-sm">
+                            {msg.customer}
+                          </h3>
+                          <Badge variant="default">{msg.channel}</Badge>
                           {msg.status === 'unread' && (
-                            <span style={{
-                              width: '8px',
-                              height: '8px',
-                              backgroundColor: colors.info[600],
-                              borderRadius: borders.radius.full
-                            }} />
+                            <span className="w-2 h-2 bg-info-600 rounded-full" />
                           )}
                         </div>
-                        <p style={{ fontSize: typography.fontSize.sm, color: colors.neutral[700], marginBottom: spacing[1] }}>{msg.message}</p>
-                        <p style={{ fontSize: typography.fontSize.xs, color: colors.neutral[500] }}>{msg.time}</p>
+                        <p className="text-sm text-neutral-700 mb-1">{msg.message}</p>
+                        <p className="text-xs text-neutral-500">{msg.time}</p>
                       </div>
-                      <button style={{
-                        padding: spacing[2],
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        borderRadius: borders.radius.lg,
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                        transition: `background-color ${animation.duration.fast}`
-                      }}
-                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = colors.neutral[200]}
-                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                        <Send style={{ width: '16px', height: '16px', color: colors.neutral[600] }} />
+                      <button className="p-2 hover:bg-neutral-200 rounded-lg transition-colors flex-shrink-0">
+                        <Send className="w-4 h-4 text-neutral-600" />
                       </button>
                     </div>
                   </div>
                 ))}
               </div>
-              <div style={{ padding: spacing[4], borderTop: `1px solid ${colors.neutral[200]}` }}>
+              <div className="p-4 border-t border-neutral-200">
                 <Link href="/communications/center">
-                  <a style={{
-                    display: 'block',
-                    width: '100%',
-                    textAlign: 'center',
-                    fontSize: typography.fontSize.sm,
-                    fontWeight: typography.fontWeight.medium,
-                    color: colors.primary[600],
-                    textDecoration: 'none',
-                    transition: `color ${animation.duration.fast}`
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.color = colors.primary[700]}
-                  onMouseOut={(e) => e.currentTarget.style.color = colors.primary[600]}>
+                  <a className="block w-full text-center text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors no-underline">
                     View All Messages →
                   </a>
                 </Link>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
+        </div>
 
-          {/* Pending Actions */}
-          <div>
-            <h2 style={{
-              fontSize: typography.fontSize.xl,
-              fontWeight: typography.fontWeight.bold,
-              color: colors.neutral[900],
-              marginBottom: spacing[4]
-            }}>Action Items</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4], marginBottom: spacing[6] }}>
-              {pendingActions.map((action, idx) => {
-                const priorityColor =
-                  action.priority === 'high'
-                    ? { bg: colors.error[100], text: colors.error[700] }
-                    : action.priority === 'medium'
-                    ? { bg: colors.warning[100], text: colors.warning[700] }
-                    : { bg: colors.neutral[100], text: colors.neutral[700] };
+        <div>
+          <h2 className="text-xl font-bold text-neutral-900 mb-4">Action Items</h2>
+          <div className="flex flex-col gap-4 mb-6">
+            {pendingActions.map((action, idx) => {
+              const Icon = action.priority === 'high' ? AlertCircle : CheckCircle;
+              const iconColor = action.priority === 'high' ? 'text-error-500' : 'text-neutral-400';
 
-                const Icon = action.priority === 'high' ? AlertCircle : CheckCircle;
-                const iconColor = action.priority === 'high' ? colors.error[500] : colors.neutral[400];
-
-                return (
-                  <div key={idx} style={{
-                    backgroundColor: colors.neutral[0],
-                    borderRadius: borders.radius.xl,
-                    boxShadow: shadows.md,
-                    border: `1px solid ${colors.neutral[100]}`,
-                    padding: spacing[4]
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3] }}>
-                      <Icon style={{
-                        width: '20px',
-                        height: '20px',
-                        color: iconColor,
-                        marginTop: '2px',
-                        flexShrink: 0
-                      }} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <h3 style={{
-                          fontSize: typography.fontSize.sm,
-                          fontWeight: typography.fontWeight.bold,
-                          color: colors.neutral[900],
-                          marginBottom: spacing[1]
-                        }}>{action.title}</h3>
-                        <p style={{
-                          fontSize: typography.fontSize.xs,
-                          color: colors.neutral[600],
-                          marginBottom: spacing[2]
-                        }}>{action.dueTime}</p>
-                        <span style={{
-                          fontSize: typography.fontSize.xs,
-                          padding: `${spacing[0.5]} ${spacing[2]}`,
-                          borderRadius: borders.radius.full,
-                          fontWeight: typography.fontWeight.medium,
-                          backgroundColor: priorityColor.bg,
-                          color: priorityColor.text
-                        }}>
+              return (
+                <Card key={idx} padding="md">
+                  <CardContent>
+                    <div className="flex items-start gap-3">
+                      <Icon className={`w-5 h-5 mt-0.5 flex-shrink-0 ${iconColor}`} />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-bold text-neutral-900 mb-1">
+                          {action.title}
+                        </h3>
+                        <p className="text-xs text-neutral-600 mb-2">{action.dueTime}</p>
+                        <Badge variant={getPriorityVariant(action.priority)}>
                           {action.priority}
-                        </span>
+                        </Badge>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
 
-            {/* Quick Actions */}
-            <div style={{
-              background: 'linear-gradient(to bottom right, #06b6d4, #2563eb)',
-              borderRadius: borders.radius.xl,
-              padding: spacing[6],
-              color: colors.neutral[0],
-              boxShadow: shadows.lg
-            }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[3], marginBottom: spacing[4] }}>
-                <PhoneCall style={{ width: '20px', height: '20px', flexShrink: 0 }} />
-                <div>
-                  <h3 style={{ fontWeight: typography.fontWeight.bold, marginBottom: spacing[1] }}>Quick Call</h3>
-                  <p style={{ fontSize: typography.fontSize.sm, opacity: 0.9 }}>
-                    Start a phone call with any customer
-                  </p>
-                </div>
+          <div className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+            <div className="flex items-start gap-3 mb-4">
+              <PhoneCall className="w-5 h-5 flex-shrink-0" />
+              <div>
+                <h3 className="font-bold mb-1">Quick Call</h3>
+                <p className="text-sm opacity-90">
+                  Start a phone call with any customer
+                </p>
               </div>
-              <Link href="/communications/call-center">
-                <a style={{
-                  display: 'block',
-                  width: '100%',
-                  padding: `${spacing[2]} ${spacing[4]}`,
-                  backgroundColor: colors.neutral[0],
-                  color: '#06b6d4',
-                  textAlign: 'center',
-                  borderRadius: borders.radius.lg,
-                  fontWeight: typography.fontWeight.medium,
-                  textDecoration: 'none',
-                  transition: `background-color ${animation.duration.fast}`
-                }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e0f2fe'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = colors.neutral[0]}>
-                  Open Call Center
-                </a>
-              </Link>
             </div>
+            <Link href="/communications/call-center">
+              <a className="block w-full px-4 py-2 bg-white text-cyan-500 text-center rounded-lg font-medium hover:bg-blue-50 transition-colors no-underline">
+                Open Call Center
+              </a>
+            </Link>
           </div>
         </div>
       </div>
