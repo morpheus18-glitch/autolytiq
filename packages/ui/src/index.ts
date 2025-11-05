@@ -28,6 +28,41 @@ export { EmptyState, type EmptyStateProps } from './components/EmptyState.js';
 export { QuickAction, type QuickActionProps } from './components/QuickAction.js';
 export { Progress, progressVariants, progressBarVariants, type ProgressProps } from './components/Progress.js';
 
+// Tier 1: Form Components
+export { Select, selectVariants, type SelectProps } from './components/Select.js';
+export { Checkbox, checkboxVariants, type CheckboxProps } from './components/Checkbox.js';
+export { Radio, RadioGroup, radioVariants, type RadioProps, type RadioGroupProps } from './components/Radio.js';
+export { Switch, switchVariants, type SwitchProps } from './components/Switch.js';
+export { Label, labelVariants, type LabelProps } from './components/Label.js';
+export { FormField, formFieldVariants, formDescriptionVariants, type FormFieldProps } from './components/FormField.js';
+
+// Tier 2: Data Display Components
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+  tableVariants,
+  type TableProps,
+} from './components/Table.js';
+export { Tooltip, tooltipVariants, type TooltipProps } from './components/Tooltip.js';
+
+// Tier 3: Overlay Components
+export { Modal, modalOverlayVariants, modalContentVariants, type ModalProps } from './components/Modal.js';
+export { Dropdown, dropdownContentVariants, dropdownItemVariants, type DropdownProps, type DropdownItem } from './components/Dropdown.js';
+export { Popover, popoverContentVariants, popoverArrowVariants, type PopoverProps } from './components/Popover.js';
+export { Sheet, sheetOverlayVariants, sheetContentVariants, type SheetProps } from './components/Sheet.js';
+export { Toast, ToastProvider, useToast, toastVariants, type ToastProps } from './components/Toast.js';
+
+// Tier 4: Navigation Components
+export { Accordion, accordionVariants, type AccordionProps, type AccordionItem } from './components/Accordion.js';
+export { Breadcrumb, breadcrumbVariants, breadcrumbItemVariants, type BreadcrumbProps, type BreadcrumbItem } from './components/Breadcrumb.js';
+export { Pagination, paginationVariants, paginationButtonVariants, type PaginationProps } from './components/Pagination.js';
+
 // Hooks
 export {
   useMobile,
