@@ -63,6 +63,84 @@ export { Accordion, accordionVariants, type AccordionProps, type AccordionItem }
 export { Breadcrumb, breadcrumbVariants, breadcrumbItemVariants, type BreadcrumbProps, type BreadcrumbItem } from './components/Breadcrumb.js';
 export { Pagination, paginationVariants, paginationButtonVariants, type PaginationProps } from './components/Pagination.js';
 
+// Accessibility Components
+export { VisuallyHidden, type VisuallyHiddenProps } from './components/VisuallyHidden.js';
+export { SkipLink, SkipLinks, type SkipLinkProps, type SkipLinksProps } from './components/SkipLink.js';
+export { FocusTrap, type FocusTrapProps } from './components/FocusTrap.js';
+
+// Layout & Navigation Components
+export {
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarNav,
+  SidebarNavItem,
+  type SidebarProps
+} from './components/Sidebar.js';
+export {
+  AppShell,
+  AppHeader,
+  AppFooter,
+  AppMain,
+  AppAside,
+  type AppShellProps,
+  type AppHeaderProps,
+  type AppFooterProps,
+  type AppAsideProps
+} from './components/AppShell.js';
+export { Stepper, type StepperProps, type Step } from './components/Stepper.js';
+
+// Quality Gate Components
+export {
+  ErrorBoundary,
+  withErrorBoundary,
+  useErrorHandler,
+  type ErrorBoundaryProps
+} from './components/ErrorBoundary.js';
+export {
+  LoadingBoundary,
+  Skeleton as LoadingSkeleton,
+  SuspenseBoundary,
+  withLoadingBoundary,
+  type LoadingBoundaryProps,
+  type SuspenseBoundaryProps
+} from './components/LoadingBoundary.js';
+export {
+  FeatureFlag,
+  FeatureFlagProvider,
+  FeatureFlagSwitch,
+  MultiFeatureFlag,
+  useFeatureFlags,
+  useFeatureFlag,
+  withFeatureFlag,
+  type FeatureFlagProps,
+  type FeatureFlagProviderProps,
+  type FeatureFlagSwitchProps,
+  type MultiFeatureFlagProps
+} from './components/FeatureFlag.js';
+
+// Role & Permission Components
+export {
+  RoleGuard,
+  PermissionGate,
+  Restricted,
+  AuthProvider,
+  useAuth,
+  withRoleGuard,
+  withPermissionGate,
+  type RoleGuardProps,
+  type PermissionGateProps,
+  type RestrictedProps,
+  type AuthProviderProps,
+  type User,
+  type Role,
+  type Permission
+} from './components/RoleGuard.js';
+
+// Motion Components
+export { Collapse, type CollapseProps } from './components/Collapse.js';
+
 // Hooks
 export {
   useMobile,
