@@ -190,7 +190,11 @@ export class PriceEngineClient {
         metadata: this.createMetadata(tenantId),
       };
 
-      this.client.GetMarketData(fullRequest, (error: any, response: any) => {
+      // Create gRPC metadata with tenant ID header
+      const metadata = new grpc.Metadata();
+      metadata.add('x-tenant-id', tenantId);
+
+      this.client.GetMarketData(fullRequest, metadata, (error: any, response: any) => {
         if (error) {
           logger.error(
             'PriceEngine GetMarketData error',
@@ -219,7 +223,11 @@ export class PriceEngineClient {
         metadata: this.createMetadata(tenantId),
       };
 
-      this.client.CalculateGross(fullRequest, (error: any, response: any) => {
+      // Create gRPC metadata with tenant ID header
+      const metadata = new grpc.Metadata();
+      metadata.add('x-tenant-id', tenantId);
+
+      this.client.CalculateGross(fullRequest, metadata, (error: any, response: any) => {
         if (error) {
           logger.error(
             'PriceEngine CalculateGross error',
@@ -248,7 +256,11 @@ export class PriceEngineClient {
         metadata: this.createMetadata(tenantId),
       };
 
-      this.client.CalculatePayment(fullRequest, (error: any, response: any) => {
+      // Create gRPC metadata with tenant ID header
+      const metadata = new grpc.Metadata();
+      metadata.add('x-tenant-id', tenantId);
+
+      this.client.CalculatePayment(fullRequest, metadata, (error: any, response: any) => {
         if (error) {
           logger.error(
             'PriceEngine CalculatePayment error',
@@ -277,7 +289,11 @@ export class PriceEngineClient {
         metadata: this.createMetadata(tenantId),
       };
 
-      this.client.SuggestMarkdown(fullRequest, (error: any, response: any) => {
+      // Create gRPC metadata with tenant ID header
+      const metadata = new grpc.Metadata();
+      metadata.add('x-tenant-id', tenantId);
+
+      this.client.SuggestMarkdown(fullRequest, metadata, (error: any, response: any) => {
         if (error) {
           logger.error(
             'PriceEngine SuggestMarkdown error',
