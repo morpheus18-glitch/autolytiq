@@ -142,16 +142,25 @@ export {
 // Motion Components
 export { Collapse, type CollapseProps } from './components/Collapse.js';
 
-// Hooks
+// New Architecture Components
+export {
+  UniformShell,
+  type UniformShellProps,
+  type NavModule,
+} from './components/UniformShell.js';
+
+// Layout Templates
+export { ListDetailLayout, type ListDetailLayoutProps } from './layouts/ListDetailLayout.js';
+export { FullDensityLayout, type FullDensityLayoutProps } from './layouts/FullDensityLayout.js';
+export { FocusStudioLayout, type FocusStudioLayoutProps } from './layouts/FocusStudioLayout.js';
+
+// Hooks (Legacy - will be deprecated)
 export {
   useMobile,
-  useBreakpoint,
   useViewport,
   useMediaQuery,
   useTouchDevice,
   useResponsiveValue,
-  BREAKPOINTS,
-  type Breakpoint,
 } from './hooks/useMobile.js';
 
 export {
@@ -166,6 +175,17 @@ export {
   type UseColorContrastOptions,
   type UseColorContrastReturn,
 } from './hooks/useColorContrast.js';
+
+export {
+  useBreakpoint,
+  useBreakpointUp,
+  useBreakpointDown,
+  useMobileBreakpoint,
+  useTabletBreakpoint,
+  useDesktopBreakpoint,
+  BREAKPOINTS as UI_BREAKPOINTS,
+  type Breakpoint,
+} from './hooks/useBreakpoint.js';
 
 // Utilities
 export { cn } from './utils/cn.js';
