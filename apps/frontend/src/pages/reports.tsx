@@ -108,74 +108,69 @@ export default function ReportsOverview() {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: `linear-gradient(to bottom right, ${colors.neutral[50]}, ${colors.neutral[50]}, ${colors.info[50]})` }}>
-      {/* Header */}
-      <div style={{
-        backgroundColor: colors.neutral[0],
-        borderBottom: `1px solid ${colors.neutral[200]}`,
-        boxShadow: shadows.sm
-      }}>
-        <div style={{ maxWidth: designTokens.layout.maxWidth['2xl'], margin: '0 auto', padding: `${spacing[6]} ${spacing[8]}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[4] }}>
-              <div style={{
-                padding: spacing[3],
-                background: `linear-gradient(to bottom right, ${colors.info[400]}, ${colors.info[600]})`,
-                borderRadius: borders.radius.xl,
-                boxShadow: shadows.lg
+    <div>
+      {/* Page Header */}
+      <div style={{ marginBottom: spacing[6] }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[4] }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3] }}>
+            <div style={{
+              padding: spacing[2.5],
+              background: `linear-gradient(to bottom right, ${colors.info[400]}, ${colors.info[600]})`,
+              borderRadius: borders.radius.lg,
+              boxShadow: shadows.md
+            }}>
+              <FileText style={{ width: '24px', height: '24px', color: colors.neutral[0] }} />
+            </div>
+            <div>
+              <h1 style={{
+                fontSize: typography.fontSize['2xl'],
+                fontWeight: typography.fontWeight.bold,
+                color: colors.neutral[900],
+                margin: 0
+              }}>Reports Center</h1>
+              <p style={{
+                fontSize: typography.fontSize.sm,
+                color: colors.neutral[600],
+                margin: 0
               }}>
-                <FileText style={{ width: '28px', height: '28px', color: colors.neutral[0] }} />
-              </div>
-              <div>
-                <h1 style={{
-                  fontSize: typography.fontSize['3xl'],
-                  fontWeight: typography.fontWeight.bold,
-                  color: colors.neutral[900]
-                }}>Reports Center</h1>
-                <p style={{
-                  fontSize: typography.fontSize.sm,
-                  color: colors.neutral[600],
-                  marginTop: spacing[1]
-                }}>
-                  Access and generate business intelligence reports
-                </p>
-              </div>
+                Access and generate business intelligence reports
+              </p>
             </div>
+          </div>
 
-            <div style={{ display: 'flex', gap: spacing[3] }} className="hidden lg:flex">
-              {quickActions.map((action, idx) => {
-                const Icon = action.icon;
-                return (
-                  <button
-                    key={idx}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: spacing[2],
-                      padding: `${spacing[2]} ${spacing[4]}`,
-                      backgroundColor: colors.neutral[0],
-                      border: `1px solid ${colors.neutral[300]}`,
-                      borderRadius: borders.radius.lg,
-                      fontSize: typography.fontSize.sm,
-                      fontWeight: typography.fontWeight.medium,
-                      color: colors.neutral[700],
-                      cursor: 'pointer',
-                      transition: `all ${animation.duration.base} ${animation.easing.smooth}`
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = colors.neutral[50]}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = colors.neutral[0]}
-                  >
-                    <Icon style={{ width: '16px', height: '16px' }} />
-                    {action.label}
-                  </button>
-                );
-              })}
-            </div>
+          <div style={{ display: 'flex', gap: spacing[2] }} className="hidden lg:flex">
+            {quickActions.map((action, idx) => {
+              const Icon = action.icon;
+              return (
+                <button
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: spacing[2],
+                    padding: `${spacing[2]} ${spacing[3]}`,
+                    backgroundColor: colors.neutral[0],
+                    border: `1px solid ${colors.neutral[300]}`,
+                    borderRadius: borders.radius.md,
+                    fontSize: typography.fontSize.sm,
+                    fontWeight: typography.fontWeight.medium,
+                    color: colors.neutral[700],
+                    cursor: 'pointer',
+                    transition: `all ${animation.duration.base} ${animation.easing.smooth}`
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = colors.neutral[50]}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = colors.neutral[0]}
+                >
+                  <Icon style={{ width: '16px', height: '16px' }} />
+                  {action.label}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: designTokens.layout.maxWidth['2xl'], margin: '0 auto', padding: spacing[8] }}>
+      <div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: spacing[8] }} className="lg:grid-cols-3">
           {/* Report Categories */}
           <div style={{ gridColumn: 'span 1' }} className="lg:col-span-2">

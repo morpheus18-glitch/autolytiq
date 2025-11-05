@@ -163,42 +163,37 @@ export default function AdminOverview() {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: `linear-gradient(to bottom right, ${colors.neutral[50]}, ${colors.neutral[50]}, ${colors.error[50]})` }}>
-      {/* Header */}
-      <div style={{
-        backgroundColor: colors.neutral[0],
-        borderBottom: `1px solid ${colors.neutral[200]}`,
-        boxShadow: shadows.sm
-      }}>
-        <div style={{ maxWidth: designTokens.layout.maxWidth['2xl'], margin: '0 auto', padding: `${spacing[6]} ${spacing[8]}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[4] }}>
-            <div style={{
-              padding: spacing[3],
-              background: 'linear-gradient(to bottom right, #ef4444, #dc2626)',
-              borderRadius: borders.radius.xl,
-              boxShadow: shadows.lg
+    <div>
+      {/* Page Header */}
+      <div style={{ marginBottom: spacing[6] }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3] }}>
+          <div style={{
+            padding: spacing[2.5],
+            background: 'linear-gradient(to bottom right, #ef4444, #dc2626)',
+            borderRadius: borders.radius.lg,
+            boxShadow: shadows.md
+          }}>
+            <Building style={{ width: '24px', height: '24px', color: colors.neutral[0] }} />
+          </div>
+          <div>
+            <h1 style={{
+              fontSize: typography.fontSize['2xl'],
+              fontWeight: typography.fontWeight.bold,
+              color: colors.neutral[900],
+              margin: 0
+            }}>Administration</h1>
+            <p style={{
+              fontSize: typography.fontSize.sm,
+              color: colors.neutral[600],
+              margin: 0
             }}>
-              <Building style={{ width: '28px', height: '28px', color: colors.neutral[0] }} />
-            </div>
-            <div>
-              <h1 style={{
-                fontSize: typography.fontSize['3xl'],
-                fontWeight: typography.fontWeight.bold,
-                color: colors.neutral[900]
-              }}>Administration</h1>
-              <p style={{
-                fontSize: typography.fontSize.sm,
-                color: colors.neutral[600],
-                marginTop: spacing[1]
-              }}>
-                System configuration, user management, and settings
-              </p>
-            </div>
+              System configuration, user management, and settings
+            </p>
           </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: designTokens.layout.maxWidth['2xl'], margin: '0 auto', padding: spacing[8] }}>
+      <div>
         {/* System Stats */}
         <div style={{
           display: 'grid',

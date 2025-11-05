@@ -143,42 +143,37 @@ export default function AccountingOverview() {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: `linear-gradient(to bottom right, ${colors.neutral[50]}, ${colors.neutral[50]}, ${colors.success[50]})` }}>
-      {/* Header */}
-      <div style={{
-        backgroundColor: colors.neutral[0],
-        borderBottom: `1px solid ${colors.neutral[200]}`,
-        boxShadow: shadows.sm
-      }}>
-        <div style={{ maxWidth: designTokens.layout.maxWidth['2xl'], margin: '0 auto', padding: `${spacing[6]} ${spacing[8]}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[4] }}>
-            <div style={{
-              padding: spacing[3],
-              background: 'linear-gradient(to bottom right, #14b8a6, #0d9488)',
-              borderRadius: borders.radius.xl,
-              boxShadow: shadows.lg
+    <div>
+      {/* Page Header */}
+      <div style={{ marginBottom: spacing[6] }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3] }}>
+          <div style={{
+            padding: spacing[2.5],
+            background: 'linear-gradient(to bottom right, #14b8a6, #0d9488)',
+            borderRadius: borders.radius.lg,
+            boxShadow: shadows.md
+          }}>
+            <Calculator style={{ width: '24px', height: '24px', color: colors.neutral[0] }} />
+          </div>
+          <div>
+            <h1 style={{
+              fontSize: typography.fontSize['2xl'],
+              fontWeight: typography.fontWeight.bold,
+              color: colors.neutral[900],
+              margin: 0
+            }}>Accounting</h1>
+            <p style={{
+              fontSize: typography.fontSize.sm,
+              color: colors.neutral[600],
+              margin: 0
             }}>
-              <Calculator style={{ width: '28px', height: '28px', color: colors.neutral[0] }} />
-            </div>
-            <div>
-              <h1 style={{
-                fontSize: typography.fontSize['3xl'],
-                fontWeight: typography.fontWeight.bold,
-                color: colors.neutral[900]
-              }}>Accounting</h1>
-              <p style={{
-                fontSize: typography.fontSize.sm,
-                color: colors.neutral[600],
-                marginTop: spacing[1]
-              }}>
-                Manage financials, transactions, and reporting
-              </p>
-            </div>
+              Manage financials, transactions, and reporting
+            </p>
           </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: designTokens.layout.maxWidth['2xl'], margin: '0 auto', padding: spacing[8] }}>
+      <div>
         {/* Stats Grid */}
         <div style={{
           display: 'grid',
