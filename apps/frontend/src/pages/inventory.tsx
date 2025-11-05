@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { useDealStudioLauncher } from '@/hooks/useDealStudioLauncher';
+import { VehicleEntryForm } from '@/components/forms/VehicleEntryForm';
 import {
   Search,
   Filter,
@@ -20,7 +21,8 @@ import {
   Share2,
   Tag,
   AlertCircle,
-  Calculator
+  Calculator,
+  Plus
 } from 'lucide-react';
 import type { Vehicle } from '@shared/schema';
 
@@ -34,6 +36,7 @@ export default function Inventory() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedView, setSelectedView] = useState('grid');
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [showVehicleForm, setShowVehicleForm] = useState(false);
 
   // Demo data for immediate functionality
   const demoVehicles: Vehicle[] = [
@@ -217,12 +220,13 @@ export default function Inventory() {
         <div className="px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold" data-testid="text-page-title">Inventory</h1>
-            <button 
-              onClick={() => setLocation('/inventory/new')}
-              className="px-4 py-2 bg-blue-600 rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
+            <button
+              onClick={() => setShowVehicleForm(true)}
+              className="px-4 py-2 bg-blue-600 rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors flex items-center gap-2"
               data-testid="button-add-vehicle"
             >
-              + Add Vehicle
+              <Plus className="w-4 h-4" />
+              Add Vehicle
             </button>
           </div>
 
@@ -458,6 +462,16 @@ export default function Inventory() {
           </div>
         </div>
       )}
+
+      {/* Vehicle Entry Form Modal */}
+      <VehicleEntryForm
+        isOpen={showVehicleForm}
+        onClose={() => setShowVehicleForm(false)}
+        onSuccess={(vehicle) => {
+          setShowVehicleForm(false);
+          toast({ title: `Vehicle ${vehicle.year} ${vehicle.make} ${vehicle.model} added successfully!` });
+        }}
+      />
     </div>
   );
 }

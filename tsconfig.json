@@ -14,7 +14,9 @@
       "@repo/shared": ["./packages/shared/src"],
       "@repo/shared/*": ["./packages/shared/src/*"],
       "@repo/tokens": ["./packages/tokens/src"],
-      "@repo/tokens/*": ["./packages/tokens/src/*"]
+      "@repo/tokens/*": ["./packages/tokens/src/*"],
+      "@repo/db": ["./packages/db"],
+      "@repo/db/*": ["./packages/db/*"]
     }
   },
   "exclude": ["node_modules", "dist", "build", "**/dist", "**/build", "**/*.test.ts", "**/*.spec.ts"]

@@ -20,6 +20,8 @@ import { authRouter } from './auth.routes.js';
 import { pricingRouter } from './pricing.routes.js';
 import { customerRouter } from './customer.routes.js';
 import { vehicleRouter } from './vehicle.routes.js';
+import { dashboardRouter } from './dashboard.routes.js';
+import { searchRouter } from './search.routes.js';
 
 export function registerRoutes(app: Express) {
   // Health check routes (no auth required)
@@ -46,6 +48,8 @@ export function registerRoutes(app: Express) {
   apiRouter.use('/pricing', pricingRouter);
   apiRouter.use('/customers', customerRouter);
   apiRouter.use('/vehicles', vehicleRouter);
+  apiRouter.use('/dashboard', dashboardRouter);
+  apiRouter.use('/search', searchRouter);
 
   const leadRoutingRoles: Role[] = ['ADMIN', 'BDC', 'SALES'];
   apiRouter.post(

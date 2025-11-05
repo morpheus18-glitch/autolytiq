@@ -9,6 +9,7 @@ import { seedUsers } from './seed/seeders/seedUsers';
 import { seedGLAccounts } from './seed/seeders/seedGLAccounts';
 import { seedLenders } from './seed/seeders/seedLenders';
 import { seedWorkflows } from './seed/seeders/seedWorkflows';
+import { seedWidgetDefinitions } from './seed/seeders/seedWidgetDefinitions';
 import { seedCustomers } from './seed/seeders/seedCustomers';
 import { seedVehicles } from './seed/seeders/seedVehicles';
 import { seedDeals } from './seed/seeders/seedDeals';
@@ -36,7 +37,10 @@ async function main() {
     // 5. Seed workflow definitions
     const { workflowDefinition } = await seedWorkflows(prisma, tenant, store, users);
 
-    // 6. Seed customers and CRM data
+    // 6. Seed widget definitions (global, not tenant-specific)
+    const widgetDefinitions = await seedWidgetDefinitions(prisma);
+
+    // 7. Seed customers and CRM data
     const { customers, leads, activities, appointments, communications } = await seedCustomers(
       prisma,
       tenant,
@@ -44,10 +48,10 @@ async function main() {
       users
     );
 
-    // 7. Seed vehicles and inventory
+    // 8. Seed vehicles and inventory
     const { inventoryVehicles } = await seedVehicles(prisma, tenant, store, users, workflowDefinition);
 
-    // 8. Seed deals and financing
+    // 9. Seed deals and financing
     const { deals, workingDeal, worksheet } = await seedDeals(
       prisma,
       tenant,
@@ -59,7 +63,7 @@ async function main() {
       { sunriseCreditUnion, horizonAutoFinance }
     );
 
-    // 9. Create audit log
+    // 10. Create audit log
     const adminUser = users.find((user) => user.isSuperAdmin) ?? users[0];
     await prisma.auditLog.create({
       data: {
@@ -73,6 +77,7 @@ async function main() {
           leads: leads.length,
           vehicles: inventoryVehicles.length,
           deals: deals.length,
+          widgetDefinitions: widgetDefinitions?.length || 0,
         },
         ipAddress: '127.0.0.1',
         userAgent: 'seed-script',
@@ -86,6 +91,7 @@ async function main() {
     console.log(`   • Store: ${store.name} (${store.code})`);
     console.log(`   • Users: ${users.length}`);
     console.log(`   • GL Accounts: ${glAccounts.length}`);
+    console.log(`   • Widget Definitions: ${widgetDefinitions?.length || 0}`);
     console.log(`   • Customers: ${customers.length}`);
     console.log(`   • Leads: ${leads.length}`);
     console.log(`   • Vehicles: ${inventoryVehicles.length}`);

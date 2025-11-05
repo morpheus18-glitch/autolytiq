@@ -484,6 +484,9 @@ importers:
       '@prisma/client':
         specifier: 5.22.0
         version: 5.22.0(prisma@5.22.0)
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       axios:
         specifier: ^1.7.9
         version: 1.12.2

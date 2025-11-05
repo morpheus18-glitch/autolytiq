@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { useDealStudioLauncher } from '@/hooks/useDealStudioLauncher';
+import { CustomerEntryForm } from '@/components/forms/CustomerEntryForm';
 import {
   User,
   Phone,
@@ -18,7 +19,8 @@ import {
   Bell,
   ChevronRight,
   AlertCircle,
-  Calculator
+  Calculator,
+  Plus
 } from 'lucide-react';
 import type { Customer } from '@shared/schema';
 
@@ -30,6 +32,7 @@ export default function Customers() {
   const { openDealStudio } = useDealStudioLauncher();
 
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [showCustomerForm, setShowCustomerForm] = useState(false);
 
   const { data: customers = [], isLoading, error } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
@@ -189,9 +192,19 @@ export default function Customers() {
         <div className="px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold" data-testid="text-page-title">Customer CRM</h1>
-            <button className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center" data-testid="button-notifications">
-              <Bell className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowCustomerForm(true)}
+                className="px-4 py-2 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-colors flex items-center gap-2 shadow-md"
+                data-testid="button-add-customer"
+              >
+                <Plus className="w-4 h-4" />
+                Add Customer
+              </button>
+              <button className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center" data-testid="button-notifications">
+                <Bell className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Quick Stats */}
@@ -272,6 +285,16 @@ export default function Customers() {
           </div>
         )}
       </div>
+
+      {/* Customer Entry Form Modal */}
+      <CustomerEntryForm
+        isOpen={showCustomerForm}
+        onClose={() => setShowCustomerForm(false)}
+        onSuccess={(customer) => {
+          setShowCustomerForm(false);
+          toast({ title: `Customer ${customer.firstName} ${customer.lastName} added successfully!` });
+        }}
+      />
     </div>
   );
 }

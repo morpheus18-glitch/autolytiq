@@ -87,6 +87,9 @@ model Tenant {
   workflowDefinitions  WorkflowDefinition[]
   workflowStages       WorkflowStage[]
   workflowTasks        WorkflowTask[]
+  dashboardLayouts     DashboardLayout[]
+  searchQueries        SearchQuery[]
+  popularSearches      PopularSearch[]
 
   @@map("tenants")
 }
@@ -146,8 +149,11 @@ model User {
   stageTransitions          StageTransition[]     @relation("StageTransitionActor")
   systemSettings            SystemSetting[]
   appraisedTradeIns         TradeIn[]             @relation("TradeInAppraiser")
-  tenant                    Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  assignedWorkflowTasks     WorkflowTask[]        @relation("WorkflowTaskAssignee")
+  tenant                    Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignedWorkflowTasks     WorkflowTask[]          @relation("WorkflowTaskAssignee")
+  dashboardLayouts          DashboardLayout[]
+  widgetPreferences         UserWidgetPreference[]
+  searchQueries             SearchQuery[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -2717,4 +2723,136 @@ enum AuditAction {
   UPDATE
   DELETE
   VIEW
+}
+
+// =============================================================================
+// DASHBOARD SYSTEM MODELS
+// =============================================================================
+
+model DashboardLayout {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  tenantId    String    @map("tenant_id")
+  role        UserRole? // If null, applies to all roles
+  isDefault   Boolean   @default(false) @map("is_default")
+  layout      Json      // Widget positions and sizes
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+  @@index([tenantId])
+  @@index([userId])
+  @@map("dashboard_layouts")
+}
+
+model WidgetDefinition {
+  id              String         @id @default(cuid())
+  key             String         @unique // e.g., "active-deals"
+  name            String // "Active Deals"
+  description     String?
+  category        WidgetCategory
+  type            WidgetType
+  defaultSize     WidgetSize     @map("default_size")
+  minSize         WidgetSize     @map("min_size")
+  maxSize         WidgetSize     @map("max_size")
+  permissions     String[] // Required permissions
+  dataSource      String         @map("data_source") // API endpoint or GraphQL query
+  refreshInterval Int?           @map("refresh_interval") // Seconds (null = no auto-refresh)
+  configSchema    Json?          @map("config_schema") // JSON schema for widget settings
+  componentPath   String         @map("component_path") // React component path
+  icon            String?
+  active          Boolean        @default(true)
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("widget_definitions")
+}
+
+model UserWidgetPreference {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  widgetKey String   @map("widget_key") // References WidgetDefinition.key
+  config    Json? // User-specific widget config
+  hidden    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, widgetKey])
+  @@index([userId])
+  @@map("user_widget_preferences")
+}
+
+enum WidgetCategory {
+  SALES
+  SERVICE
+  FINANCE
+  ACCOUNTING
+  INVENTORY
+  ANALYTICS
+  ADMIN
+  DEVELOPER
+}
+
+enum WidgetType {
+  METRIC
+  LIST
+  CHART
+  CALENDAR
+  TABLE
+  CUSTOM
+}
+
+enum WidgetSize {
+  SMALL  // 1x1
+  MEDIUM // 2x1
+  LARGE  // 2x2
+  WIDE   // 4x1
+  FULL   // 4x2
+}
+
+// ============================================================================
+// INTELLIGENT SEARCH
+// ============================================================================
+
+model SearchQuery {
+  id            String   @id @default(cuid())
+  tenantId      String   @map("tenant_id")
+  userId        String   @map("user_id")
+  query         String   // Original query text
+  parsedQuery   Json?    @map("parsed_query") // Parsed NLP structure
+  resultType    String   @map("result_type") // customers, vehicles, deals, etc.
+  resultCount   Int      @map("result_count")
+  executionTime Int      @map("execution_time") // milliseconds
+  clicked       Boolean  @default(false) // Did user click a result?
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId])
+  @@index([tenantId, createdAt])
+  @@index([query])
+  @@map("search_queries")
+}
+
+model PopularSearch {
+  id        String    @id @default(cuid())
+  tenantId  String?   @map("tenant_id") // null = global
+  query     String
+  category  String    // customer, vehicle, deal, report
+  count     Int       @default(1)
+  lastUsed  DateTime  @default(now()) @map("last_used") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, query])
+  @@index([tenantId, category])
+  @@index([tenantId, count])
+  @@map("popular_searches")
 }

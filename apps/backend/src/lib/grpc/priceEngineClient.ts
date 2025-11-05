@@ -40,10 +40,14 @@ type PriceEngineServiceClient = grpc.Client & {
 };
 
 // Load proto definitions
-// In Docker: /app/apps/backend/dist/lib/grpc/priceEngineClient.js
-// Proto files are at: /app/services/rust/proto/
-const PROTO_PATH = path.resolve('/app/services/rust/proto/price_engine.proto');
-const COMMON_PROTO_PATH = path.resolve('/app/services/rust/proto/common.proto');
+// Support both local development and Docker deployment
+const isDocker = process.env.DOCKER_ENV === 'true';
+const protoBaseDir = isDocker
+  ? '/app/services/rust/proto'
+  : path.resolve(__dirname, '../../../../../services/rust/proto');
+
+const PROTO_PATH = path.join(protoBaseDir, 'price_engine.proto');
+const COMMON_PROTO_PATH = path.join(protoBaseDir, 'common.proto');
 
 const packageDefinition = protoLoader.loadSync([PROTO_PATH, COMMON_PROTO_PATH], {
   keepCase: true,

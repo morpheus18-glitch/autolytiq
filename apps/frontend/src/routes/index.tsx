@@ -9,6 +9,15 @@ const Settings = lazy(() => import('@/pages/settings'));
 const Customers = lazy(() => import('@/pages/customers'));
 const Inventory = lazy(() => import('@/pages/inventory'));
 const Deals = lazy(() => import('@/pages/deals'));
+
+// Dashboard pages (role-based)
+const DashboardSales = lazy(() => import('@/pages/dashboard/sales'));
+const DashboardService = lazy(() => import('@/pages/dashboard/service'));
+const DashboardFinance = lazy(() => import('@/pages/dashboard/finance'));
+const DashboardAccounting = lazy(() => import('@/pages/dashboard/accounting'));
+const DashboardInventory = lazy(() => import('@/pages/dashboard/inventory'));
+const DashboardDeveloper = lazy(() => import('@/pages/dashboard/developer'));
+const DashboardAdmin = lazy(() => import('@/pages/dashboard/admin'));
 const DemoQuickView = lazy(() => import('@/pages/demo-quick-view'));
 const DealCalculator = lazy(() => import('@/pages/desking/DealCalculator'));
 const DealStudioDemo = lazy(() => import('@/pages/deal-studio-demo'));
@@ -211,6 +220,15 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/desking/calculator', component: DealCalculator },
   { path: '/deal-studio-demo', component: DealStudioDemo },
   { path: '/deal-studio-mobile-demo', component: DealStudioMobileDemo },
+
+  // Dashboard routes (role-based)
+  { path: '/dashboard/sales', component: DashboardSales },
+  { path: '/dashboard/service', component: DashboardService },
+  { path: '/dashboard/finance', component: DashboardFinance },
+  { path: '/dashboard/accounting', component: DashboardAccounting },
+  { path: '/dashboard/inventory', component: DashboardInventory },
+  { path: '/dashboard/developer', component: DashboardDeveloper },
+  { path: '/dashboard/admin', component: DashboardAdmin },
 
   // Admin routes
   { path: '/admin/users', component: AdminUsers },
