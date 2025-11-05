@@ -56,8 +56,6 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@replit/vite-plugin-cartographer": "^0.4.1",
-    "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.2",
