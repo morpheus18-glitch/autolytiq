@@ -82,37 +82,37 @@ const colors = {
 };
 
 const darkColors = {
-  background: '#1c1f2e',
-  foreground: designTokens.colors.neutral[50],
+  background: designTokens.surface.dark.base,        // #0D1117 - GitHub dark inspired
+  foreground: designTokens.text.dark.primary,        // #F1F5F9 - Soft white
   card: {
-    DEFAULT: '#262b3d',
-    foreground: designTokens.colors.neutral[50],
+    DEFAULT: designTokens.surface.dark.elevated,     // #161B22 - Cards
+    foreground: designTokens.text.dark.primary,
   },
   popover: {
-    DEFAULT: '#262b3d',
-    foreground: designTokens.colors.neutral[50],
+    DEFAULT: designTokens.surface.dark.elevated,
+    foreground: designTokens.text.dark.primary,
   },
   muted: {
-    DEFAULT: '#1f2433',
-    foreground: designTokens.colors.neutral[300],
+    DEFAULT: designTokens.surface.dark.subtle,       // #1F2937 - Subtle backgrounds
+    foreground: designTokens.text.dark.secondary,    // #CBD5E1
   },
   accent: {
-    DEFAULT: '#7c3aed',
+    DEFAULT: designTokens.colors.secondary[600],     // Purple accent
     foreground: designTokens.colors.neutral[50],
   },
   destructive: {
     DEFAULT: designTokens.colors.error[600],
     foreground: designTokens.colors.neutral[50],
   },
-  border: '#414862',
-  input: '#2e3548',
+  border: designTokens.surface.dark.outline,         // rgba(148, 163, 184, 0.18)
+  input: designTokens.surface.dark.hover,            // #374151
   ring: designTokens.colors.primary[500],
   surface: {
-    base: '#1c1f2e',
-    muted: '#1f2433',
-    strong: '#262b3d',
-    glass: 'rgba(26, 31, 46, 0.85)',
-    highlight: '#2e3548',
+    base: designTokens.surface.dark.base,
+    muted: designTokens.surface.dark.subtle,
+    strong: designTokens.surface.dark.elevated,
+    glass: 'rgba(13, 17, 23, 0.85)',
+    highlight: designTokens.surface.dark.hover,
   },
 };
 

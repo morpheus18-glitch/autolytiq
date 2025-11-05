@@ -122,6 +122,7 @@ const LeadsMarket = lazy(() => import('@/pages/leads/market-leads'));
 
 // CRM pages
 const LeadPipeline = lazy(() => import('@/pages/crm/lead-pipeline'));
+const DealPipeline = lazy(() => import('@/pages/crm/pipeline'));
 
 // Showroom pages
 const ShowroomManager = lazy(() => import('@/pages/showroom/showroom-manager'));
@@ -292,6 +293,7 @@ const routeDefinitions: RouteDefinition[] = [
 
   // CRM routes
   { path: '/crm/pipeline', component: LeadPipeline },
+  { path: '/crm/deal-pipeline', component: DealPipeline },
 
   // Showroom routes
   { path: '/showroom/manager', component: ShowroomManager },

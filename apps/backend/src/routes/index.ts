@@ -22,6 +22,13 @@ import { customerRouter } from './customer.routes.js';
 import { vehicleRouter } from './vehicle.routes.js';
 import { dashboardRouter } from './dashboard.routes.js';
 import { searchRouter } from './search.routes.js';
+import { pipelineRouter } from './pipeline.routes.js';
+import { serviceOrderRouter } from './service-order.routes.js';
+import { inventoryRouter } from './inventory.routes.js';
+import { pricingIntelligenceRouter } from './pricing-intelligence.routes.js';
+import { merchandisingRouter } from './merchandising.routes.js';
+import { appraisalRouter } from './appraisal.routes.js';
+import { accountingRouter } from './accounting.routes.js';
 
 export function registerRoutes(app: Express) {
   // Health check routes (no auth required)
@@ -50,6 +57,13 @@ export function registerRoutes(app: Express) {
   apiRouter.use('/vehicles', vehicleRouter);
   apiRouter.use('/dashboard', dashboardRouter);
   apiRouter.use('/search', searchRouter);
+  apiRouter.use('/pipeline', pipelineRouter);
+  apiRouter.use('/service-orders', serviceOrderRouter);
+  apiRouter.use('/inventory', inventoryRouter);
+  apiRouter.use('/pricing-intelligence', pricingIntelligenceRouter);
+  apiRouter.use('/merchandising', merchandisingRouter);
+  apiRouter.use('/appraisals', appraisalRouter);
+  apiRouter.use('/accounting', accountingRouter);
 
   const leadRoutingRoles: Role[] = ['ADMIN', 'BDC', 'SALES'];
   apiRouter.post(

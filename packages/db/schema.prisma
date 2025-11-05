@@ -90,6 +90,7 @@ model Tenant {
   dashboardLayouts     DashboardLayout[]
   searchQueries        SearchQuery[]
   popularSearches      PopularSearch[]
+  dealStageTransitions DealStageTransition[]
 
   @@map("tenants")
 }
@@ -154,6 +155,7 @@ model User {
   dashboardLayouts          DashboardLayout[]
   widgetPreferences         UserWidgetPreference[]
   searchQueries             SearchQuery[]
+  dealStageTransitions      DealStageTransition[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -975,6 +977,7 @@ model Deal {
   deliveredById        String?                 @map("delivered_by_id")
   dealType             DealType                @map("deal_type")
   status               RetailDealStatus        @default(DRAFT)
+  stage                DealStage               @default(LEAD)
   vehiclePrice         Decimal                 @map("vehicle_price") @db.Decimal(18, 2)
   discount             Decimal                 @default(0) @db.Decimal(18, 2)
   netVehiclePrice      Decimal                 @map("net_vehicle_price") @db.Decimal(18, 2)
@@ -1066,6 +1069,7 @@ model Deal {
   activities           DealActivity[]
   events               DealEvent[]
   fiProducts           DealFIProduct[]
+  stageTransitions     DealStageTransition[]
   optimizations        DealOptimization[]
   versions             DealVersion[]
   worksheets           DealWorksheet[]
@@ -1083,11 +1087,31 @@ model Deal {
 
   @@unique([tenantId, dealNumber])
   @@index([tenantId, status])
+  @@index([tenantId, stage])
   @@index([tenantId, customerId])
   @@index([tenantId, salesPersonId])
   @@index([tenantId, salesManagerId])
   @@index([tenantId, lenderId])
   @@map("deals")
+}
+
+model DealStageTransition {
+  id               String    @id @default(cuid())
+  tenantId         String    @map("tenant_id")
+  dealId           String    @map("deal_id")
+  fromStage        DealStage @map("from_stage")
+  toStage          DealStage @map("to_stage")
+  transitionedBy   String    @map("transitioned_by")
+  transitionedAt   DateTime  @default(now()) @map("transitioned_at") @db.Timestamptz(6)
+  notes            String?
+
+  deal                   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  tenant                 Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  transitionedByUser     User   @relation(fields: [transitionedBy], references: [id])
+
+  @@index([tenantId, dealId])
+  @@index([dealId, transitionedAt])
+  @@map("deal_stage_transitions")
 }
 
 model TradeIn {
@@ -2565,6 +2589,16 @@ enum DealStatus {
   PENCILED
   SUBMITTED
   CLOSED
+  LOST
+}
+
+enum DealStage {
+  LEAD
+  WORKING
+  PENDING_FINANCE
+  APPROVED
+  PENDING_DELIVERY
+  DELIVERED
   LOST
 }
 
