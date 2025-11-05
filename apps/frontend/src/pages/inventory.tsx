@@ -86,7 +86,9 @@ export default function Inventory() {
     queryFn: async () => {
       try {
         const response = await fetch('/api/vehicles');
-        return response.json();
+        const json = await response.json();
+        // Backend returns { data: vehicles }, extract the array
+        return json.data || demoVehicles;
       } catch {
         return demoVehicles;
       }

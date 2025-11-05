@@ -42,77 +42,42 @@ const colors = {
     ember: designTokens.colors.warning[500],
     aurora: designTokens.colors.info[500],
   },
-  background: designTokens.surface.light.base,
-  foreground: designTokens.colors.neutral[900],
+  // Semantic colors - use CSS variables for proper dark mode support
+  background: 'rgb(var(--background) / <alpha-value>)',
+  foreground: 'rgb(var(--foreground) / <alpha-value>)',
   card: {
-    DEFAULT: designTokens.surface.light.elevated,
-    foreground: designTokens.colors.neutral[900],
+    DEFAULT: 'rgb(var(--card) / <alpha-value>)',
+    foreground: 'rgb(var(--card-foreground) / <alpha-value>)',
   },
   popover: {
-    DEFAULT: designTokens.surface.light.elevated,
-    foreground: designTokens.colors.neutral[900],
+    DEFAULT: 'rgb(var(--popover) / <alpha-value>)',
+    foreground: 'rgb(var(--popover-foreground) / <alpha-value>)',
   },
   muted: {
-    DEFAULT: designTokens.surface.light.subtle,
-    foreground: designTokens.colors.neutral[600],
+    DEFAULT: 'rgb(var(--muted) / <alpha-value>)',
+    foreground: 'rgb(var(--muted-foreground) / <alpha-value>)',
   },
   accent: {
-    DEFAULT: designTokens.colors.secondary[50],
-    foreground: designTokens.colors.secondary[700],
+    DEFAULT: 'rgb(var(--accent) / <alpha-value>)',
+    foreground: 'rgb(var(--accent-foreground) / <alpha-value>)',
   },
   destructive: {
-    DEFAULT: designTokens.colors.error[600],
-    foreground: designTokens.colors.neutral[0],
+    DEFAULT: 'rgb(var(--destructive) / <alpha-value>)',
+    foreground: 'rgb(var(--destructive-foreground) / <alpha-value>)',
   },
-  border: designTokens.surface.light.outline,
-  input: designTokens.surface.light.outline,
-  ring: designTokens.colors.primary[400],
+  border: 'rgb(var(--border) / <alpha-value>)',
+  input: 'rgb(var(--input) / <alpha-value>)',
+  ring: 'rgb(var(--ring) / <alpha-value>)',
   surface: {
-    base: designTokens.surface.light.base,
-    muted: designTokens.surface.light.subtle,
-    strong: designTokens.surface.light.elevated,
-    glass: 'rgba(255, 255, 255, 0.82)',
-    highlight: designTokens.surface.light.glow,
-    dark: designTokens.surface.dark.base,
+    base: 'rgb(var(--surface-base) / <alpha-value>)',
+    muted: 'rgb(var(--surface-muted) / <alpha-value>)',
+    strong: 'rgb(var(--surface-strong) / <alpha-value>)',
+    glass: 'var(--surface-glass)',
+    highlight: 'rgb(var(--surface-highlight) / <alpha-value>)',
   },
   overlay: {
     backdrop: colorWithOpacity(designTokens.surface.dark.base, 0.7),
     scrim: colorWithOpacity(designTokens.colors.secondary[950], 0.6),
-  },
-};
-
-const darkColors = {
-  background: designTokens.surface.dark.base,        // #0D1117 - GitHub dark inspired
-  foreground: designTokens.text.dark.primary,        // #F1F5F9 - Soft white
-  card: {
-    DEFAULT: designTokens.surface.dark.elevated,     // #161B22 - Cards
-    foreground: designTokens.text.dark.primary,
-  },
-  popover: {
-    DEFAULT: designTokens.surface.dark.elevated,
-    foreground: designTokens.text.dark.primary,
-  },
-  muted: {
-    DEFAULT: designTokens.surface.dark.subtle,       // #1F2937 - Subtle backgrounds
-    foreground: designTokens.text.dark.secondary,    // #CBD5E1
-  },
-  accent: {
-    DEFAULT: designTokens.colors.secondary[600],     // Purple accent
-    foreground: designTokens.colors.neutral[50],
-  },
-  destructive: {
-    DEFAULT: designTokens.colors.error[600],
-    foreground: designTokens.colors.neutral[50],
-  },
-  border: designTokens.surface.dark.outline,         // rgba(148, 163, 184, 0.18)
-  input: designTokens.surface.dark.hover,            // #374151
-  ring: designTokens.colors.primary[500],
-  surface: {
-    base: designTokens.surface.dark.base,
-    muted: designTokens.surface.dark.subtle,
-    strong: designTokens.surface.dark.elevated,
-    glass: 'rgba(13, 17, 23, 0.85)',
-    highlight: designTokens.surface.dark.hover,
   },
 };
 
@@ -140,8 +105,6 @@ module.exports = {
         white: '#ffffff',
         black: '#000000',
         ...colors,
-        // Dark mode color overrides
-        dark: darkColors,
       },
       spacing: designTokens.spacing,
       fontFamily,
