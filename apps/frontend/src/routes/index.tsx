@@ -132,45 +132,21 @@ const DealPipeline = lazy(() => import('@/pages/crm/pipeline'));
 // Showroom pages
 const ShowroomManager = lazy(() => import('@/pages/showroom/showroom-manager'));
 
-// Misc pages
-const MiscMultiStoreManagement = lazy(() => import('@/pages/misc/multi-store-management'));
-const MiscMLModelComparison = lazy(() => import('@/pages/misc/ml-model-comparison'));
-const MiscMLDeveloperAdmin = lazy(() => import('@/pages/misc/ml-developer-admin'));
-const MiscMarketLeads = lazy(() => import('@/pages/misc/market-leads'));
-const MiscLotManagement = lazy(() => import('@/pages/misc/lot-management'));
-const MiscInventory = lazy(() => import('@/pages/misc/inventory'));
-const MiscInventoryPricing = lazy(() => import('@/pages/misc/inventory-pricing'));
-const MiscInventoryDetail = lazy(() => import('@/pages/misc/inventory-detail'));
-const MiscForgotPassword = lazy(() => import('@/pages/misc/forgot-password'));
+// Misc pages (legitimate - kept minimal)
 const MiscFIDashboard = lazy(() => import('@/pages/misc/fi-dashboard'));
-const MiscFIConfiguration = lazy(() => import('@/pages/misc/fi-configuration'));
-const MiscDeals = lazy(() => import('@/pages/misc/deals'));
-const MiscCustomers = lazy(() => import('@/pages/misc/customers'));
-const MiscCustomerDetail = lazy(() => import('@/pages/misc/customer-detail'));
-const MiscCRMLeadManagement = lazy(() => import('@/pages/misc/crm-lead-management'));
-const MiscCompetitivePricing = lazy(() => import('@/pages/misc/competitive-pricing'));
 const MiscCommunicationDemo = lazy(() => import('@/pages/misc/communication-demo'));
-const MiscAutomotiveDataCenter = lazy(() => import('@/pages/misc/automotive-data-center'));
 const MiscAuthTest = lazy(() => import('@/pages/misc/auth-test'));
-const MiscAnalytics = lazy(() => import('@/pages/misc/analytics'));
-const MiscAISmartSearch = lazy(() => import('@/pages/misc/ai-smart-search'));
-const MiscSMSInbox = lazy(() => import('@/pages/misc/SMSInbox'));
-const MiscEmailComposer = lazy(() => import('@/pages/misc/EmailComposer'));
 const MiscDesignShowcase = lazy(() => import('@/pages/misc/DesignShowcase'));
-const MiscCustomerProfile = lazy(() => import('@/pages/misc/CustomerProfile'));
-const MiscCommunicationCenter = lazy(() => import('@/pages/misc/CommunicationCenter'));
-const MiscCallCenter = lazy(() => import('@/pages/misc/CallCenter'));
-const MiscCRMAnalytics = lazy(() => import('@/pages/misc/CRMAnalytics'));
-const MiscAppointmentCalendar = lazy(() => import('@/pages/misc/AppointmentCalendar'));
-const MiscReports = lazy(() => import('@/pages/misc/reports'));
-const MiscResetPassword = lazy(() => import('@/pages/misc/reset-password'));
-const MiscRoleLanding = lazy(() => import('@/pages/misc/role-landing'));
-const MiscSales = lazy(() => import('@/pages/misc/sales'));
-const MiscShowroomManager = lazy(() => import('@/pages/misc/showroom-manager'));
-const MiscSystemHealth = lazy(() => import('@/pages/misc/system-health'));
-const MiscTradeAppraisals = lazy(() => import('@/pages/misc/trade-appraisals'));
-const MiscVehicleDetail = lazy(() => import('@/pages/misc/vehicle-detail'));
-const MiscWorkflowAssistant = lazy(() => import('@/pages/misc/workflow-assistant'));
+const MiscProfessionalDealDesk = lazy(() => import('@/pages/misc/professional-deal-desk'));
+
+// Reorganized pages (moved from misc/ to proper locations)
+const FIConfiguration = lazy(() => import('@/pages/fi/configuration'));
+const InventoryDataCenter = lazy(() => import('@/pages/inventory/data-center'));
+const AnalyticsDashboard = lazy(() => import('@/pages/analytics/dashboard'));
+const SearchAISmart = lazy(() => import('@/pages/search/ai-smart'));
+const ToolsWorkflowAssistant = lazy(() => import('@/pages/tools/workflow-assistant'));
+const DashboardRoleLanding = lazy(() => import('@/pages/dashboard/role-landing'));
+const DashboardSalesAlt = lazy(() => import('@/pages/dashboard/sales-alt'));
 
 // Reports pages
 const ReportsFinancial = lazy(() => import('@/pages/reports/financial'));
