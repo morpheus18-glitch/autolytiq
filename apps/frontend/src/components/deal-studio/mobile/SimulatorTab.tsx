@@ -26,7 +26,7 @@ export function SimulatorTab() {
   const netTradeEquity = deal.tradeValue - deal.tradePayoff;
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
+    <div className="h-full p-4 space-y-4 pb-6">
       {/* Live Payment Display */}
       <LivePaymentDisplayCompact
         payment={payment?.monthlyPayment || 0}

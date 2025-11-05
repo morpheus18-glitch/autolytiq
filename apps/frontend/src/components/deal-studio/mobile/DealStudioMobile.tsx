@@ -75,35 +75,43 @@ ${totalFI > 0 ? `Includes: ${[
   return (
     <div
       className={cn(
-        'fixed inset-0 bg-white z-50 flex flex-col',
+        'fixed inset-0 bg-white z-50 flex flex-col overflow-hidden',
         className
       )}
     >
       {/* Drag Handle */}
-      <div className="flex items-center justify-center py-2 bg-slate-50">
+      <div className="flex-shrink-0 flex items-center justify-center py-2 bg-slate-50">
         <div className="w-12 h-1 bg-slate-300 rounded-full" />
       </div>
 
       {/* Compact Dossier Header */}
-      <CompactDossierHeader />
+      <div className="flex-shrink-0">
+        <CompactDossierHeader />
+      </div>
 
       {/* Tab Control */}
-      <TabControl
-        activeTab={activeTab}
-        onChange={setActiveTab}
-      />
+      <div className="flex-shrink-0">
+        <TabControl
+          activeTab={activeTab}
+          onChange={setActiveTab}
+        />
+      </div>
 
-      {/* Tab Content */}
-      <div className="flex-1 overflow-hidden bg-slate-50">
-        {activeTab === 'simulator' ? <SimulatorTab /> : <AICoachTab />}
+      {/* Tab Content - Scrollable */}
+      <div className="flex-1 min-h-0 overflow-y-auto bg-slate-50">
+        <div className="h-full">
+          {activeTab === 'simulator' ? <SimulatorTab /> : <AICoachTab />}
+        </div>
       </div>
 
       {/* Action Bar */}
-      <ActionBar
-        onPasteToChat={payment ? handlePasteToChat : undefined}
-        onClose={handleClose}
-        disablePaste={!payment}
-      />
+      <div className="flex-shrink-0">
+        <ActionBar
+          onPasteToChat={payment ? handlePasteToChat : undefined}
+          onClose={handleClose}
+          disablePaste={!payment}
+        />
+      </div>
     </div>
   );
 }
