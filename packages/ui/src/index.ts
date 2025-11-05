@@ -67,6 +67,7 @@ export { Pagination, paginationVariants, paginationButtonVariants, type Paginati
 export { VisuallyHidden, type VisuallyHiddenProps } from './components/VisuallyHidden.js';
 export { SkipLink, SkipLinks, type SkipLinkProps, type SkipLinksProps } from './components/SkipLink.js';
 export { FocusTrap, type FocusTrapProps } from './components/FocusTrap.js';
+export { ColorContrastChecker, type ColorContrastCheckerProps } from './components/ColorContrastChecker.js';
 
 // Layout & Navigation Components
 export {
@@ -159,8 +160,23 @@ export {
   usePrefersReducedMotion,
 } from './hooks/useTheme.js';
 
+export {
+  useColorContrast,
+  useAccessibleForeground,
+  type UseColorContrastOptions,
+  type UseColorContrastReturn,
+} from './hooks/useColorContrast.js';
+
 // Utilities
 export { cn } from './utils/cn.js';
+export {
+  getContrastRatio,
+  checkContrast,
+  getSuggestedForeground,
+  isDark,
+  getComplianceLevel,
+  type ContrastResult,
+} from './utils/colorAccessibility.js';
 
 // Import styles (consumers should import this in their app)
 export const styles = '@repo/ui/styles.css';
