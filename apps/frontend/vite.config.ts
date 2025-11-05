@@ -23,6 +23,7 @@ export default defineConfig({
       "@shared/schema": path.resolve(import.meta.dirname, "../../packages/shared/dist/schema"),
       "@shared/settings-schema": path.resolve(import.meta.dirname, "../../packages/shared/dist/settings-schema"),
       "@repo/tokens": path.resolve(import.meta.dirname, "../../packages/tokens/dist"),
+      "@repo/ui": path.resolve(import.meta.dirname, "../../packages/ui/dist"),
     },
   },
   root: ".",

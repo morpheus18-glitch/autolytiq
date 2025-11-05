@@ -9,7 +9,7 @@ export default defineConfig({
   clean: true,
   minify: false,
   splitting: false,
-  external: ['react', 'react-dom'],
+  external: ['react', 'react-dom', '@repo/tokens', 'lucide-react', 'class-variance-authority'],
   banner: {
     js: '"use client";',
   },

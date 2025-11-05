@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { X } from 'lucide-react';
-import { Button } from './Button';
 
 const modalOverlayVariants = cva(
   'fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-200',

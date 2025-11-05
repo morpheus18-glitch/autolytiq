@@ -63,6 +63,7 @@ export interface PaginationProps extends VariantProps<typeof paginationVariants>
   boundaryCount?: number;
   disabled?: boolean;
   className?: string;
+  buttonVariant?: 'default' | 'ghost' | 'outline';
 }
 
 const Pagination = ({
@@ -76,6 +77,7 @@ const Pagination = ({
   disabled = false,
   variant = 'default',
   size = 'md',
+  buttonVariant = 'default',
   className,
 }: PaginationProps) => {
   const getPageNumbers = () => {
@@ -142,7 +144,7 @@ const Pagination = ({
         <button
           onClick={() => handlePageClick(1)}
           disabled={disabled || currentPage === 1}
-          className={paginationButtonVariants({ variant, size })}
+          className={paginationButtonVariants({ variant: buttonVariant, size })}
           aria-label="Go to first page"
         >
           <ChevronsLeft className="w-4 h-4" />
@@ -153,7 +155,7 @@ const Pagination = ({
         <button
           onClick={() => handlePageClick(currentPage - 1)}
           disabled={disabled || currentPage === 1}
-          className={paginationButtonVariants({ variant, size })}
+          className={paginationButtonVariants({ variant: buttonVariant, size })}
           aria-label="Go to previous page"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -165,7 +167,7 @@ const Pagination = ({
           return (
             <span
               key={`dots-${index}`}
-              className={paginationButtonVariants({ variant, size })}
+              className={paginationButtonVariants({ variant: buttonVariant, size })}
             >
               <MoreHorizontal className="w-4 h-4" />
             </span>
@@ -179,7 +181,7 @@ const Pagination = ({
             onClick={() => handlePageClick(pageNumber)}
             disabled={disabled}
             className={paginationButtonVariants({
-              variant,
+              variant: buttonVariant,
               size,
               active: pageNumber === currentPage,
             })}
@@ -195,7 +197,7 @@ const Pagination = ({
         <button
           onClick={() => handlePageClick(currentPage + 1)}
           disabled={disabled || currentPage === totalPages}
-          className={paginationButtonVariants({ variant, size })}
+          className={paginationButtonVariants({ variant: buttonVariant, size })}
           aria-label="Go to next page"
         >
           <ChevronRight className="w-4 h-4" />
@@ -206,7 +208,7 @@ const Pagination = ({
         <button
           onClick={() => handlePageClick(totalPages)}
           disabled={disabled || currentPage === totalPages}
-          className={paginationButtonVariants({ variant, size })}
+          className={paginationButtonVariants({ variant: buttonVariant, size })}
           aria-label="Go to last page"
         >
           <ChevronsRight className="w-4 h-4" />

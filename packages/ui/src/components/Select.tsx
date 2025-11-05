@@ -24,7 +24,7 @@ const selectVariants = cva(
 );
 
 export interface SelectProps
-  extends React.SelectHTMLAttributes<HTMLSelectElement>,
+  extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'>,
     VariantProps<typeof selectVariants> {
   error?: boolean;
   options?: Array<{ value: string; label: string; disabled?: boolean }>;
