@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
+import { useDealStudioLauncher } from '@/hooks/useDealStudioLauncher';
 import {
   Search,
   Filter,
@@ -18,7 +19,8 @@ import {
   Edit,
   Share2,
   Tag,
-  AlertCircle
+  AlertCircle,
+  Calculator
 } from 'lucide-react';
 import type { Vehicle } from '@shared/schema';
 
@@ -26,6 +28,7 @@ export default function Inventory() {
   const { toast } = useToast();
   const { trackInteraction } = usePixelTracker();
   const [, setLocation] = useLocation();
+  const { openDealStudio } = useDealStudioLauncher();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
@@ -419,15 +422,17 @@ export default function Inventory() {
 
               {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-3">
-                <button 
+                <button
                   onClick={() => {
                     setSelectedVehicle(null);
-                    setLocation(`/professional-deal-desk?vehicleId=${selectedVehicle.id}`);
+                    trackInteraction('start_deal_from_inventory', { vehicleId: selectedVehicle.id });
+                    openDealStudio({ vehicleId: selectedVehicle.id });
                   }}
-                  className="py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+                  className="py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-colors flex items-center justify-center gap-2"
                   data-testid="button-create-deal"
                 >
-                  Create Deal
+                  <Calculator className="w-4 h-4" />
+                  Start Deal
                 </button>
                 <button 
                   onClick={() => {

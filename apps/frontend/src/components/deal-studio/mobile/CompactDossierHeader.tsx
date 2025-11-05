@@ -10,6 +10,8 @@ import { User, Car, Info, ChevronDown } from 'lucide-react';
 import { getCreditScoreColor } from '@/design-tokens/deal-studio';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { CustomerDetailModal } from '../shared/CustomerDetailModal';
+import { VehicleDetailModal } from '../shared/VehicleDetailModal';
 
 export interface CompactDossierHeaderProps {
   /** Callback to open full dossier details */
@@ -24,6 +26,8 @@ export function CompactDossierHeader({
 }: CompactDossierHeaderProps) {
   const { deal } = useDealStudio();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [showVehicleModal, setShowVehicleModal] = useState(false);
 
   const creditColor = getCreditScoreColor(deal.creditScore);
 
@@ -34,19 +38,25 @@ export function CompactDossierHeader({
   const daysOnLot = 58; // Mock
 
   return (
-    <div className={cn('bg-white border-b border-slate-200 shadow-sm', className)}>
-      {/* Main Header - Always Visible */}
-      <div className="px-4 py-3">
-        <div className="flex items-center justify-between">
-          {/* Customer Info */}
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-              <User className="h-4 w-4 text-white" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold text-slate-900 truncate">
-                {customerName}
+    <>
+      <div className={cn('bg-white border-b border-slate-200 shadow-sm', className)}>
+        {/* Main Header - Always Visible */}
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between">
+            {/* Customer Info - Clickable */}
+            <button
+              onClick={() => deal.customerId && setShowCustomerModal(true)}
+              className="flex items-center gap-2 min-w-0 flex-1 text-left hover:bg-slate-50 rounded-lg p-1 -m-1 transition-colors"
+              disabled={!deal.customerId}
+            >
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <User className="h-4 w-4 text-white" />
               </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold text-slate-900 truncate">
+                  {customerName}
+                  {deal.customerId && <span className="text-xs text-blue-600 ml-1">ⓘ</span>}
+                </div>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="text-xs text-slate-500">FICO:</span>
                 <div
@@ -60,9 +70,9 @@ export function CompactDossierHeader({
                 </div>
               </div>
             </div>
-          </div>
+            </button>
 
-          {/* Expand Button */}
+            {/* Expand Button */}
           <button
             onClick={() => {
               setIsExpanded(!isExpanded);
@@ -74,11 +84,16 @@ export function CompactDossierHeader({
           </button>
         </div>
 
-        {/* Vehicle Info - Second Row */}
-        <div className="flex items-center gap-2 mt-2">
+        {/* Vehicle Info - Second Row - Clickable */}
+        <button
+          onClick={() => deal.vehicleId && setShowVehicleModal(true)}
+          className="flex items-center gap-2 mt-2 w-full hover:bg-slate-50 rounded-lg p-1 -m-1 transition-colors text-left"
+          disabled={!deal.vehicleId}
+        >
           <Car className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
           <div className="text-xs text-slate-600 truncate flex-1">
             {vehicleName}
+            {deal.vehicleId && <span className="text-xs text-purple-600 ml-1">ⓘ</span>}
           </div>
           <div className="flex items-center gap-2 text-xs flex-shrink-0">
             <span className="text-slate-500">
@@ -88,7 +103,7 @@ export function CompactDossierHeader({
               {daysOnLot}d
             </span>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Expanded Details - Collapsible */}
@@ -176,6 +191,25 @@ export function CompactDossierHeader({
           </button>
         </div>
       )}
-    </div>
+      </div>
+
+      {/* Customer Detail Modal */}
+      {deal.customerId && (
+        <CustomerDetailModal
+          customerId={deal.customerId}
+          isOpen={showCustomerModal}
+          onClose={() => setShowCustomerModal(false)}
+        />
+      )}
+
+      {/* Vehicle Detail Modal */}
+      {deal.vehicleId && (
+        <VehicleDetailModal
+          vehicleId={deal.vehicleId}
+          isOpen={showVehicleModal}
+          onClose={() => setShowVehicleModal(false)}
+        />
+      )}
+    </>
   );
 }

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
+import { useDealStudioLauncher } from '@/hooks/useDealStudioLauncher';
 import {
   User,
   Phone,
@@ -16,7 +17,8 @@ import {
   Star,
   Bell,
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  Calculator
 } from 'lucide-react';
 import type { Customer } from '@shared/schema';
 
@@ -25,7 +27,8 @@ export default function Customers() {
   const queryClient = useQueryClient();
   const { trackInteraction } = usePixelTracker();
   const [, setLocation] = useLocation();
-  
+  const { openDealStudio } = useDealStudioLauncher();
+
   const [selectedFilter, setSelectedFilter] = useState('all');
 
   const { data: customers = [], isLoading, error } = useQuery<Customer[]>({
@@ -151,15 +154,30 @@ export default function Customers() {
         </div>
       </div>
 
-      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-          <span className="text-sm font-semibold">Score: {getCustomerScore(customer)}</span>
+      <div className="mt-3 pt-3 border-t border-gray-100">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+            <span className="text-sm font-semibold">Score: {getCustomerScore(customer)}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm font-semibold text-green-600">
+            <DollarSign className="w-4 h-4" />
+            {(getLifetimeValue(customer) / 1000).toFixed(0)}K LTV
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-sm font-semibold text-green-600">
-          <DollarSign className="w-4 h-4" />
-          {(getLifetimeValue(customer) / 1000).toFixed(0)}K LTV
-        </div>
+
+        {/* Start Deal Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            trackInteraction('start_deal', { customerId: customer.id });
+            openDealStudio({ customerId: customer.id });
+          }}
+          className="w-full py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold text-sm hover:from-blue-700 hover:to-purple-700 transition-all flex items-center justify-center gap-2 shadow-md"
+        >
+          <Calculator className="w-4 h-4" />
+          Start Deal
+        </button>
       </div>
     </div>
   );
