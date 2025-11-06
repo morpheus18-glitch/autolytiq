@@ -38,6 +38,11 @@
     --brand-ember: 25 95% 53%;
     --brand-aurora: 199 89% 48%;
     --brand-ultraviolet: 258 90% 66%;
+    --surface-base: 214 47% 97%;
+    --surface-muted: 217 42% 94%;
+    --surface-strong: 0 0% 100%;
+    --surface-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.75));
+    --surface-highlight: 252 95% 85%;
   }
 
   .dark {
@@ -63,6 +68,11 @@
     --brand-ember: 25 95% 53%;
     --brand-aurora: 199 89% 58%;
     --brand-ultraviolet: 258 90% 66%;
+    --surface-base: 222 47% 11%;
+    --surface-muted: 217 33% 17%;
+    --surface-strong: 220 13% 18%;
+    --surface-glass: linear-gradient(135deg, rgba(38, 43, 61, 0.92), rgba(46, 53, 72, 0.85));
+    --surface-highlight: 258 70% 45%;
   }
 
   html {
