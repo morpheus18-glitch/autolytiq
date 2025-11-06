@@ -29,6 +29,7 @@ const DealCalculator = lazy(() => import('@/pages/desking/DealCalculator'));
 const DealStudioDemo = lazy(() => import('@/pages/deal-studio-demo'));
 const DealStudioMobileDemo = lazy(() => import('@/pages/deal-studio-mobile-demo'));
 const DealStudio = lazy(() => import('@/pages/deal-studio'));
+const NotesDemo = lazy(() => import('@/pages/notes-demo'));
 
 // Admin pages
 const AdminUsers = lazy(() => import('@/pages/admin/users'));
@@ -204,6 +205,7 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/deal-studio-mobile-demo', component: DealStudioMobileDemo },
   { path: '/deal-studio', component: DealStudio },
   { path: '/deal-studio/:dealId', component: DealStudio },
+  { path: '/notes-demo', component: NotesDemo },
 
   // Dashboard routes (role-based)
   { path: '/dashboard/sales', component: DashboardSales },

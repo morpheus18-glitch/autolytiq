@@ -38,6 +38,7 @@ export { Label, labelVariants, type LabelProps } from './components/Label.js';
 export { FormField, formFieldVariants, formDescriptionVariants, type FormFieldProps } from './components/FormField.js';
 export { Slider } from './components/Slider.js';
 export { Calendar, type CalendarProps } from './components/Calendar.js';
+export { Notes, notesVariants, type NotesProps, type Note, type NoteContext } from './components/Notes.js';
 
 // Tier 2: Data Display Components
 export {
