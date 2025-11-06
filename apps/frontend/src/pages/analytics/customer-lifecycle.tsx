@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Input, Badge, Tabs, TabsContent, TabsList, TabsTrigger, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Select, Progress, StatCard } from "@repo/ui";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Input, Badge, Tabs, TabsContent, TabsList, TabsTrigger, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Progress, StatCard } from "@repo/ui";
+import { Select } from "@/components/ui/select";
 import { Search, Filter, Download, Eye, TrendingUp, Globe, Clock, Target, Users, Activity } from "lucide-react";
 
 const customerJourneyData = [

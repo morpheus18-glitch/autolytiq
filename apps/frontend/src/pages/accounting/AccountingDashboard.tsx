@@ -77,9 +77,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@repo/ui';
 import { parseEmailAddresses } from '@/lib/email';
-import { Select, Textarea } from '@repo/ui';
+import { Textarea } from '@repo/ui';
 // TODO: Migrate to Radix Select when available in @repo/ui
-import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label as FormLabel } from '@repo/ui';
 import { Input } from '@repo/ui';
 import { Checkbox } from '@repo/ui';

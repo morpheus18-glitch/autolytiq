@@ -35,7 +35,7 @@ export { QuickAction, type QuickActionProps } from './components/QuickAction.js'
 export { Progress, progressVariants, progressBarVariants, type ProgressProps } from './components/Progress.js';
 
 // Tier 1: Form Components
-export { Select, selectVariants, type SelectProps } from './components/Select.js';
+// export { Select, selectVariants, type SelectProps } from './components/Select.js'; // TODO: Promote from app
 export { Textarea, textareaVariants, type TextareaProps } from './components/Textarea.js';
 export { Checkbox, checkboxVariants, type CheckboxProps } from './components/Checkbox.js';
 export { Radio, RadioGroup, radioVariants, type RadioProps, type RadioGroupProps } from './components/Radio.js';
