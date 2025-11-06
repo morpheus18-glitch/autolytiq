@@ -1,8 +1,16 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import {
+  Button,
+  Badge,
+  Card,
+  CardContent,
+  Alert,
+  Avatar,
+  PageHeader,
+  StatCard
+} from '@repo/ui';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
@@ -86,13 +94,13 @@ export default function Customers() {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string) => {
     switch (status) {
-      case 'hot': return 'bg-red-100 text-red-700';
-      case 'warm': return 'bg-orange-100 text-orange-700';
-      case 'cold': return 'bg-blue-100 text-blue-700';
-      case 'customer': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'hot': return 'error' as const;
+      case 'warm': return 'warning' as const;
+      case 'cold': return 'info' as const;
+      case 'customer': return 'success' as const;
+      default: return 'secondary' as const;
     }
   };
 
@@ -110,157 +118,154 @@ export default function Customers() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Error Loading Customers</h3>
-          <p className="text-gray-600 mb-4">Unable to load customer data</p>
-          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/customers'] })}>
-            Try Again
-          </Button>
-        </div>
+        <Alert variant="error" className="max-w-md">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Error Loading Customers</h3>
+            <p className="mb-4">Unable to load customer data</p>
+            <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/customers'] })}>
+              Try Again
+            </Button>
+          </div>
+        </Alert>
       </div>
     );
   }
 
   const CustomerCard = ({ customer }: { customer: Customer }) => (
-    <div 
+    <Card
       onClick={() => {
         trackInteraction('customer_view', { customerId: customer.id });
         setLocation(`/customers/${customer.id}`);
       }}
-      className="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer"
+      hover
+      className="cursor-pointer"
       data-testid={`card-customer-${customer.id}`}
     >
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold">
-            {getInitials(customer.firstName, customer.lastName)}
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <Avatar size="md" className="bg-gradient-to-br from-blue-500 to-blue-600">
+              {getInitials(customer.firstName, customer.lastName)}
+            </Avatar>
+            <div>
+              <h3 className="font-bold">{customer.firstName} {customer.lastName}</h3>
+              <p className="text-sm text-text-secondary">{customer.email}</p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-bold">{customer.firstName} {customer.lastName}</h3>
-            <p className="text-sm text-gray-500">{customer.email}</p>
-          </div>
+          <Badge variant={getStatusVariant(customer.status || 'prospect')}>
+            {getStatusLabel(customer.status || 'prospect')}
+          </Badge>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(customer.status || 'prospect')}`}>
-          {getStatusLabel(customer.status || 'prospect')}
-        </span>
-      </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Clock className="w-4 h-4" />
-          <span>Last contact: {customer.lastContactDate ? new Date(customer.lastContactDate).toLocaleDateString() : '2 hours ago'}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Calendar className="w-4 h-4" />
-          <span>Next follow-up: {customer.nextFollowUpDate ? new Date(customer.nextFollowUpDate).toLocaleDateString() : 'Today, 3:00 PM'}</span>
-        </div>
-      </div>
-
-      <div className="mt-3 pt-3 border-t border-gray-100">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-            <span className="text-sm font-semibold">Score: {getCustomerScore(customer)}</span>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm text-text-secondary">
+            <Clock className="w-4 h-4" />
+            <span>Last contact: {customer.lastContactDate ? new Date(customer.lastContactDate).toLocaleDateString() : '2 hours ago'}</span>
           </div>
-          <div className="flex items-center gap-2 text-sm font-semibold text-green-600">
-            <DollarSign className="w-4 h-4" />
-            {(getLifetimeValue(customer) / 1000).toFixed(0)}K LTV
+          <div className="flex items-center gap-2 text-sm text-text-secondary">
+            <Calendar className="w-4 h-4" />
+            <span>Next follow-up: {customer.nextFollowUpDate ? new Date(customer.nextFollowUpDate).toLocaleDateString() : 'Today, 3:00 PM'}</span>
           </div>
         </div>
 
-        {/* Start Deal Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            trackInteraction('start_deal', { customerId: customer.id });
-            openDealStudio({ customerId: customer.id });
-          }}
-          className="w-full py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold text-sm hover:from-blue-700 hover:to-purple-700 transition-all flex items-center justify-center gap-2 shadow-md"
-        >
-          <Calculator className="w-4 h-4" />
-          Start Deal
-        </button>
-      </div>
-    </div>
+        <div className="mt-3 pt-3 border-t border-border-base">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+              <span className="text-sm font-semibold">Score: {getCustomerScore(customer)}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm font-semibold text-status-success">
+              <DollarSign className="w-4 h-4" />
+              {(getLifetimeValue(customer) / 1000).toFixed(0)}K LTV
+            </div>
+          </div>
+
+          {/* Start Deal Button */}
+          <Button
+            variant="primary"
+            className="w-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              trackInteraction('start_deal', { customerId: customer.id });
+              openDealStudio({ customerId: customer.id });
+            }}
+          >
+            <Calculator className="w-4 h-4 mr-2" />
+            Start Deal
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 
   return (
-    <div className="bg-gray-50">
+    <div className="bg-surface-base min-h-screen">
       {/* Header */}
       <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg sticky top-0 z-50">
         <div className="px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold" data-testid="text-page-title">Customer CRM</h1>
             <div className="flex items-center gap-2">
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => setShowCustomerForm(true)}
-                className="px-4 py-2 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-colors flex items-center gap-2 shadow-md"
                 data-testid="button-add-customer"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4 mr-2" />
                 Add Customer
-              </button>
-              <button className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center" data-testid="button-notifications">
+              </Button>
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" data-testid="button-notifications">
                 <Bell className="w-5 h-5" />
-              </button>
+              </Button>
             </div>
           </div>
 
           {/* Quick Stats */}
           <div className="grid grid-cols-3 gap-2 mb-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3" data-testid="stat-total-leads">
-              <div className="text-2xl font-bold">{totalLeads}</div>
-              <div className="text-xs text-indigo-100">Total Leads</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3" data-testid="stat-hot-leads">
-              <div className="text-2xl font-bold">{hotLeads}</div>
-              <div className="text-xs text-indigo-100">Hot Leads</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3" data-testid="stat-due-today">
-              <div className="text-2xl font-bold">{dueToday}</div>
-              <div className="text-xs text-indigo-100">Due Today</div>
-            </div>
+            <StatCard label="Total Leads" value={totalLeads} variant="glass" data-testid="stat-total-leads" />
+            <StatCard label="Hot Leads" value={hotLeads} variant="glass" data-testid="stat-hot-leads" />
+            <StatCard label="Due Today" value={dueToday} variant="glass" data-testid="stat-due-today" />
           </div>
 
           {/* Filter Pills */}
           <div className="flex gap-2 overflow-x-auto pb-2">
-            <button 
+            <Button
+              variant={selectedFilter === 'all' ? 'secondary' : 'ghost'}
+              size="sm"
               onClick={() => setSelectedFilter('all')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
-                selectedFilter === 'all' ? 'bg-white text-indigo-600' : 'bg-white/10 text-white hover:bg-white/20'
-              }`}
+              className={selectedFilter === 'all' ? '' : 'text-white hover:bg-white/20'}
               data-testid="filter-all-customers"
             >
               All Customers
-            </button>
-            <button 
+            </Button>
+            <Button
+              variant={selectedFilter === 'hot' ? 'secondary' : 'ghost'}
+              size="sm"
               onClick={() => setSelectedFilter('hot')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
-                selectedFilter === 'hot' ? 'bg-white text-indigo-600' : 'bg-white/10 text-white hover:bg-white/20'
-              }`}
+              className={selectedFilter === 'hot' ? '' : 'text-white hover:bg-white/20'}
               data-testid="filter-hot-leads"
             >
               Hot Leads
-            </button>
-            <button 
+            </Button>
+            <Button
+              variant={selectedFilter === 'due-today' ? 'secondary' : 'ghost'}
+              size="sm"
               onClick={() => setSelectedFilter('due-today')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
-                selectedFilter === 'due-today' ? 'bg-white text-indigo-600' : 'bg-white/10 text-white hover:bg-white/20'
-              }`}
+              className={selectedFilter === 'due-today' ? '' : 'text-white hover:bg-white/20'}
               data-testid="filter-followup-today"
             >
               Follow-up Today
-            </button>
-            <button 
+            </Button>
+            <Button
+              variant={selectedFilter === 'active-deals' ? 'secondary' : 'ghost'}
+              size="sm"
               onClick={() => setSelectedFilter('active-deals')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
-                selectedFilter === 'active-deals' ? 'bg-white text-indigo-600' : 'bg-white/10 text-white hover:bg-white/20'
-              }`}
+              className={selectedFilter === 'active-deals' ? '' : 'text-white hover:bg-white/20'}
               data-testid="filter-active-deals"
             >
               Active Deals
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -277,9 +282,9 @@ export default function Customers() {
               <CustomerCard key={customer.id} customer={customer} />
             ))}
             {filteredCustomers.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <User className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p>No customers found</p>
+              <div className="text-center py-12">
+                <User className="w-12 h-12 mx-auto mb-3 text-text-tertiary" />
+                <p className="text-text-secondary">No customers found</p>
               </div>
             )}
           </div>
