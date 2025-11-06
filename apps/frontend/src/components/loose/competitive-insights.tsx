@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Target, TrendingUp, TrendingDown, BarChart3, ExternalLink } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import type { CompetitivePricing, PricingInsights, MarketTrends } from "@shared/schema";
 
 export default function CompetitiveInsights() {

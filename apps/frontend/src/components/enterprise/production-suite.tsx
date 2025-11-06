@@ -25,7 +25,7 @@ import {
   Smartphone,
   Monitor
 } from "lucide-react";
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 
 interface ProductionModuleProps {
   title: string;

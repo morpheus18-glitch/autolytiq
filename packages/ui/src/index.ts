@@ -167,6 +167,12 @@ export { TenantSwitcher, type TenantSwitcherProps, type Tenant } from './compone
 export { ListDetailLayout, type ListDetailLayoutProps } from './layouts/ListDetailLayout.js';
 export { FullDensityLayout, type FullDensityLayoutProps } from './layouts/FullDensityLayout.js';
 export { FocusStudioLayout, type FocusStudioLayoutProps } from './layouts/FocusStudioLayout.js';
+export { ShowroomManagerLayout, type ShowroomManagerLayoutProps } from './layouts/ShowroomManagerLayout.js';
+
+// Domain Entity Cards (Phase 4-5)
+export { VehicleCard, type VehicleCardProps, type VehicleSummary } from './components/VehicleCard.js';
+export { CustomerCard, type CustomerCardProps, type CustomerSummary } from './components/CustomerCard.js';
+export { QuickView, type QuickViewProps } from './components/QuickView.js';
 
 // Hooks (Legacy - will be deprecated)
 export {
