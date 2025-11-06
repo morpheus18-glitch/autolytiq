@@ -1,11 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, Alert } from "@repo/ui";
 
 export default function Dashboard() {
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1.5rem' }}>
+      <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>Dashboard</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
         <Card>
           <CardHeader>
             <CardTitle>Welcome</CardTitle>
@@ -20,7 +20,7 @@ export default function Dashboard() {
             <CardTitle>System Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-green-600">All systems operational</p>
+            <Alert variant="success">All systems operational</Alert>
           </CardContent>
         </Card>
 

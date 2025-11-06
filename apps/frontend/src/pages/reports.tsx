@@ -4,7 +4,8 @@ import {
   Card,
   CardContent,
   Button,
-  Badge
+  Badge,
+  StatCard
 } from '@repo/ui';
 import {
   FileText,
@@ -106,14 +107,14 @@ export default function ReportsOverview() {
   return (
     <div>
       <PageHeader
-        icon={<FileText className="w-6 h-6" />}
+        icon={<FileText style={{ width: '1.5rem', height: '1.5rem' }} />}
         title="Reports Center"
         description="Access and generate business intelligence reports"
         actions={
-          <div className="hidden lg:flex gap-2">
+          <div style={{ display: 'none' }}>
             {quickActions.map((action, idx) => (
               <Button key={idx} variant="outline" size="md">
-                <action.icon className="w-4 h-4 mr-2" />
+                <action.icon style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
                 {action.label}
               </Button>
             ))}
@@ -121,36 +122,35 @@ export default function ReportsOverview() {
         }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <h2 className="text-xl font-bold text-neutral-900 mb-4">Report Categories</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
+        <div style={{ gridColumn: 'span 2' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Report Categories</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
             {reportCategories.map((category, idx) => {
               const Icon = category.icon;
               return (
-                <Link key={idx} href={category.href}>
-                  <a className="block no-underline">
+                <Link key={idx} to={category.href} style={{ textDecoration: 'none', display: 'block' }}>
                     <Card padding="lg" hover>
                       <CardContent>
-                        <div className="flex items-start gap-4 mb-4">
-                          <div className="p-3 rounded-xl bg-neutral-100 flex-shrink-0">
-                            <Icon className="w-6 h-6 text-neutral-700" />
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1rem' }}>
+                          <div style={{ padding: '0.75rem', borderRadius: '0.75rem', flexShrink: 0 }}>
+                            <Icon style={{ width: '1.5rem', height: '1.5rem' }} />
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-neutral-900 mb-1">
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <h3 style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
                               {category.title}
                             </h3>
-                            <p className="text-sm text-neutral-600">{category.description}</p>
+                            <p style={{ fontSize: '0.875rem' }}>{category.description}</p>
                           </div>
                         </div>
-                        <div className="border-t border-neutral-200 pt-4">
-                          <p className="text-xs font-medium text-neutral-700 mb-2">
+                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+                          <p style={{ fontSize: '0.75rem', fontWeight: 500, marginBottom: '0.5rem' }}>
                             Available Reports:
                           </p>
-                          <ul className="flex flex-col gap-1">
+                          <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', listStyle: 'none', padding: 0 }}>
                             {category.reports.map((report, ridx) => (
-                              <li key={ridx} className="text-sm text-neutral-600 flex items-center gap-2">
-                                <div className="w-1 h-1 bg-neutral-400 rounded-full" />
+                              <li key={ridx} style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <div style={{ width: '0.25rem', height: '0.25rem', borderRadius: '9999px' }} />
                                 {report}
                               </li>
                             ))}
@@ -158,7 +158,6 @@ export default function ReportsOverview() {
                         </div>
                       </CardContent>
                     </Card>
-                  </a>
                 </Link>
               );
             })}
@@ -166,62 +165,56 @@ export default function ReportsOverview() {
         </div>
 
         <div>
-          <h2 className="text-xl font-bold text-neutral-900 mb-4">Recent Reports</h2>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Recent Reports</h2>
           <Card padding="none">
             <CardContent>
-              <div className="flex flex-col">
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {recentReports.map((report, idx) => (
                   <div
                     key={idx}
-                    className="p-4 hover:bg-neutral-50 transition-colors"
+                    style={{ padding: '1rem', transition: 'background-color 0.2s' }}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-neutral-900 text-sm mb-1">
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h3 style={{ fontWeight: 500, fontSize: '0.875rem', marginBottom: '0.25rem' }}>
                           {report.name}
                         </h3>
-                        <div className="flex items-center gap-3 text-xs text-neutral-600">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.75rem' }}>
                           <span>{report.type}</span>
                           <span>•</span>
                           <span>{report.date}</span>
                         </div>
-                        <p className="text-xs text-neutral-500 mt-1">{report.size}</p>
+                        <p style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>{report.size}</p>
                       </div>
-                      <div className="flex gap-2 flex-shrink-0">
-                        <button className="p-2 hover:bg-neutral-200 rounded-lg transition-colors">
-                          <Eye className="w-4 h-4 text-neutral-600" />
-                        </button>
-                        <button className="p-2 hover:bg-neutral-200 rounded-lg transition-colors">
-                          <Download className="w-4 h-4 text-neutral-600" />
-                        </button>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                        <Button variant="ghost" size="sm">
+                          <Eye style={{ width: '1rem', height: '1rem' }} />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Download style={{ width: '1rem', height: '1rem' }} />
+                        </Button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="p-4 border-t border-neutral-200">
-                <button className="w-full text-center text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors">
+              <div style={{ padding: '1rem', borderTop: '1px solid var(--border)' }}>
+                <Button variant="ghost" style={{ width: '100%' }}>
                   View All Reports →
-                </button>
+                </Button>
               </div>
             </CardContent>
           </Card>
 
-          <div className="mt-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
-            <div className="flex items-start gap-3 mb-4">
-              <TrendingUp className="w-5 h-5 flex-shrink-0" />
-              <div>
-                <h3 className="font-bold mb-1">Performance Insights</h3>
-                <p className="text-sm opacity-90">
-                  Reports generated this month
-                </p>
-              </div>
-            </div>
-            <p className="text-4xl font-bold mb-2">127</p>
-            <p className="text-sm opacity-90">
-              +23% vs last month
-            </p>
-          </div>
+          <StatCard
+            label="Reports generated this month"
+            value="127"
+            change="+23% vs last month"
+            icon={<TrendingUp style={{ width: '1.25rem', height: '1.25rem' }} />}
+            iconBg="bg-accent-primary/10"
+            iconColor="text-accent-primary"
+            style={{ marginTop: '1.5rem' }}
+          />
         </div>
       </div>
     </div>

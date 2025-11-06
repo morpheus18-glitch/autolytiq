@@ -13,13 +13,27 @@ import {
   Users,
   Zap
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Progress,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Select,
+} from '@repo/ui';
 import { Link } from "wouter";
 
 interface LeadChannel {
@@ -932,17 +946,15 @@ export default function CRMLeadManagement() {
                   </Badge>
                 </div>
                 <CardDescription>Segment customers and drill into unified profile records.</CardDescription>
-                <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select customer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {customerProfiles.map((profile) => (
-                      <SelectItem key={profile.id} value={profile.id}>
-                        {profile.name} · {profile.stage}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                <Select
+                  value={selectedCustomerId}
+                  onChange={(e) => setSelectedCustomerId(e.target.value)}
+                >
+                  {customerProfiles.map((profile) => (
+                    <option key={profile.id} value={profile.id}>
+                      {profile.name} · {profile.stage}
+                    </option>
+                  ))}
                 </Select>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -1101,17 +1113,16 @@ export default function CRMLeadManagement() {
                 <CardTitle>Omnichannel Interaction Ledger</CardTitle>
                 <CardDescription>Chronological customer engagements with sentiment tracking.</CardDescription>
               </div>
-              <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
-                <SelectTrigger className="w-[240px]">
-                  <SelectValue placeholder="Select customer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {customerProfiles.map((profile) => (
-                    <SelectItem key={profile.id} value={profile.id}>
-                      {profile.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+              <Select
+                value={selectedCustomerId}
+                onChange={(e) => setSelectedCustomerId(e.target.value)}
+                className="w-[240px]"
+              >
+                {customerProfiles.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.name}
+                  </option>
+                ))}
               </Select>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -1175,17 +1186,16 @@ export default function CRMLeadManagement() {
                   <CardTitle>Automated Campaign Orchestration</CardTitle>
                   <CardDescription>AI-driven journeys powering nurture, equity, and retention workflows.</CardDescription>
                 </div>
-                <Select value={selectedCampaignId} onValueChange={setSelectedCampaignId}>
-                  <SelectTrigger className="w-[240px]">
-                    <SelectValue placeholder="Select campaign" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {campaignPlaybooks.map((campaign) => (
-                      <SelectItem key={campaign.id} value={campaign.id}>
-                        {campaign.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                <Select
+                  value={selectedCampaignId}
+                  onChange={(e) => setSelectedCampaignId(e.target.value)}
+                  className="w-[240px]"
+                >
+                  {campaignPlaybooks.map((campaign) => (
+                    <option key={campaign.id} value={campaign.id}>
+                      {campaign.name}
+                    </option>
+                  ))}
                 </Select>
               </CardHeader>
               <CardContent className="space-y-4">

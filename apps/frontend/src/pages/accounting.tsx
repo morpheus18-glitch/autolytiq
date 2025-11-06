@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'wouter';
 import {
   PageHeader,
   StatCard,
@@ -154,49 +154,45 @@ export default function AccountingOverview() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <h2 className="text-xl font-bold text-neutral-900 mb-4">Quick Access</h2>
+          <h2 className="text-xl font-bold mb-4">Quick Access</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             {quickLinks.map((link, idx) => {
               const Icon = link.icon;
               return (
-                <Link key={idx} href={link.href}>
-                  <a className="block no-underline">
-                    <Card padding="lg" hover>
-                      <CardContent>
-                        <div className="flex items-start gap-4">
-                          <div className="p-3 rounded-xl bg-neutral-100 flex-shrink-0">
-                            <Icon className="w-6 h-6 text-neutral-700" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-neutral-900 mb-1">{link.title}</h3>
-                            <p className="text-sm text-neutral-600">{link.description}</p>
-                          </div>
+                <Link key={idx} to={link.href}>
+                  <Card padding="lg" hover>
+                    <CardContent>
+                      <div className="flex items-start gap-4">
+                        <Icon className="w-6 h-6 text-primary" />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold mb-1">{link.title}</h3>
+                          <p className="text-sm text-muted-foreground">{link.description}</p>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </a>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </Link>
               );
             })}
           </div>
 
-          <h2 className="text-xl font-bold text-neutral-900 mb-4">Recent Activity</h2>
+          <h2 className="text-xl font-bold mb-4">Recent Activity</h2>
           <Card padding="none">
             <CardContent>
               <div className="flex flex-col">
                 {recentActivity.map((activity, idx) => (
                   <div
                     key={idx}
-                    className="p-4 border-b border-neutral-200 last:border-b-0"
+                    className="p-4 border-b last:border-b-0"
                   >
                     <div className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-success-500 mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-neutral-900">{activity.event}</p>
+                        <p className="text-sm">{activity.event}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <p className="text-xs text-neutral-600">{activity.user}</p>
-                          <span className="text-xs text-neutral-400">•</span>
-                          <p className="text-xs text-neutral-500">{activity.time}</p>
+                          <p className="text-xs text-muted-foreground">{activity.user}</p>
+                          <span className="text-xs text-muted-foreground">•</span>
+                          <p className="text-xs text-muted-foreground">{activity.time}</p>
                         </div>
                       </div>
                     </div>
@@ -208,7 +204,7 @@ export default function AccountingOverview() {
         </div>
 
         <div>
-          <h2 className="text-xl font-bold text-neutral-900 mb-4">Pending Tasks</h2>
+          <h2 className="text-xl font-bold mb-4">Pending Tasks</h2>
           <div className="flex flex-col gap-4">
             {pendingTasks.map((task, idx) => {
               const Icon = task.priority === 'high' ? AlertCircle : Clock;
@@ -219,19 +215,19 @@ export default function AccountingOverview() {
                     <div className="flex items-start gap-3">
                       <Icon
                         className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-                          task.priority === 'high' ? 'text-error-500' : 'text-neutral-400'
+                          task.priority === 'high' ? 'text-error' : 'text-muted-foreground'
                         }`}
                       />
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-bold text-neutral-900 mb-1">
+                        <h3 className="text-sm font-bold mb-1">
                           {task.title}
                         </h3>
-                        <p className="text-xs text-neutral-600 mb-2">{task.dueDate}</p>
+                        <p className="text-xs text-muted-foreground mb-2">{task.dueDate}</p>
                         <div className="flex items-center gap-2">
                           <Badge variant={getPriorityVariant(task.priority)}>
                             {task.priority}
                           </Badge>
-                          <span className="text-xs text-neutral-600">{task.status}</span>
+                          <span className="text-xs text-muted-foreground">{task.status}</span>
                         </div>
                       </div>
                     </div>
@@ -241,10 +237,10 @@ export default function AccountingOverview() {
             })}
           </div>
 
-          <Link href="/accounting/dashboard">
-            <a className="mt-6 block w-full text-center px-4 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl font-medium shadow-lg hover:opacity-90 transition-opacity no-underline">
+          <Link to="/accounting/dashboard" className="mt-6 block">
+            <button className="w-full text-center px-4 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl font-medium shadow-lg hover:opacity-90 transition-opacity">
               Go to Full Dashboard
-            </a>
+            </button>
           </Link>
         </div>
       </div>

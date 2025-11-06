@@ -1,13 +1,6 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Input, Badge, Tabs, TabsContent, TabsList, TabsTrigger, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Select, Progress, StatCard } from "@repo/ui";
 import { Search, Filter, Download, Eye, TrendingUp, Globe, Clock, Target, Users, Activity } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
 
 const customerJourneyData = [
   {
@@ -152,232 +145,199 @@ export default function CustomerLifecycleTracking() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Customer Lifecycle Tracking</h1>
-          <p className="text-gray-600 mt-1">Track every online shopper's journey from awareness to purchase</p>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Customer Lifecycle Tracking</h1>
+          <p style={{ marginTop: '0.25rem' }}>Track every online shopper's journey from awareness to purchase</p>
         </div>
-        <div className="flex space-x-3">
-          <Button variant="outline" className="flex items-center space-x-2">
-            <Download className="h-4 w-4" />
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <Button variant="outline">
+            <Download style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
             <span>Export Journey Data</span>
           </Button>
-          <Button className="btn-embossed flex items-center space-x-2">
-            <Target className="h-4 w-4" />
+          <Button>
+            <Target style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
             <span>Setup Tracking</span>
           </Button>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Tracked Customers</p>
-                <p className="text-2xl font-bold text-gray-900">{aggregatedInsights.totalTrackedCustomers.toLocaleString()}</p>
-                <p className="text-sm text-green-600 flex items-center">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +23% this month
-                </p>
-              </div>
-              <Users className="h-8 w-8 text-gray-400" />
-            </div>
-          </CardContent>
-        </Card>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+        <StatCard
+          label="Tracked Customers"
+          value={aggregatedInsights.totalTrackedCustomers.toLocaleString()}
+          change="+23% this month"
+          icon={<Users />}
+        />
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Avg Journey Length</p>
-                <p className="text-2xl font-bold text-blue-600">{aggregatedInsights.averageJourneyLength}</p>
-                <p className="text-sm text-blue-600">From first visit to purchase</p>
-              </div>
-              <Clock className="h-8 w-8 text-gray-400" />
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          label="Avg Journey Length"
+          value={aggregatedInsights.averageJourneyLength}
+          change="From first visit to purchase"
+          icon={<Clock />}
+          iconBg="bg-accent-primary/10"
+          iconColor="text-accent-primary"
+        />
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Conversion Rate</p>
-                <p className="text-2xl font-bold text-green-600">{aggregatedInsights.conversionRate}%</p>
-                <p className="text-sm text-green-600 flex items-center">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +2.3% vs last month
-                </p>
-              </div>
-              <Target className="h-8 w-8 text-gray-400" />
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          label="Conversion Rate"
+          value={`${aggregatedInsights.conversionRate}%`}
+          change="+2.3% vs last month"
+          icon={<Target />}
+          iconBg="bg-accent-success/10"
+          iconColor="text-accent-success"
+        />
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Avg Sessions</p>
-                <p className="text-2xl font-bold text-purple-600">{aggregatedInsights.averageSessionsBeforePurchase}</p>
-                <p className="text-sm text-purple-600">Before purchase</p>
-              </div>
-              <Activity className="h-8 w-8 text-gray-400" />
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          label="Avg Sessions"
+          value={aggregatedInsights.averageSessionsBeforePurchase}
+          change="Before purchase"
+          icon={<Activity />}
+          iconBg="bg-accent-warning/10"
+          iconColor="text-accent-warning"
+        />
       </div>
 
-      <Tabs defaultValue="journeys" className="space-y-4">
+      <Tabs defaultValue="journeys">
         <TabsList>
           <TabsTrigger value="journeys">Customer Journeys</TabsTrigger>
           <TabsTrigger value="insights">Behavioral Insights</TabsTrigger>
           <TabsTrigger value="signals">Purchase Signals</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="journeys" className="space-y-4">
-          {/* Filters */}
+        <TabsContent value="journeys">
           <Card>
-            <CardContent className="p-4">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <CardContent style={{ padding: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ position: 'relative' }}>
+                    <Search style={{ position: 'absolute', left: '0.75rem', top: '0.75rem', width: '1rem', height: '1rem' }} />
                     <Input
                       placeholder="Search by customer name or email..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
+                      style={{ paddingLeft: '2.5rem' }}
                     />
                   </div>
                 </div>
                 <Select value={selectedStage} onValueChange={setSelectedStage}>
-                  <SelectTrigger className="w-full md:w-48">
-                    <SelectValue placeholder="Journey Stage" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Stages</SelectItem>
-                    <SelectItem value="awareness">Awareness</SelectItem>
-                    <SelectItem value="interest">Interest</SelectItem>
-                    <SelectItem value="consideration">Consideration</SelectItem>
-                    <SelectItem value="research">Research</SelectItem>
-                    <SelectItem value="decision">Decision</SelectItem>
-                    <SelectItem value="purchase">Purchase</SelectItem>
-                  </SelectContent>
+                  <option value="all">All Stages</option>
+                  <option value="awareness">Awareness</option>
+                  <option value="interest">Interest</option>
+                  <option value="consideration">Consideration</option>
+                  <option value="research">Research</option>
+                  <option value="decision">Decision</option>
+                  <option value="purchase">Purchase</option>
                 </Select>
                 <Select value={selectedIntent} onValueChange={setSelectedIntent}>
-                  <SelectTrigger className="w-full md:w-48">
-                    <SelectValue placeholder="Purchase Intent" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Intent Levels</SelectItem>
-                    <SelectItem value="high">High (80%+)</SelectItem>
-                    <SelectItem value="medium">Medium (50-79%)</SelectItem>
-                    <SelectItem value="low">Low (&lt;50%)</SelectItem>
-                  </SelectContent>
+                  <option value="all">All Intent Levels</option>
+                  <option value="high">High (80%+)</option>
+                  <option value="medium">Medium (50-79%)</option>
+                  <option value="low">Low (&lt;50%)</option>
                 </Select>
               </div>
             </CardContent>
           </Card>
 
-          {/* Customer Journey Cards */}
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
             {filteredCustomers.map((customer) => (
               <Card key={customer.id}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
+                <CardContent style={{ padding: '1.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem' }}>
                     <div>
-                      <div className="flex items-center space-x-3">
-                        <h3 className="text-lg font-semibold">{customer.name}</h3>
-                        <Badge className={getStageColor(customer.currentStage)}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: 600 }}>{customer.name}</h3>
+                        <Badge variant="default">
                           {customer.currentStage}
                         </Badge>
-                        <div className="flex items-center space-x-1">
-                          <Target className="h-4 w-4 text-gray-400" />
-                          <span className={`font-semibold ${getIntentColor(customer.purchaseIntent)}`}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <Target style={{ width: '1rem', height: '1rem' }} />
+                          <span style={{ fontWeight: 600 }}>
                             {customer.purchaseIntent}% Intent
                           </span>
                         </div>
                       </div>
-                      <p className="text-gray-600 text-sm mt-1">{customer.email}</p>
-                      <p className="text-gray-500 text-xs">Journey started: {customer.startDate}</p>
+                      <p style={{ fontSize: '0.875rem', marginTop: '0.25rem' }}>{customer.email}</p>
+                      <p style={{ fontSize: '0.75rem' }}>Journey started: {customer.startDate}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-600">Total Activity</p>
-                      <p className="font-semibold">{customer.totalSessions} sessions</p>
-                      <p className="text-sm text-gray-600">{customer.totalPageViews} page views</p>
-                      <p className="text-sm text-gray-600">{customer.timeSpent} spent</p>
+                    <div style={{ textAlign: 'right' }}>
+                      <p style={{ fontSize: '0.875rem' }}>Total Activity</p>
+                      <p style={{ fontWeight: 600 }}>{customer.totalSessions} sessions</p>
+                      <p style={{ fontSize: '0.875rem' }}>{customer.totalPageViews} page views</p>
+                      <p style={{ fontSize: '0.875rem' }}>{customer.timeSpent} spent</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Journey Timeline */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
                     <div>
-                      <h4 className="font-semibold mb-3">Journey Timeline</h4>
-                      <div className="space-y-3">
+                      <h4 style={{ fontWeight: 600, marginBottom: '0.75rem' }}>Journey Timeline</h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         {customer.lifecycle.map((stage, index) => (
-                          <div key={stage.stage} className="flex items-center space-x-3">
-                            <div className={`w-3 h-3 rounded-full ${
-                              index === customer.lifecycle.length - 1 ? 'bg-blue-500' : 'bg-gray-300'
-                            }`}></div>
-                            <div className="flex-1">
-                              <p className="text-sm font-medium capitalize">{stage.stage}</p>
-                              <p className="text-xs text-gray-500">{stage.date} • {stage.duration}</p>
+                          <div key={stage.stage} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <div style={{
+                              width: '0.75rem',
+                              height: '0.75rem',
+                              borderRadius: '9999px',
+                              backgroundColor: index === customer.lifecycle.length - 1 ? 'var(--accent-primary)' : 'var(--border)'
+                            }}></div>
+                            <div style={{ flex: 1 }}>
+                              <p style={{ fontSize: '0.875rem', fontWeight: 500, textTransform: 'capitalize' }}>{stage.stage}</p>
+                              <p style={{ fontSize: '0.75rem' }}>{stage.date} • {stage.duration}</p>
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    {/* Website Activity */}
                     <div>
-                      <h4 className="font-semibold mb-3">Website Activity</h4>
-                      <div className="space-y-2">
+                      <h4 style={{ fontWeight: 600, marginBottom: '0.75rem' }}>Website Activity</h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         {customer.websites.map((site) => (
-                          <div key={site.site} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <div key={site.site} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem', borderRadius: '0.375rem' }}>
                             <div>
-                              <p className="text-sm font-medium">{site.site}</p>
-                              <p className="text-xs text-gray-500">{site.visits} visits • {site.timeSpent}</p>
+                              <p style={{ fontSize: '0.875rem', fontWeight: 500 }}>{site.site}</p>
+                              <p style={{ fontSize: '0.75rem' }}>{site.visits} visits • {site.timeSpent}</p>
                             </div>
-                            <Globe className="h-4 w-4 text-gray-400" />
+                            <Globe style={{ width: '1rem', height: '1rem' }} />
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    {/* Purchase Signals */}
                     <div>
-                      <h4 className="font-semibold mb-3">Purchase Signals</h4>
-                      <div className="space-y-2">
+                      <h4 style={{ fontWeight: 600, marginBottom: '0.75rem' }}>Purchase Signals</h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         {customer.signals.slice(0, 3).map((signal, index) => (
-                          <div key={index} className="p-2 bg-gray-50 rounded">
-                            <div className="flex items-center justify-between mb-1">
-                              <p className="text-xs font-medium text-gray-700">{signal.type.replace('_', ' ')}</p>
-                              <div className="flex items-center space-x-1">
-                                <div className={`w-2 h-2 rounded-full ${getSignalStrengthColor(signal.strength)}`}></div>
-                                <span className="text-xs font-semibold">{signal.strength}%</span>
+                          <div key={index} style={{ padding: '0.5rem', borderRadius: '0.375rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                              <p style={{ fontSize: '0.75rem', fontWeight: 500 }}>{signal.type.replace('_', ' ')}</p>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <div style={{
+                                  width: '0.5rem',
+                                  height: '0.5rem',
+                                  borderRadius: '9999px',
+                                  backgroundColor: signal.strength >= 90 ? 'var(--accent-success)' : signal.strength >= 80 ? 'var(--accent-warning)' : 'var(--accent-danger)'
+                                }}></div>
+                                <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{signal.strength}%</span>
                               </div>
                             </div>
-                            <p className="text-xs text-gray-600">{signal.signal}</p>
+                            <p style={{ fontSize: '0.75rem' }}>{signal.signal}</p>
                           </div>
                         ))}
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t flex justify-between items-center">
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                  <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.875rem' }}>
                       <span>Viewed: {customer.behavior.viewedVehicles} vehicles</span>
                       <span>Saved: {customer.behavior.savedVehicles}</span>
                       <span>Info Requests: {customer.behavior.requestedInfo}</span>
                       <span>Calculator Use: {customer.behavior.calculatorUse}</span>
                     </div>
-                    <Button variant="outline" size="sm" className="flex items-center space-x-1">
-                      <Eye className="h-3 w-3" />
+                    <Button variant="outline" size="sm">
+                      <Eye style={{ width: '0.75rem', height: '0.75rem', marginRight: '0.25rem' }} />
                       <span>View Full Journey</span>
                     </Button>
                   </div>
@@ -387,56 +347,56 @@ export default function CustomerLifecycleTracking() {
           </div>
         </TabsContent>
 
-        <TabsContent value="insights" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="insights">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', marginTop: '1rem' }}>
             <Card>
               <CardHeader>
                 <CardTitle>Conversion Funnel Analysis</CardTitle>
                 <CardDescription>Drop-off rates at each journey stage</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Awareness</span>
-                      <span className="text-sm font-bold">100%</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Awareness</span>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 'bold' }}>100%</span>
                     </div>
-                    <Progress value={100} className="h-2" />
+                    <Progress value={100} />
                   </div>
                   <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Interest</span>
-                      <span className="text-sm font-bold">67%</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Interest</span>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 'bold' }}>67%</span>
                     </div>
-                    <Progress value={67} className="h-2" />
+                    <Progress value={67} />
                   </div>
                   <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Consideration</span>
-                      <span className="text-sm font-bold">43%</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Consideration</span>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 'bold' }}>43%</span>
                     </div>
-                    <Progress value={43} className="h-2" />
+                    <Progress value={43} />
                   </div>
                   <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Research</span>
-                      <span className="text-sm font-bold">28%</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Research</span>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 'bold' }}>28%</span>
                     </div>
-                    <Progress value={28} className="h-2" />
+                    <Progress value={28} />
                   </div>
                   <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Decision</span>
-                      <span className="text-sm font-bold">18%</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Decision</span>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 'bold' }}>18%</span>
                     </div>
-                    <Progress value={18} className="h-2" />
+                    <Progress value={18} />
                   </div>
                   <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Purchase</span>
-                      <span className="text-sm font-bold">12.8%</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Purchase</span>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 'bold' }}>12.8%</span>
                     </div>
-                    <Progress value={12.8} className="h-2" />
+                    <Progress value={12.8} />
                   </div>
                 </div>
               </CardContent>
@@ -448,18 +408,23 @@ export default function CustomerLifecycleTracking() {
                 <CardDescription>Behavioral signals with highest accuracy</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {aggregatedInsights.topPurchaseSignals.map((signal, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={index} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', borderRadius: '0.5rem' }}>
                       <div>
-                        <p className="font-medium text-sm">{signal.signal}</p>
-                        <p className="text-xs text-gray-600">Prediction accuracy</p>
+                        <p style={{ fontWeight: 500, fontSize: '0.875rem' }}>{signal.signal}</p>
+                        <p style={{ fontSize: '0.75rem' }}>Prediction accuracy</p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-green-600">{signal.accuracy}%</p>
-                        <div className="flex items-center space-x-1">
-                          <div className={`w-2 h-2 rounded-full ${getSignalStrengthColor(signal.accuracy)}`}></div>
-                          <span className="text-xs text-gray-500">High accuracy</span>
+                      <div style={{ textAlign: 'right' }}>
+                        <p style={{ fontSize: '1.125rem', fontWeight: 'bold' }}>{signal.accuracy}%</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <div style={{
+                            width: '0.5rem',
+                            height: '0.5rem',
+                            borderRadius: '9999px',
+                            backgroundColor: signal.accuracy >= 90 ? 'var(--accent-success)' : 'var(--accent-warning)'
+                          }}></div>
+                          <span style={{ fontSize: '0.75rem' }}>High accuracy</span>
                         </div>
                       </div>
                     </div>
@@ -470,8 +435,8 @@ export default function CustomerLifecycleTracking() {
           </div>
         </TabsContent>
 
-        <TabsContent value="signals" className="space-y-4">
-          <Card>
+        <TabsContent value="signals">
+          <Card style={{ marginTop: '1rem' }}>
             <CardHeader>
               <CardTitle>Real-Time Purchase Signal Monitoring</CardTitle>
               <CardDescription>
@@ -479,51 +444,51 @@ export default function CustomerLifecycleTracking() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 border rounded-lg">
-                    <p className="text-2xl font-bold text-red-600">47</p>
-                    <p className="text-sm text-gray-600">Critical Intent</p>
-                    <p className="text-xs text-gray-500">95%+ probability</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                  <div style={{ textAlign: 'center', padding: '1rem', border: '1px solid var(--border)', borderRadius: '0.5rem' }}>
+                    <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>47</p>
+                    <p style={{ fontSize: '0.875rem' }}>Critical Intent</p>
+                    <p style={{ fontSize: '0.75rem' }}>95%+ probability</p>
                   </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <p className="text-2xl font-bold text-orange-600">123</p>
-                    <p className="text-sm text-gray-600">High Intent</p>
-                    <p className="text-xs text-gray-500">80-94% probability</p>
+                  <div style={{ textAlign: 'center', padding: '1rem', border: '1px solid var(--border)', borderRadius: '0.5rem' }}>
+                    <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>123</p>
+                    <p style={{ fontSize: '0.875rem' }}>High Intent</p>
+                    <p style={{ fontSize: '0.75rem' }}>80-94% probability</p>
                   </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <p className="text-2xl font-bold text-yellow-600">298</p>
-                    <p className="text-sm text-gray-600">Medium Intent</p>
-                    <p className="text-xs text-gray-500">60-79% probability</p>
+                  <div style={{ textAlign: 'center', padding: '1rem', border: '1px solid var(--border)', borderRadius: '0.5rem' }}>
+                    <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>298</p>
+                    <p style={{ fontSize: '0.875rem' }}>Medium Intent</p>
+                    <p style={{ fontSize: '0.75rem' }}>60-79% probability</p>
                   </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <p className="text-2xl font-bold text-gray-600">779</p>
-                    <p className="text-sm text-gray-600">Early Stage</p>
-                    <p className="text-xs text-gray-500">&lt;60% probability</p>
+                  <div style={{ textAlign: 'center', padding: '1rem', border: '1px solid var(--border)', borderRadius: '0.5rem' }}>
+                    <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>779</p>
+                    <p style={{ fontSize: '0.875rem' }}>Early Stage</p>
+                    <p style={{ fontSize: '0.75rem' }}>&lt;60% probability</p>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-4">Recent High-Intent Activities</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <h4 style={{ fontWeight: 600, marginBottom: '1rem' }}>Recent High-Intent Activities</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
                       <div>
-                        <p className="font-medium text-red-800">Jennifer Martinez completed credit application</p>
-                        <p className="text-sm text-red-600">2 minutes ago • 98% purchase probability</p>
+                        <p style={{ fontWeight: 500 }}>Jennifer Martinez completed credit application</p>
+                        <p style={{ fontSize: '0.875rem' }}>2 minutes ago • 98% purchase probability</p>
                       </div>
                       <Button size="sm" variant="outline">Contact Now</Button>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
                       <div>
-                        <p className="font-medium text-orange-800">Michael Chen scheduled test drive for tomorrow</p>
-                        <p className="text-sm text-orange-600">15 minutes ago • 94% purchase probability</p>
+                        <p style={{ fontWeight: 500 }}>Michael Chen scheduled test drive for tomorrow</p>
+                        <p style={{ fontSize: '0.875rem' }}>15 minutes ago • 94% purchase probability</p>
                       </div>
                       <Button size="sm" variant="outline">Prepare Vehicle</Button>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
                       <div>
-                        <p className="font-medium text-yellow-800">Sarah Johnson used payment calculator 12 times today</p>
-                        <p className="text-sm text-yellow-600">1 hour ago • 87% purchase probability</p>
+                        <p style={{ fontWeight: 500 }}>Sarah Johnson used payment calculator 12 times today</p>
+                        <p style={{ fontSize: '0.875rem' }}>1 hour ago • 87% purchase probability</p>
                       </div>
                       <Button size="sm" variant="outline">Send Offer</Button>
                     </div>

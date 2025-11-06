@@ -30,11 +30,14 @@ export { Progress, progressVariants, progressBarVariants, type ProgressProps } f
 
 // Tier 1: Form Components
 export { Select, selectVariants, type SelectProps } from './components/Select.js';
+export { Textarea, textareaVariants, type TextareaProps } from './components/Textarea.js';
 export { Checkbox, checkboxVariants, type CheckboxProps } from './components/Checkbox.js';
 export { Radio, RadioGroup, radioVariants, type RadioProps, type RadioGroupProps } from './components/Radio.js';
 export { Switch, switchVariants, type SwitchProps } from './components/Switch.js';
 export { Label, labelVariants, type LabelProps } from './components/Label.js';
 export { FormField, formFieldVariants, formDescriptionVariants, type FormFieldProps } from './components/FormField.js';
+export { Slider } from './components/Slider.js';
+export { Calendar, type CalendarProps } from './components/Calendar.js';
 
 // Tier 2: Data Display Components
 export {
@@ -50,6 +53,7 @@ export {
   type TableProps,
 } from './components/Table.js';
 export { Tooltip, tooltipVariants, type TooltipProps } from './components/Tooltip.js';
+export { Separator } from './components/Separator.js';
 
 // Tier 3: Overlay Components
 export { Modal, modalOverlayVariants, modalContentVariants, type ModalProps } from './components/Modal.js';

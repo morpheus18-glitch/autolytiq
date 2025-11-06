@@ -1,14 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData } from '@tanstack/react-query';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Button,
+  Badge,
+  Modal,
+  FormField,
+  Input,
+} from '@repo/ui';
+// TODO: Missing components to be added to @repo/ui
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -746,34 +756,35 @@ export default function LeadDetail() {
         </div>
       </div>
 
-      <Dialog open={isAiModalOpen} onOpenChange={setIsAiModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-indigo-600" /> AI Next Move Recommendation
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 text-sm text-slate-600">
-            <p>
-              AutolytiQ Intelligence suggests combining a high-energy phone call with a tailored financing email follow-up.
-              This sequencing captures the lead while intent is highest and keeps asynchronous communication aligned.
-            </p>
-            <ul className="list-disc space-y-2 pl-5">
-              <li>Call within the next 15 minutes to confirm preferred vehicle configuration.</li>
-              <li>Send a templated email summarizing pricing, incentives, and appointment availability.</li>
-              <li>Schedule a demo drive within 48 hours to prevent competitor leakage.</li>
-            </ul>
-          </div>
-          <DialogFooter>
-            <Button variant="secondary" onClick={() => setIsAiModalOpen(false)}>
-              Dismiss
-            </Button>
-            <Button className="bg-indigo-600 text-white hover:bg-indigo-700" onClick={() => setIsAiModalOpen(false)}>
-              Apply recommendation
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <Modal
+        open={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        title={
+          <span className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-indigo-600" /> AI Next Move Recommendation
+          </span>
+        }
+      >
+        <div className="space-y-4 text-sm text-slate-600">
+          <p>
+            AutolytiQ Intelligence suggests combining a high-energy phone call with a tailored financing email follow-up.
+            This sequencing captures the lead while intent is highest and keeps asynchronous communication aligned.
+          </p>
+          <ul className="list-disc space-y-2 pl-5">
+            <li>Call within the next 15 minutes to confirm preferred vehicle configuration.</li>
+            <li>Send a templated email summarizing pricing, incentives, and appointment availability.</li>
+            <li>Schedule a demo drive within 48 hours to prevent competitor leakage.</li>
+          </ul>
+        </div>
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="secondary" onClick={() => setIsAiModalOpen(false)}>
+            Dismiss
+          </Button>
+          <Button variant="primary" onClick={() => setIsAiModalOpen(false)}>
+            Apply recommendation
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

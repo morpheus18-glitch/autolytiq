@@ -1,8 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Select } from '@repo/ui';
 import { KPIGroup } from '@/components/communications/KPIGroup.tsx';
 import { useCommunicationsStore } from '@/stores/communications-store';
 import { format, parseISO, subDays } from 'date-fns';
@@ -150,46 +147,41 @@ export default function CRMAnalytics() {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <div>
-          <h1 className="text-2xl font-semibold">CRM Analytics</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>CRM Analytics</h1>
+          <p style={{ fontSize: '0.875rem' }}>
             Monitor communication velocity, conversion, and team effectiveness with live data.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Select value={range.toString()} onValueChange={(value) => setRange(Number(value))}>
-            <SelectTrigger className="w-44">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {DATE_RANGES.map((option) => (
-                <SelectItem key={option.value} value={option.value.toString()}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <Select value={range.toString()} onValueChange={(value: string) => setRange(Number(value))}>
+            {DATE_RANGES.map((option) => (
+              <option key={option.value} value={option.value.toString()}>
+                {option.label}
+              </option>
+            ))}
           </Select>
-          <Button variant="outline" className="gap-2" onClick={exportCsv}>
-            <Download className="h-4 w-4" /> Export CSV
+          <Button variant="outline" onClick={exportCsv}>
+            <Download style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} /> Export CSV
           </Button>
         </div>
       </div>
 
       <KPIGroup items={kpis} />
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <Card className="border-border/60">
-          <CardHeader className="border-b border-border/60 pb-4">
-            <CardTitle className="flex items-center justify-between text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1fr' }}>
+        <Card>
+          <CardHeader style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
+            <CardTitle style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.875rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Sales performance
-              <Badge variant="outline" className="flex items-center gap-1">
-                <Users className="h-3 w-3" /> {metrics.meetingsScheduled} in pipeline
+              <Badge variant="outline" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Users style={{ width: '0.75rem', height: '0.75rem' }} /> {metrics.meetingsScheduled} in pipeline
               </Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent className="h-[320px] pt-6">
+          <CardContent style={{ height: '320px', paddingTop: '1.5rem' }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={appointmentTrend}>
                 <defs>
@@ -214,16 +206,16 @@ export default function CRMAnalytics() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
-          <CardHeader className="border-b border-border/60 pb-4">
-            <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <Card>
+          <CardHeader style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
+            <CardTitle style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Lead metrics
-              <Badge variant="outline" className="flex items-center gap-1">
-                <Filter className="h-3 w-3" /> Status distribution
+              <Badge variant="outline" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Filter style={{ width: '0.75rem', height: '0.75rem' }} /> Status distribution
               </Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent className="h-[320px] pt-6">
+          <CardContent style={{ height: '320px', paddingTop: '1.5rem' }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={leadStatusData}>
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.4} />
@@ -236,11 +228,11 @@ export default function CRMAnalytics() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
-          <CardHeader className="border-b border-border/60 pb-4">
-            <CardTitle className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Communication stats</CardTitle>
+        <Card>
+          <CardHeader style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
+            <CardTitle style={{ fontSize: '0.875rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Communication stats</CardTitle>
           </CardHeader>
-          <CardContent className="h-[320px] pt-6">
+          <CardContent style={{ height: '320px', paddingTop: '1.5rem' }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={communicationsTimeline}>
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.4} />
@@ -256,16 +248,16 @@ export default function CRMAnalytics() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
-          <CardHeader className="border-b border-border/60 pb-4">
-            <CardTitle className="flex items-center justify-between text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <Card>
+          <CardHeader style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
+            <CardTitle style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.875rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Team performance
-              <div className="flex flex-wrap gap-2">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                 {metrics.teamPerformance.map((rep) => (
                   <Badge
                     key={rep.rep}
                     variant={selectedReps.includes(rep.rep) ? 'default' : 'outline'}
-                    className="cursor-pointer"
+                    style={{ cursor: 'pointer' }}
                     onClick={() =>
                       setSelectedReps((prev) =>
                         prev.includes(rep.rep)
@@ -280,7 +272,7 @@ export default function CRMAnalytics() {
               </div>
             </CardTitle>
           </CardHeader>
-          <CardContent className="h-[320px] pt-6">
+          <CardContent style={{ height: '320px', paddingTop: '1.5rem' }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={teamPerformance}>
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.4} />

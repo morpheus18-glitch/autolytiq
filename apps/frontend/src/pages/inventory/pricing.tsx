@@ -2,21 +2,19 @@ import { Link } from "wouter";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import {
+  Button,
+  Badge,
+  Progress,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+  PageHeader
+} from "@repo/ui";
 import {
   Area,
   AreaChart,
@@ -92,270 +90,233 @@ const marketAlerts = [
 
 export default function InventoryPricing() {
   return (
-    <div className="space-y-6 p-4 sm:p-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Inventory Pricing Intelligence
-          </h1>
-          <p className="text-muted-foreground">
-            Optimize margins with real-time market benchmarking and ML-powered
-            pricing recommendations.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline">
-            <Link href="/inventory">View Inventory</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/competitive-pricing">Competitive Landscape</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/ml-model-comparison">
-              Launch Pricing Models
-              <ArrowUpRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-      </div>
+    <>
+      <PageHeader
+        title="Inventory Pricing Intelligence"
+        description="Optimize margins with real-time market benchmarking and ML-powered pricing recommendations."
+        actions={
+          <>
+            <Button asChild variant="outline">
+              <Link href="/inventory">View Inventory</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/competitive-pricing">Competitive Landscape</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/ml-model-comparison">
+                <ArrowUpRight />
+                Launch Pricing Models
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card>
-          <CardHeader className="space-y-1 pb-2">
-            <CardDescription>Portfolio Lift</CardDescription>
-            <CardTitle className="text-3xl font-bold">$4,720</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center gap-3 text-sm text-muted-foreground">
-            <TrendingUp className="h-4 w-4 text-emerald-500" />
-            Potential monthly margin increase across 36 vehicles
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="space-y-1 pb-2">
-            <CardDescription>Pricing Accuracy</CardDescription>
-            <CardTitle className="text-3xl font-bold">96.4%</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Progress value={96.4} className="h-2" />
-            <p className="mt-2 text-xs text-muted-foreground">
-              ML recommendations accepted by sales management this week
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="space-y-1 pb-2">
-            <CardDescription>Average Market Spread</CardDescription>
-            <CardTitle className="text-3xl font-bold">$1,180</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Gauge className="h-4 w-4 text-blue-500" />
-            Higher than competitors in 72% of active segments
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="space-y-1 pb-2">
-            <CardDescription>Dynamic Updates</CardDescription>
-            <CardTitle className="text-3xl font-bold">12 mins</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center gap-3 text-sm text-muted-foreground">
-            <ShieldCheck className="h-4 w-4 text-indigo-500" />
-            Average time from market shift to repricing recommendation
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Portfolio Lift</CardTitle>
+        </CardHeader>
+        <CardContent>
+          $4,720
+          <TrendingUp />
+          Potential monthly margin increase across 36 vehicles
+        </CardContent>
+      </Card>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <LineChartIcon className="h-5 w-5 text-blue-500" />
-                Optimal vs Market Price Trend
-              </CardTitle>
-              <CardDescription>
-                ML pricing guidance compared to local competitive averages
-              </CardDescription>
-            </div>
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <BarChart3 className="h-3 w-3" /> Last 6 Months
-            </Badge>
-          </CardHeader>
-          <CardContent className="h-[280px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={pricingTrendData}>
-                <defs>
-                  <linearGradient id="optimal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="market" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.7} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="month" stroke="#9ca3af" />
-                <YAxis stroke="#9ca3af" />
-                <Tooltip cursor={{ strokeDasharray: "3 3" }} />
-                <Area
-                  type="monotone"
-                  dataKey="optimal"
-                  stroke="#2563eb"
-                  fill="url(#optimal)"
-                  strokeWidth={2}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="market"
-                  stroke="#10b981"
-                  fill="url(#market)"
-                  strokeWidth={2}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Pricing Accuracy</CardTitle>
+        </CardHeader>
+        <CardContent>
+          96.4%
+          <Progress value={96.4} />
+          ML recommendations accepted by sales management this week
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-emerald-500" />
-              Margin Opportunities
-            </CardTitle>
-            <CardDescription>Vehicles with actionable pricing lift</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {marginOpportunities.map((item) => (
-              <div key={item.model} className="space-y-2 rounded-lg border p-3">
-                <div className="flex items-center justify-between">
-                  <p className="font-medium">{item.model}</p>
-                  <Badge variant="outline">{item.upside}</Badge>
-                </div>
-                <div className="grid gap-1 text-sm text-muted-foreground">
-                  <div className="flex justify-between">
-                    <span>Current Price</span>
-                    <span>{item.currentPrice}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Suggested Price</span>
-                    <span>{item.suggestedPrice}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Confidence</span>
-                    <div className="flex items-center gap-2">
-                      <Progress value={item.confidence} className="h-1.5 w-24" />
-                      <span className="font-medium text-emerald-600">
-                        {item.confidence}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <Button asChild size="sm" className="w-full">
+      <Card>
+        <CardHeader>
+          <CardTitle>Average Market Spread</CardTitle>
+        </CardHeader>
+        <CardContent>
+          $1,180
+          <Gauge />
+          Higher than competitors in 72% of active segments
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Dynamic Updates</CardTitle>
+        </CardHeader>
+        <CardContent>
+          12 mins
+          <ShieldCheck />
+          Average time from market shift to repricing recommendation
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <LineChartIcon />
+            Optimal vs Market Price Trend
+          </CardTitle>
+          <Badge variant="secondary">
+            <BarChart3 />
+            Last 6 Months
+          </Badge>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart data={pricingTrendData}>
+              <defs>
+                <linearGradient id="optimal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="market" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.7} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="month" stroke="#9ca3af" />
+              <YAxis stroke="#9ca3af" />
+              <Tooltip cursor={{ strokeDasharray: "3 3" }} />
+              <Area
+                type="monotone"
+                dataKey="optimal"
+                stroke="#2563eb"
+                fill="url(#optimal)"
+                strokeWidth={2}
+              />
+              <Area
+                type="monotone"
+                dataKey="market"
+                stroke="#10b981"
+                fill="url(#market)"
+                strokeWidth={2}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <DollarSign />
+            Margin Opportunities
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {marginOpportunities.map((item) => (
+            <Card key={item.model}>
+              <CardContent>
+                <p>{item.model}</p>
+                <Badge variant="outline">{item.upside}</Badge>
+                <p>Current Price: {item.currentPrice}</p>
+                <p>Suggested Price: {item.suggestedPrice}</p>
+                <p>Confidence:</p>
+                <Progress value={item.confidence} />
+                <span>{item.confidence}%</span>
+                <Button asChild size="sm">
                   <Link href="/professional-deal-desk?tab=pricing">
+                    <ArrowUpRight />
                     Review in Deal Desk
-                    <ArrowUpRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </CardContent>
+      </Card>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <CardTitle>Segment Alerts</CardTitle>
-              <CardDescription>Market velocity shifts detected in the last 24 hours</CardDescription>
-            </div>
-            <Badge variant="secondary">Auto-refreshed</Badge>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Segment</TableHead>
-                  <TableHead className="hidden sm:table-cell">Vehicles</TableHead>
-                  <TableHead>Market Change</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+      <Card>
+        <CardHeader>
+          <CardTitle>Segment Alerts</CardTitle>
+          <Badge variant="secondary">Auto-refreshed</Badge>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Segment</TableHead>
+                <TableHead>Vehicles</TableHead>
+                <TableHead>Market Change</TableHead>
+                <TableHead>Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {marketAlerts.map((alert) => (
+                <TableRow key={alert.segment}>
+                  <TableCell>{alert.segment}</TableCell>
+                  <TableCell>{alert.vehicles}</TableCell>
+                  <TableCell>
+                    <Badge variant={alert.change.startsWith("-") ? "error" : "secondary"}>
+                      {alert.change}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button asChild size="sm" variant="ghost">
+                      <Link href={`/inventory?focus=${encodeURIComponent(alert.segment)}`}>
+                        <ArrowUpRight />
+                        {alert.action}
+                      </Link>
+                    </Button>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {marketAlerts.map((alert) => (
-                  <TableRow key={alert.segment}>
-                    <TableCell className="font-medium">{alert.segment}</TableCell>
-                    <TableCell className="hidden sm:table-cell">{alert.vehicles}</TableCell>
-                    <TableCell>
-                      <Badge variant={alert.change.startsWith("-") ? "destructive" : "secondary"}>
-                        {alert.change}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button asChild size="sm" variant="ghost">
-                        <Link href={`/inventory?focus=${encodeURIComponent(alert.segment)}`}>
-                          {alert.action}
-                          <ArrowUpRight className="ml-1 h-4 w-4" />
-                        </Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recommended Next Steps</CardTitle>
-            <CardDescription>Prioritized actions generated by the pricing AI assistant</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-lg border p-4">
-              <p className="font-medium">Re-evaluate German luxury pricing</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                BMW and Audi segments show above-market demand. Adjust pricing and update merchandising packages.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/competitive-pricing?segment=luxury">
-                    View Competitive Report
-                    <ArrowUpRight className="ml-1 h-3 w-3" />
-                  </Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link href="/ml-developer-admin?model=pricing">
-                    Review Model Output
-                    <ArrowUpRight className="ml-1 h-3 w-3" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Recommended Next Steps</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Card>
+            <CardContent>
+              <p>Re-evaluate German luxury pricing</p>
+              <p>BMW and Audi segments show above-market demand. Adjust pricing and update merchandising packages.</p>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/competitive-pricing?segment=luxury">
+                  <ArrowUpRight />
+                  View Competitive Report
+                </Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link href="/ml-developer-admin?model=pricing">
+                  <ArrowUpRight />
+                  Review Model Output
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
 
-            <div className="rounded-lg border p-4">
-              <p className="font-medium">Launch weekend pricing experiment</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Deploy A/B pricing on crossover inventory and track impact on engagement and lead quality.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/reports/sales?view=segments">
-                    Monitor Performance
-                    <ArrowUpRight className="ml-1 h-3 w-3" />
-                  </Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link href="/workflow-assistant?playbook=pricing">
-                    Automate Workflow
-                    <ArrowUpRight className="ml-1 h-3 w-3" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+          <Card>
+            <CardContent>
+              <p>Launch weekend pricing experiment</p>
+              <p>Deploy A/B pricing on crossover inventory and track impact on engagement and lead quality.</p>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/reports/sales?view=segments">
+                  <ArrowUpRight />
+                  Monitor Performance
+                </Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link href="/workflow-assistant?playbook=pricing">
+                  <ArrowUpRight />
+                  Automate Workflow
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
+    </>
   );
 }

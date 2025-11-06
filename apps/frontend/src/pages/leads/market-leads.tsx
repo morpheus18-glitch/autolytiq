@@ -1,12 +1,26 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+  Input,
+  Badge,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Progress,
+  Select,
+} from '@repo/ui';
 import { 
   Users, 
   TrendingUp, 
@@ -350,17 +364,16 @@ const leadAnalytics = {
                       className="pl-10 w-64"
                     />
                   </div>
-                  <Select value={filterStage} onValueChange={setFilterStage}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Filter by stage" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Stages</SelectItem>
-                      <SelectItem value="awareness">Awareness</SelectItem>
-                      <SelectItem value="consideration">Consideration</SelectItem>
-                      <SelectItem value="intent">Intent</SelectItem>
-                      <SelectItem value="purchase">Purchase</SelectItem>
-                    </SelectContent>
+                  <Select
+                    value={filterStage}
+                    onChange={(e) => setFilterStage(e.target.value)}
+                    className="w-40"
+                  >
+                    <option value="all">All Stages</option>
+                    <option value="awareness">Awareness</option>
+                    <option value="consideration">Consideration</option>
+                    <option value="intent">Intent</option>
+                    <option value="purchase">Purchase</option>
                   </Select>
                 </div>
               </div>
@@ -470,17 +483,16 @@ const leadAnalytics = {
                   </CardTitle>
                   <CardDescription>High-priority leads requiring immediate attention</CardDescription>
                 </div>
-                <Select value={filterPriority} onValueChange={setFilterPriority}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Filter by priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Priorities</SelectItem>
-                    <SelectItem value="critical">Critical</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
-                  </SelectContent>
+                <Select
+                  value={filterPriority}
+                  onChange={(e) => setFilterPriority(e.target.value)}
+                  className="w-40"
+                >
+                  <option value="all">All Priorities</option>
+                  <option value="critical">Critical</option>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
                 </Select>
               </div>
             </CardHeader>

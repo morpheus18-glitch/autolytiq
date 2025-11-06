@@ -14,17 +14,28 @@ import { CSS } from '@dnd-kit/utilities';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import dayjs from 'dayjs';
 import { CalendarIcon, Filter, LayoutGrid, List, RefreshCw } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Button,
+  Input,
+  Badge,
+  Select,
+  Popover,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Skeleton,
+} from '@repo/ui';
+// TODO: Missing components to be added to @repo/ui
 import { Slider } from '@/components/ui/slider';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLeadDashboardStore } from '@/stores/lead-dashboard-store';
@@ -471,54 +482,42 @@ export default function LeadsDashboard() {
           <label className="text-xs font-semibold uppercase text-slate-500">Source</label>
           <Select
             value={filters.sources?.[0] ?? 'all'}
-            onValueChange={(value) => setFilter('sources', value === 'all' ? [] : [value])}
+            onChange={(e) => setFilter('sources', e.target.value === 'all' ? [] : [e.target.value])}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="All sources" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All sources</SelectItem>
-              {uniqueSources.map((source) => (
-                <SelectItem key={source} value={source}>
-                  {source}
-                </SelectItem>
-              ))}
-            </SelectContent>
+            <option value="all">All sources</option>
+            {uniqueSources.map((source) => (
+              <option key={source} value={source}>
+                {source}
+              </option>
+            ))}
           </Select>
         </div>
         <div className="space-y-2">
           <label className="text-xs font-semibold uppercase text-slate-500">Status</label>
-          <Select value={filters.status ?? 'all'} onValueChange={(value) => setStatusFilter(value as LeadStatus | 'all')}>
-            <SelectTrigger>
-              <SelectValue placeholder="All statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              {STATUS_COLUMNS.map((status) => (
-                <SelectItem key={status} value={status}>
-                  {status}
-                </SelectItem>
-              ))}
-            </SelectContent>
+          <Select
+            value={filters.status ?? 'all'}
+            onChange={(e) => setStatusFilter(e.target.value as LeadStatus | 'all')}
+          >
+            <option value="all">All statuses</option>
+            {STATUS_COLUMNS.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
           </Select>
         </div>
         <div className="space-y-2">
           <label className="text-xs font-semibold uppercase text-slate-500">Owner</label>
           <Select
             value={filters.assignedTo?.[0] ?? 'all'}
-            onValueChange={(value) => setFilter('assignedTo', value === 'all' ? [] : [value])}
+            onChange={(e) => setFilter('assignedTo', e.target.value === 'all' ? [] : [e.target.value])}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="All owners" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All owners</SelectItem>
-              {uniqueOwners.map((owner) => (
-                <SelectItem key={owner.userId} value={owner.userId}>
-                  {owner.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
+            <option value="all">All owners</option>
+            {uniqueOwners.map((owner) => (
+              <option key={owner.userId} value={owner.userId}>
+                {owner.name}
+              </option>
+            ))}
           </Select>
         </div>
         <div className="space-y-2">
