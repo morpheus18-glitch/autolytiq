@@ -22,13 +22,9 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
+  TableRow
 } from "@repo/ui";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, Filter, Download, Upload, BookOpen, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
 
 const accountCategories = [
