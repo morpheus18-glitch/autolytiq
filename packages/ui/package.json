@@ -15,6 +15,7 @@
   "files": [
     "dist"
   ],
+  "sideEffects": ["*.css", "dist/styles.css"],
   "scripts": {
     "build": "tsup && cp src/styles.css dist/styles.css",
     "dev": "tsup --watch",

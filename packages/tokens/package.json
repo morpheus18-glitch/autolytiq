@@ -10,9 +10,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./dist/tailwind.preset.cjs": "./dist/tailwind.preset.cjs",
-    "./dist/tokens.css": "./dist/tokens.css"
+    "./tailwind.preset.cjs": "./dist/tailwind.preset.cjs",
+    "./styles.css": "./dist/tokens.css"
   },
+  "files": ["dist"],
   "scripts": {
     "tokens:build": "tsx scripts/build-tokens.ts",
     "build": "pnpm tokens:build && tsup",
