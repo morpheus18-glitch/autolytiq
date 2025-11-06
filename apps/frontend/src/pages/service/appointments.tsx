@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -76,13 +76,13 @@ export default function ServiceAppointments() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
-            <Link href="/service">Service Overview</Link>
+            <Link to="/service">Service Overview</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/service/orders">Repair Orders</Link>
+            <Link to="/service/orders">Repair Orders</Link>
           </Button>
           <Button asChild>
-            <Link href="/service/appointments?view=calendar">
+            <Link to="/service/appointments?view=calendar">
               Launch Calendar View
             </Link>
           </Button>
@@ -144,13 +144,13 @@ export default function ServiceAppointments() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button asChild size="sm" variant="outline">
-              <Link href="/service/appointments?view=timeline">Timeline</Link>
+              <Link to="/service/appointments?view=timeline">Timeline</Link>
             </Button>
             <Button asChild size="sm" variant="outline">
-              <Link href="/service/schedule">Technician Grid</Link>
+              <Link to="/service/schedule">Technician Grid</Link>
             </Button>
             <Button asChild size="sm">
-              <Link href="/service/history?filter=appointments">Audit Trail</Link>
+              <Link to="/service/history?filter=appointments">Audit Trail</Link>
             </Button>
           </div>
         </CardHeader>
@@ -181,10 +181,10 @@ export default function ServiceAppointments() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button asChild size="sm" variant="outline">
-                        <Link href={`/service/orders?ro=${item.id}`}>View RO</Link>
+                        <Link to={`/service/orders?ro=${item.id}`}>View RO</Link>
                       </Button>
                       <Button asChild size="sm" variant="ghost">
-                        <Link href={`/customers/${item.customerId}`}>Customer</Link>
+                        <Link to={`/customers/${item.customerId}`}>Customer</Link>
                       </Button>
                     </div>
                   </TableCell>
@@ -210,7 +210,7 @@ export default function ServiceAppointments() {
               SMS reminders delivered 2 hours before appointment.
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/customers/cust-communications/texting">
+              <Link to="/customers/cust-communications/texting">
                 Manage Templates
               </Link>
             </Button>
@@ -224,7 +224,7 @@ export default function ServiceAppointments() {
               Advisors send multimedia updates directly from the shop floor.
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/communication-demo?channel=service">
+              <Link to="/communication-demo?channel=service">
                 Launch Workspace
               </Link>
             </Button>
@@ -238,7 +238,7 @@ export default function ServiceAppointments() {
               Smart scheduling prevents congestion and increases CSI.
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/service/schedule?view=pickup">Optimize Flow</Link>
+              <Link to="/service/schedule?view=pickup">Optimize Flow</Link>
             </Button>
           </div>
         </CardContent>

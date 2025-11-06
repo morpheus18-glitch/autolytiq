@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -97,13 +97,13 @@ export default function InventoryPricing() {
         actions={
           <>
             <Button asChild variant="outline">
-              <Link href="/inventory">View Inventory</Link>
+              <Link to="/inventory">View Inventory</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/competitive-pricing">Competitive Landscape</Link>
+              <Link to="/competitive-pricing">Competitive Landscape</Link>
             </Button>
             <Button asChild>
-              <Link href="/ml-model-comparison">
+              <Link to="/ml-model-comparison">
                 <ArrowUpRight />
                 Launch Pricing Models
               </Link>
@@ -222,7 +222,7 @@ export default function InventoryPricing() {
                 <Progress value={item.confidence} />
                 <span>{item.confidence}%</span>
                 <Button asChild size="sm">
-                  <Link href="/professional-deal-desk?tab=pricing">
+                  <Link to="/professional-deal-desk?tab=pricing">
                     <ArrowUpRight />
                     Review in Deal Desk
                   </Link>
@@ -260,7 +260,7 @@ export default function InventoryPricing() {
                   </TableCell>
                   <TableCell>
                     <Button asChild size="sm" variant="ghost">
-                      <Link href={`/inventory?focus=${encodeURIComponent(alert.segment)}`}>
+                      <Link to={`/inventory?focus=${encodeURIComponent(alert.segment)}`}>
                         <ArrowUpRight />
                         {alert.action}
                       </Link>
@@ -283,13 +283,13 @@ export default function InventoryPricing() {
               <p>Re-evaluate German luxury pricing</p>
               <p>BMW and Audi segments show above-market demand. Adjust pricing and update merchandising packages.</p>
               <Button asChild variant="outline" size="sm">
-                <Link href="/competitive-pricing?segment=luxury">
+                <Link to="/competitive-pricing?segment=luxury">
                   <ArrowUpRight />
                   View Competitive Report
                 </Link>
               </Button>
               <Button asChild size="sm">
-                <Link href="/ml-developer-admin?model=pricing">
+                <Link to="/ml-developer-admin?model=pricing">
                   <ArrowUpRight />
                   Review Model Output
                 </Link>
@@ -302,13 +302,13 @@ export default function InventoryPricing() {
               <p>Launch weekend pricing experiment</p>
               <p>Deploy A/B pricing on crossover inventory and track impact on engagement and lead quality.</p>
               <Button asChild variant="outline" size="sm">
-                <Link href="/reports/sales?view=segments">
+                <Link to="/reports/sales?view=segments">
                   <ArrowUpRight />
                   Monitor Performance
                 </Link>
               </Button>
               <Button asChild size="sm">
-                <Link href="/workflow-assistant?playbook=pricing">
+                <Link to="/workflow-assistant?playbook=pricing">
                   <ArrowUpRight />
                   Automate Workflow
                 </Link>

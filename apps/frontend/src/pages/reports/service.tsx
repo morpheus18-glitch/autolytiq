@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -73,13 +73,13 @@ export default function ServiceReports() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
-            <Link href="/service">Service Overview</Link>
+            <Link to="/service">Service Overview</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/service/appointments">Appointments</Link>
+            <Link to="/service/appointments">Appointments</Link>
           </Button>
           <Button asChild>
-            <Link href="/service/reports">
+            <Link to="/service/reports">
               Fixed Ops Console
             </Link>
           </Button>
@@ -177,7 +177,7 @@ export default function ServiceReports() {
               </div>
               <p className="mt-2 text-sm text-muted-foreground">Upsell per RO {advisor.upsell}</p>
               <Button asChild variant="outline" size="sm" className="mt-3">
-                <Link href={advisor.route}>Open Workbench</Link>
+                <Link to={advisor.route}>Open Workbench</Link>
               </Button>
             </div>
           ))}
@@ -199,7 +199,7 @@ export default function ServiceReports() {
               Deploy AI to auto-schedule quick service visits during soft windows.
             </p>
             <Button asChild size="sm" variant="outline">
-              <Link href="/service/appointments?view=express">Optimize Schedule</Link>
+              <Link to="/service/appointments?view=express">Optimize Schedule</Link>
             </Button>
           </div>
           <div className="space-y-2 rounded-lg border p-4">
@@ -211,7 +211,7 @@ export default function ServiceReports() {
               Identify technicians ready for EV certification and assign training.
             </p>
             <Button asChild size="sm" variant="outline">
-              <Link href="/service/schedule?view=training">Launch Plan</Link>
+              <Link to="/service/schedule?view=training">Launch Plan</Link>
             </Button>
           </div>
           <div className="space-y-2 rounded-lg border p-4">
@@ -223,7 +223,7 @@ export default function ServiceReports() {
               Target owners at risk of defection with dynamic offers and messaging.
             </p>
             <Button asChild size="sm" variant="outline">
-              <Link href="/market-leads?segment=service-loyalty">Build Campaign</Link>
+              <Link to="/market-leads?segment=service-loyalty">Build Campaign</Link>
             </Button>
           </div>
         </CardContent>

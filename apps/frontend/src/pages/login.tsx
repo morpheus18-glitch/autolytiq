@@ -1,5 +1,5 @@
 import { FormEvent, useMemo, useState } from "react";
-import { useLocation, Link } from "wouter";
+import { useNavigate, Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ interface LoginResponse extends AuthUser {
 
 export default function Login() {
   const queryClient = useQueryClient();
-  const [, navigate] = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -167,7 +167,7 @@ export default function Login() {
               </div>
 
               <div className="pt-4 text-center">
-                <Link href="/">
+                <Link to="/">
                   <Button variant="ghost" size="sm" className="rounded-full text-muted-foreground hover:text-foreground">
                     Back to experience
                   </Button>

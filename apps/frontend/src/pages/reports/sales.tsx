@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -73,13 +73,13 @@ export default function SalesReports() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
-            <Link href="/reports">Executive Dashboard</Link>
+            <Link to="/reports">Executive Dashboard</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/professional-deal-desk">Deal Desk</Link>
+            <Link to="/professional-deal-desk">Deal Desk</Link>
           </Button>
           <Button asChild>
-            <Link href="/sales">
+            <Link to="/sales">
               Manage Pipeline
               <ArrowUpRight className="ml-2 h-4 w-4" />
             </Link>
@@ -168,7 +168,7 @@ export default function SalesReports() {
                 <Badge variant="secondary">{advisor.closing}</Badge>
               </div>
               <Button asChild variant="outline" size="sm" className="mt-3">
-                <Link href={advisor.route}>
+                <Link to={advisor.route}>
                   Review Pipeline
                 </Link>
               </Button>
@@ -192,7 +192,7 @@ export default function SalesReports() {
               Launch omni-channel outreach for leads in nurture stage &gt; 21 days.
             </p>
             <Button asChild size="sm" variant="outline">
-              <Link href="/market-leads?playbook=revive">Launch Playbook</Link>
+              <Link to="/market-leads?playbook=revive">Launch Playbook</Link>
             </Button>
           </div>
           <div className="space-y-2 rounded-lg border p-4">
@@ -204,7 +204,7 @@ export default function SalesReports() {
               Target deals with low reserve contribution and high credit scores.
             </p>
             <Button asChild size="sm" variant="outline">
-              <Link href="/finance/reports?focus=penetration">View Opportunities</Link>
+              <Link to="/finance/reports?focus=penetration">View Opportunities</Link>
             </Button>
           </div>
         </CardContent>

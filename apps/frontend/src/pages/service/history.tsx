@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -93,13 +93,13 @@ export default function ServiceHistory() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
-            <Link href="/service">Service Overview</Link>
+            <Link to="/service">Service Overview</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/service/appointments">Appointments</Link>
+            <Link to="/service/appointments">Appointments</Link>
           </Button>
           <Button asChild>
-            <Link href="/service/reports">Service Analytics</Link>
+            <Link to="/service/reports">Service Analytics</Link>
           </Button>
         </div>
       </div>
@@ -117,7 +117,7 @@ export default function ServiceHistory() {
               </CardDescription>
             </div>
             <Button asChild variant="outline" size="sm">
-              <Link href="/service/orders?status=completed">Open Archive</Link>
+              <Link to="/service/orders?status=completed">Open Archive</Link>
             </Button>
           </CardHeader>
           <CardContent>
@@ -143,12 +143,12 @@ export default function ServiceHistory() {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button asChild size="sm" variant="outline">
-                          <Link href={`/service/orders?ro=${item.id}`}>
+                          <Link to={`/service/orders?ro=${item.id}`}>
                             View RO
                           </Link>
                         </Button>
                         <Button asChild size="sm" variant="ghost">
-                          <Link href={`/customers/${item.id.replace('RO-', 'cust-')}`}>
+                          <Link to={`/customers/${item.id.replace('RO-', 'cust-')}`}>
                             Customer 360
                           </Link>
                         </Button>
@@ -185,7 +185,7 @@ export default function ServiceHistory() {
                   {insight.description}
                 </p>
                 <Button asChild size="sm" className="mt-3">
-                  <Link href={insight.route}>{insight.cta}</Link>
+                  <Link to={insight.route}>{insight.cta}</Link>
                 </Button>
               </div>
             ))}
@@ -223,17 +223,17 @@ export default function ServiceHistory() {
                   </div>
                   <div className="mt-3 grid gap-3 md:grid-cols-3">
                     <Button asChild variant="outline" className="justify-start">
-                      <Link href={`/service/orders?ro=${item.id}&view=media`}>
+                      <Link to={`/service/orders?ro=${item.id}&view=media`}>
                         <Wrench className="mr-2 h-4 w-4" /> Technician Media
                       </Link>
                     </Button>
                     <Button asChild variant="outline" className="justify-start">
-                      <Link href={`/service/orders?ro=${item.id}&view=inspection`}>
+                      <Link to={`/service/orders?ro=${item.id}&view=inspection`}>
                         <FileCheck2 className="mr-2 h-4 w-4" /> Inspection Report
                       </Link>
                     </Button>
                     <Button asChild variant="outline" className="justify-start">
-                      <Link href={`/service/orders?ro=${item.id}&view=approvals`}>
+                      <Link to={`/service/orders?ro=${item.id}&view=approvals`}>
                         <CalendarDays className="mr-2 h-4 w-4" /> Approvals Timeline
                       </Link>
                     </Button>

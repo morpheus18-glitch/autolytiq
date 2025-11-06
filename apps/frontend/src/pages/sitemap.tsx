@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -93,7 +93,7 @@ export default function Sitemap() {
             {allPages
               .filter((page) => page.category === category)
               .map((page) => (
-                <Link key={page.path} href={page.path}>
+                <Link key={page.path} to={page.path} className="block">
                   <Card className="h-full hover:border-primary transition-colors cursor-pointer hover:shadow-lg">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-lg">

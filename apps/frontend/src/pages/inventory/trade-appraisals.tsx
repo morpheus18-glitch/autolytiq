@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -97,13 +97,13 @@ export default function TradeAppraisals() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
-            <Link href="/sales">Sales Pipeline</Link>
+            <Link to="/sales">Sales Pipeline</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/inventory">Inventory Desk</Link>
+            <Link to="/inventory">Inventory Desk</Link>
           </Button>
           <Button asChild>
-            <Link href="/professional-deal-desk?tab=trade">
+            <Link to="/professional-deal-desk?tab=trade">
               <Plus className="mr-2 h-4 w-4" />
               New Appraisal
             </Link>
@@ -167,7 +167,7 @@ export default function TradeAppraisals() {
             </CardDescription>
           </div>
           <Button asChild variant="outline" size="sm">
-            <Link href="/customers?segment=trade-in">
+            <Link to="/customers?segment=trade-in">
               View Customer History
             </Link>
           </Button>
@@ -202,12 +202,12 @@ export default function TradeAppraisals() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button asChild size="sm" variant="ghost">
-                        <Link href={`/professional-deal-desk?trade=${item.id}`}>
+                        <Link to={`/professional-deal-desk?trade=${item.id}`}>
                           Desk Deal
                         </Link>
                       </Button>
                       <Button asChild size="sm" variant="outline">
-                        <Link href={`/customers/${item.customerId}`}>
+                        <Link to={`/customers/${item.customerId}`}>
                           Customer 360
                         </Link>
                       </Button>
@@ -241,7 +241,7 @@ export default function TradeAppraisals() {
               </div>
               <Progress value={Math.min(100, item.vehicles * 15)} className="h-2" />
               <Button asChild className="w-full">
-                <Link href={item.route}>
+                <Link to={item.route}>
                   {item.action}
                 </Link>
               </Button>

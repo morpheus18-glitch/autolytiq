@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -64,13 +64,13 @@ export default function ServiceSchedule() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
-            <Link href="/service">Service Overview</Link>
+            <Link to="/service">Service Overview</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/service/appointments">Appointments</Link>
+            <Link to="/service/appointments">Appointments</Link>
           </Button>
           <Button asChild>
-            <Link href="/service/orders">Repair Orders</Link>
+            <Link to="/service/orders">Repair Orders</Link>
           </Button>
         </div>
       </div>
@@ -113,12 +113,12 @@ export default function ServiceSchedule() {
                     </div>
                     <div className="mt-3 flex gap-2">
                       <Button asChild size="sm" variant="outline" className="flex-1">
-                        <Link href={`/service/history?tech=${encodeURIComponent(tech.name)}`}>
+                        <Link to={`/service/history?tech=${encodeURIComponent(tech.name)}`}>
                           Recent Repairs
                         </Link>
                       </Button>
                       <Button asChild size="sm" className="flex-1">
-                        <Link href={`/service/appointments?tech=${encodeURIComponent(tech.name)}`}>
+                        <Link to={`/service/appointments?tech=${encodeURIComponent(tech.name)}`}>
                           Manage Queue
                         </Link>
                       </Button>
@@ -158,7 +158,7 @@ export default function ServiceSchedule() {
                     Technician Assigned
                   </span>
                   <Button asChild size="sm" variant="ghost">
-                    <Link href={`/service/appointments?bay=${encodeURIComponent(bay.bay)}`}>
+                    <Link to={`/service/appointments?bay=${encodeURIComponent(bay.bay)}`}>
                       View Queue
                     </Link>
                   </Button>
@@ -187,7 +187,7 @@ export default function ServiceSchedule() {
               12 of 18 vehicles active • 3 due back within 2 hours
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/inventory?focus=loaners">Manage Fleet</Link>
+              <Link to="/inventory?focus=loaners">Manage Fleet</Link>
             </Button>
           </div>
           <div className="space-y-2 rounded-lg border p-4">
@@ -196,7 +196,7 @@ export default function ServiceSchedule() {
               Real-time ETA sync with customer texting portal.
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/customers/cust-communications/calls">Coordinate Calls</Link>
+              <Link to="/customers/cust-communications/calls">Coordinate Calls</Link>
             </Button>
           </div>
           <div className="space-y-2 rounded-lg border p-4">
@@ -205,7 +205,7 @@ export default function ServiceSchedule() {
               6 riders booked • Average wait time 9 minutes
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/workflow-assistant?playbook=pickup">Optimize Routing</Link>
+              <Link to="/workflow-assistant?playbook=pickup">Optimize Routing</Link>
             </Button>
           </div>
         </CardContent>

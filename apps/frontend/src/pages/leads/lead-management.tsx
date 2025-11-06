@@ -34,7 +34,7 @@ import {
   TableRow,
   Select,
 } from '@repo/ui';
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 
 interface LeadChannel {
   id: string;
@@ -689,12 +689,12 @@ export default function CRMLeadManagement() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-          <Link href="/market-leads" className="w-full sm:w-auto">
+          <Link to="/market-leads" className="w-full sm:w-auto">
             <Button variant="outline" className="w-full sm:w-auto">
               <Megaphone className="mr-2 h-4 w-4" /> Marketplaces
             </Button>
           </Link>
-          <Link href="/leads" className="w-full sm:w-auto">
+          <Link to="/leads" className="w-full sm:w-auto">
             <Button className="btn-embossed w-full sm:w-auto">
               <Zap className="mr-2 h-4 w-4" /> Add Lead
             </Button>

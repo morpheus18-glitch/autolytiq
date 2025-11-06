@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -76,13 +76,13 @@ export default function InventoryReports() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
-            <Link href="/inventory">Inventory Workspace</Link>
+            <Link to="/inventory">Inventory Workspace</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/inventory/lot-management">Lot Management</Link>
+            <Link to="/inventory/lot-management">Lot Management</Link>
           </Button>
           <Button asChild>
-            <Link href="/inventory/pricing">
+            <Link to="/inventory/pricing">
               Pricing Intelligence
             </Link>
           </Button>
@@ -194,7 +194,7 @@ export default function InventoryReports() {
               </div>
               <p className="mt-2 text-sm text-muted-foreground">{alert.description}</p>
               <Button asChild size="sm" variant="outline" className="mt-3">
-                <Link href={alert.route}>{alert.action}</Link>
+                <Link to={alert.route}>{alert.action}</Link>
               </Button>
             </div>
           ))}

@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -77,13 +77,13 @@ export default function FinancialReports() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
-            <Link href="/accounting">Accounting Hub</Link>
+            <Link to="/accounting">Accounting Hub</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/finance">Finance Desk</Link>
+            <Link to="/finance">Finance Desk</Link>
           </Button>
           <Button asChild>
-            <Link href="/reports">
+            <Link to="/reports">
               Executive Summary
             </Link>
           </Button>
@@ -198,7 +198,7 @@ export default function FinancialReports() {
               Reconcile all ledgers and deliver financial statements by day 3.
             </p>
             <Button asChild size="sm" variant="outline">
-              <Link href="/accounting/monthly-close">Open Checklist</Link>
+              <Link to="/accounting/monthly-close">Open Checklist</Link>
             </Button>
           </div>
           <div className="space-y-2 rounded-lg border p-4">
@@ -210,7 +210,7 @@ export default function FinancialReports() {
               Monitor state filings, submit EFT payments, and sync confirmation numbers.
             </p>
             <Button asChild size="sm" variant="outline">
-              <Link href="/accounting/reports?focus=tax">Manage Filings</Link>
+              <Link to="/accounting/reports?focus=tax">Manage Filings</Link>
             </Button>
           </div>
           <div className="space-y-2 rounded-lg border p-4">
@@ -222,7 +222,7 @@ export default function FinancialReports() {
               Stress test inventory acquisition and F&I penetration scenarios.
             </p>
             <Button asChild size="sm" variant="outline">
-              <Link href="/finance/structuring">Launch Scenario</Link>
+              <Link to="/finance/structuring">Launch Scenario</Link>
             </Button>
           </div>
         </CardContent>
@@ -239,7 +239,7 @@ export default function FinancialReports() {
               <p className="text-lg font-semibold">{alert.title}</p>
               <p className="mt-1 text-sm text-muted-foreground">{alert.message}</p>
               <Button asChild size="sm" variant="outline" className="mt-3">
-                <Link href={alert.route}>{alert.action}</Link>
+                <Link to={alert.route}>{alert.action}</Link>
               </Button>
             </div>
           ))}

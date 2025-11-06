@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -52,13 +52,13 @@ export default function ServiceOverview() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
-            <Link href="/service/appointments">Appointments</Link>
+            <Link to="/service/appointments">Appointments</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/service/orders">Repair Orders</Link>
+            <Link to="/service/orders">Repair Orders</Link>
           </Button>
           <Button asChild>
-            <Link href="/service/reports">
+            <Link to="/service/reports">
               Service Analytics
             </Link>
           </Button>
@@ -133,7 +133,7 @@ export default function ServiceOverview() {
                 </p>
               </div>
               <Button asChild size="sm" variant="ghost">
-                <Link href="/service/appointments?view=intake">View Queue</Link>
+                <Link to="/service/appointments?view=intake">View Queue</Link>
               </Button>
             </div>
             <div className="flex items-center justify-between rounded-lg border p-3">
@@ -144,7 +144,7 @@ export default function ServiceOverview() {
                 </p>
               </div>
               <Button asChild size="sm" variant="ghost">
-                <Link href="/service/orders?filter=in-progress">Manage Orders</Link>
+                <Link to="/service/orders?filter=in-progress">Manage Orders</Link>
               </Button>
             </div>
             <div className="flex items-center justify-between rounded-lg border p-3">
@@ -155,7 +155,7 @@ export default function ServiceOverview() {
                 </p>
               </div>
               <Button asChild size="sm" variant="ghost">
-                <Link href="/customers?segment=service">Notify Customers</Link>
+                <Link to="/customers?segment=service">Notify Customers</Link>
               </Button>
             </div>
           </CardContent>
@@ -193,12 +193,12 @@ export default function ServiceOverview() {
                 </div>
                 <div className="mt-3 flex gap-2">
                   <Button asChild size="sm" variant="outline" className="flex-1">
-                    <Link href={`/service/schedule?tech=${encodeURIComponent(tech.name)}`}>
+                    <Link to={`/service/schedule?tech=${encodeURIComponent(tech.name)}`}>
                       View Schedule
                     </Link>
                   </Button>
                   <Button asChild size="sm" className="flex-1">
-                    <Link href={`/service/history?tech=${encodeURIComponent(tech.name)}`}>
+                    <Link to={`/service/history?tech=${encodeURIComponent(tech.name)}`}>
                       Repair History
                     </Link>
                   </Button>
