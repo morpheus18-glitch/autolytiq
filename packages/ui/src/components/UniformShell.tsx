@@ -29,9 +29,12 @@ import {
   Building2,
   Menu,
   LogOut,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { useBreakpoint, useMobileBreakpoint } from '../hooks/useBreakpoint.js';
 import { IntelligentSearch, type SearchSuggestion } from './IntelligentSearch.js';
+import { Button } from './Button.js';
 
 export interface NavModule {
   id: string;
@@ -60,6 +63,10 @@ export interface UniformShellProps {
   userAvatar?: string;
   /** Notification count */
   notifications?: number;
+  /** Current theme */
+  theme?: 'light' | 'dark' | 'system';
+  /** On theme toggle */
+  onThemeToggle?: () => void;
   /** On navigation click */
   onNavigate?: (moduleId: string, subItemId?: string) => void;
   /** On search */
@@ -94,6 +101,8 @@ export function UniformShell({
   user = 'User',
   userAvatar,
   notifications = 0,
+  theme = 'light',
+  onThemeToggle,
   onNavigate,
   onSearch,
   searchSuggestions = [],
@@ -243,7 +252,7 @@ export function UniformShell({
             </div>
           </div>
 
-          {/* Right: Tenant switcher, Notifications, Profile */}
+          {/* Right: Tenant switcher, Notifications, Theme, Profile */}
           <div className="flex items-center gap-1 sm:gap-2">
             {/* Tenant/Dealership Switcher - Icon only on mobile */}
             <button
@@ -253,6 +262,20 @@ export function UniformShell({
               <Building2 className="h-4 w-4" />
               {!isMobile && <span>{tenant}</span>}
             </button>
+
+            {/* Theme Toggle */}
+            {onThemeToggle && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onThemeToggle}
+                className="h-9 w-9 p-0"
+              >
+                <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                <span className="sr-only">Toggle theme ({theme})</span>
+              </Button>
+            )}
 
             {/* Notifications */}
             <button className="relative rounded p-2 text-text-secondary hover:bg-inset hover:text-text-primary">

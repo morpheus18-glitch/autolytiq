@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useTheme } from '@/contexts/theme-context';
 import { clearAuthToken } from '@/lib/auth';
 
 // Define navigation modules based on the app's IA
@@ -161,6 +162,16 @@ export default function AppShell() {
     navigate(`/search?q=${encodeURIComponent(query)}`);
   };
 
+  const handleThemeToggle = () => {
+    if (theme === 'light') {
+      setTheme('dark');
+    } else if (theme === 'dark') {
+      setTheme('system');
+    } else {
+      setTheme('light');
+    }
+  };
+
   const handleLogout = () => {
     clearAuthToken();
     navigate('/login');
@@ -207,10 +218,12 @@ export default function AppShell() {
         modules={navigationModules}
         activeModule={getActiveModule()}
         activeSubItem={getActiveSubItem()}
-        tenant={user?.store?.name || 'AutolytiQ'}
+        tenant={tenant?.name}
         user={displayName}
-        userAvatar={undefined}
+        userAvatar={user?.avatar}
         notifications={unreadCount}
+        theme={theme}
+        onThemeToggle={handleThemeToggle}
         onNavigate={handleNavigate}
         onSearch={handleSearch}
         recentSearches={recentSearches}

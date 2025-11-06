@@ -1,19 +1,42 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { 
+  PageContainer, 
+  PageHeader, 
+  ResponsiveGrid, 
+  ResponsiveButton, 
+  ResponsiveActions,
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle,
+  Button,
+  Input,
+  Badge,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@repo/ui";
 import { Plus, Search, Filter, Download, Upload, BookOpen, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const accountCategories = [
-  { id: "assets", name: "Assets", color: "bg-green-100 text-green-800", count: 15 },
-  { id: "liabilities", name: "Liabilities", color: "bg-red-100 text-red-800", count: 8 },
-  { id: "equity", name: "Equity", color: "bg-blue-100 text-blue-800", count: 5 },
-  { id: "revenue", name: "Revenue", color: "bg-purple-100 text-purple-800", count: 12 },
-  { id: "expenses", name: "Expenses", color: "bg-orange-100 text-orange-800", count: 22 }
+  { id: "assets", name: "Assets", color: "bg-[rgb(var(--success)_/_0.15)] text-[rgb(var(--success))]", count: 15 },
+  { id: "liabilities", name: "Liabilities", color: "bg-[rgb(var(--error)_/_0.15)] text-[rgb(var(--error))]", count: 8 },
+  { id: "equity", name: "Equity", color: "bg-[rgb(var(--action-primary)_/_0.15)] text-[rgb(var(--action-primary))]", count: 5 },
+  { id: "revenue", name: "Revenue", color: "bg-[rgb(var(--accent-primary)_/_0.15)] text-[rgb(var(--accent-primary))]", count: 12 },
+  { id: "expenses", name: "Expenses", color: "bg-[rgb(var(--warning)_/_0.15)] text-[rgb(var(--warning))]", count: 22 }
 ];
 
 const sampleAccounts = [
@@ -61,46 +84,37 @@ export default function ChartOfAccounts() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Chart of Accounts</h1>
-          <p className="text-gray-600 mt-1">Manage your dealership's financial account structure</p>
-        </div>
-        <div className="flex space-x-3">
-          <Button variant="outline" className="flex items-center space-x-2">
-            <Upload className="h-4 w-4" />
-            <span>Import</span>
-          </Button>
-          <Button variant="outline" className="flex items-center space-x-2">
-            <Download className="h-4 w-4" />
-            <span>Export</span>
-          </Button>
-          <Button className="flex items-center space-x-2">
-            <Plus className="h-4 w-4" />
-            <span>Add Account</span>
-          </Button>
-        </div>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Chart of Accounts"
+        description="Manage your dealership's financial account structure"
+        icon={<BookOpen className="h-6 w-6" />}
+        actions={
+          <ResponsiveActions>
+            <ResponsiveButton icon={<Upload className="h-4 w-4" />} text="Import" variant="outline" />
+            <ResponsiveButton icon={<Download className="h-4 w-4" />} text="Export" variant="outline" />
+            <ResponsiveButton icon={<Plus className="h-4 w-4" />} text="Add Account" />
+          </ResponsiveActions>
+        }
+      />
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <ResponsiveGrid cols={5} mobileCols={2} gap="md">
         {accountCategories.map((category) => (
           <Card key={category.id}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <Badge className={category.color}>{category.name}</Badge>
-                  <p className="text-2xl font-bold mt-2">{category.count}</p>
-                  <p className="text-sm text-gray-600">Accounts</p>
+                  <p className="text-2xl font-bold mt-2 text-text-primary">{category.count}</p>
+                  <p className="text-sm text-text-secondary">Accounts</p>
                 </div>
-                <BookOpen className="h-8 w-8 text-gray-400" />
+                <BookOpen className="h-8 w-8 text-text-tertiary" />
               </div>
             </CardContent>
           </Card>
         ))}
-      </div>
+      </ResponsiveGrid>
 
       <Tabs defaultValue="accounts" className="space-y-4">
         <TabsList>
@@ -113,12 +127,12 @@ export default function ChartOfAccounts() {
           {/* Filters */}
           <Card>
             <CardContent className="p-4">
-              <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <div className="flex-1">
                   <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-text-tertiary" />
                     <Input
-                      placeholder="Search accounts by name or number..."
+                      placeholder="Search accounts..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
@@ -126,7 +140,7 @@ export default function ChartOfAccounts() {
                   </div>
                 </div>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-full md:w-48">
+                  <SelectTrigger className="w-full sm:w-40">
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -137,8 +151,8 @@ export default function ChartOfAccounts() {
                   </SelectContent>
                 </Select>
                 <Select value={selectedType} onValueChange={setSelectedType}>
-                  <SelectTrigger className="w-full md:w-48">
-                    <SelectValue placeholder="Account Type" />
+                  <SelectTrigger className="w-full sm:w-40">
+                    <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Types</SelectItem>
@@ -161,46 +175,46 @@ export default function ChartOfAccounts() {
 
           {/* Accounts Table */}
           <Card>
-            <CardContent className="p-0">
+            <CardContent className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Account #</TableHead>
                     <TableHead>Account Name</TableHead>
                     <TableHead>Category</TableHead>
-                    <TableHead>Type</TableHead>
+                    <TableHead className="hidden lg:table-cell">Type</TableHead>
                     <TableHead className="text-right">Balance</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Last Modified</TableHead>
+                    <TableHead className="hidden sm:table-cell">Status</TableHead>
+                    <TableHead className="hidden md:table-cell">Last Modified</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredAccounts.map((account) => (
                     <TableRow key={account.id}>
-                      <TableCell className="font-medium">{account.id}</TableCell>
-                      <TableCell>{account.name}</TableCell>
+                      <TableCell className="font-medium text-text-primary">{account.id}</TableCell>
+                      <TableCell className="text-text-primary">{account.name}</TableCell>
                       <TableCell>
                         <Badge className={getCategoryColor(account.category)}>
                           {account.category}
                         </Badge>
                       </TableCell>
-                      <TableCell>{account.type}</TableCell>
+                      <TableCell className="hidden lg:table-cell text-text-secondary">{account.type}</TableCell>
                       <TableCell className={`text-right font-medium ${
-                        account.balance >= 0 ? 'text-green-600' : 'text-red-600'
+                        account.balance >= 0 ? 'text-[rgb(var(--success))]' : 'text-[rgb(var(--error))]'
                       }`}>
                         {account.balance >= 0 ? '' : '-'}{formatCurrency(account.balance)}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <Badge variant={account.status === 'Active' ? 'default' : 'secondary'}>
                           {account.status}
                         </Badge>
                       </TableCell>
-                      <TableCell>{account.lastModified}</TableCell>
+                      <TableCell className="hidden md:table-cell text-text-secondary">{account.lastModified}</TableCell>
                       <TableCell>
-                        <div className="flex space-x-2">
+                        <div className="flex gap-2">
                           <Button variant="ghost" size="sm">Edit</Button>
-                          <Button variant="ghost" size="sm">History</Button>
+                          <Button variant="ghost" size="sm" className="hidden sm:inline-flex">History</Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -221,29 +235,29 @@ export default function ChartOfAccounts() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <ResponsiveGrid cols={3} mobileCols={1}>
                   <Card>
                     <CardContent className="p-4">
-                      <h3 className="font-semibold mb-2">Tax Reporting</h3>
-                      <p className="text-sm text-gray-600 mb-4">Map accounts to tax categories</p>
+                      <h3 className="font-semibold mb-2 text-text-primary">Tax Reporting</h3>
+                      <p className="text-sm text-text-secondary mb-4">Map accounts to tax categories</p>
                       <Button size="sm" variant="outline">Configure Mapping</Button>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardContent className="p-4">
-                      <h3 className="font-semibold mb-2">Financial Statements</h3>
-                      <p className="text-sm text-gray-600 mb-4">Organize accounts for reporting</p>
+                      <h3 className="font-semibold mb-2 text-text-primary">Financial Statements</h3>
+                      <p className="text-sm text-text-secondary mb-4">Organize accounts for reporting</p>
                       <Button size="sm" variant="outline">Configure Mapping</Button>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardContent className="p-4">
-                      <h3 className="font-semibold mb-2">DMS Integration</h3>
-                      <p className="text-sm text-gray-600 mb-4">Sync with dealership systems</p>
+                      <h3 className="font-semibold mb-2 text-text-primary">DMS Integration</h3>
+                      <p className="text-sm text-text-secondary mb-4">Sync with dealership systems</p>
                       <Button size="sm" variant="outline">Configure Mapping</Button>
                     </CardContent>
                   </Card>
-                </div>
+                </ResponsiveGrid>
               </div>
             </CardContent>
           </Card>
@@ -303,6 +317,6 @@ export default function ChartOfAccounts() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }
