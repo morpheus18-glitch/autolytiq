@@ -90,6 +90,7 @@ export default function AppShell() {
   const navigate = useNavigate();
   const { user, isLoading } = useAuth();
   const { unreadCount } = useNotifications();
+  const { theme, setTheme } = useTheme();
   const [tenantSwitcherOpen, setTenantSwitcherOpen] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
@@ -218,7 +219,7 @@ export default function AppShell() {
         modules={navigationModules}
         activeModule={getActiveModule()}
         activeSubItem={getActiveSubItem()}
-        tenant={tenant?.name}
+        tenant={user?.store?.name || 'AutolytiQ'}
         user={displayName}
         userAvatar={user?.avatar}
         notifications={unreadCount}
