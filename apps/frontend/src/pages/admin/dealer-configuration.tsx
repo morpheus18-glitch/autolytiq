@@ -1,5 +1,5 @@
 import { useState } from "react";
-import UniformPage from "@/components/layout/uniform-page";
+import { PageHeader } from "@repo/ui";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -39,11 +39,12 @@ export default function DealerConfiguration() {
   };
 
   return (
-    <UniformPage
-      title="Dealer Configuration"
-      subtitle="Comprehensive dealership settings for all operations"
-      showSearch={false}
-    >
+    <div>
+      <PageHeader
+        icon={<Settings className="h-6 w-6" />}
+        title="Dealer Configuration"
+        description="Comprehensive dealership settings for all operations"
+      />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 h-auto bg-transparent">
           <TabsTrigger value="general" className="flex items-center gap-2">
@@ -821,6 +822,6 @@ export default function DealerConfiguration() {
           </Button>
         </div>
       </div>
-    </UniformPage>
+    </div>
   );
 }

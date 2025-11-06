@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
-import MobileResponsiveLayout from '@/components/layout/mobile-responsive-layout';
+import { PageHeader } from '@repo/ui';
 import StatsGrid from '@/components/layout/stats-grid';
 import { 
   Car, 
@@ -147,11 +147,13 @@ export default function InventoryDetail() {
   );
 
   return (
-    <MobileResponsiveLayout
-      title={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-      subtitle={`VIN: ${vehicle.vin}`}
-      headerActions={headerActions}
-    >
+    <div>
+      <PageHeader
+        icon={<Car className="h-6 w-6" />}
+        title={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+        description={`VIN: ${vehicle.vin}`}
+        actions={headerActions}
+      />
       <div className="space-y-6">
         <StatsGrid stats={stats} cols={4} />
 
@@ -293,6 +295,6 @@ export default function InventoryDetail() {
           </TabsContent>
         </Tabs>
       </div>
-    </MobileResponsiveLayout>
+    </div>
   );
 }
