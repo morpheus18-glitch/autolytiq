@@ -409,10 +409,6 @@ export function UniformShell({
             </div>
           </div>
         </div>
-              ))}
-            </nav>
-          </aside>
-        </div>
       )}
     </div>
   );

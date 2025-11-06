@@ -3,6 +3,12 @@
  * A comprehensive React component library built on design tokens
  */
 
+// Mobile-First Layout Components
+export { PageContainer, type PageContainerProps } from './components/PageContainer.js';
+export { ResponsiveGrid, type ResponsiveGridProps } from './components/ResponsiveGrid.js';
+export { MobileCard, MobileListItem, type MobileCardProps, type MobileListItemProps } from './components/MobileCard.js';
+export { ResponsiveButton, ResponsiveActions, type ResponsiveButtonProps, type ResponsiveActionsProps } from './components/ResponsiveActions.js';
+
 // Components
 export { Button, buttonVariants, type ButtonProps } from './components/Button.js';
 export { Input, inputVariants, type InputProps } from './components/Input.js';
