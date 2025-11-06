@@ -2,8 +2,8 @@ import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import path from 'path';
 import express from 'express';
-import { createApp } from './server.js';
-import { logger } from './lib/logger.js';
+import { createApp } from './server';
+import { logger } from './lib/logger';
 
 // Global error handlers for uncaught errors
 // Ensure proper error handling for production stability

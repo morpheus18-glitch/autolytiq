@@ -2,7 +2,7 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { logger } from '../logger.js';
+import { logger } from '../logger';
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);

@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
-import { logger } from '../lib/logger.js';
+import { logger } from '../lib/logger';
 
 const protoDir = path.dirname(fileURLToPath(import.meta.url));
 const protoSegments = ['proto', 'pricing', 'v1', 'pricing.proto'] as const;

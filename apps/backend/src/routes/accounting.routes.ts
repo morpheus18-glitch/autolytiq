@@ -15,7 +15,7 @@ import {
   generateBalanceSheet,
   generateCashReconciliation,
   getDealProfitAnalysis,
-} from '../services/accounting.service.js';
+} from '../services/accounting.service';
 
 // Commission operations
 import {
@@ -29,7 +29,7 @@ import {
   getPendingCommissions,
   getApprovedCommissions,
   getCommissionSummary,
-} from '../services/commission.service.js';
+} from '../services/commission.service';
 
 // Financial reporting
 import {
@@ -37,7 +37,7 @@ import {
   generateMonthlyPerformanceSummary,
   generateSalespersonPerformance,
   generateDepartmentPerformance,
-} from '../services/financial-reporting.service.js';
+} from '../services/financial-reporting.service';
 import { JournalEntryType, LineType } from '@prisma/client';
 
 export const accountingRouter = Router();

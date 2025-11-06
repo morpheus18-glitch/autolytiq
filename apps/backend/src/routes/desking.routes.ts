@@ -9,8 +9,8 @@ import {
   refreshApprovalPrediction,
   selectWorksheetVersion,
   upsertWorksheet,
-} from '../controllers/desking.controller.js';
-import { calculateTax } from '../services/tax.service.js';
+} from '../controllers/desking.controller';
+import { calculateTax } from '../services/tax.service';
 
 export const deskingRouter = Router();
 

@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { requireRole } from '../middleware/rbac.js';
-import type { Role } from '../types/roles.js';
-import { resolveRequestId } from '../lib/request.js';
-import { buildLeadInsights, LeadNotFoundError } from '../services/lead-intelligence.service.js';
-import { mlService } from '../services/ml.service.js';
-import type { SentimentMessagePayload } from '../types/ml.js';
-import { fetchCloseProbability } from '../services/lead-score.service.js';
+import { requireRole } from '../middleware/rbac';
+import type { Role } from '../types/roles';
+import { resolveRequestId } from '../lib/request';
+import { buildLeadInsights, LeadNotFoundError } from '../services/lead-intelligence.service';
+import { mlService } from '../services/ml.service';
+import type { SentimentMessagePayload } from '../types/ml';
+import { fetchCloseProbability } from '../services/lead-score.service';
 
 const allowedRoles: Role[] = ['ADMIN', 'BDC', 'SALES'];
 

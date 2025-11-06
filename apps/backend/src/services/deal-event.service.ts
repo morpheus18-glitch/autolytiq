@@ -1,6 +1,6 @@
 import crypto from 'crypto';
-import { prisma, toInputJson } from '../lib/prisma.js';
-import { publishToOutbox, OutboxTopics } from './outbox.service.js';
+import { prisma, toInputJson } from '../lib/prisma';
+import { publishToOutbox, OutboxTopics } from './outbox.service';
 
 /**
  * Deal Event Types

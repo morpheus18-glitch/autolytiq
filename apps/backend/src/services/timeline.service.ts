@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { prisma, getTenantId } from '../lib/prisma.js';
+import { prisma, getTenantId } from '../lib/prisma';
 
 export interface TimelineEventBase {
   id: string;

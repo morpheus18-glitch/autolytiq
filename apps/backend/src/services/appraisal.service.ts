@@ -7,7 +7,7 @@
 import { db } from '@repo/db';
 import { AppraisalStatus, AppraisalConditionGrade, Prisma, VehicleType } from '@prisma/client';
 import axios from 'axios';
-import { getAppraisalValuation } from './pricing-intelligence.service.js';
+import { getAppraisalValuation } from './pricing-intelligence.service';
 
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:8000';
 const VIN_DECODER_API = process.env.VIN_DECODER_API || 'https://vpic.nhtsa.dot.gov/api/vehicles';

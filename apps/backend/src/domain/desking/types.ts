@@ -1,4 +1,4 @@
-import type { ScoringConfig as BackendScoringConfig } from '../../config/scoring.js';
+import type { ScoringConfig as BackendScoringConfig } from '../../config/scoring';
 
 export type ScoringConfig = BackendScoringConfig;
 export type ScoringObjectives = BackendScoringConfig['objectives'];

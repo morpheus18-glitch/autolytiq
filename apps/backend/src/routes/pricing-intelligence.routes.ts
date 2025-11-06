@@ -10,7 +10,7 @@ import {
   getMarketAnalysis,
   getAppraisalValuation,
   getBatchPricingRecommendations,
-} from '../services/pricing-intelligence.service.js';
+} from '../services/pricing-intelligence.service';
 
 export const pricingIntelligenceRouter = Router();
 

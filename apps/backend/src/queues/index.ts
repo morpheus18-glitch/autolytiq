@@ -4,7 +4,7 @@ import {
   scheduleAppointmentJobs,
   shutdownAppointmentJobs,
   type AppointmentJobScheduleOptions,
-} from './appointment.jobs.js';
+} from './appointment.jobs';
 
 let initialized = false;
 

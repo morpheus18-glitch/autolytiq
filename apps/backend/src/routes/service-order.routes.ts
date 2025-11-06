@@ -14,7 +14,7 @@ import {
   deleteServiceOrder,
   addServiceOrderLineItems,
   getServiceOrderStats,
-} from '../services/service-order.service.js';
+} from '../services/service-order.service';
 
 export const serviceOrderRouter = Router();
 

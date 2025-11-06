@@ -1,14 +1,14 @@
 import type { NextFunction, Request, Response } from 'express';
 import { Router } from 'express';
-import { requireRole } from '../middleware/rbac.js';
-import type { Role } from '../types/roles.js';
+import { requireRole } from '../middleware/rbac';
+import type { Role } from '../types/roles';
 import {
   listAutomations,
   createAutomation,
   updateAutomation,
   toggleAutomation,
   executeAutomation,
-} from '../services/automation.service.js';
+} from '../services/automation.service';
 
 const automationRoles: Role[] = ['ADMIN', 'BDC'];
 

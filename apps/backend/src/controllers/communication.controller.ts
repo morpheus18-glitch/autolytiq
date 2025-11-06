@@ -5,10 +5,10 @@ import {
   inboxQuerySchema,
   smsRequestSchema,
   callLogQuerySchema,
-} from '../validations/communication.validation.js';
-import * as communicationService from '../services/communication.service.js';
-import * as inboxService from '../services/inbox.service.js';
-import { resolveHttpError } from '../utils/http-errors.js';
+} from '../validations/communication.validation';
+import * as communicationService from '../services/communication.service';
+import * as inboxService from '../services/inbox.service';
+import { resolveHttpError } from '../utils/http-errors';
 
 function ensureTenant(req: Request, res: Response): string | undefined {
   const tenantId = req.context?.tenantId;

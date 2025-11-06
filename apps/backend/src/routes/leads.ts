@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { prisma, isTenantScoped } from '../lib/prisma.js';
-import { requireRole } from '../middleware/rbac.js';
-import type { Role } from '../types/roles.js';
-import { resolveRequestId } from '../lib/request.js';
-import { calculateLeadScore, LeadNotFoundError } from '../services/lead-score.service.js';
+import { prisma, isTenantScoped } from '../lib/prisma';
+import { requireRole } from '../middleware/rbac';
+import type { Role } from '../types/roles';
+import { resolveRequestId } from '../lib/request';
+import { calculateLeadScore, LeadNotFoundError } from '../services/lead-score.service';
 
 const allowedRoles: Role[] = ['ADMIN', 'BDC', 'SALES'];
 

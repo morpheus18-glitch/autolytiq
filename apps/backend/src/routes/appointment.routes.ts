@@ -8,7 +8,7 @@ import {
   listAppointments,
   markAppointmentNoShow,
   updateAppointment,
-} from '../controllers/appointment.controller.js';
+} from '../controllers/appointment.controller';
 
 export const appointmentRouter = Router();
 

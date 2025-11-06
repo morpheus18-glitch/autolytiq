@@ -1,6 +1,6 @@
 import type { Request } from 'express';
-import { ApiError } from '../lib/errors.js';
-import type { Role } from '../types/roles.js';
+import { ApiError } from '../lib/errors';
+import type { Role } from '../types/roles';
 
 interface TenantContext {
   tenantId: string;

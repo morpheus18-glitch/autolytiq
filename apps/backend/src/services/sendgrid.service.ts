@@ -1,5 +1,5 @@
 import sgMail, { type MailDataRequired } from '@sendgrid/mail';
-import { env } from '../config/env.js';
+import { env } from '../config/env';
 
 type AttachmentInput = {
   filename: string;

@@ -1,5 +1,5 @@
 import PDFDocument from 'pdfkit';
-import type { DealStructure, GrossCalculation, PaymentCalculation } from '../domain/desking/types.js';
+import type { DealStructure, GrossCalculation, PaymentCalculation } from '../domain/desking/types';
 
 type PdfDoc = InstanceType<typeof PDFDocument>;
 

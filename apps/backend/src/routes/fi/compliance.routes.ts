@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type { Response, NextFunction } from 'express';
-import { requireRole } from '../../middleware/rbac.js';
-import type { Role } from '../../types/roles.js';
+import { requireRole } from '../../middleware/rbac';
+import type { Role } from '../../types/roles';
 import {
   getComplianceChecklist,
   updateComplianceChecklist,
@@ -12,8 +12,8 @@ import {
   type ComplianceDocumentType,
   type ComplianceGroupKey,
   type ComplianceUpdatePayload,
-} from '../../fi/compliance.service.js';
-import { resolveHttpError } from '../../utils/http-errors.js';
+} from '../../fi/compliance.service';
+import { resolveHttpError } from '../../utils/http-errors';
 
 const allowedRoles: Role[] = ['ADMIN', 'SALES'];
 

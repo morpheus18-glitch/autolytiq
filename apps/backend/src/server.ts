@@ -1,10 +1,10 @@
 import express from 'express';
-import { toApiError } from './lib/errors.js';
-import { initializeContext } from './middleware/context.js';
-import { registerRoutes } from './routes/index.js';
-import { initializeDomainIntegrations } from './integrations/index.js';
-import { watchScoringConfig } from './config/scoring.js';
-import { logger, requestTracingMiddleware } from './lib/logger.js';
+import { toApiError } from './lib/errors';
+import { initializeContext } from './middleware/context';
+import { registerRoutes } from './routes/index';
+import { initializeDomainIntegrations } from './integrations/index';
+import { watchScoringConfig } from './config/scoring';
+import { logger, requestTracingMiddleware } from './lib/logger';
 
 watchScoringConfig();
 initializeDomainIntegrations();

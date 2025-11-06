@@ -3,7 +3,7 @@ import { addHours, addMinutes } from 'date-fns';
 import {
   appointmentInclude,
   type AppointmentWithRelations,
-} from './appointment.types.js';
+} from './appointment.types';
 import {
   type AppointmentCheckInInput,
   type AppointmentCompleteInput,
@@ -11,15 +11,15 @@ import {
   type AppointmentListQuery,
   type AppointmentNoShowInput,
   type AppointmentUpdateInput,
-} from '../validations/appointment.validation.js';
-import { getTenantId, prisma } from '../lib/prisma.js';
-import { emitTenantEvent } from '../lib/socket.js';
+} from '../validations/appointment.validation';
+import { getTenantId, prisma } from '../lib/prisma';
+import { emitTenantEvent } from '../lib/socket';
 import {
   cancelAppointmentJobs,
   scheduleAppointmentJobs,
-} from '../queues/index.js';
-import { triggerAutomations } from './automation.service.js';
-import type { AutomationTriggerType } from './automation.service.js';
+} from '../queues/index';
+import { triggerAutomations } from './automation.service';
+import type { AutomationTriggerType } from './automation.service';
 
 const ACTIVE_CONFLICT_STATUSES = [
   AppointmentStatus.SCHEDULED,

@@ -16,8 +16,8 @@
  *   2 - Script error (database connection, etc.)
  */
 
-import { prisma, runWithTenant } from '../lib/prisma.js';
-import { verifyDealEventChain } from '../services/deal-event.service.js';
+import { prisma, runWithTenant } from '../lib/prisma';
+import { verifyDealEventChain } from '../services/deal-event.service';
 
 interface VerificationResult {
   dealId: string;

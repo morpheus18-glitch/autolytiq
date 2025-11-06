@@ -1,13 +1,13 @@
 import { Prisma, AppointmentStatus, ActivityType, CommunicationDirection, CommunicationType } from '@prisma/client';
 import { subDays } from 'date-fns';
-import { prisma } from '../lib/prisma.js';
+import { prisma } from '../lib/prisma';
 import type {
   ActivityAggregatePayload,
   BudgetSignalsPayload,
   LeadInsightsPayload,
   SimilaritySignalsPayload,
   TimetableInsightsPayload,
-} from '../types/ml.js';
+} from '../types/ml';
 
 const MS_IN_DAY = 1000 * 60 * 60 * 24;
 type LoadedLead = Prisma.LeadGetPayload<{

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { env } from '../config/env.js';
+import { env } from '../config/env';
 import type {
   LeadFeaturePayload,
   LeadInsightsPayload,
@@ -7,7 +7,7 @@ import type {
   NextActionResponsePayload,
   SentimentRequestPayload,
   SentimentResponsePayload,
-} from '../types/ml.js';
+} from '../types/ml';
 import type {
   ApprovalPrediction,
   ApprovalPredictionRequest,
@@ -15,7 +15,7 @@ import type {
   CounterAnalysisResponse,
   OptimizationPayload,
   OptimizationResponse,
-} from '../domain/desking/types.js';
+} from '../domain/desking/types';
 
 const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
 const RETRYABLE_CODES = new Set(['ECONNABORTED', 'ECONNRESET', 'ENOTFOUND', 'ETIMEDOUT']);

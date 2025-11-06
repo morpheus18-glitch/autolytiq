@@ -9,7 +9,7 @@ import {
   performSearch,
   getRecentSearches,
   getPopularSearches,
-} from '../services/search.service.js';
+} from '../services/search.service';
 
 export const searchRouter = Router();
 

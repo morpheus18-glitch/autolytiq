@@ -7,9 +7,9 @@ import type {
   DealWorksheet as DealWorksheetRecord,
   DealStatus as PrismaDealStatus,
 } from '@prisma/client';
-import { ApiError } from '../lib/errors.js';
-import { EVENT_TOPICS, emitEvent } from '../events/index.js';
-import { prisma, toInputJson } from '../lib/prisma.js';
+import { ApiError } from '../lib/errors';
+import { EVENT_TOPICS, emitEvent } from '../events/index';
+import { prisma, toInputJson } from '../lib/prisma';
 import type {
   ApprovalPrediction,
   CounterAnalysisRequest,
@@ -19,7 +19,7 @@ import type {
   OptimizationRequest,
   OptimizationResponse,
   PaymentCalculation,
-} from '../domain/desking/types.js';
+} from '../domain/desking/types';
 
 type DecimalLike = Prisma.Decimal | number | string | null | undefined;
 

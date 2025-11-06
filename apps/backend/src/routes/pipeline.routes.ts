@@ -12,7 +12,7 @@ import {
   moveDealToStage,
   bulkUpdateDeals,
   getPipelineStats,
-} from '../services/pipeline.service.js';
+} from '../services/pipeline.service';
 
 export const pipelineRouter = Router();
 

@@ -6,9 +6,9 @@ import {
   appointmentListQuerySchema,
   appointmentNoShowSchema,
   appointmentUpdateSchema,
-} from '../validations/appointment.validation.js';
-import * as appointmentService from '../services/appointment.service.js';
-import { resolveHttpError } from '../utils/http-errors.js';
+} from '../validations/appointment.validation';
+import * as appointmentService from '../services/appointment.service';
+import { resolveHttpError } from '../utils/http-errors';
 
 function ensureTenant(req: Request, res: Response): string | undefined {
   const tenantId = req.context?.tenantId;

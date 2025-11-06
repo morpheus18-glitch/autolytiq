@@ -1,5 +1,5 @@
 import { Router, json, urlencoded } from 'express';
-import * as webhookController from '../controllers/webhooks.controller.js';
+import * as webhookController from '../controllers/webhooks.controller';
 
 export const webhookRouter = Router();
 

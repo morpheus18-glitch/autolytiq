@@ -7,7 +7,7 @@ import {
   GrossCalculation,
   OptimizationRequest,
   PaymentCalculation,
-} from '../domain/desking/schemas.js';
+} from '../domain/desking/schemas';
 
 export const worksheetTotalsSchema = z.object({
   salePrice: z.number(),

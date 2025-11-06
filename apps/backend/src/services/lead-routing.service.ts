@@ -8,9 +8,9 @@ import {
 } from '@prisma/client';
 import { subDays } from 'date-fns';
 import { z } from 'zod';
-import { emitTenantEvent } from '../lib/socket.js';
-import { getTenantId, prisma } from '../lib/prisma.js';
-import { triggerAutomations } from './automation.service.js';
+import { emitTenantEvent } from '../lib/socket';
+import { getTenantId, prisma } from '../lib/prisma';
+import { triggerAutomations } from './automation.service';
 
 const CLOSED_LEAD_STATUSES = [
   LeadStatus.WON,

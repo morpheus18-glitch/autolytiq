@@ -9,7 +9,7 @@ import {
   calculateRetailReadiness,
   getVDPAnalytics,
   getBatchRetailReadiness,
-} from '../services/merchandising.service.js';
+} from '../services/merchandising.service';
 
 export const merchandisingRouter = Router();
 

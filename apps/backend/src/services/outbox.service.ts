@@ -1,4 +1,4 @@
-import { prisma, toInputJson } from '../lib/prisma.js';
+import { prisma, toInputJson } from '../lib/prisma';
 
 /**
  * Outbox Event Topics

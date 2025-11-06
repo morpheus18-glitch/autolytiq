@@ -15,7 +15,7 @@ import {
   convertAppraisalToInventory,
   getAppraisals,
   decodeVIN,
-} from '../services/appraisal.service.js';
+} from '../services/appraisal.service';
 
 export const appraisalRouter = Router();
 

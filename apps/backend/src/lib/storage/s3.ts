@@ -3,7 +3,7 @@ import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import crypto from 'node:crypto';
 import net from 'node:net';
-import { env } from '../../config/env.js';
+import { env } from '../../config/env';
 
 const DEFAULT_SIGNED_URL_TTL = 900; // 15 minutes
 const S3_URL_PATTERN = /https?:\/\/[^/]+\/(.+)/;

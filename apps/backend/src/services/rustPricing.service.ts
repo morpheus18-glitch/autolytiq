@@ -1,5 +1,5 @@
-import { priceEngineClient } from '../lib/grpc/priceEngineClient.js';
-import { logger } from '../lib/logger.js';
+import { priceEngineClient } from '../lib/grpc/priceEngineClient';
+import { logger } from '../lib/logger';
 
 function logRustServiceError(message: string, error: unknown, metadata: Record<string, unknown>): void {
   if (error instanceof Error) {

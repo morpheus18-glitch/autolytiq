@@ -4,7 +4,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import { PERMISSIONS, ROLE_PRESETS } from '../config/permissions.js';
+import { PERMISSIONS, ROLE_PRESETS } from '../config/permissions';
 
 const prisma = new PrismaClient();
 

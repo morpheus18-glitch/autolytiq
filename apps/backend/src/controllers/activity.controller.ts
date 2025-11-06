@@ -7,9 +7,9 @@ import {
   emailActivitySchema,
   noteActivitySchema,
   smsActivitySchema,
-} from '../validations/activity.validation.js';
-import * as activityService from '../services/activity.service.js';
-import { resolveHttpError } from '../utils/http-errors.js';
+} from '../validations/activity.validation';
+import * as activityService from '../services/activity.service';
+import { resolveHttpError } from '../utils/http-errors';
 
 function ensureTenant(req: Request, res: Response): string | undefined {
   const tenantId = req.context?.tenantId;

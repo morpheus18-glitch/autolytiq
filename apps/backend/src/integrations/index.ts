@@ -1,13 +1,13 @@
-import type { EventSubscription } from '../lib/event-bus.js';
-import { EVENT_TOPICS, subscribeToEvent } from '../events/index.js';
-import { primeCreditSubmissionDraft } from './fi.integration.js';
+import type { EventSubscription } from '../lib/event-bus';
+import { EVENT_TOPICS, subscribeToEvent } from '../events/index';
+import { primeCreditSubmissionDraft } from './fi.integration';
 import {
   releaseVehicleInventory,
   reserveVehicleInventory,
-} from './inventory.integration.js';
-import { appendDealTimelineEntry, scheduleDealFollowUp } from './crm.integration.js';
-import { createDealCloseJournal, createSalesCommissionStub } from './accounting.integration.js';
-import { recordDealEvent } from '../services/dealEventLog.service.js';
+} from './inventory.integration';
+import { appendDealTimelineEntry, scheduleDealFollowUp } from './crm.integration';
+import { createDealCloseJournal, createSalesCommissionStub } from './accounting.integration';
+import { recordDealEvent } from '../services/dealEventLog.service';
 
 const subscriptions: EventSubscription[] = [];
 let initialized = false;

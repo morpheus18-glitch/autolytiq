@@ -6,16 +6,16 @@ import {
   CommunicationType,
   Prisma,
 } from '@prisma/client';
-import { env } from '../config/env.js';
-import { getTenantId, prisma } from '../lib/prisma.js';
+import { env } from '../config/env';
+import { getTenantId, prisma } from '../lib/prisma';
 import type {
   CallRequestInput,
   EmailRequestInput,
   SmsRequestInput,
-} from '../validations/communication.validation.js';
-import { initiateVoiceCall, sendSms, normalizePhoneNumber } from './twilio.service.js';
-import { sendEmail } from './sendgrid.service.js';
-import { mapTwilioStatus } from './inbox.service.js';
+} from '../validations/communication.validation';
+import { initiateVoiceCall, sendSms, normalizePhoneNumber } from './twilio.service';
+import { sendEmail } from './sendgrid.service';
+import { mapTwilioStatus } from './inbox.service';
 
 interface LeadConsent {
   id: string;

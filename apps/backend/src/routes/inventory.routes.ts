@@ -17,7 +17,7 @@ import {
   getInventoryMetrics,
   getAgingAnalysis,
   getTurnRateMetrics,
-} from '../services/inventory.service.js';
+} from '../services/inventory.service';
 
 export const inventoryRouter = Router();
 

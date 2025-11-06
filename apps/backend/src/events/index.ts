@@ -1,5 +1,5 @@
-import { createDomainEvent, eventBus, type DomainEvent, type EventHandler } from '../lib/event-bus.js';
-import { EVENT_TOPICS, type DomainEventPayloads, type DomainTopic } from './topics.js';
+import { createDomainEvent, eventBus, type DomainEvent, type EventHandler } from '../lib/event-bus';
+import { EVENT_TOPICS, type DomainEventPayloads, type DomainTopic } from './topics';
 
 export { EVENT_TOPICS };
 export type { DomainEvent };

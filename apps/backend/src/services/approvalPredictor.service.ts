@@ -1,7 +1,7 @@
-import { prisma } from '../lib/prisma.js';
-import { mlService } from './ml.service.js';
-import { amortization } from './paymentCalculator.service.js';
-import { recordApproval } from './desking.service.js';
+import { prisma } from '../lib/prisma';
+import { mlService } from './ml.service';
+import { amortization } from './paymentCalculator.service';
+import { recordApproval } from './desking.service';
 import type {
   ApprovalOptimizationCandidate,
   ApprovalPrediction,
@@ -10,7 +10,7 @@ import type {
   DealStructure,
   PaymentCalculation,
   VehicleInfo,
-} from '../domain/desking/types.js';
+} from '../domain/desking/types';
 
 const roundToCents = (value: number): number => Math.round((value + Number.EPSILON) * 100) / 100;
 

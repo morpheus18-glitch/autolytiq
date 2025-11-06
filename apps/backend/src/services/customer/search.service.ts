@@ -1,7 +1,7 @@
 import type { Prisma } from '@prisma/client';
-import { prisma, getEffectiveTenantId } from '../../lib/prisma.js';
-import { buildCustomerSearchVector } from '../../shared/search-vector.js';
-import type { CustomerSearchVectorInput } from '../../shared/search-vector.js';
+import { prisma, getEffectiveTenantId } from '../../lib/prisma';
+import { buildCustomerSearchVector } from '../../shared/search-vector';
+import type { CustomerSearchVectorInput } from '../../shared/search-vector';
 
 type NullableString = string | null | undefined;
 

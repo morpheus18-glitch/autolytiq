@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
-import { prisma, toInputJson } from '../lib/prisma.js';
-import { logger } from '../lib/logger.js';
+import { prisma, toInputJson } from '../lib/prisma';
+import { logger } from '../lib/logger';
 
 /**
  * ML Feature Types

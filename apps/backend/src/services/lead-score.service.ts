@@ -1,8 +1,8 @@
-import { prisma, toInputJson } from '../lib/prisma.js';
-import { emitTenantEvent } from '../lib/socket.js';
-import type { LeadInsightsPayload, LeadScoreResponsePayload } from '../types/ml.js';
-import { buildLeadInsights, LeadNotFoundError } from './lead-intelligence.service.js';
-import { mlService } from './ml.service.js';
+import { prisma, toInputJson } from '../lib/prisma';
+import { emitTenantEvent } from '../lib/socket';
+import type { LeadInsightsPayload, LeadScoreResponsePayload } from '../types/ml';
+import { buildLeadInsights, LeadNotFoundError } from './lead-intelligence.service';
+import { mlService } from './ml.service';
 
 const MODEL_KEY = 'ml-fastapi-heuristic-v1';
 

@@ -1,5 +1,5 @@
 import type { RequestHandler } from 'express';
-import { tenantContext } from '../lib/prisma.js';
+import { tenantContext } from '../lib/prisma';
 
 const TENANT_HEADER = 'x-tenant-id';
 

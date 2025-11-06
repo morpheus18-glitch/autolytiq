@@ -1,26 +1,26 @@
 import { Prisma, RetailDealStatus } from '@prisma/client';
-import { prisma, toInputJson } from '../lib/prisma.js';
-import { mlService } from './ml.service.js';
-import { getScoringConfig, type ScoringConfig } from '../config/scoring.js';
+import { prisma, toInputJson } from '../lib/prisma';
+import { mlService } from './ml.service';
+import { getScoringConfig, type ScoringConfig } from '../config/scoring';
 import {
   competitiveRange,
   getMarketData,
   type ComparableSale,
   type VehicleDescriptor,
-} from './marketPricing.service.js';
+} from './marketPricing.service';
 import {
   findSimilarDeals,
   type DealSnapshot,
-} from './similarDeals.service.js';
+} from './similarDeals.service';
 import {
   getActiveLenders,
   listViolations,
   type LenderProfile,
   type LenderViolation,
   type RateSheetTier,
-} from './lenderRules.service.js';
-import { amortization } from './paymentCalculator.service.js';
-import { calculateGross } from './grossCalculator.service.js';
+} from './lenderRules.service';
+import { amortization } from './paymentCalculator.service';
+import { calculateGross } from './grossCalculator.service';
 import type {
   CounterAnalysisPayload,
   CounterAnalysisRequest,
@@ -41,8 +41,8 @@ import type {
   SimilarDealMetrics,
   SimilarDealSnapshot,
   SimilarDealsContext,
-} from '../domain/desking/types.js';
-import { recordCounterOffer, recordOptimization, type OptimizationView, type VersionView } from './desking.service.js';
+} from '../domain/desking/types';
+import { recordCounterOffer, recordOptimization, type OptimizationView, type VersionView } from './desking.service';
 
 type DecimalLike = Prisma.Decimal | number | string | null | undefined;
 

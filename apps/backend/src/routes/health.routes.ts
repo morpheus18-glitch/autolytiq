@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { mlService } from '../services/ml.service.js';
-import { prisma } from '../lib/prisma.js';
-import { getCacheStats } from '../services/ml-cache.service.js';
-import { checkHealth as checkPricingHealth } from '../services/pricing.service.js';
+import { mlService } from '../services/ml.service';
+import { prisma } from '../lib/prisma';
+import { getCacheStats } from '../services/ml-cache.service';
+import { checkHealth as checkPricingHealth } from '../services/pricing.service';
 
 const router = Router();
 

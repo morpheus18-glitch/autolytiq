@@ -1,7 +1,7 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { AsyncLocalStorage } from 'node:async_hooks';
 
-import { buildCustomerSearchVector, buildVehicleSearchVector } from '../shared/search-vector.js';
+import { buildCustomerSearchVector, buildVehicleSearchVector } from '../shared/search-vector';
 
 interface TenantContextValue {
   tenantId?: string;

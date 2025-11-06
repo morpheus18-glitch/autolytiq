@@ -1,5 +1,5 @@
 import { ActivityStatus, ActivityType, Prisma } from '@prisma/client';
-import { getTenantId, prisma } from '../lib/prisma.js';
+import { getTenantId, prisma } from '../lib/prisma';
 import type {
   ActivityCreateInput,
   ActivityListQuery,
@@ -8,7 +8,7 @@ import type {
   EmailActivityInput,
   NoteActivityInput,
   SmsActivityInput,
-} from '../validations/activity.validation.js';
+} from '../validations/activity.validation';
 
 const defaultActivityInclude = {
   lead: {

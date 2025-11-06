@@ -1,5 +1,5 @@
 import { ActivityStatus, ActivityType, Prisma } from '@prisma/client';
-import { prisma, toInputJson } from '../lib/prisma.js';
+import { prisma, toInputJson } from '../lib/prisma';
 
 function optionalConnect<T>(id: string | null | undefined): T | undefined {
   if (!id) {

@@ -8,11 +8,11 @@ import {
   LeadStatus,
   Prisma,
 } from '@prisma/client';
-import { getTenantId, prisma, toInputJson } from '../lib/prisma.js';
-import { mapSendGridStatus, mapTwilioStatus } from './inbox.service.js';
-import { normalizePhoneNumber } from './twilio.service.js';
-import * as activityService from './activity.service.js';
-import { handleLeadCreated } from './lead-routing.service.js';
+import { getTenantId, prisma, toInputJson } from '../lib/prisma';
+import { mapSendGridStatus, mapTwilioStatus } from './inbox.service';
+import { normalizePhoneNumber } from './twilio.service';
+import * as activityService from './activity.service';
+import { handleLeadCreated } from './lead-routing.service';
 
 export type TwilioWebhookPayload = Record<string, string | null | undefined>;
 

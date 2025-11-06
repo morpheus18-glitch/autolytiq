@@ -1,5 +1,5 @@
 import twilio, { type Twilio } from 'twilio';
-import { env } from '../config/env.js';
+import { env } from '../config/env';
 
 let cachedClient: Twilio | undefined;
 

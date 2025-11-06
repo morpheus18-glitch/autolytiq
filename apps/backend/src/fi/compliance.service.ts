@@ -1,11 +1,11 @@
 import { Prisma, type ComplianceChecklist } from '@prisma/client';
 import PDFDocument from 'pdfkit';
-import { prisma, toInputJson } from '../lib/prisma.js';
+import { prisma, toInputJson } from '../lib/prisma';
 import {
   buildComplianceDocumentKey,
   uploadBufferToS3,
   runVirusScan,
-} from '../lib/storage/s3.js';
+} from '../lib/storage/s3';
 
 export type ComplianceDocumentType = 'buyers-guide' | 'tila';
 export type ComplianceGroupKey = 'federal' | 'state' | 'lender' | 'internal';

@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from 'express';
 import { Router } from 'express';
-import * as activityController from '../controllers/activity.controller.js';
-import { requireRole } from '../middleware/rbac.js';
-import type { Role } from '../types/roles.js';
+import * as activityController from '../controllers/activity.controller';
+import { requireRole } from '../middleware/rbac';
+import type { Role } from '../types/roles';
 
 const activityRoles: Role[] = ['ADMIN', 'SALES', 'BDC', 'SERVICE'];
 

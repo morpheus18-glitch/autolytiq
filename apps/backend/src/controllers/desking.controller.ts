@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import type { DealStatus as PrismaDealStatus } from '@prisma/client';
-import { ApiError, toApiError } from '../lib/errors.js';
+import { ApiError, toApiError } from '../lib/errors';
 import {
   approvalRefreshSchema,
   counterAnalysisSchema,
@@ -14,11 +14,11 @@ import {
   type WorksheetPrintInput,
   type WorksheetSaveInput,
   type VersionSelectInput,
-} from '../validations/desking.validation.js';
-import { assertRole, assertTenantContext } from '../utils/authz.js';
-import { renderWorksheetPreview } from '../utils/pdf.js';
-import { uploadBufferToS3 } from '../lib/storage/s3.js';
-import type { Role } from '../types/roles.js';
+} from '../validations/desking.validation';
+import { assertRole, assertTenantContext } from '../utils/authz';
+import { renderWorksheetPreview } from '../utils/pdf';
+import { uploadBufferToS3 } from '../lib/storage/s3';
+import type { Role } from '../types/roles';
 import {
   getWorksheet,
   listApprovals,
@@ -29,13 +29,13 @@ import {
   selectVersion,
   updateWorksheetPrintUrl,
   getWorksheetPrintContext,
-} from '../services/desking.service.js';
+} from '../services/desking.service';
 import {
   analyzeCounter as analyzeCounterService,
   optimizeDeal as executeDealOptimization,
-} from '../services/dealOptimizer.service.js';
-import { predictApprovals } from '../services/approvalPredictor.service.js';
-import { enqueueDeskingJob } from '../workers/deskingWorker.js';
+} from '../services/dealOptimizer.service';
+import { predictApprovals } from '../services/approvalPredictor.service';
+import { enqueueDeskingJob } from '../workers/deskingWorker';
 
 const SALES_ROLE: Role = 'SALES';
 const MANAGER_ROLE: Role = 'MANAGER';

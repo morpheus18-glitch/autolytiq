@@ -15,6 +15,7 @@ export default defineConfig({
       "@repo/tokens": path.resolve(import.meta.dirname, "../../packages/tokens/dist"),
       "@repo/ui": path.resolve(import.meta.dirname, "../../packages/ui/dist"),
     },
+    extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
   },
   root: ".",
   build: {

@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { AsyncLocalStorage } from 'async_hooks';
 import type { NextFunction, Request, Response } from 'express';
-import { getTenantId } from './prisma.js';
+import { getTenantId } from './prisma';
 
 /**
  * Request context storage for tracing

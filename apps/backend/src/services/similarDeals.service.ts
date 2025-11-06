@@ -1,4 +1,4 @@
-import type { VehicleDescriptor } from './marketPricing.service.js';
+import type { VehicleDescriptor } from './marketPricing.service';
 
 export type DealStatus = 'closed' | 'lost' | 'pending';
 

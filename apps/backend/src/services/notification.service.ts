@@ -1,6 +1,6 @@
-import type { AppointmentWithRelations } from './appointment.types.js';
-import { sendEmail } from './sendgrid.service.js';
-import { normalizePhoneNumber, sendSms } from './twilio.service.js';
+import type { AppointmentWithRelations } from './appointment.types';
+import { sendEmail } from './sendgrid.service';
+import { normalizePhoneNumber, sendSms } from './twilio.service';
 
 function formatDateTime(date: Date, timeZone: string, options?: Intl.DateTimeFormatOptions): string {
   const formatter = new Intl.DateTimeFormat('en-US', {

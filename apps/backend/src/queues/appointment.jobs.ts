@@ -3,19 +3,19 @@ import { Redis } from 'ioredis';
 import cron from 'node-cron';
 import { addHours, addMinutes, differenceInMilliseconds } from 'date-fns';
 import { ActivityStatus, ActivityType, AppointmentStatus, type Prisma } from '@prisma/client';
-import { env } from '../config/env.js';
-import { prisma, runWithTenant } from '../lib/prisma.js';
+import { env } from '../config/env';
+import { prisma, runWithTenant } from '../lib/prisma';
 import {
   appointmentInclude,
   type AppointmentWithRelations,
-} from '../services/appointment.types.js';
+} from '../services/appointment.types';
 import {
   sendCustomerReminderEmail,
   sendCustomerReminderSms,
   sendSalespersonReminderEmail,
   sendSalespersonReminderSms,
   sendPostAppointmentSurvey,
-} from '../services/notification.service.js';
+} from '../services/notification.service';
 
 export type AppointmentJobName =
   | 'sendAppointmentReminderEmail'

@@ -1,6 +1,6 @@
 import { CommunicationStatus, CommunicationType, Prisma } from '@prisma/client';
-import { prisma } from '../lib/prisma.js';
-import type { CallLogQueryInput, InboxQueryInput } from '../validations/communication.validation.js';
+import { prisma } from '../lib/prisma';
+import type { CallLogQueryInput, InboxQueryInput } from '../validations/communication.validation';
 
 const inboxInclude = {
   lead: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },

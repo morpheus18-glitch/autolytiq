@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from 'express';
 import { Router } from 'express';
-import * as communicationController from '../controllers/communication.controller.js';
-import { requireRole } from '../middleware/rbac.js';
-import type { Role } from '../types/roles.js';
+import * as communicationController from '../controllers/communication.controller';
+import { requireRole } from '../middleware/rbac';
+import type { Role } from '../types/roles';
 
 const communicationRoles: Role[] = ['ADMIN', 'SALES', 'BDC', 'SERVICE'];
 

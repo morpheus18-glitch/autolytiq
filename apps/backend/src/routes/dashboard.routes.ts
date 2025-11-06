@@ -1,7 +1,7 @@
 import { Router, type RequestHandler } from 'express';
 import { db } from '@repo/db';
 import { z } from 'zod';
-import { getDefaultLayout } from '../services/dashboard.service.js';
+import { getDefaultLayout } from '../services/dashboard.service';
 
 export const dashboardRouter = Router();
 

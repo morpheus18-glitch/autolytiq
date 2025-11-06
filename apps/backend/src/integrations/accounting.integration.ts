@@ -1,6 +1,6 @@
 import { CommissionType, JournalStatus, LineType, Prisma } from '@prisma/client';
-import { EVENT_TOPICS, emitEvent } from '../events/index.js';
-import { prisma } from '../lib/prisma.js';
+import { EVENT_TOPICS, emitEvent } from '../events/index';
+import { prisma } from '../lib/prisma';
 
 const FRONT_REVENUE_ACCOUNT = '4000';
 const BACKEND_REVENUE_ACCOUNT = '4100';

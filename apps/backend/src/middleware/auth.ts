@@ -1,8 +1,8 @@
 import type { RequestHandler } from 'express';
 import jwt, { type JwtPayload } from 'jsonwebtoken';
-import { env } from '../config/env.js';
-import type { Role } from '../types/roles.js';
-import { Roles } from '../types/roles.js';
+import { env } from '../config/env';
+import type { Role } from '../types/roles';
+import { Roles } from '../types/roles';
 
 interface TokenPayload extends JwtPayload {
   sub?: string;

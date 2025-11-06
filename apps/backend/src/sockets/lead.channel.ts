@@ -1,5 +1,5 @@
 import type { Socket } from 'socket.io';
-import { emitTenantEvent, getTenantRoom } from '../lib/socket.js';
+import { emitTenantEvent, getTenantRoom } from '../lib/socket';
 
 const PUBLIC_TENANT_ID = 'public';
 const LEAD_ROOM_PREFIX = 'lead';

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { complianceRouter } from './compliance.routes.js';
+import { complianceRouter } from './compliance.routes';
 
 export const fiRouter = Router();
 

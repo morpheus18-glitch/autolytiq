@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { buildCustomerTimeline, getTimelineStats } from '../services/timeline.service.js';
+import { buildCustomerTimeline, getTimelineStats } from '../services/timeline.service';
 
 const router = Router();
 

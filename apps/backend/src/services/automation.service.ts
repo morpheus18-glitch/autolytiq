@@ -11,9 +11,9 @@ import {
   Prisma,
 } from '@prisma/client';
 import { z } from 'zod';
-import { getTenantId, prisma } from '../lib/prisma.js';
-import { sendSmsMessage, sendEmailMessage } from './communication.service.js';
-import { createActivity } from './activity.service.js';
+import { getTenantId, prisma } from '../lib/prisma';
+import { sendSmsMessage, sendEmailMessage } from './communication.service';
+import { createActivity } from './activity.service';
 
 const automationTriggerTypeSchema = z.enum([
   'NEW_LEAD',

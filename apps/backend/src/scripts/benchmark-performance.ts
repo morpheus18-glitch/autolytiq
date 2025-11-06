@@ -12,7 +12,7 @@
 
 import { performance } from 'perf_hooks';
 import { FuelType, VehicleType } from '@prisma/client';
-import { prisma, runWithTenant } from '../lib/prisma.js';
+import { prisma, runWithTenant } from '../lib/prisma';
 
 interface BenchmarkResult {
   operation: string;

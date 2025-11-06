@@ -1,5 +1,5 @@
 import type { RequestHandler } from 'express';
-import type { RequestContext } from '../types/context.js';
+import type { RequestContext } from '../types/context';
 
 export const initializeContext: RequestHandler = (req, _res, next) => {
   const current = req.context ?? ({} as RequestContext);

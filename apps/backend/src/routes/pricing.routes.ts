@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { rustPricingService } from '../services/rustPricing.service.js';
-import { logger } from '../lib/logger.js';
+import { rustPricingService } from '../services/rustPricing.service';
+import { logger } from '../lib/logger';
 
 export const pricingRouter = Router();
 

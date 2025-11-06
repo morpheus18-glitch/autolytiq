@@ -1,6 +1,6 @@
 import { Prisma, VehicleStatus } from '@prisma/client';
-import { EVENT_TOPICS, emitEvent } from '../events/index.js';
-import { prisma } from '../lib/prisma.js';
+import { EVENT_TOPICS, emitEvent } from '../events/index';
+import { prisma } from '../lib/prisma';
 
 function isPrismaNotFound(error: unknown): error is Prisma.PrismaClientKnownRequestError {
   return (

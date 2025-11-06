@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { prisma, runWithTenant } from '../lib/prisma.js';
-import { ApiError } from '../lib/errors.js';
-import { env } from '../config/env.js';
+import { prisma, runWithTenant } from '../lib/prisma';
+import { ApiError } from '../lib/errors';
+import { env } from '../config/env';
 
 const router = Router();
 

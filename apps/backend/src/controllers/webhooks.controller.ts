@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
-import { runWithTenant } from '../lib/prisma.js';
-import * as webhookService from '../services/webhook.service.js';
-import type { SendGridWebhookEvent, TwilioWebhookPayload } from '../services/webhook.service.js';
+import { runWithTenant } from '../lib/prisma';
+import * as webhookService from '../services/webhook.service';
+import type { SendGridWebhookEvent, TwilioWebhookPayload } from '../services/webhook.service';
 
 function resolveTenantId(req: Request): string | undefined {
   const queryTenant = typeof req.query.tenantId === 'string' ? req.query.tenantId : undefined;
