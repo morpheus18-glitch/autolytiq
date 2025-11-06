@@ -26,6 +26,7 @@ import {
   Settings
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/hooks/useNotifications';
 import { clearAuthToken } from '@/lib/auth';
 
 // Define navigation modules based on the app's IA
@@ -87,6 +88,7 @@ export default function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isLoading } = useAuth();
+  const { unreadCount } = useNotifications();
   const [tenantSwitcherOpen, setTenantSwitcherOpen] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
@@ -147,7 +149,7 @@ export default function AppShell() {
     }
   };
 
-  const handleSearch = (query: string) => {
+  const handleSearch = async (query: string) => {
     // Add to recent searches
     setRecentSearches(prev => {
       const updated = [query, ...prev.filter(s => s !== query)].slice(0, 5);
@@ -155,8 +157,7 @@ export default function AppShell() {
       return updated;
     });
 
-    // TODO: Implement global search
-    console.log('Search:', query);
+    // Navigate to search results page with query
     navigate(`/search?q=${encodeURIComponent(query)}`);
   };
 
@@ -165,9 +166,24 @@ export default function AppShell() {
     navigate('/login');
   };
 
-  const handleTenantSwitch = (tenantId: string) => {
-    // TODO: Implement tenant switching logic
-    console.log('Switching to tenant:', tenantId);
+  const handleTenantSwitch = async (tenantId: string) => {
+    try {
+      // Call tenant switch API
+      const response = await fetch('/api/auth/switch-tenant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantId }),
+      });
+
+      if (response.ok) {
+        // Reload to apply new tenant context
+        window.location.reload();
+      } else {
+        console.error('Failed to switch tenant');
+      }
+    } catch (error) {
+      console.error('Error switching tenant:', error);
+    }
   };
 
   // Get display name
@@ -194,7 +210,7 @@ export default function AppShell() {
         tenant={user?.store?.name || 'AutolytiQ'}
         user={displayName}
         userAvatar={undefined}
-        notifications={0}
+        notifications={unreadCount}
         onNavigate={handleNavigate}
         onSearch={handleSearch}
         recentSearches={recentSearches}
