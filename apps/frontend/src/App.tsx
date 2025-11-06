@@ -64,9 +64,7 @@ function Router() {
   return (
     <Routes>
       <Route element={<AppShell />}>
-        <Suspense fallback={<RouteLoadingFallback />}>
-          {getAppRoutes(allowedRouteSet)}
-        </Suspense>
+        {getAppRoutes(allowedRouteSet)}
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

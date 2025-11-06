@@ -1,5 +1,17 @@
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import { Route } from 'react-router-dom';
+
+// Loading fallback component
+function RouteLoadingFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="text-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-brand-primary"></div>
+        <p className="mt-4 text-sm text-neutral-600">Loading...</p>
+      </div>
+    </div>
+  );
+}
 
 // Lazy load all routes for optimal bundle size
 
@@ -389,9 +401,19 @@ export function getAppRoutes(allowedRouteSet: Set<string>) {
     ? routeDefinitions
     : routeDefinitions.filter((route) => allowedRouteSet.has(route.path));
 
-  // Convert to React Router 6 Route elements
+  // Convert to React Router 6 Route elements with Suspense
   return filteredRoutes.map((route) => {
     const Component = route.component;
-    return <Route key={route.path} path={route.path} element={<Component />} />;
+    return (
+      <Route 
+        key={route.path} 
+        path={route.path} 
+        element={
+          <Suspense fallback={<RouteLoadingFallback />}>
+            <Component />
+          </Suspense>
+        } 
+      />
+    );
   });
 }
