@@ -109,7 +109,7 @@ export default function MultiStoreManagement() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -117,33 +117,35 @@ export default function MultiStoreManagement() {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-green-600 rounded-lg">
-              <Building className="w-6 h-6 text-white" />
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-green-600 rounded-lg">
+                <Building className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">Multi-Store Management</h1>
+                <p className="text-muted-foreground">Enterprise dealership network administration</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Multi-Store Management</h1>
-              <p className="text-gray-600">Enterprise dealership network administration</p>
+
+            <div className="flex items-center space-x-3 mt-4 lg:mt-0">
+              <Button
+                onClick={() => setShowCreateStore(true)}
+                variant="default"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Store
+              </Button>
+              <Button variant="outline">
+                <Settings className="w-4 h-4 mr-2" />
+                System Settings
+              </Button>
             </div>
           </div>
-          
-          <div className="flex items-center space-x-3 mt-4 lg:mt-0">
-            <Button
-              onClick={() => setShowCreateStore(true)}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Store
-            </Button>
-            <Button variant="outline">
-              <Settings className="w-4 h-4 mr-2" />
-              System Settings
-            </Button>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* System Health Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -151,8 +153,8 @@ export default function MultiStoreManagement() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Stores</p>
-                <p className="text-2xl font-bold text-gray-900">{stores?.length || 0}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Stores</p>
+                <p className="text-2xl font-bold">{stores?.length || 0}</p>
               </div>
               <Building className="w-8 h-8 text-blue-600" />
             </div>
@@ -163,8 +165,8 @@ export default function MultiStoreManagement() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Users</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm font-medium text-muted-foreground">Active Users</p>
+                <p className="text-2xl font-bold">
                   {stores?.reduce((acc: number, store: any) => acc + (store.stats?.activeUsers || 0), 0) || 0}
                 </p>
               </div>
@@ -177,10 +179,10 @@ export default function MultiStoreManagement() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">System Status</p>
+                <p className="text-sm font-medium text-muted-foreground">System Status</p>
                 <div className="flex items-center space-x-2 mt-1">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-600">Operational</span>
+                  <Badge variant="success">Operational</Badge>
                 </div>
               </div>
               <Activity className="w-8 h-8 text-green-600" />
@@ -192,10 +194,10 @@ export default function MultiStoreManagement() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Database</p>
+                <p className="text-sm font-medium text-muted-foreground">Database</p>
                 <div className="flex items-center space-x-2 mt-1">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-600">Connected</span>
+                  <Badge variant="success">Connected</Badge>
                 </div>
               </div>
               <Database className="w-8 h-8 text-blue-600" />
@@ -238,10 +240,10 @@ export default function MultiStoreManagement() {
                       </div>
                       <div>
                         <CardTitle className="text-lg">{store.name}</CardTitle>
-                        <p className="text-sm text-gray-600">Code: {store.code}</p>
+                        <p className="text-sm text-muted-foreground">Code: {store.code}</p>
                       </div>
                     </div>
-                    <Badge className={store.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                    <Badge variant={store.isActive ? 'success' : 'error'}>
                       {store.isActive ? 'Active' : 'Inactive'}
                     </Badge>
                   </div>
@@ -249,15 +251,15 @@ export default function MultiStoreManagement() {
                 
                 <CardContent className="space-y-4">
                   <div className="space-y-2 text-sm">
-                    <div className="flex items-center text-gray-600">
+                    <div className="flex items-center text-muted-foreground">
                       <MapPin className="w-4 h-4 mr-2" />
                       {store.address}
                     </div>
-                    <div className="flex items-center text-gray-600">
+                    <div className="flex items-center text-muted-foreground">
                       <Phone className="w-4 h-4 mr-2" />
                       {store.phone}
                     </div>
-                    <div className="flex items-center text-gray-600">
+                    <div className="flex items-center text-muted-foreground">
                       <Mail className="w-4 h-4 mr-2" />
                       {store.email}
                     </div>
@@ -268,19 +270,19 @@ export default function MultiStoreManagement() {
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div className="text-center">
                         <p className="font-semibold text-lg">{store.stats?.totalDeals || 0}</p>
-                        <p className="text-gray-600">Deals</p>
+                        <p className="text-muted-foreground">Deals</p>
                       </div>
                       <div className="text-center">
                         <p className="font-semibold text-lg">{store.stats?.activeUsers || 0}</p>
-                        <p className="text-gray-600">Users</p>
+                        <p className="text-muted-foreground">Users</p>
                       </div>
                       <div className="text-center">
                         <p className="font-semibold text-lg">${(store.stats?.monthlyRevenue || 0).toLocaleString()}</p>
-                        <p className="text-gray-600">Revenue</p>
+                        <p className="text-muted-foreground">Revenue</p>
                       </div>
                       <div className="text-center">
                         <p className="font-semibold text-lg">{store.stats?.vehiclesInStock || 0}</p>
-                        <p className="text-gray-600">Vehicles</p>
+                        <p className="text-muted-foreground">Vehicles</p>
                       </div>
                     </div>
                   </div>

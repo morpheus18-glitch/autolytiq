@@ -157,13 +157,13 @@ export default function IntegrationSetup() {
     }
   ];
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string): 'success' | 'warning' | 'error' | 'secondary' => {
     switch (status) {
-      case 'connected': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'error': return 'bg-red-100 text-red-800';
-      case 'disconnected': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'connected': return 'success';
+      case 'pending': return 'warning';
+      case 'error': return 'error';
+      case 'disconnected': return 'secondary';
+      default: return 'secondary';
     }
   };
 
@@ -216,7 +216,7 @@ export default function IntegrationSetup() {
           <LinkIcon className="w-8 h-8 text-blue-600" />
           <div>
             <h1 className="text-3xl font-bold">Integration Setup</h1>
-            <p className="text-gray-600">Manage external system integrations and API connections</p>
+            <p className="text-muted-foreground">Manage external system integrations and API connections</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -237,43 +237,43 @@ export default function IntegrationSetup() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Integrations</p>
+                <p className="text-sm text-muted-foreground">Total Integrations</p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
               <Settings className="w-8 h-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Connected</p>
+                <p className="text-sm text-muted-foreground">Connected</p>
                 <p className="text-2xl font-bold text-green-600">{stats.connected}</p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Pending</p>
+                <p className="text-sm text-muted-foreground">Pending</p>
                 <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
               </div>
               <AlertTriangle className="w-8 h-8 text-yellow-600" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Errors</p>
+                <p className="text-sm text-muted-foreground">Errors</p>
                 <p className="text-2xl font-bold text-red-600">{stats.errors}</p>
               </div>
               <XCircle className="w-8 h-8 text-red-600" />
@@ -301,11 +301,11 @@ export default function IntegrationSetup() {
                       {getCategoryIcon(integration.category)}
                       <div>
                         <CardTitle className="text-lg">{integration.name}</CardTitle>
-                        <p className="text-sm text-gray-600">{integration.description}</p>
+                        <p className="text-sm text-muted-foreground">{integration.description}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge className={getStatusColor(integration.status)}>
+                      <Badge variant={getStatusVariant(integration.status)}>
                         {getStatusIcon(integration.status)}
                         <span className="ml-1 capitalize">{integration.status}</span>
                       </Badge>
@@ -372,10 +372,10 @@ export default function IntegrationSetup() {
                       <Database className="w-6 h-6 text-blue-600" />
                       <div>
                         <CardTitle className="text-lg">{integration.name}</CardTitle>
-                        <p className="text-sm text-gray-600">{integration.description}</p>
+                        <p className="text-sm text-muted-foreground">{integration.description}</p>
                       </div>
                     </div>
-                    <Badge className={getStatusColor(integration.status)}>
+                    <Badge variant={getStatusVariant(integration.status)}>
                       {getStatusIcon(integration.status)}
                       <span className="ml-1 capitalize">{integration.status}</span>
                     </Badge>
@@ -420,17 +420,17 @@ export default function IntegrationSetup() {
             <div className="text-center p-4 border rounded-lg">
               <Key className="w-8 h-8 text-blue-600 mx-auto mb-2" />
               <h3 className="font-medium mb-2">1. API Keys</h3>
-              <p className="text-sm text-gray-600">Configure API credentials for external services</p>
+              <p className="text-sm text-muted-foreground">Configure API credentials for external services</p>
             </div>
             <div className="text-center p-4 border rounded-lg">
               <Globe className="w-8 h-8 text-green-600 mx-auto mb-2" />
               <h3 className="font-medium mb-2">2. Test Connection</h3>
-              <p className="text-sm text-gray-600">Verify connectivity and authentication</p>
+              <p className="text-sm text-muted-foreground">Verify connectivity and authentication</p>
             </div>
             <div className="text-center p-4 border rounded-lg">
               <RefreshCw className="w-8 h-8 text-purple-600 mx-auto mb-2" />
               <h3 className="font-medium mb-2">3. Enable Sync</h3>
-              <p className="text-sm text-gray-600">Activate data synchronization and monitoring</p>
+              <p className="text-sm text-muted-foreground">Activate data synchronization and monitoring</p>
             </div>
           </div>
         </CardContent>

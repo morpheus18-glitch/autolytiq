@@ -77,13 +77,13 @@ export default function SystemHealth() {
     }
   ];
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string): 'success' | 'info' | 'warning' | 'error' | 'secondary' => {
     switch (status) {
-      case 'excellent': return 'text-green-600 bg-green-50 border-green-200';
-      case 'good': return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'warning': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'critical': return 'text-red-600 bg-red-50 border-red-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+      case 'excellent': return 'success';
+      case 'good': return 'info';
+      case 'warning': return 'warning';
+      case 'critical': return 'error';
+      default: return 'secondary';
     }
   };
 
@@ -96,10 +96,10 @@ export default function SystemHealth() {
             <Shield className="w-8 h-8 text-blue-600" />
             System Health Monitor
           </h1>
-          <p className="text-gray-600">Real-time monitoring and performance tracking</p>
+          <p className="text-muted-foreground">Real-time monitoring and performance tracking</p>
         </div>
         <div className="flex gap-2">
-          <Badge className="bg-green-100 text-green-800">
+          <Badge variant="success">
             <Activity className="w-3 h-3 mr-1" />
             All Systems Operational
           </Badge>
@@ -113,19 +113,19 @@ export default function SystemHealth() {
       {/* System Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {systemMetrics.map((metric, index) => (
-          <Card key={index} className={`border-l-4 ${getStatusColor(metric.status)}`}>
+          <Card key={index} className="border-l-4">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   {metric.icon}
                   <span className="font-medium text-sm">{metric.title}</span>
                 </div>
-                <Badge variant="outline" className={getStatusColor(metric.status)}>
+                <Badge variant={getStatusVariant(metric.status)}>
                   {metric.status}
                 </Badge>
               </div>
               <div className="text-2xl font-bold mb-1">{metric.value}</div>
-              <div className="text-xs text-gray-600">{metric.details}</div>
+              <div className="text-xs text-muted-foreground">{metric.details}</div>
             </CardContent>
           </Card>
         ))}
@@ -178,19 +178,19 @@ export default function SystemHealth() {
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-3 bg-blue-50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">45ms</div>
-                <div className="text-sm text-gray-600">Avg Response</div>
+                <div className="text-sm text-muted-foreground">Avg Response</div>
               </div>
               <div className="text-center p-3 bg-green-50 rounded-lg">
                 <div className="text-2xl font-bold text-green-600">99.8%</div>
-                <div className="text-sm text-gray-600">Uptime</div>
+                <div className="text-sm text-muted-foreground">Uptime</div>
               </div>
               <div className="text-center p-3 bg-purple-50 rounded-lg">
                 <div className="text-2xl font-bold text-purple-600">1,247</div>
-                <div className="text-sm text-gray-600">Active Users</div>
+                <div className="text-sm text-muted-foreground">Active Users</div>
               </div>
               <div className="text-center p-3 bg-orange-50 rounded-lg">
                 <div className="text-2xl font-bold text-orange-600">8.2GB</div>
-                <div className="text-sm text-gray-600">Data Transfer</div>
+                <div className="text-sm text-muted-foreground">Data Transfer</div>
               </div>
             </div>
           </CardContent>
@@ -237,21 +237,21 @@ export default function SystemHealth() {
               <CheckCircle className="w-5 h-5 text-green-600" />
               <div>
                 <div className="font-medium text-sm">SSL Certificate</div>
-                <div className="text-xs text-gray-600">Valid & Active</div>
+                <div className="text-xs text-muted-foreground">Valid & Active</div>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
               <CheckCircle className="w-5 h-5 text-green-600" />
               <div>
                 <div className="font-medium text-sm">Firewall Status</div>
-                <div className="text-xs text-gray-600">Protected</div>
+                <div className="text-xs text-muted-foreground">Protected</div>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
               <CheckCircle className="w-5 h-5 text-green-600" />
               <div>
                 <div className="font-medium text-sm">Security Scan</div>
-                <div className="text-xs text-gray-600">Passed</div>
+                <div className="text-xs text-muted-foreground">Passed</div>
               </div>
             </div>
           </div>

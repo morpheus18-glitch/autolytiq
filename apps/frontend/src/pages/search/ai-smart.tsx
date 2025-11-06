@@ -185,7 +185,7 @@ export default function AISmartSearch() {
 
               {/* Sample Queries */}
               <div className="space-y-2">
-                <p className="text-sm text-gray-600">Try these example queries:</p>
+                <p className="text-sm text-muted-foreground">Try these example queries:</p>
                 <div className="flex flex-wrap gap-2">
                   {[
                     "high income customers interested in luxury",
@@ -227,7 +227,7 @@ export default function AISmartSearch() {
                               {result.type}
                             </Badge>
                           </div>
-                          <p className="text-gray-600 mb-3">{result.description}</p>
+                          <p className="text-muted-foreground mb-3">{result.description}</p>
                           
                           {result.metadata && (
                             <div className="flex flex-wrap gap-2">
@@ -242,7 +242,7 @@ export default function AISmartSearch() {
                         
                         <div className="text-right">
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-sm text-gray-500">Relevance:</span>
+                            <span className="text-sm text-muted-foreground">Relevance:</span>
                             <div className={`w-3 h-3 rounded-full ${getScoreColor(result.score)}`}></div>
                             <span className="text-sm font-medium">{(result.score * 100).toFixed(1)}%</span>
                           </div>
@@ -269,7 +269,7 @@ export default function AISmartSearch() {
                 <div className="flex items-center space-x-2">
                   <Search className="h-4 w-4 text-blue-500" />
                   <div>
-                    <p className="text-xs text-gray-600">Today's Searches</p>
+                    <p className="text-xs text-muted-foreground">Today's Searches</p>
                     <p className="text-2xl font-bold">{mlInsights.todayStats.searches}</p>
                   </div>
                 </div>
@@ -281,7 +281,7 @@ export default function AISmartSearch() {
                 <div className="flex items-center space-x-2">
                   <Zap className="h-4 w-4 text-yellow-500" />
                   <div>
-                    <p className="text-xs text-gray-600">Avg Response Time</p>
+                    <p className="text-xs text-muted-foreground">Avg Response Time</p>
                     <p className="text-2xl font-bold">{mlInsights.todayStats.avgResponseTime}ms</p>
                   </div>
                 </div>
@@ -293,7 +293,7 @@ export default function AISmartSearch() {
                 <div className="flex items-center space-x-2">
                   <Target className="h-4 w-4 text-green-500" />
                   <div>
-                    <p className="text-xs text-gray-600">Search Accuracy</p>
+                    <p className="text-xs text-muted-foreground">Search Accuracy</p>
                     <p className="text-2xl font-bold">{mlInsights.todayStats.accuracy}%</p>
                   </div>
                 </div>
@@ -305,7 +305,7 @@ export default function AISmartSearch() {
                 <div className="flex items-center space-x-2">
                   <TrendingUp className="h-4 w-4 text-purple-500" />
                   <div>
-                    <p className="text-xs text-gray-600">User Satisfaction</p>
+                    <p className="text-xs text-muted-foreground">User Satisfaction</p>
                     <p className="text-2xl font-bold">{mlInsights.todayStats.userSatisfaction}/5.0</p>
                   </div>
                 </div>
@@ -336,7 +336,7 @@ export default function AISmartSearch() {
                           style={{ width: `${performanceValue}%` }}
                         ></div>
                       </div>
-                      <div className="flex justify-between text-sm text-gray-600">
+                      <div className="flex justify-between text-sm text-muted-foreground">
                         <span>Performance</span>
                         <span>{performanceValue.toFixed(1)}%</span>
                       </div>
@@ -361,7 +361,7 @@ export default function AISmartSearch() {
                       <span className="font-medium">{search.query}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">{search.count} searches</span>
+                      <span className="text-sm text-muted-foreground">{search.count} searches</span>
                       <Button variant="ghost" size="sm" onClick={() => setSearchQuery(search.query)}>
                         Try
                       </Button>

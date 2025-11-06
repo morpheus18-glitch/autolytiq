@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import {
@@ -602,18 +603,19 @@ export default function MLDeveloperAdmin() {
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Pipeline Execution Traces</h2>
             <div className="flex items-center gap-2">
-              <select
-                value={filterLevel}
-                onChange={(e) => setFilterLevel(e.target.value)}
-                className="px-3 py-1 border rounded-md text-sm"
-              >
-                <option value="all">All Events</option>
-                <option value="error">Errors Only</option>
-                <option value="warning">Warnings</option>
-                <option value="success">Success</option>
-                <option value="scraping">Scraping</option>
-                <option value="training">Training</option>
-              </select>
+              <Select value={filterLevel} onValueChange={setFilterLevel}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter events" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Events</SelectItem>
+                  <SelectItem value="error">Errors Only</SelectItem>
+                  <SelectItem value="warning">Warnings</SelectItem>
+                  <SelectItem value="success">Success</SelectItem>
+                  <SelectItem value="scraping">Scraping</SelectItem>
+                  <SelectItem value="training">Training</SelectItem>
+                </SelectContent>
+              </Select>
               <Button onClick={exportTraces} variant="outline" size="sm">
                 <Download className="w-4 h-4 mr-2" />
                 Export

@@ -55,9 +55,9 @@ export default function Landing() {
         <main className="relative z-10 flex flex-1 flex-col gap-16">
           <section className="flex flex-col gap-12 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl space-y-8">
-              <Badge className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-4 py-1 text-primary">
-                <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em]">
-                  <Sparkles className="h-3 w-3" />
+              <Badge variant="info" className="inline-flex w-fit items-center gap-2">
+                <Sparkles className="h-3 w-3" />
+                <span className="text-xs font-semibold uppercase tracking-[0.24em]">
                   AutolytiQ Intelligence Cloud
                 </span>
               </Badge>
@@ -123,7 +123,7 @@ export default function Landing() {
                       </p>
                       <h3 className="mt-1 text-xl font-semibold sm:text-2xl">Revenue intelligence pulse</h3>
                     </div>
-                    <Badge className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                    <Badge variant="info">
                       Live sync
                     </Badge>
                   </div>

@@ -20,6 +20,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 // Interfaces
 interface CustomerVisit {
@@ -322,23 +326,12 @@ export default function ShowroomManager() {
 
       {/* Visit Detail Modal */}
       {selectedVisit && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => setSelectedVisit(null)}
-        >
-          <div
-            className="bg-card border border-border rounded-lg max-w-3xl w-full max-h-[80vh] overflow-auto p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-2xl font-bold">{selectedVisit.customer.name}</h2>
-                <p className="text-sm text-muted-foreground">{selectedVisit.currentStep}</p>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => setSelectedVisit(null)}>
-                ✕
-              </Button>
-            </div>
+        <Dialog open={!!selectedVisit} onOpenChange={() => setSelectedVisit(null)}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto">
+            <DialogHeader>
+              <DialogTitle>{selectedVisit.customer.name}</DialogTitle>
+              <DialogDescription>{selectedVisit.currentStep}</DialogDescription>
+            </DialogHeader>
 
             <div className="space-y-4">
               {/* Customer Info */}
@@ -416,45 +409,44 @@ export default function ShowroomManager() {
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* New Visit Modal */}
       {showNewVisitModal && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => setShowNewVisitModal(false)}
-        >
-          <div
-            className="bg-card border border-border rounded-lg max-w-md w-full p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-xl font-bold mb-4">Check In Customer</h2>
+        <Dialog open={showNewVisitModal} onOpenChange={setShowNewVisitModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Check In Customer</DialogTitle>
+            </DialogHeader>
             <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Customer Name</label>
-                <input
+              <div className="space-y-2">
+                <Label>Customer Name</Label>
+                <Input
                   type="text"
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg"
                   placeholder="Enter name"
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Phone Number</label>
-                <input
+              <div className="space-y-2">
+                <Label>Phone Number</Label>
+                <Input
                   type="tel"
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg"
                   placeholder="555-0123"
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Visit Type</label>
-                <select className="w-full px-3 py-2 bg-background border border-border rounded-lg">
-                  <option value="walk-in">Walk-In</option>
-                  <option value="appointment">Appointment</option>
-                  <option value="return">Return Visit</option>
-                </select>
+              <div className="space-y-2">
+                <Label>Visit Type</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select visit type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="walk-in">Walk-In</SelectItem>
+                    <SelectItem value="appointment">Appointment</SelectItem>
+                    <SelectItem value="return">Return Visit</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex gap-2 pt-4">
                 <Button variant="outline" className="flex-1" onClick={() => setShowNewVisitModal(false)}>
@@ -465,8 +457,8 @@ export default function ShowroomManager() {
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

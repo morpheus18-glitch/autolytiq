@@ -124,25 +124,25 @@ export default function Sales() {
     return matchesSearch && matchesStatus && matchesTemperature;
   });
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string): 'info' | 'warning' | 'success' | 'secondary' | 'error' | 'default' => {
     switch (status) {
-      case 'new': return 'bg-blue-100 text-blue-800';
-      case 'contacted': return 'bg-yellow-100 text-yellow-800';
-      case 'qualified': return 'bg-green-100 text-green-800';
-      case 'proposal': return 'bg-purple-100 text-purple-800';
-      case 'negotiation': return 'bg-orange-100 text-orange-800';
-      case 'closed': return 'bg-gray-100 text-gray-800';
-      case 'lost': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'new': return 'info';
+      case 'contacted': return 'warning';
+      case 'qualified': return 'success';
+      case 'proposal': return 'secondary';
+      case 'negotiation': return 'warning';
+      case 'closed': return 'secondary';
+      case 'lost': return 'error';
+      default: return 'default';
     }
   };
 
-  const getTemperatureColor = (temperature: string) => {
+  const getTemperatureVariant = (temperature: string): 'error' | 'warning' | 'info' | 'default' => {
     switch (temperature) {
-      case 'hot': return 'bg-red-100 text-red-800';
-      case 'warm': return 'bg-yellow-100 text-yellow-800';
-      case 'cold': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'hot': return 'error';
+      case 'warm': return 'warning';
+      case 'cold': return 'info';
+      default: return 'default';
     }
   };
 
@@ -319,11 +319,11 @@ export default function Sales() {
                         <p className="text-sm text-gray-600">{lead.interestedIn}</p>
                       </div>
                       <div className="flex gap-2">
-                        <Badge className={getTemperatureColor(lead.temperature)}>
+                        <Badge variant={getTemperatureVariant(lead.temperature)}>
                           {getTemperatureIcon(lead.temperature)}
                           <span className="ml-1">{lead.temperature}</span>
                         </Badge>
-                        <Badge className={getStatusColor(lead.status)}>
+                        <Badge variant={getStatusVariant(lead.status)}>
                           {lead.status}
                         </Badge>
                       </div>
@@ -401,12 +401,12 @@ export default function Sales() {
                           </TableCell>
                           <TableCell>{lead.interestedIn}</TableCell>
                           <TableCell>
-                            <Badge className={getStatusColor(lead.status)}>
+                            <Badge variant={getStatusVariant(lead.status)}>
                               {lead.status}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge className={getTemperatureColor(lead.temperature)}>
+                            <Badge variant={getTemperatureVariant(lead.temperature)}>
                               {getTemperatureIcon(lead.temperature)}
                               <span className="ml-1">{lead.temperature}</span>
                             </Badge>
@@ -495,7 +495,7 @@ export default function Sales() {
                       <TableCell>${sale.financeAmount.toLocaleString()}</TableCell>
                       <TableCell>${sale.monthlyPayment.toLocaleString()}</TableCell>
                       <TableCell>
-                        <Badge className={getStatusColor(sale.status)}>
+                        <Badge variant={getStatusVariant(sale.status)}>
                           {sale.status}
                         </Badge>
                       </TableCell>
