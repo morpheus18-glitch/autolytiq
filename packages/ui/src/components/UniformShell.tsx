@@ -216,24 +216,23 @@ export function UniformShell({
        * MAIN AREA (Top Bar + Content)
        * ═══════════════════════════════════════════════════════════════ */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Top Bar - Contextual Header */}
-        <header className="flex h-14 items-center justify-between border-b border-default bg-elevated px-4">
-          {/* Left: Mobile menu + Search */}
-          <div className="flex items-center gap-3">
+        {/* Top Bar - Contextual Header - STICKY ON MOBILE */}
+        <header className={cn(
+          "flex h-14 items-center justify-between border-b border-default bg-elevated px-4",
+          isMobile && "sticky top-0 z-30 shadow-sm"
+        )}>
+          {/* Left: Mobile logo + Search */}
+          <div className="flex items-center gap-3 flex-1">
             {isMobile && (
-              <button
-                onClick={toggleMobileMenu}
-                className="rounded p-1.5 text-secondary hover:bg-inset hover:text-primary"
-                aria-label="Toggle menu"
-              >
-                <Menu className="h-5 w-5" />
-              </button>
+              <span className="text-base font-bold text-[rgb(var(--action-primary))]">
+                AutolytiQ
+              </span>
             )}
 
-            {/* Global Search */}
-            <div className="w-full sm:w-64">
+            {/* Global Search - Hidden on very small mobile */}
+            <div className="hidden xs:block w-full sm:w-64">
               <IntelligentSearch
-                placeholder="Search customers, deals, vehicles..."
+                placeholder="Search..."
                 suggestions={searchSuggestions}
                 recentSearches={recentSearches}
                 popularSearches={popularSearches}
@@ -245,8 +244,8 @@ export function UniformShell({
           </div>
 
           {/* Right: Tenant switcher, Notifications, Profile */}
-          <div className="flex items-center gap-2">
-            {/* Tenant/Dealership Switcher */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            {/* Tenant/Dealership Switcher - Icon only on mobile */}
             <button
               onClick={onTenantSwitch}
               className="flex items-center gap-2 rounded px-3 py-1.5 text-sm text-text-secondary hover:bg-inset hover:text-text-primary"
@@ -323,81 +322,93 @@ export function UniformShell({
         </header>
 
         {/* Content Area - Different layouts load here */}
-        <main className="flex-1 overflow-auto bg-canvas">
+        <main className={cn(
+          "flex-1 overflow-auto bg-canvas",
+          isMobile && "pb-20" // Add bottom padding on mobile for bottom nav
+        )}>
           {children}
         </main>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════
-       * MOBILE MENU - Slide-in navigation
+       * MOBILE BOTTOM NAVIGATION BAR
        * ═══════════════════════════════════════════════════════════════ */}
       {isMobile && (
+        <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-border-base bg-surface-elevated shadow-[0_-2px_10px_rgba(0,0,0,0.1)] safe-area-inset-bottom">
+          {modules.slice(0, 5).map((module) => (
+            <button
+              key={module.id}
+              onClick={() => handleModuleClick(module)}
+              className={cn(
+                'flex flex-1 flex-col items-center gap-1 py-2 px-1 transition-colors',
+                activeModule === module.id
+                  ? 'text-[rgb(var(--action-primary))]'
+                  : 'text-text-tertiary'
+              )}
+            >
+              <module.icon className={cn(
+                'h-6 w-6',
+                activeModule === module.id ? 'stroke-[2.5]' : 'stroke-2'
+              )} />
+              <span className="text-[10px] font-medium leading-tight">{module.label}</span>
+            </button>
+          ))}
+        </nav>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════
+       * MOBILE SUB-MENU MODAL (for modules with sub-items)
+       * ═══════════════════════════════════════════════════════════════ */}
+      {isMobile && expandedModule && (
         <div
           className={cn(
-            'fixed inset-0 z-40 transition-opacity duration-300',
-            mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            'fixed inset-0 z-40 transition-opacity duration-200',
+            'opacity-100'
           )}
         >
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50"
-            onClick={toggleMobileMenu}
+            onClick={() => setExpandedModule(null)}
           />
 
-          {/* Slide-in Menu */}
-          <aside
-            className={cn(
-              'absolute inset-y-0 left-0 w-64 bg-elevated shadow-xl transition-transform duration-300 ease-out',
-              mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-            )}
-          >
-            {/* Logo */}
-            <div className="flex h-14 items-center justify-between border-b border-default px-4">
-              <span className="text-lg font-semibold text-[rgb(var(--action-primary))]">AutolytiQ</span>
-              <button
-                onClick={toggleMobileMenu}
-                className="rounded p-1.5 text-text-secondary hover:bg-inset"
-              >
-                <ChevronLeft className="h-[18px] w-[18px]" />
-              </button>
+          {/* Bottom Sheet */}
+          <div className="absolute bottom-16 left-0 right-0 max-h-[60vh] rounded-t-2xl border-t border-border-base bg-surface-elevated shadow-xl">
+            <div className="px-4 py-3 border-b border-border-base">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-text-primary">
+                  {modules.find(m => m.id === expandedModule)?.label}
+                </h3>
+                <button
+                  onClick={() => setExpandedModule(null)}
+                  className="rounded-full p-1.5 text-text-secondary hover:bg-inset"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+              </div>
             </div>
-
-            {/* Navigation */}
-            <nav className="overflow-y-auto py-4">
-              {modules.map((module) => (
-                <div key={module.id}>
-                  <button
-                    onClick={() => handleModuleClick(module)}
-                    className={cn(
-                      'flex w-full items-center gap-3 px-4 py-2.5 text-left',
-                      activeModule === module.id
-                        ? 'bg-[rgb(var(--action-primary)_/_0.1)] text-[rgb(var(--action-primary))]'
-                        : 'text-text-secondary hover:bg-inset hover:text-text-primary'
-                    )}
-                  >
-                    <module.icon className="h-5 w-5" />
-                    <span className="text-sm font-medium">{module.label}</span>
-                  </button>
-
-                  {expandedModule === module.id && module.subItems && (
-                    <div className="bg-inset py-1">
-                      {module.subItems.map((subItem) => (
-                        <button
-                          key={subItem.id}
-                          onClick={() => handleSubItemClick(module.id, subItem.id)}
-                          className={cn(
-                            'flex w-full items-center px-4 py-2 pl-12 text-left text-sm',
-                            activeSubItem === subItem.id
-                              ? 'text-[rgb(var(--action-primary))] font-medium'
-                              : 'text-text-tertiary hover:text-text-primary'
-                          )}
-                        >
-                          {subItem.label}
-                        </button>
-                      ))}
-                    </div>
+            
+            <div className="overflow-y-auto px-2 py-2">
+              {modules.find(m => m.id === expandedModule)?.subItems?.map((subItem) => (
+                <button
+                  key={subItem.id}
+                  onClick={() => {
+                    handleSubItemClick(expandedModule, subItem.id);
+                    setExpandedModule(null);
+                  }}
+                  className={cn(
+                    'flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors',
+                    activeSubItem === subItem.id
+                      ? 'bg-[rgb(var(--action-primary)_/_0.15)] text-[rgb(var(--action-primary))] font-semibold'
+                      : 'text-text-secondary hover:bg-inset hover:text-text-primary'
                   )}
-                </div>
+                >
+                  <span className="text-sm">{subItem.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
               ))}
             </nav>
           </aside>
