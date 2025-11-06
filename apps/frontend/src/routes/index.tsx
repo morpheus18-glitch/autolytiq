@@ -1,4 +1,5 @@
-import { lazy, type ComponentType } from 'react';
+import { lazy } from 'react';
+import { Route } from 'react-router-dom';
 
 // Lazy load all routes for optimal bundle size
 
@@ -179,14 +180,7 @@ const SettingsUsers = lazy(() => import('@/pages/settings/UsersSettings'));
 
 interface RouteDefinition {
   path: string;
-  component: ComponentType<any>;
-  aliases?: string[];
-}
-
-export interface ResolvedRoute {
-  path: string;
-  component: ComponentType<any>;
-  aliasFor?: string;
+  component: React.LazyExoticComponent<() => JSX.Element>;
 }
 
 const routeDefinitions: RouteDefinition[] = [
@@ -247,7 +241,7 @@ const routeDefinitions: RouteDefinition[] = [
 
   // Auth routes
   { path: '/auth/forgot-password', component: AuthForgotPassword },
-  { path: '/auth/reset-password', component: AuthResetPassword },
+  { path: '/auth/reset-password/:token', component: AuthResetPassword },
 
   // Communications routes
   { path: '/communications/center', component: CommunicationsCenter },
@@ -378,16 +372,19 @@ const routeDefinitions: RouteDefinition[] = [
   { path: '/settings/users', component: SettingsUsers },
 ];
 
-export const appRoutes: ResolvedRoute[] = routeDefinitions.flatMap((route) => {
-  const resolved: ResolvedRoute[] = [
-    { path: route.path, component: route.component }
-  ];
+/**
+ * Generate React Router 6 routes with RBAC filtering
+ * @param allowedRouteSet - Set of allowed route paths for the current user
+ */
+export function getAppRoutes(allowedRouteSet: Set<string>) {
+  // Filter routes based on user permissions
+  const filteredRoutes = allowedRouteSet.has('*')
+    ? routeDefinitions
+    : routeDefinitions.filter((route) => allowedRouteSet.has(route.path));
 
-  if (route.aliases) {
-    for (const alias of route.aliases) {
-      resolved.push({ path: alias, component: route.component, aliasFor: route.path });
-    }
-  }
-
-  return resolved;
-});
+  // Convert to React Router 6 Route elements
+  return filteredRoutes.map((route) => {
+    const Component = route.component;
+    return <Route key={route.path} path={route.path} element={<Component />} />;
+  });
+}

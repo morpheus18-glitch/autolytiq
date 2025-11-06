@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useLocation } from 'wouter';
+import { useParams, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +29,7 @@ import type { Vehicle } from '@shared/schema';
 
 export default function InventoryDetail() {
   const { id } = useParams();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { trackInteraction } = usePixelTracker();
@@ -126,7 +126,7 @@ export default function InventoryDetail() {
             variant="default" 
             onClick={() => {
               trackInteraction('button_click', { action: 'create_deal', vehicleId: id });
-              setLocation(`/professional-deal-desk?vehicleId=${id}`);
+              navigate(`/professional-deal-desk?vehicleId=${id}`);
             }}
             data-testid="button-create-deal"
           >

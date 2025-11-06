@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useLocation } from 'wouter';
+import { useLocation } from 'react-router-dom';
 import { initPixelTracker, trackInteraction as trackPixelInteraction, setCustomerId } from '@/lib/pixel-tracker';
 
 export const usePixelTracker = () => {

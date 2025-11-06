@@ -26,7 +26,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { useLocation } from 'wouter';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useLeadDashboardStore } from '@/stores/lead-dashboard-store';
 import { useLeadSocket } from '@/hooks/use-lead-socket';
 import { fetchLeads, updateLeadStatus } from '@/lib/leadsApi';
@@ -91,7 +91,7 @@ function determineTemperature(lead: Lead) {
 export default function LeadsDashboard() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   const {
     filters,
@@ -600,7 +600,7 @@ export default function LeadsDashboard() {
                 <SortableLeadCard
                   key={lead.id}
                   lead={lead}
-                  onOpenDetail={(selected) => setLocation(`/leads/${selected.id}`)}
+                  onOpenDetail={(selected) => navigate(`/leads/${selected.id}`)}
                 />
               ))}
             </SortableContext>
@@ -658,7 +658,7 @@ export default function LeadsDashboard() {
                   {lead.updatedAt ? dayjs(lead.updatedAt).fromNow() : '—'}
                 </TableCell>
                 <TableCell>
-                  <Button size="sm" variant="ghost" onClick={() => setLocation(`/leads/${lead.id}`)}>
+                  <Button size="sm" variant="ghost" onClick={() => navigate(`/leads/${lead.id}`)}>
                     View
                   </Button>
                 </TableCell>

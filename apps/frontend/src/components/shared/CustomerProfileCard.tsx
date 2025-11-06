@@ -23,7 +23,7 @@ import {
   FileText,
   Car
 } from 'lucide-react';
-import { Link } from 'wouter';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { VehicleLink, DealLink } from './QuickViewLinks';
 import type { Customer } from '@shared/schema';

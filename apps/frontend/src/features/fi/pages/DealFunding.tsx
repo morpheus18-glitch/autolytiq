@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useParams } from 'wouter';
+import { useLocation, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertTriangle,
@@ -155,7 +155,7 @@ function DealFundingView({
 }: Partial<DealFundingWorkspaceProps>) {
   const { id: routeDealId } = useParams<{ id: string }>();
   const dealId = providedDealId ?? routeDealId;
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
@@ -186,9 +186,9 @@ function DealFundingView({
     }
 
     if (dealId) {
-      setLocation(`/fi/deal-jackets/${dealId}`);
+      navigate(`/fi/deal-jackets/${dealId}`);
     } else {
-      setLocation('/finance');
+      navigate('/finance');
     }
   };
 
@@ -690,7 +690,7 @@ function DealFundingView({
                 <Button
                   variant="link"
                   className="px-0"
-                  onClick={() => setLocation(`/accounting/journal-entries/${fundingStatus.request?.journalEntryId}`)}
+                  onClick={() => navigate(`/accounting/journal-entries/${fundingStatus.request?.journalEntryId}`)}
                 >
                   View journal entry
                 </Button>

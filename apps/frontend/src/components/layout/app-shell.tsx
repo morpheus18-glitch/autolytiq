@@ -12,9 +12,9 @@
  * DO NOT add custom layout logic here. Use @repo/ui components.
  */
 
-import type { ReactNode } from 'react';
-import { UniformShell, type NavModule } from '@repo/ui';
-import { useLocation } from 'wouter';
+import { useState, useEffect } from 'react';
+import { UniformShell, type NavModule, TenantSwitcher, type Tenant } from '@repo/ui';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
@@ -25,10 +25,8 @@ import {
   MessageSquare,
   Settings
 } from 'lucide-react';
-
-interface AppShellProps {
-  children: ReactNode;
-}
+import { useAuth } from '@/hooks/useAuth';
+import { clearAuthToken } from '@/lib/auth';
 
 // Define navigation modules based on the app's IA
 const navigationModules: NavModule[] = [
@@ -85,12 +83,33 @@ const navigationModules: NavModule[] = [
   },
 ];
 
-export default function AppShell({ children }: AppShellProps) {
-  const [location, setLocation] = useLocation();
+export default function AppShell() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isLoading } = useAuth();
+  const [tenantSwitcherOpen, setTenantSwitcherOpen] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+
+  // Mock tenants - TODO: Get from API
+  const tenants: Tenant[] = [
+    { id: user?.tenantId || '1', name: user?.store?.name || 'AutolytiQ Demo' },
+  ];
+
+  // Load recent searches from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('recentSearches');
+      if (stored) {
+        setRecentSearches(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Failed to load recent searches:', error);
+    }
+  }, []);
 
   // Determine active module based on current route
   const getActiveModule = () => {
-    const path = location;
+    const path = location.pathname;
     for (const module of navigationModules) {
       if (path.startsWith(module.path || '')) {
         return module.id;
@@ -101,7 +120,7 @@ export default function AppShell({ children }: AppShellProps) {
 
   // Determine active sub-item
   const getActiveSubItem = () => {
-    const path = location;
+    const path = location.pathname;
     for (const module of navigationModules) {
       if (module.subItems) {
         for (const subItem of module.subItems) {
@@ -121,33 +140,89 @@ export default function AppShell({ children }: AppShellProps) {
     if (subItemId && module.subItems) {
       const subItem = module.subItems.find(s => s.id === subItemId);
       if (subItem) {
-        setLocation(subItem.path);
+        navigate(subItem.path);
       }
     } else if (module.path) {
-      setLocation(module.path);
+      navigate(module.path);
     }
   };
 
+  const handleSearch = (query: string) => {
+    // Add to recent searches
+    setRecentSearches(prev => {
+      const updated = [query, ...prev.filter(s => s !== query)].slice(0, 5);
+      localStorage.setItem('recentSearches', JSON.stringify(updated));
+      return updated;
+    });
+
+    // TODO: Implement global search
+    console.log('Search:', query);
+    navigate(`/search?q=${encodeURIComponent(query)}`);
+  };
+
+  const handleLogout = () => {
+    clearAuthToken();
+    navigate('/login');
+  };
+
+  const handleTenantSwitch = (tenantId: string) => {
+    // TODO: Implement tenant switching logic
+    console.log('Switching to tenant:', tenantId);
+  };
+
+  // Get display name
+  const displayName = user
+    ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || user.email
+    : 'User';
+
+  // Popular searches for demo
+  const popularSearches = ['John Smith', 'Toyota Camry', 'Deal #12345', 'VIN: 1HGBH41...'];
+
+  // Search shortcuts
+  const searchShortcuts = [
+    { label: 'All active deals', query: 'status:active type:deal' },
+    { label: 'Hot leads this week', query: 'status:hot created:this-week type:lead' },
+    { label: 'Inventory under $20k', query: 'price:<20000 type:vehicle' },
+  ];
+
   return (
-    <UniformShell
-      modules={navigationModules}
-      activeModule={getActiveModule()}
-      activeSubItem={getActiveSubItem()}
-      tenant="AutolytiQ" // TODO: Get from auth context
-      user="User" // TODO: Get from auth context
-      onNavigate={handleNavigate}
-      onSearch={(query) => console.log('Search:', query)} // TODO: Implement global search
-      onTenantSwitch={() => console.log('Tenant switch')} // TODO: Implement tenant switcher
-    >
-      {/* Content with grid overlay and proper spacing */}
-      <div className="relative min-h-full">
-        <div className="pointer-events-none" aria-hidden="true">
-          <div className="absolute inset-0 z-0 grid-overlay opacity-70 dark:opacity-40" />
+    <>
+      <UniformShell
+        modules={navigationModules}
+        activeModule={getActiveModule()}
+        activeSubItem={getActiveSubItem()}
+        tenant={user?.store?.name || 'AutolytiQ'}
+        user={displayName}
+        userAvatar={undefined}
+        notifications={0}
+        onNavigate={handleNavigate}
+        onSearch={handleSearch}
+        recentSearches={recentSearches}
+        popularSearches={popularSearches}
+        searchShortcuts={searchShortcuts}
+        onTenantSwitch={() => setTenantSwitcherOpen(true)}
+        onSettings={() => navigate('/settings')}
+        onLogout={handleLogout}
+        >
+        {/* Content with grid overlay and proper spacing */}
+        <div className="relative min-h-full">
+          <div className="pointer-events-none" aria-hidden="true">
+            <div className="absolute inset-0 z-0 grid-overlay opacity-70 dark:opacity-40" />
+          </div>
+          <div className="relative z-10 px-4 pt-6 pb-6 sm:px-6 md:px-8 lg:px-10">
+            <Outlet />
+          </div>
         </div>
-        <div className="relative z-10 px-4 pt-6 pb-6 sm:px-6 md:px-8 lg:px-10">
-          {children}
-        </div>
-      </div>
-    </UniformShell>
+      </UniformShell>
+
+      {/* Tenant Switcher Modal */}
+      <TenantSwitcher
+        isOpen={tenantSwitcherOpen}
+        onClose={() => setTenantSwitcherOpen(false)}
+        tenants={tenants}
+        currentTenantId={user?.tenantId || '1'}
+        onSwitch={handleTenantSwitch}
+      />
+    </>
   );
 }

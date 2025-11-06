@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { useLocation, useParams } from 'wouter';
+import { useLocation, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
@@ -83,7 +83,7 @@ function groupDocuments(documents: DealDocumentDto[]) {
 
 export default function DealJacketPage() {
   const { id } = useParams();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -170,7 +170,7 @@ export default function DealJacketPage() {
   const groupedDocuments = useMemo(() => groupDocuments(documents), [documents]);
 
   const handleBack = useCallback(() => {
-    setLocation('/finance');
+    navigate('/finance');
   }, [setLocation]);
 
   const handleFileSelection = useCallback(
@@ -253,7 +253,7 @@ export default function DealJacketPage() {
         <div className="flex flex-wrap items-center gap-3 justify-end">
           <Button
             variant="secondary"
-            onClick={() => setLocation(`/fi/deals/${deal.id}/lenders`)}
+            onClick={() => navigate(`/fi/deals/${deal.id}/lenders`)}
             className="gap-2"
           >
             <Send className="h-4 w-4" /> Manage lender submissions

@@ -3,13 +3,13 @@ import { LogOut } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { useLocation } from 'wouter';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { clearAuthToken } from '@/lib/auth';
 
 export default function LogoutButton() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
@@ -27,7 +27,7 @@ export default function LogoutButton() {
         title: 'Logged Out',
         description: 'You have been successfully logged out.',
       });
-      setLocation('/login');
+      navigate('/login');
     },
     onError: () => {
       toast({

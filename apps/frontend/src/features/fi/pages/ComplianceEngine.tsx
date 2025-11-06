@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useLocation, useSearch } from 'wouter';
+import { useLocation, useSearch } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -151,7 +151,7 @@ export default function ComplianceEngine() {
   const initialDealId = initialSearch?.get('dealId') ?? '';
   const [dealIdInput, setDealIdInput] = useState(initialDealId);
   const [activeDealId, setActiveDealId] = useState(initialDealId);
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -244,7 +244,7 @@ export default function ComplianceEngine() {
     }
     const nextDealId = dealIdInput.trim();
     setActiveDealId(nextDealId);
-    setLocation(`/finance/compliance?dealId=${encodeURIComponent(nextDealId)}`);
+    navigate(`/finance/compliance?dealId=${encodeURIComponent(nextDealId)}`);
   }, [dealIdInput, setLocation, toast]);
 
   const handleGenerateMissing = useCallback(async () => {

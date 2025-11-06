@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useParams } from 'wouter';
+import { useLocation, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, CheckCircle, Scale, Clock, AlertTriangle, Info } from 'lucide-react';
 import {
@@ -115,7 +115,7 @@ function LenderSubmissionView({
 }: Partial<LenderSubmissionWorkspaceProps>) {
   const { id: routeDealId } = useParams<{ id: string }>();
   const id = providedDealId ?? routeDealId;
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'select' | 'status' | 'compare'>('select');
@@ -259,9 +259,9 @@ function LenderSubmissionView({
     }
 
     if (id) {
-      setLocation(`/fi/deal-jackets/${id}`);
+      navigate(`/fi/deal-jackets/${id}`);
     } else {
-      setLocation('/finance');
+      navigate('/finance');
     }
   };
 

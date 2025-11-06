@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useParams } from 'wouter';
+import { useLocation, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
@@ -101,7 +101,7 @@ function MenuPresentationView({
 }: Partial<MenuPresentationWorkspaceProps>) {
   const { id: routeDealId } = useParams<{ id: string }>();
   const dealId = providedDealId ?? routeDealId;
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<'manager' | 'customer'>('manager');
@@ -124,9 +124,9 @@ function MenuPresentationView({
     }
 
     if (dealId) {
-      setLocation(`/fi/deal-jackets/${dealId}`);
+      navigate(`/fi/deal-jackets/${dealId}`);
     } else {
-      setLocation('/finance');
+      navigate('/finance');
     }
   };
 

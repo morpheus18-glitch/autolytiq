@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { Link, useLocation, useRoute } from "wouter";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
@@ -26,8 +26,8 @@ interface ResetTokenMetadata {
 }
 
 export default function ResetPassword() {
-  const [, params] = useRoute<{ token: string }>("/reset-password/:token");
-  const [, navigate] = useLocation();
+  const params = useParams<{ token: string }>();
+  const navigate = useNavigate();
   const token = params?.token ?? "";
   const { toast } = useToast();
   const [password, setPassword] = useState("");

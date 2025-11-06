@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Button,
   Badge,
@@ -36,7 +36,7 @@ export default function Customers() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { trackInteraction } = usePixelTracker();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { openDealStudio } = useDealStudioLauncher();
 
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -136,7 +136,7 @@ export default function Customers() {
     <Card
       onClick={() => {
         trackInteraction('customer_view', { customerId: customer.id });
-        setLocation(`/customers/${customer.id}`);
+        navigate(`/customers/${customer.id}`);
       }}
       hover
       className="cursor-pointer"

@@ -148,6 +148,8 @@ export {
   type UniformShellProps,
   type NavModule,
 } from './components/UniformShell.js';
+export { IntelligentSearch, type IntelligentSearchProps, type SearchSuggestion } from './components/IntelligentSearch.js';
+export { TenantSwitcher, type TenantSwitcherProps, type Tenant } from './components/TenantSwitcher.js';
 
 // Layout Templates
 export { ListDetailLayout, type ListDetailLayoutProps } from './layouts/ListDetailLayout.js';

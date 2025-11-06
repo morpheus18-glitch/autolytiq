@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +16,7 @@ interface ForgotPasswordResponse {
 
 export default function ForgotPassword() {
   const { toast } = useToast();
-  const [, navigate] = useLocation();
+  const navigate = useNavigate();
   const [storeId, setStoreId] = useState("");
   const [username, setUsername] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);

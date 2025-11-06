@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   BarChart3,
@@ -18,10 +18,10 @@ import {
 } from "lucide-react";
 
 export default function Landing() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   const handleLogin = () => {
-    setLocation("/login");
+    navigate("/login");
   };
 
   return (

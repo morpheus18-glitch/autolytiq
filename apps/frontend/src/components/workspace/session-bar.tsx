@@ -19,7 +19,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { useWorkspaceStore } from '@/stores/workspace-context';
-import { Link, useLocation } from 'wouter';
+import { Link, useLocation } from 'react-router-dom';
 
 export function SessionBar() {
   const {

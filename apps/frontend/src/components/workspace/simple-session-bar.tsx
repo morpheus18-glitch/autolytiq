@@ -16,7 +16,7 @@ import {
   ExternalLink,
   Building,
 } from 'lucide-react';
-import { Link, useLocation } from 'wouter';
+import { Link, useLocation } from 'react-router-dom';
 
 interface WorkspaceSession {
   id: string;

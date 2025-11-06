@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useLocation, useRoute } from 'wouter';
+import { useLocation, useRoute } from 'react-router-dom';
 import { z } from 'zod';
 import AccountingLayout from './AccountingLayout';
 import {
@@ -375,8 +375,8 @@ export function GLAccountFormContent({
 
 export default function GLAccountForm() {
   const [, navigate] = useLocation();
-  const [isNewRoute] = useRoute('/accounting/gl-accounts/new');
-  const [isEditRoute, params] = useRoute('/accounting/gl-accounts/:id/edit');
+  const [isNewRoute] = useMatch('/accounting/gl-accounts/new');
+  const [isEditRoute, params] = useMatch('/accounting/gl-accounts/:id/edit');
   const accountId = !isNewRoute && isEditRoute ? params.id : undefined;
 
   const { data: accounts, isLoading } = useQuery({

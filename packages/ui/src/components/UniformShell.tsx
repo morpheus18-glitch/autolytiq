@@ -28,8 +28,10 @@ import {
   User,
   Building2,
   Menu,
+  LogOut,
 } from 'lucide-react';
 import { useBreakpoint, useMobileBreakpoint } from '../hooks/useBreakpoint.js';
+import { IntelligentSearch, type SearchSuggestion } from './IntelligentSearch.js';
 
 export interface NavModule {
   id: string;
@@ -62,8 +64,22 @@ export interface UniformShellProps {
   onNavigate?: (moduleId: string, subItemId?: string) => void;
   /** On search */
   onSearch?: (query: string) => void;
+  /** Search suggestions */
+  searchSuggestions?: SearchSuggestion[];
+  /** Recent searches */
+  recentSearches?: string[];
+  /** Popular searches */
+  popularSearches?: string[];
+  /** Search shortcuts */
+  searchShortcuts?: Array<{ label: string; query: string }>;
   /** On tenant switcher click */
   onTenantSwitch?: () => void;
+  /** On user menu click */
+  onUserMenuClick?: () => void;
+  /** On logout click */
+  onLogout?: () => void;
+  /** On settings click */
+  onSettings?: () => void;
   /** Content to render */
   children: React.ReactNode;
   /** Custom className */
@@ -80,13 +96,21 @@ export function UniformShell({
   notifications = 0,
   onNavigate,
   onSearch,
+  searchSuggestions = [],
+  recentSearches = [],
+  popularSearches = [],
+  searchShortcuts = [],
   onTenantSwitch,
+  onUserMenuClick,
+  onLogout,
+  onSettings,
   children,
   className,
 }: UniformShellProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedModule, setExpandedModule] = useState<string | null>(activeModule || null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const isMobile = useMobileBreakpoint();
   const breakpoint = useBreakpoint();
 
@@ -127,11 +151,11 @@ export function UniformShell({
           {/* Logo */}
           <div className="flex h-14 items-center justify-between border-b border-default px-4">
             {!isCollapsed && (
-              <span className="text-lg font-semibold text-primary">AutolytiQ</span>
+              <span className="text-lg font-semibold text-text-primary">AutolytiQ</span>
             )}
             <button
               onClick={toggleSidebar}
-              className="rounded p-1.5 text-secondary hover:bg-inset hover:text-primary"
+              className="rounded p-1.5 text-text-secondary hover:bg-inset hover:text-text-primary"
               aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
               {isCollapsed ? <ChevronRight className="h-[18px] w-[18px]" /> : <ChevronLeft className="h-[18px] w-[18px]" />}
@@ -149,7 +173,7 @@ export function UniformShell({
                     'group relative flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors',
                     activeModule === module.id
                       ? 'bg-[rgb(var(--action-primary)_/_0.1)] text-[rgb(var(--action-primary))]'
-                      : 'text-secondary hover:bg-inset hover:text-primary'
+                      : 'text-text-secondary hover:bg-inset hover:text-text-primary'
                   )}
                 >
                   <module.icon className="h-5 w-5 flex-shrink-0" />
@@ -157,7 +181,7 @@ export function UniformShell({
 
                   {/* Tooltip for collapsed state */}
                   {isCollapsed && (
-                    <div className="pointer-events-none absolute left-full ml-2 hidden rounded bg-[rgb(var(--text-primary))] px-2 py-1 text-xs text-[rgb(var(--text-inverse))] opacity-0 shadow-lg transition-opacity group-hover:block group-hover:opacity-100">
+                    <div className="pointer-events-none absolute left-full ml-2 hidden rounded bg-surface-elevated px-2 py-1 text-xs text-text-primary opacity-0 shadow-lg transition-opacity group-hover:block group-hover:opacity-100">
                       {module.label}
                     </div>
                   )}
@@ -174,7 +198,7 @@ export function UniformShell({
                           'flex w-full items-center px-4 py-2 pl-12 text-left text-sm transition-colors',
                           activeSubItem === subItem.id
                             ? 'text-[rgb(var(--action-primary))] font-medium'
-                            : 'text-tertiary hover:text-primary'
+                            : 'text-text-tertiary hover:text-text-primary'
                         )}
                       >
                         {subItem.label}
@@ -207,13 +231,15 @@ export function UniformShell({
             )}
 
             {/* Global Search */}
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-tertiary" />
-              <input
-                type="text"
-                placeholder="Search..."
-                className="h-9 rounded border border-default bg-canvas pl-9 pr-3 text-sm text-primary placeholder:text-placeholder focus:border-[rgb(var(--action-primary))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--action-primary))] sm:w-64"
-                onChange={(e) => onSearch?.(e.target.value)}
+            <div className="w-full sm:w-64">
+              <IntelligentSearch
+                placeholder="Search customers, deals, vehicles..."
+                suggestions={searchSuggestions}
+                recentSearches={recentSearches}
+                popularSearches={popularSearches}
+                shortcuts={searchShortcuts}
+                onSearch={(query) => onSearch?.(query)}
+                className="w-full"
               />
             </div>
           </div>
@@ -223,14 +249,14 @@ export function UniformShell({
             {/* Tenant/Dealership Switcher */}
             <button
               onClick={onTenantSwitch}
-              className="flex items-center gap-2 rounded px-3 py-1.5 text-sm text-secondary hover:bg-inset hover:text-primary"
+              className="flex items-center gap-2 rounded px-3 py-1.5 text-sm text-text-secondary hover:bg-inset hover:text-text-primary"
             >
               <Building2 className="h-4 w-4" />
               {!isMobile && <span>{tenant}</span>}
             </button>
 
             {/* Notifications */}
-            <button className="relative rounded p-2 text-secondary hover:bg-inset hover:text-primary">
+            <button className="relative rounded p-2 text-text-secondary hover:bg-inset hover:text-text-primary">
               <Bell className="h-[18px] w-[18px]" />
               {notifications > 0 && (
                 <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[rgb(var(--error))] text-[10px] font-medium text-white">
@@ -240,16 +266,59 @@ export function UniformShell({
             </button>
 
             {/* User Profile */}
-            <button className="flex items-center gap-2 rounded px-2 py-1.5 hover:bg-inset">
-              {userAvatar ? (
-                <img src={userAvatar} alt={user} className="h-6 w-6 rounded-full" />
-              ) : (
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[rgb(var(--action-primary))] text-xs font-medium text-white">
-                  {user.charAt(0).toUpperCase()}
-                </div>
+            <div className="relative">
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center gap-2 rounded px-2 py-1.5 hover:bg-inset"
+              >
+                {userAvatar ? (
+                  <img src={userAvatar} alt={user} className="h-6 w-6 rounded-full" />
+                ) : (
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[rgb(var(--action-primary))] text-xs font-medium text-white">
+                    {user.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                {!isMobile && <span className="text-sm text-text-secondary">{user}</span>}
+              </button>
+
+              {/* User Dropdown Menu */}
+              {userMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setUserMenuOpen(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-2 w-48 z-20 rounded-lg border border-border-base bg-surface-elevated shadow-lg">
+                    <div className="px-4 py-3 border-b border-border-base">
+                      <p className="text-sm font-medium text-text-primary">{user}</p>
+                      <p className="text-xs text-text-tertiary">{tenant}</p>
+                    </div>
+                    <div className="py-1">
+                      <button
+                        onClick={() => {
+                          onSettings?.();
+                          setUserMenuOpen(false);
+                        }}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-text-secondary hover:bg-inset hover:text-text-primary"
+                      >
+                        <Settings className="h-4 w-4" />
+                        Settings
+                      </button>
+                      <button
+                        onClick={() => {
+                          onLogout?.();
+                          setUserMenuOpen(false);
+                        }}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-status-error hover:bg-inset"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                </>
               )}
-              {!isMobile && <span className="text-sm text-secondary">{user}</span>}
-            </button>
+            </div>
           </div>
         </header>
 
@@ -262,22 +331,32 @@ export function UniformShell({
       {/* ═══════════════════════════════════════════════════════════════
        * MOBILE MENU - Slide-in navigation
        * ═══════════════════════════════════════════════════════════════ */}
-      {isMobile && mobileMenuOpen && (
-        <>
+      {isMobile && (
+        <div
+          className={cn(
+            'fixed inset-0 z-40 transition-opacity duration-300',
+            mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          )}
+        >
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-40 bg-black/50"
+            className="absolute inset-0 bg-black/50"
             onClick={toggleMobileMenu}
           />
 
           {/* Slide-in Menu */}
-          <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-elevated shadow-xl">
+          <aside
+            className={cn(
+              'absolute inset-y-0 left-0 w-64 bg-elevated shadow-xl transition-transform duration-300 ease-out',
+              mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+            )}
+          >
             {/* Logo */}
             <div className="flex h-14 items-center justify-between border-b border-default px-4">
               <span className="text-lg font-semibold text-[rgb(var(--action-primary))]">AutolytiQ</span>
               <button
                 onClick={toggleMobileMenu}
-                className="rounded p-1.5 text-secondary hover:bg-inset"
+                className="rounded p-1.5 text-text-secondary hover:bg-inset"
               >
                 <ChevronLeft className="h-[18px] w-[18px]" />
               </button>
@@ -293,7 +372,7 @@ export function UniformShell({
                       'flex w-full items-center gap-3 px-4 py-2.5 text-left',
                       activeModule === module.id
                         ? 'bg-[rgb(var(--action-primary)_/_0.1)] text-[rgb(var(--action-primary))]'
-                        : 'text-secondary hover:bg-inset hover:text-primary'
+                        : 'text-text-secondary hover:bg-inset hover:text-text-primary'
                     )}
                   >
                     <module.icon className="h-5 w-5" />
@@ -310,7 +389,7 @@ export function UniformShell({
                             'flex w-full items-center px-4 py-2 pl-12 text-left text-sm',
                             activeSubItem === subItem.id
                               ? 'text-[rgb(var(--action-primary))] font-medium'
-                              : 'text-tertiary hover:text-primary'
+                              : 'text-text-tertiary hover:text-text-primary'
                           )}
                         >
                           {subItem.label}
@@ -322,7 +401,7 @@ export function UniformShell({
               ))}
             </nav>
           </aside>
-        </>
+        </div>
       )}
     </div>
   );

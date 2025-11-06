@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Button,
   Badge,
@@ -37,7 +37,7 @@ import type { Vehicle } from '@shared/schema';
 export default function Inventory() {
   const { toast } = useToast();
   const { trackInteraction } = usePixelTracker();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { openDealStudio } = useDealStudioLauncher();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -452,7 +452,7 @@ export default function Inventory() {
                 variant="secondary"
                 onClick={() => {
                   setSelectedVehicle(null);
-                  setLocation(`/inventory/edit/${selectedVehicle.id}`);
+                  navigate(`/inventory/edit/${selectedVehicle.id}`);
                 }}
                 data-testid="button-edit-vehicle"
               >

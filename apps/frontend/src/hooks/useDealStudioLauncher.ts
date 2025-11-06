@@ -13,7 +13,7 @@
 
 import { useCallback } from 'react';
 import { useDealStudio } from '@/contexts/DealStudioContext';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 import { apiRequest } from '@/lib/queryClient';
 
 interface LaunchOptions {
@@ -26,7 +26,7 @@ interface LaunchOptions {
 
 export function useDealStudioLauncher() {
   const { updateDeal, openStudio } = useDealStudio();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   const openDealStudio = useCallback(async (options: LaunchOptions = {}) => {
     const { customerId, vehicleId, tradeId, platform = 'auto' } = options;
@@ -95,9 +95,9 @@ export function useDealStudioLauncher() {
 
       // Navigate to appropriate Deal Studio
       if (isMobile) {
-        setLocation('/deal-studio-mobile-demo');
+        navigate('/deal-studio-mobile-demo');
       } else {
-        setLocation('/deal-studio-demo');
+        navigate('/deal-studio-demo');
       }
 
       // Open studio if using context-based approach
@@ -108,9 +108,9 @@ export function useDealStudioLauncher() {
     } catch (error) {
       console.error('Failed to launch Deal Studio:', error);
       // Fallback: navigate anyway
-      setLocation('/deal-studio-demo');
+      navigate('/deal-studio-demo');
     }
-  }, [updateDeal, openStudio, setLocation]);
+  }, [updateDeal, openStudio, navigate]);
 
   return {
     openDealStudio,

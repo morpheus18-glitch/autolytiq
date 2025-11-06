@@ -23,7 +23,7 @@ import {
   Package,
   BarChart3
 } from 'lucide-react';
-import { Link } from 'wouter';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import type { Vehicle } from '@shared/schema';
 

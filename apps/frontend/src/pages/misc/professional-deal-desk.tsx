@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useLocation, useSearch } from 'wouter';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -65,8 +65,8 @@ interface DealerSettings {
 
 export default function ProfessionalDealDesk() {
   const { toast } = useToast();
-  const searchParams = new URLSearchParams(useSearch());
-  
+  const [searchParams] = useSearchParams();
+
   // URL params for pre-population
   const urlCustomerId = searchParams.get('customerId');
   const urlVehicleId = searchParams.get('vehicleId');

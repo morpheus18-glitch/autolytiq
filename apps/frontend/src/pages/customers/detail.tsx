@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'wouter';
+import { useParams, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +27,7 @@ import type { Customer, Lead, Sale } from '@shared/schema';
 
 export default function CustomerDetail() {
   const { id } = useParams();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { trackInteraction, setTrackedCustomer } = usePixelTracker();
@@ -199,7 +199,7 @@ export default function CustomerDetail() {
       <div className="px-4 py-4">
         {/* Back Button */}
         <button 
-          onClick={() => setLocation('/customers')}
+          onClick={() => navigate('/customers')}
           className="flex items-center gap-2 text-indigo-600 font-medium mb-4"
           data-testid="button-back-to-customers"
         >
@@ -453,7 +453,7 @@ export default function CustomerDetail() {
           <button 
             onClick={() => {
               trackInteraction('button_click', { action: 'create_deal', customerId: id });
-              setLocation(`/professional-deal-desk?customerId=${id}`);
+              navigate(`/professional-deal-desk?customerId=${id}`);
             }}
             className="py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors"
             data-testid="button-create-deal"

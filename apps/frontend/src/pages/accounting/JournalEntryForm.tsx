@@ -3,7 +3,7 @@ import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ChevronsUpDown, Loader2, Plus, Trash2 } from 'lucide-react';
-import { useLocation, useRoute } from 'wouter';
+import { useLocation, useRoute } from 'react-router-dom';
 import AccountingLayout from './AccountingLayout';
 import { StatementHeader } from '@/components/accounting/StatementHeader.tsx';
 import { Button } from '@/components/ui/button';
@@ -689,8 +689,8 @@ export function JournalEntryFormContainer({ mode, entryId, onCancel, onSuccess, 
 
 export default function JournalEntryFormPage() {
   const [, navigate] = useLocation();
-  const [isNewRoute] = useRoute('/accounting/journal-entries/new');
-  const [isExistingRoute, params] = useRoute('/accounting/journal-entries/:id');
+  const [isNewRoute] = useMatch('/accounting/journal-entries/new');
+  const [isExistingRoute, params] = useMatch('/accounting/journal-entries/:id');
   const entryId = isExistingRoute ? params.id : undefined;
   const mode: 'create' | 'edit' = isNewRoute ? 'create' : 'edit';
 

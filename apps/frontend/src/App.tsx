@@ -1,5 +1,5 @@
 import { useMemo, Suspense } from 'react';
-import { Switch, Route } from 'wouter';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
 import { Toaster } from '@/components/ui/toaster';
@@ -12,7 +12,7 @@ import Landing from '@/pages/landing';
 import Login from '@/pages/login';
 import NotFound from '@/pages/not-found';
 import AppShell from '@/components/layout/app-shell';
-import { appRoutes } from '@/routes';
+import { getAppRoutes } from '@/routes';
 
 // Loading fallback component
 function RouteLoadingFallback() {
@@ -34,14 +34,6 @@ function Router() {
     return new Set(allowed.length > 0 ? allowed : ['*']);
   }, [user?.access?.allowedRoutes]);
 
-  const filteredRoutes = useMemo(() => {
-    if (allowedRouteSet.has('*')) {
-      return appRoutes;
-    }
-
-    return appRoutes.filter((route) => allowedRouteSet.has(route.path));
-  }, [allowedRouteSet]);
-
   console.log('[Router] Rendering with state:', { isLoading, isAuthenticated, hasUser: Boolean(user) });
 
   if (isLoading) {
@@ -59,26 +51,25 @@ function Router() {
   if (!isAuthenticated) {
     console.log('[Router] Not authenticated, showing landing/login');
     return (
-      <Switch>
-        <Route path="/login" component={Login} />
-        <Route component={Landing} />
-      </Switch>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     );
   }
 
   console.log('[Router] Authenticated, showing app shell');
 
   return (
-    <AppShell>
-      <Suspense fallback={<RouteLoadingFallback />}>
-        <Switch>
-          {filteredRoutes.map((route) => (
-            <Route key={route.path} path={route.path} component={route.component} />
-          ))}
-          <Route component={NotFound} />
-        </Switch>
-      </Suspense>
-    </AppShell>
+    <Routes>
+      <Route element={<AppShell />}>
+        <Suspense fallback={<RouteLoadingFallback />}>
+          {getAppRoutes(allowedRouteSet)}
+        </Suspense>
+      </Route>
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
 
@@ -89,7 +80,9 @@ function App() {
         <ThemeProvider>
           <TooltipProvider>
             <QuickViewProvider>
-              <Router />
+              <BrowserRouter>
+                <Router />
+              </BrowserRouter>
               <Toaster />
             </QuickViewProvider>
           </TooltipProvider>

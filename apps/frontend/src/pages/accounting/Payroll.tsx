@@ -14,7 +14,7 @@ import {
   startOfWeek,
 } from 'date-fns';
 import { Calculator, Download, Eye, FileSpreadsheet, History, MinusCircle, PlusCircle } from 'lucide-react';
-import { Link, useLocation } from 'wouter';
+import { Link, useLocation } from 'react-router-dom';
 import AccountingLayout from './AccountingLayout';
 import { fetchPayrolls } from '@/lib/accountingApi';
 import { fetchUsers } from '@/lib/settingsUsersApi';

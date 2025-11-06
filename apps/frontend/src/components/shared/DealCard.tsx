@@ -22,7 +22,7 @@ import {
   Clock,
   Calculator
 } from 'lucide-react';
-import { Link } from 'wouter';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { CustomerLink, VehicleLink } from './QuickViewLinks';
 
