@@ -12,10 +12,10 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, Badge, Button, Skeleton, Alert } from '@repo/ui';
-import { Search, User, Car, FileText, TrendingUp, ArrowRight, Clock } from 'lucide-react';
+import { Search, User, Car, FileText, TrendingUp, ArrowRight, Clock, CheckCircle, Plus } from 'lucide-react';
 
 interface SearchResult {
-  type: 'customer' | 'vehicle' | 'deal' | 'lead' | 'appraisal';
+  type: 'customer' | 'vehicle' | 'deal' | 'lead' | 'appraisal' | 'vin_decode';
   id: string;
   data: any;
   score: number;
@@ -75,6 +75,7 @@ export default function SearchPage() {
       case 'vehicle': return <Car className="h-5 w-5" />;
       case 'deal': return <FileText className="h-5 w-5" />;
       case 'lead': return <TrendingUp className="h-5 w-5" />;
+      case 'vin_decode': return <CheckCircle className="h-5 w-5 text-green-600" />;
       default: return <FileText className="h-5 w-5" />;
     }
   };
@@ -169,6 +170,80 @@ export default function SearchPage() {
           </div>
         );
 
+      case 'vin_decode':
+        return (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <h4 className="font-semibold text-green-900">VIN Decoded Successfully</h4>
+            </div>
+
+            {data.decoded && (
+              <>
+                <div>
+                  <div className="font-semibold text-lg text-text-primary">
+                    {data.decoded.year} {data.decoded.make} {data.decoded.model}
+                  </div>
+                  {data.decoded.trim && (
+                    <div className="text-sm text-text-secondary">{data.decoded.trim}</div>
+                  )}
+                  <div className="text-sm text-text-tertiary font-mono mt-1">
+                    VIN: {data.vin}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {data.decoded.bodyStyle && (
+                    <div>
+                      <div className="text-xs text-text-tertiary">Body Style</div>
+                      <div className="font-medium">{data.decoded.bodyStyle}</div>
+                    </div>
+                  )}
+                  {data.decoded.engineType && (
+                    <div>
+                      <div className="text-xs text-text-tertiary">Engine</div>
+                      <div className="font-medium">{data.decoded.engineType}</div>
+                    </div>
+                  )}
+                  {data.decoded.transmission && (
+                    <div>
+                      <div className="text-xs text-text-tertiary">Transmission</div>
+                      <div className="font-medium">{data.decoded.transmission}</div>
+                    </div>
+                  )}
+                  {data.decoded.driveType && (
+                    <div>
+                      <div className="text-xs text-text-tertiary">Drive Type</div>
+                      <div className="font-medium">{data.decoded.driveType}</div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-3 border-t flex items-center justify-between">
+                  <p className="text-sm text-text-secondary">{data.message}</p>
+                  <Button
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const params = new URLSearchParams({
+                        vin: data.vin,
+                        year: data.decoded.year?.toString() || '',
+                        make: data.decoded.make || '',
+                        model: data.decoded.model || '',
+                        trim: data.decoded.trim || '',
+                      });
+                      navigate(`/inventory/add?${params.toString()}`);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add to Inventory
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        );
+
       default:
         return (
           <div className="text-sm text-text-secondary">
@@ -248,8 +323,8 @@ export default function SearchPage() {
           {results.map((result) => (
             <Card
               key={`${result.type}-${result.id}`}
-              className="hover:border-accent-primary transition-colors cursor-pointer"
-              onClick={() => navigate(getTypePath(result.type, result.id))}
+              className={result.type !== 'vin_decode' ? 'hover:border-accent-primary transition-colors cursor-pointer' : 'border-green-200 bg-green-50'}
+              onClick={() => result.type !== 'vin_decode' && navigate(getTypePath(result.type, result.id))}
             >
               <CardContent className="py-4">
                 <div className="flex items-start gap-4">

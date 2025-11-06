@@ -10,6 +10,7 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
+import axios from 'axios';
 import { prisma } from '@repo/db';
 import { authMiddleware } from '../middleware/auth';
 import { tenantMiddleware } from '../middleware/tenant';
@@ -56,7 +57,7 @@ router.post('/', async (req, res) => {
 
     if (parsedQuery.intent === 'entity_search') {
       // Search across multiple entity types
-      const searchResults = await searchEntities(tenantId, parsedQuery.searchTerm, filters);
+      const searchResults = await searchEntities(tenantId, parsedQuery.searchTerm, filters, parsedQuery);
       results = searchResults.results;
       total = searchResults.total;
     } else if (parsedQuery.intent === 'list_filter') {
@@ -86,13 +87,24 @@ router.post('/', async (req, res) => {
       },
     }).catch(err => console.error('Failed to save search query:', err));
 
-    res.json({
+    const response: any = {
       results,
       total,
       executionTime,
       parsedQuery,
       suggestions: generateSuggestions(query, parsedQuery),
-    });
+    };
+
+    // Add VIN decode info if it was a VIN search
+    if (parsedQuery.isVIN && results.length > 0) {
+      // Find the VIN decode result in results (added by searchEntities)
+      const vinResult = results.find((r: any) => r.type === 'vin_decode');
+      if (vinResult) {
+        response.vinDecode = vinResult.data;
+      }
+    }
+
+    res.json(response);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors });
@@ -210,11 +222,13 @@ function parseSearchQuery(query: string): any {
   }
 
   // Check for VIN pattern
-  if (/\b[A-HJ-NPR-Z0-9]{17}\b/.test(query.toUpperCase())) {
+  const vinMatch = query.toUpperCase().match(/\b[A-HJ-NPR-Z0-9]{17}\b/);
+  if (vinMatch) {
     return {
       intent: 'entity_search',
       entity: 'vehicle',
-      searchTerm: query.toUpperCase(),
+      searchTerm: vinMatch[0],
+      isVIN: true, // Flag that this is a VIN search
     };
   }
 
@@ -249,8 +263,52 @@ function extractFilters(query: string): any[] {
   return [];
 }
 
-async function searchEntities(tenantId: string, searchTerm: string, filters: any): Promise<any> {
+/**
+ * Decode VIN using NHTSA API
+ */
+async function decodeVIN(vin: string): Promise<any> {
+  try {
+    const response = await axios.get(
+      `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`,
+      { timeout: 5000 }
+    );
+
+    if (!response.data.Results || response.data.Results.length === 0) {
+      return null;
+    }
+
+    const result = response.data.Results[0];
+
+    // Check for errors
+    if (result.ErrorCode && result.ErrorCode !== '0') {
+      return null;
+    }
+
+    return {
+      year: result.ModelYear ? parseInt(result.ModelYear) : null,
+      make: result.Make || null,
+      model: result.Model || null,
+      trim: result.Trim || null,
+      bodyStyle: result.BodyClass || null,
+      engineType: result.EngineModel || null,
+      transmission: result.TransmissionStyle || null,
+      driveType: result.DriveType || null,
+      fuelType: result.FuelTypePrimary || null,
+    };
+  } catch (error) {
+    console.error('VIN decode error:', error);
+    return null;
+  }
+}
+
+async function searchEntities(tenantId: string, searchTerm: string, filters: any, parsedQuery?: any): Promise<any> {
   const results: any[] = [];
+
+  // If this is a VIN search, decode it first and add decoded info to results
+  let vinDecodeResult: any = null;
+  if (parsedQuery?.isVIN) {
+    vinDecodeResult = await decodeVIN(searchTerm);
+  }
 
   // Search customers
   const customers = await prisma.customer.findMany({
@@ -316,6 +374,22 @@ async function searchEntities(tenantId: string, searchTerm: string, filters: any
       score: 0.85,
     });
   });
+
+  // If VIN was decoded, add it as a special result type
+  if (vinDecodeResult) {
+    results.unshift({
+      type: 'vin_decode',
+      id: `vin-${searchTerm}`,
+      data: {
+        vin: searchTerm,
+        decoded: vinDecodeResult,
+        message: vehicles.length > 0
+          ? `Found ${vehicles.length} vehicle(s) matching this VIN in inventory`
+          : 'VIN decoded successfully. This vehicle is not in your inventory yet.',
+      },
+      score: 1.0, // Highest score for exact VIN match
+    });
+  }
 
   // Search deals
   const deals = await prisma.deal.findMany({

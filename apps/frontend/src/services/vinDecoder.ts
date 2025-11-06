@@ -35,7 +35,7 @@ export function validateVIN(vin: string): { valid: boolean; error?: string } {
   return { valid: true };
 }
 
-// Decode VIN using NHTSA API
+// Decode VIN using our backend API (includes NHTSA + caching)
 export async function decodeVIN(vin: string): Promise<VINDecodeResult> {
   const validation = validateVIN(vin);
   if (!validation.valid) {
@@ -45,47 +45,47 @@ export async function decodeVIN(vin: string): Promise<VINDecodeResult> {
   const cleanVIN = vin.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, '');
 
   try {
-    const response = await fetch(
-      `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${cleanVIN}?format=json`
-    );
+    // Use our backend API for VIN decoding (includes caching and better error handling)
+    const response = await fetch('/api/vin/decode', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ vin: cleanVIN }),
+    });
 
     if (!response.ok) {
-      throw new Error('Failed to decode VIN');
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to decode VIN');
     }
 
     const data = await response.json();
 
-    if (!data.Results || data.Results.length === 0) {
-      throw new Error('No results found for VIN');
+    if (!data.valid) {
+      throw new Error(data.errorMessage || 'Invalid VIN');
     }
 
-    const result = data.Results[0];
-
-    // Map NHTSA response to our format
+    // Map backend response to our VINDecodeResult format
     const decoded: VINDecodeResult = {
-      vin: cleanVIN,
-      year: result.ModelYear ? parseInt(result.ModelYear) : undefined,
-      make: result.Make || undefined,
-      model: result.Model || undefined,
-      trim: result.Trim || undefined,
-      bodyStyle: result.BodyClass || undefined,
-      engineType: result.EngineModel || result.EngineCylinders
-        ? `${result.EngineCylinders || ''} ${result.EngineModel || ''}`.trim()
+      vin: data.vin,
+      year: data.year,
+      make: data.make,
+      model: data.model,
+      trim: data.trim,
+      bodyStyle: data.bodyStyle,
+      engineType: data.engineType,
+      transmission: data.transmission,
+      driveType: data.driveType,
+      fuelType: data.fuelType,
+      doors: data.doors,
+      manufacturer: data.manufacturer,
+      plant: data.plantCity && data.plantState
+        ? `${data.plantCity}, ${data.plantState}`
         : undefined,
-      transmission: result.TransmissionStyle || undefined,
-      driveType: result.DriveType || undefined,
-      fuelType: result.FuelTypePrimary || undefined,
-      doors: result.Doors ? parseInt(result.Doors) : undefined,
-      manufacturer: result.Manufacturer || undefined,
-      plant: result.PlantCity && result.PlantState
-        ? `${result.PlantCity}, ${result.PlantState}`
-        : undefined,
-      vehicleType: result.VehicleType || undefined,
+      vehicleType: data.vehicleType,
     };
 
-    // Check for decode errors
-    if (result.ErrorCode && result.ErrorCode !== '0') {
-      decoded.errors = [result.ErrorText || 'Unknown error'];
+    // Check for any errors from backend
+    if (data.errorMessage) {
+      decoded.errors = [data.errorMessage];
     }
 
     return decoded;

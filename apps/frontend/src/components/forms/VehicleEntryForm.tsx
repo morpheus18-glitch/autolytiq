@@ -134,25 +134,62 @@ export function VehicleEntryForm({ isOpen, onClose, vehicleId, onSuccess }: Vehi
   // Decode VIN mutation
   const decodeVINMutation = useMutation({
     mutationFn: async (vin: string) => {
-      return apiRequest('POST', '/api/vehicles/decode-vin', { vin });
+      const response = await fetch('/api/vin/decode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vin }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to decode VIN');
+      }
+
+      return await response.json();
     },
-    onSuccess: (response) => {
-      const data = response.data;
+    onSuccess: (data) => {
+      if (!data.valid) {
+        toast({
+          title: 'Invalid VIN',
+          description: data.errorMessage || 'Unable to decode VIN',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       // Auto-populate form fields from decoded VIN
-      setValue('year', data.year);
-      setValue('make', data.make);
-      setValue('model', data.model);
-      setValue('trim', data.trim);
-      setValue('bodyStyle', data.bodyStyle);
-      setValue('engineType', data.engineType);
-      setValue('transmission', data.transmission);
-      setValue('drivetrain', data.drivetrain);
-      setValue('fuelType', data.fuelType);
-      setValue('msrp', data.msrp);
-      toast({ title: 'VIN decoded successfully! (Mock data)' });
+      if (data.year) setValue('year', data.year);
+      if (data.make) setValue('make', data.make);
+      if (data.model) setValue('model', data.model);
+      if (data.trim) setValue('trim', data.trim);
+      if (data.bodyStyle) setValue('bodyStyle', data.bodyStyle);
+      if (data.engineType) setValue('engineType', data.engineType);
+      if (data.transmission) setValue('transmission', data.transmission);
+      if (data.driveType) setValue('drivetrain', data.driveType);
+      if (data.fuelType) {
+        // Map fuel types to our enum
+        const fuelTypeMap: Record<string, string> = {
+          'Gasoline': 'GASOLINE',
+          'Diesel': 'DIESEL',
+          'Electric': 'ELECTRIC',
+          'Hybrid': 'HYBRID',
+          'Plug-in Hybrid': 'PLUGIN_HYBRID',
+        };
+        const mappedFuelType = fuelTypeMap[data.fuelType] || 'OTHER';
+        setValue('fuelType', mappedFuelType as any);
+      }
+
+      toast({
+        title: 'VIN decoded successfully!',
+        description: `${data.year} ${data.make} ${data.model}${data.source === 'cache' ? ' (from cache)' : ''}`,
+      });
     },
-    onError: () => {
-      toast({ title: 'Failed to decode VIN', variant: 'destructive' });
+    onError: (error: any) => {
+      toast({
+        title: 'Failed to decode VIN',
+        description: error.message || 'Please try again',
+        variant: 'destructive',
+      });
     },
   });
 
@@ -209,9 +246,16 @@ export function VehicleEntryForm({ isOpen, onClose, vehicleId, onSuccess }: Vehi
                 </label>
                 <input
                   {...register('vin')}
-                  className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-purple-500 focus:outline-none uppercase"
+                  className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-purple-500 focus:outline-none uppercase font-mono"
                   placeholder="1HGBH41JXMN109186"
                   maxLength={17}
+                  onBlur={(e) => {
+                    // Auto-decode when user finishes typing 17 characters
+                    const vin = e.target.value;
+                    if (vin && vin.length === 17 && !isDecoding) {
+                      handleDecodeVIN();
+                    }
+                  }}
                 />
                 {errors.vin && (
                   <p className="text-red-500 text-xs mt-1">{errors.vin.message}</p>
