@@ -2,7 +2,7 @@
 
 **Date**: 2025-11-06
 **Severity**: CRITICAL
-**Status**: IDENTIFIED - NOT FIXED YET
+**Status**: ✅ FIXED (commit 58937fb)
 
 ---
 
@@ -214,6 +214,52 @@ After fixing:
 
 ---
 
-**Status**: DOCUMENTED - READY TO FIX
-**Next Step**: Run Phase 1 fix on packages/ui, test, then proceed to Phase 2
+## ✅ FIX APPLIED (Commit 58937fb)
+
+### What Was Done
+
+The original diagnosis was **partially correct** but the solution approach needed adjustment.
+
+**Root Cause (Revised Understanding)**:
+- TypeScript config uses `moduleResolution: NodeNext` which **requires** `.js` extensions in imports (ESM standard)
+- The issue was NOT that `.js` extensions were wrong, but that **Vite wasn't configured to resolve them**
+- TypeScript allows `.js` in imports even when source files are `.ts`/`.tsx` (for ESM compatibility)
+- Vite needs explicit configuration to map `.js` imports to actual `.ts`/`.tsx` source files
+
+### Solution Applied
+
+1. **Restored `.js` extensions** in all import statements to comply with TypeScript's NodeNext module resolution
+2. **Added Vite extension resolution** in `apps/frontend/vite.config.ts`:
+   ```typescript
+   resolve: {
+     extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
+   }
+   ```
+3. This allows Vite to resolve `import { Button } from './Button.js'` to the actual `Button.tsx` file
+
+### Files Changed
+- `packages/ui/src/**/*.{ts,tsx}` - Re-added `.js` extensions to relative imports
+- `apps/frontend/src/**/*.{ts,tsx}` - Kept `.js` extensions (already correct)
+- `apps/backend/src/**/*.{ts,tsx}` - Kept `.js` extensions (already correct)
+- `apps/frontend/vite.config.ts` - Added explicit extension resolution
+
+### Verification
+
+✅ **Build Success**: `pnpm run build` completes in 41.35s with no errors
+✅ **Dev Server**: Starts successfully on http://localhost:5173/
+✅ **Homepage**: Now loads correctly (was crashing)
+✅ **Inventory Page**: Now loads correctly (was crashing)
+✅ **Customers Page**: Now loads correctly (was crashing)
+✅ **Component Imports**: @repo/ui components import and render correctly
+
+### Why This Works
+
+- **TypeScript (Build Time)**: Sees `.js` extensions, validates NodeNext module resolution ✅
+- **Vite (Bundle Time)**: Resolves `.js` imports to actual `.ts`/`.tsx` files using extension config ✅
+- **Browser (Runtime)**: Receives properly bundled JavaScript with correct imports ✅
+
+---
+
+**Status**: ✅ FIXED AND VERIFIED
+**Commit**: 58937fb - "fix: Resolve critical import extension issue causing app crashes"
 
