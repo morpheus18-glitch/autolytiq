@@ -3,6 +3,12 @@
  * A comprehensive React component library built on design tokens
  */
 
+// Primitives (Low-level building blocks)
+export * from './primitives/index.js';
+
+// Card Patterns (Dashboard cards)
+export * from './patterns/cards/index.js';
+
 // Mobile-First Layout Components
 export { PageContainer, type PageContainerProps } from './components/PageContainer.js';
 export { ResponsiveGrid, type ResponsiveGridProps } from './components/ResponsiveGrid.js';
@@ -82,6 +88,20 @@ export {
   TooltipContent,
 } from './components/RadixTooltip.js';
 export { Separator } from './components/Separator.js';
+
+// Kanban/Board Components
+export { LaneBoard, Lane, type LaneBoardProps, type LaneProps } from './components/LaneBoard.js';
+export {
+  LaneCard,
+  LaneCardHeader,
+  LaneCardTitle,
+  LaneCardDescription,
+  LaneCardContent,
+  LaneCardFooter,
+  LaneCardBadge,
+  type LaneCardProps,
+  type LaneCardBadgeProps,
+} from './components/LaneCard.js';
 
 // Tier 3: Overlay Components
 export { Modal, modalOverlayVariants, modalContentVariants, type ModalProps } from './components/Modal.js';
@@ -292,6 +312,11 @@ export { ShowroomManagerLayout, type ShowroomManagerLayoutProps } from './layout
 export { VehicleCard, type VehicleCardProps, type VehicleSummary } from './components/VehicleCard.js';
 export { CustomerCard, type CustomerCardProps, type CustomerSummary } from './components/CustomerCard.js';
 export { QuickView, type QuickViewProps } from './components/QuickView.js';
+
+// Widget Components (Insight Engine Phase 2)
+export { InsightCard, type InsightCardProps } from './components/widgets/InsightCard.js';
+export { InsightList, type InsightListProps } from './components/widgets/InsightList.js';
+export { StatusPulse, type StatusPulseProps } from './components/widgets/StatusPulse.js';
 
 // Hooks (Legacy - will be deprecated)
 export {

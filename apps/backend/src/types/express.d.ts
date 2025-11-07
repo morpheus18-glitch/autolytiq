@@ -1,4 +1,4 @@
-import type { RequestContext } from './context';
+import type { RequestContext, AuthenticatedUser } from './context';
 
 declare global {
   namespace Express {
@@ -6,6 +6,7 @@ declare global {
       context?: RequestContext;
       tenantId?: string;
       userId?: string;
+      user?: AuthenticatedUser & { roles?: string[] };
     }
   }
 }

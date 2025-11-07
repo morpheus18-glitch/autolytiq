@@ -494,3 +494,6 @@ export interface ServiceOrder {
 }
 
 export type CreditApplicationStatus = CreditApplication["status"];
+
+// Card System - Dashboard card definitions
+export * from '../schemas/card.js';

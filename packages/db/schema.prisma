@@ -2890,3 +2890,70 @@ model PopularSearch {
   @@index([tenantId, count])
   @@map("popular_searches")
 }
+
+// ============================================================================
+// INSIGHT RULES ENGINE
+// ============================================================================
+
+model InsightRule {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  domain    String   // sales, fi, inventory, service, accounting, admin, dev
+  severity  String   // info, notice, warning, urgent
+  audience  Json     // { roles: string[], userIds?: string[] }
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([domain, active])
+  @@index([severity, active])
+  @@map("insight_rules")
+}
+
+model InsightEvent {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  key       String   // Event key that triggered evaluation
+  payload   Json     // Context data for evaluation
+  at        DateTime @default(now()) @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([tenantId, key, at])
+  @@index([tenantId, createdAt])
+  @@map("insight_events")
+}
+
+model InsightQueue {
+  id          String    @id @default(cuid())
+  tenantId    String    @map("tenant_id")
+  role        String    // Target role
+  userId      String?   @map("user_id") // Optional specific user
+  ruleKey     String    @map("rule_key")
+  severity    String    // info, notice, warning, urgent
+  score       Float     // Prioritization score (0..1)
+  message     String    // Generated message
+  card        Json      // Card payload for rendering
+  state       String    @default("new") // new, seen, snoozed, muted, done
+  expiresAt   DateTime? @map("expires_at") @db.Timestamptz(6)
+  snoozeUntil DateTime? @map("snooze_until") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([tenantId, role, userId, state, score])
+  @@index([tenantId, state, expiresAt])
+  @@index([ruleKey, createdAt])
+  @@map("insight_queue")
+}
+
+model InsightMute {
+  id        String    @id @default(cuid())
+  tenantId  String    @map("tenant_id")
+  userId    String?   @map("user_id") // Null = applies to all users in tenant
+  ruleKey   String    @map("rule_key")
+  until     DateTime? @db.Timestamptz(6) // Null = permanent mute
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([tenantId, userId, ruleKey])
+  @@index([tenantId, ruleKey])
+  @@map("insight_mutes")
+}

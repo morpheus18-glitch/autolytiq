@@ -17,6 +17,10 @@
     "./settings-schema": {
       "types": "./dist/settings-schema/index.d.ts",
       "import": "./dist/settings-schema/index.js"
+    },
+    "./insights": {
+      "types": "./dist/insights/index.d.ts",
+      "import": "./dist/insights/index.js"
     }
   },
   "scripts": {

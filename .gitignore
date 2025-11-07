@@ -41,3 +41,4 @@ var/secrets/
 var/bin/
 services/rust/Cargo.lock
 kubeconfig.yaml
+docs_backup_*.tgz

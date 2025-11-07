@@ -1,5 +1,7 @@
 # Autolytiq Deal Studio - Comprehensive Design Plan
 
+> **📋 Related Documentation**: This design plan focuses on UX/UI vision. For technical implementation details, code snippets, and API specifications, see [`/DEAL_STUDIO_IMPLEMENTATION_PLAN.md`](/DEAL_STUDIO_IMPLEMENTATION_PLAN.md).
+
 ## Vision Statement
 
 **The Autolytiq Deal Studio is not a calculator. It's a cockpit.**

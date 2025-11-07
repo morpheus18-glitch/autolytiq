@@ -5,6 +5,7 @@ export default defineConfig({
     index: "src/index.ts",
     "schema/index": "src/schema/index.ts",
     "settings-schema/index": "src/settings-schema/index.ts",
+    "insights/index": "src/insights/index.ts",
   },
   format: ["esm"],
   target: "node20",
