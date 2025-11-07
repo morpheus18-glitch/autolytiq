@@ -15,7 +15,7 @@ import {
   getDealsNoActivity,
 } from './fetchers';
 import { defaultScore } from '@repo/shared/insights';
-import { cuid } from '@paralleldrive/cuid2';
+import { createId as cuid } from '@paralleldrive/cuid2';
 
 /**
  * Rule 1: Deal Pending F&I Too Long

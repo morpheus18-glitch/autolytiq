@@ -5,7 +5,7 @@
  */
 
 import { PrismaClient } from '@repo/db';
-import { cuid } from '@paralleldrive/cuid2';
+import { createId as cuid } from '@paralleldrive/cuid2';
 
 const prisma = new PrismaClient();
 

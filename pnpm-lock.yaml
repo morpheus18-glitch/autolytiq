@@ -767,6 +767,8 @@ importers:
         specifier: ^6.0.1
         version: 6.2.1
 
+  packages/build-config: {}
+
   packages/customization:
     dependencies:
       '@repo/policy-engine':
@@ -943,7 +945,7 @@ importers:
         version: 0.468.0(react@18.3.1)
       react-day-picker:
         specifier: ^8.10.0
-        version: 8.10.1(date-fns@3.6.0)(react@18.3.1)
+        version: 8.10.1(date-fns@4.1.0)(react@18.3.1)
       tailwind-merge:
         specifier: ^2.2.0
         version: 2.6.0
@@ -14187,6 +14189,11 @@ snapshots:
   react-day-picker@8.10.1(date-fns@3.6.0)(react@18.3.1):
     dependencies:
       date-fns: 3.6.0
+      react: 18.3.1
+
+  react-day-picker@8.10.1(date-fns@4.1.0)(react@18.3.1):
+    dependencies:
+      date-fns: 4.1.0
       react: 18.3.1
 
   react-dom@18.3.1(react@18.3.1):
