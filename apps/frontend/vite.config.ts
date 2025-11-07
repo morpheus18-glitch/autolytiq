@@ -23,38 +23,25 @@ export default defineConfig({
     emptyOutDir: true,
     chunkSizeWarningLimit: 1000,
     reportCompressedSize: false, // Disable gzip size reporting to save memory
+    minify: 'esbuild', // Use esbuild (faster, less memory) instead of terser
+    sourcemap: false, // Disable sourcemaps to save memory
     rollupOptions: {
+      maxParallelFileOps: 2, // Limit parallel operations to reduce memory usage
       output: {
-        manualChunks: {
-          // Core React libraries
-          'react-vendor': ['react', 'react-dom', 'react/jsx-runtime'],
-
-          // Routing and state management
-          'router-vendor': ['wouter', '@tanstack/react-query'],
-
-          // UI component libraries
-          'ui-vendor': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-select',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-tooltip',
-            '@radix-ui/react-label',
-            '@radix-ui/react-checkbox',
-            '@radix-ui/react-radio-group',
-            '@radix-ui/react-slider',
-            '@radix-ui/react-switch',
-          ],
-
-          // Charts and visualization
-          'chart-vendor': ['recharts', 'date-fns'],
-
-          // Form libraries
-          'form-vendor': ['react-hook-form', 'zod'],
-
-          // Icons
-          'icon-vendor': ['lucide-react'],
+        manualChunks: (id) => {
+          // Simplified chunking strategy to reduce memory
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'react-vendor';
+            }
+            if (id.includes('@radix-ui')) {
+              return 'radix-vendor';
+            }
+            if (id.includes('lucide-react') || id.includes('recharts')) {
+              return 'viz-vendor';
+            }
+            return 'vendor';
+          }
         },
       },
     },

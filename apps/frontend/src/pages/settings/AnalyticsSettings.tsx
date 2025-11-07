@@ -40,7 +40,7 @@ import {
 } from '@repo/ui';
 import { ToggleSwitch } from '@/components/settings/ToggleSwitch.tsx';
 import { TestConnectionButton } from '@/components/settings/TestConnectionButton.tsx';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { apiRequest } from '@/lib/queryClient';
 import { useSettingsSection } from './useSettingsSection';
 import {

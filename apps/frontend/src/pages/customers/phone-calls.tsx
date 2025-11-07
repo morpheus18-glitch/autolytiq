@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@repo/ui';
 import { Phone, PhoneCall, Clock, CheckCircle, AlertCircle, Plus, ExternalLink, Calendar } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 
 interface PhoneCall {
   id: number;

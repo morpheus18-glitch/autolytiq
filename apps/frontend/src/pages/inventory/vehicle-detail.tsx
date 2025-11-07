@@ -21,7 +21,7 @@ import {
   Eye,
   TrendingUp
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import type { Vehicle } from '@shared/schema';
 
 export default function VehicleDetail() {

@@ -18,7 +18,7 @@ import {
   defaultDealershipSettings,
   type DealershipSettings,
 } from '@shared/settings-schema';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { Button } from '@repo/ui';
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';

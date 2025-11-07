@@ -33,7 +33,7 @@ import { ScrollArea } from '@repo/ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
 import { Switch } from '@repo/ui';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { cn } from '@/lib/utils';
 
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });

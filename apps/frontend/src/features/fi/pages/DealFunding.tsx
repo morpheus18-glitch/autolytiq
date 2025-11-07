@@ -30,7 +30,7 @@ import { Textarea } from '@repo/ui';
 import { Skeleton } from '@repo/ui';
 import { Alert, AlertDescription, AlertTitle } from '@repo/ui';
 import { Separator } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { cn } from '@/lib/utils';
 import {
   cancelFunding,

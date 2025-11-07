@@ -17,7 +17,7 @@ import {
   fetchCashFlow,
   type FinancialStatementSection,
 } from '@/lib/accountingApi';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { Badge } from '@repo/ui';
 import { Button } from '@repo/ui';
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';

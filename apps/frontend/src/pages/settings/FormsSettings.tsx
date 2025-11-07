@@ -28,7 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui';
 import { Textarea } from '@repo/ui';
 import { RichTextEditor } from '@/components/settings/RichTextEditor.tsx';
 import { TestConnectionButton } from '@/components/settings/TestConnectionButton.tsx';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { fetchSettingsSection } from '@/lib/settingsApi';
 import {
   downloadTemplatePdf,

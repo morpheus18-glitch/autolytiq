@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui';
 import { AlertCircle, Search, Car, DollarSign, TrendingUp, Shield, Zap, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 
 // =============================================
 // AUTOMOTIVE DATA CENTER COMPONENT

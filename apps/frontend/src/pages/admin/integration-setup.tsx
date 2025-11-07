@@ -25,7 +25,7 @@ import {
   Shield,
   RefreshCw
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@repo/ui";
 
 interface Integration {
   id: string;

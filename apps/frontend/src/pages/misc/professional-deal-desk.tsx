@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ModuleHeader } from '@/components/ui/module-header';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { TabNavigation } from '@/components/ui/tab-navigation';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { 
   Calculator, 

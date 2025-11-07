@@ -3,7 +3,7 @@ import { useForm, type DefaultValues, type FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ZodType } from 'zod';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { fetchSettingsSection, updateSettingsSection } from '@/lib/settingsApi';
 
 interface UseSettingsSectionOptions<TFormValues extends FieldValues> {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button, type ButtonProps } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 
 export interface TestConnectionButtonProps extends ButtonProps {
   onTest: () => Promise<void>;

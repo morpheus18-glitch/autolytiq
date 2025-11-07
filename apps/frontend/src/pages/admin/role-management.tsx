@@ -19,7 +19,7 @@ import {
   Lock,
   Unlock
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@repo/ui";
 import { apiRequest } from "@/lib/queryClient";
 
 interface Role {

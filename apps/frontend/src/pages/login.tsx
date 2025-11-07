@@ -7,7 +7,7 @@ import { Input } from "@repo/ui";
 import { Label } from "@repo/ui";
 import { Separator } from "@repo/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@repo/ui";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth, type AuthUser } from "@/hooks/useAuth";
 import { setAuthToken } from "@/lib/auth";

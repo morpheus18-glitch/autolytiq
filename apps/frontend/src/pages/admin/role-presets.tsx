@@ -15,7 +15,7 @@ import {
 import { RolePresetCard, type RolePreset } from '@/components/settings/RolePresetCard.tsx';
 import { PermissionSelector, type Permission } from '@/components/settings/PermissionSelector.tsx';
 import { Plus, Search, Shield } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { Badge } from '@repo/ui';
 
 // Mock permissions data - in production, this would come from your API

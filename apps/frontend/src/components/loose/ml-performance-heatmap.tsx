@@ -4,7 +4,7 @@ import { Button } from '@repo/ui';
 import { Badge } from '@repo/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui';
 import { Progress } from '@repo/ui';
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@repo/ui";
 import {
   Select,
   SelectContent,

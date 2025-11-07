@@ -6,7 +6,7 @@ import { ScrollArea } from '@repo/ui';
 import { Textarea } from '@repo/ui';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@repo/ui';
 import { Progress } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import {
   CommunicationRecord,
   LeadProfile,

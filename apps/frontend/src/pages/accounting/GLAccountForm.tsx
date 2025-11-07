@@ -16,7 +16,7 @@ import { Input } from '@repo/ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
 import { Switch } from '@repo/ui';
 import { Textarea } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { Skeleton } from '@repo/ui';
 import { StatementHeader } from '@/components/accounting/StatementHeader.tsx';
 

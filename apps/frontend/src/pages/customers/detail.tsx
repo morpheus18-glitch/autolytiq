@@ -7,7 +7,7 @@ import { Input } from '@repo/ui';
 import { Label } from '@repo/ui';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@repo/ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { apiRequest } from '@/lib/queryClient';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { 

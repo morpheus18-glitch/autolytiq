@@ -8,7 +8,7 @@ import { Input } from '@repo/ui';
 import { Textarea } from '@repo/ui';
 import { Button } from '@repo/ui';
 import { Badge } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { apiRequest } from '@/lib/queryClient';
 import { Loader2, MessageCircle, Save, Sparkles, Printer, ArrowUpRight, History } from 'lucide-react';
 import { useDeal } from '@/features/desking/hooks';

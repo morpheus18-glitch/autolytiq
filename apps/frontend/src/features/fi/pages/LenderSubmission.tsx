@@ -23,7 +23,7 @@ import {
 } from '@repo/ui';
 import { Textarea } from '@repo/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { cn } from '@/lib/utils';
 import StipulationTracker from '../components/StipulationTracker';
 import {

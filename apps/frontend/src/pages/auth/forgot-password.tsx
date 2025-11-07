@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
 import { Input } from '@repo/ui';
 import { Label } from '@repo/ui';
 import { Separator } from '@repo/ui';
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@repo/ui";
 import { apiRequest } from "@/lib/queryClient";
 
 interface ForgotPasswordResponse {

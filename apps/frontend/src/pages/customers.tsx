@@ -11,7 +11,7 @@ import {
   PageHeader,
   StatCard
 } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { apiRequest } from '@/lib/queryClient';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { useDealStudioLauncher } from '@/hooks/useDealStudioLauncher';

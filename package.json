@@ -38,7 +38,7 @@
     "db:migrate:deploy": "pnpm --filter @repo/db migrate:deploy",
     "db:push": "pnpm --filter @repo/db push",
     "db:seed": "pnpm --filter @repo/db seed",
-    "postinstall": "pnpm db:generate",
+    "postinstall": "node -e \"process.exit(0)\"",
     "prepare": "husky",
     "dev:prod": "concurrently --kill-others-on-fail \"pnpm --filter @repo/backend dev\" \"pnpm --filter @repo/frontend dev\"",
     "dev:sandbox": "concurrently --kill-others-on-fail \"pnpm --filter @repo/backend dev\" \"pnpm --filter @repo/frontend-dev dev\"",
@@ -205,5 +205,8 @@
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"
+  },
+  "prisma": {
+    "schema": "packages/db/prisma/schema.prisma"
   }
 }

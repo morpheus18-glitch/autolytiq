@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Checkbox } from '@repo/ui';
 import { Badge } from '@repo/ui';
 import { Button } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { apiRequest } from '@/lib/queryClient';
 import { CheckCircle2, Sparkles, Printer, Save } from 'lucide-react';
 import { useApprovalPredictions, useDeal, useSimilarDeals } from '@/features/desking/hooks';

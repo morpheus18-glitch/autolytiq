@@ -16,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { X, Car, Loader2, DollarSign, Info, Sparkles } from 'lucide-react';
 
 /**

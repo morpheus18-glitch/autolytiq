@@ -41,7 +41,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@repo/ui';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@repo/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import type { PayrollResponse } from '@/lib/accountingApi';
 import type { SettingsUser } from '@shared/settings-schema';
 

@@ -19,7 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@repo/ui';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import {
   fetchAccounts,
   fetchJournalEntry,

@@ -62,7 +62,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { usePermissions } from '@/hooks/usePermissions';
 import {
   createApiKey,

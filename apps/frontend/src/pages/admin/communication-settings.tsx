@@ -12,7 +12,7 @@ import { Switch } from '@repo/ui';
 import { Separator } from '@repo/ui';
 import { Settings, MessageSquare, Phone, Mail, Save, Plus, Edit, Trash2 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 
 interface CommunicationSetting {
   id: number;

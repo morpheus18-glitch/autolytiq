@@ -24,7 +24,7 @@ import {
 import { Switch } from '@repo/ui';
 import { Checkbox } from '@repo/ui';
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@repo/ui";
 
 const userFormSchema = z.object({
   email: z.string().email("Invalid email address"),

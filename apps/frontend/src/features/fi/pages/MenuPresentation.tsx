@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ScrollArea } from '@repo/ui';
 import { Separator } from '@repo/ui';
 import { Skeleton } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { cn } from '@/lib/utils';
 import type {
   FIProductDto,

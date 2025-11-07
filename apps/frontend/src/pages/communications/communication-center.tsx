@@ -25,7 +25,7 @@ import { Textarea } from '@repo/ui';
 import { Input } from '@repo/ui';
 import { Separator } from '@repo/ui';
 import { Switch } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { cn } from '@/lib/utils';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import {

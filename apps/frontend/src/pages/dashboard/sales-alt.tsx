@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@repo
 import { Badge } from '@repo/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { apiRequest } from '@/lib/queryClient';
 import { LeadManagementGrid } from '@/components/loose/lead-management-grid.tsx';
 import { 

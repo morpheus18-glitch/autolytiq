@@ -6,7 +6,7 @@ import { Label } from '@repo/ui';
 import { Badge } from '@repo/ui';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@repo/ui";
 import { Plus, Edit, Trash2, Building, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@repo/ui';
 import type { Department, Role, User } from "@shared/schema";

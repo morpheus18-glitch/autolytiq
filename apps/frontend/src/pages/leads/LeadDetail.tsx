@@ -41,7 +41,7 @@ import type {
   LeadDetail as LeadDetailType,
   SMSMessage,
 } from '@/types/leads';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 
 dayjs.extend(relativeTime);
 

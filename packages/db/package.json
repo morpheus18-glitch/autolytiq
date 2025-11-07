@@ -8,7 +8,7 @@
     ".": "./index.ts"
   },
   "scripts": {
-    "generate": "prisma generate",
+    "generate": "prisma generate --schema prisma/schema.prisma",
     "migrate:dev": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
     "push": "prisma db push",
@@ -25,6 +25,6 @@
     "typescript": "5.6.3"
   },
   "prisma": {
-    "seed": "tsx seed.ts"
+    "schema": "prisma/schema.prisma"
   }
 }

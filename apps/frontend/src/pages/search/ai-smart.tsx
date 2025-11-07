@@ -7,7 +7,7 @@ import { Badge } from '@repo/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui';
 import { Brain, Search, Zap, TrendingUp, Users, Car, Target } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 
 interface SearchResult {
   id: number;

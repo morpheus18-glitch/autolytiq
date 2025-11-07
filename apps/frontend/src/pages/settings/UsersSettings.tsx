@@ -53,7 +53,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { usePermissions } from '@/hooks/usePermissions';
 import {
   createUser,

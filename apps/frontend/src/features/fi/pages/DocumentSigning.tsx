@@ -7,7 +7,7 @@ import { Input } from '@repo/ui';
 import { Label } from '@repo/ui';
 import { Textarea } from '@repo/ui';
 import { Badge } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import type { ContractDto, ContractSignerDto, SendContractsPayload } from '../api';
 import { sendContracts } from '../api';
 

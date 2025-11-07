@@ -23,7 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui';
 import { PermissionSelector, type Permission } from '@/components/settings/PermissionSelector.tsx';
 import { RolePresetCard, type RolePreset } from '@/components/settings/RolePresetCard.tsx';
 import { Search, UserCog, Shield, Settings } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { Avatar, AvatarFallback } from '@repo/ui';
 
 // Mock data - in production, this would come from your API

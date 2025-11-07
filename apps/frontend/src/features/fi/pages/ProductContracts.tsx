@@ -10,7 +10,7 @@ import { Button } from '@repo/ui';
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@repo/ui';
 import { Skeleton } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import {
   CONTRACT_LABELS,
   REQUIRED_CONTRACT_TYPES,

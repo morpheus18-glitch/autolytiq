@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Button } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { cn } from '@/lib/utils';
 
 export interface ImageUploaderProps {

@@ -2,7 +2,7 @@ import { Button } from '@repo/ui';
 import { LogOut } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { clearAuthToken } from '@/lib/auth';
 

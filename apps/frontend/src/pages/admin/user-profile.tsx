@@ -47,7 +47,7 @@ import {
   FileText
 } from "lucide-react";
 // import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@repo/ui";
 
 interface UserProfile {
   id: string;

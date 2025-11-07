@@ -5,7 +5,7 @@ import { Button } from '@repo/ui';
 import { Badge } from '@repo/ui';
 import { Textarea } from '@repo/ui';
 import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import {
   CommunicationRecord,
   getLeadById,

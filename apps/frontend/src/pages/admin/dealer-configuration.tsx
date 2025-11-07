@@ -25,7 +25,7 @@ import {
   Plus,
   Trash2
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@repo/ui";
 
 export default function DealerConfiguration() {
   const { toast } = useToast();

@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
 import { Button } from '@repo/ui';
 import { Badge } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import type { DealJacketDto } from '../api';
 import { fetchCreditApplication, fetchCreditReport, pullCredit, shareCreditReport } from '../api';
 import type { CreditApplicationDto, CreditReportDto } from '../api';

@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@repo/ui";
 import VINDecoder from "@/components/loose/vin-decoder";
 import { insertVehicleSchema, type InsertVehicle, type Vehicle } from "@shared/schema";
 

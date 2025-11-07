@@ -88,7 +88,7 @@ import {
   Modal as DialogContent,
 } from '@repo/ui';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',

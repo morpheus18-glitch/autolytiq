@@ -27,7 +27,7 @@ import { Skeleton } from '@repo/ui';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@repo/ui';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@repo/ui';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { JournalEntryFormContainer } from './JournalEntryForm';
 
 const PAGE_SIZE = 25;

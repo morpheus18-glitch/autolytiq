@@ -47,7 +47,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui';
 import { Textarea } from '@repo/ui';
 import { ToggleSwitch } from '@/components/settings/ToggleSwitch.tsx';
 import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { usePermissions } from '@/hooks/usePermissions';
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Bar, BarChart } from 'recharts';
 const serviceStatusSchema = z.object({

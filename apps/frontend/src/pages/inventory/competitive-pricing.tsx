@@ -36,7 +36,7 @@ import {
   ExternalLink,
   Zap
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@repo/ui";
 import { apiRequest } from "@/lib/queryClient";
 import type { CompetitivePricing, PricingInsights, MerchandisingStrategies, MarketTrends } from "@shared/schema";
 

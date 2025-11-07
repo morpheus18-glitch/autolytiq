@@ -4,7 +4,7 @@ import { Input } from '@repo/ui';
 import { Label } from '@repo/ui';
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
 import { Badge } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { Search, Car, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface VinDecoderProps {

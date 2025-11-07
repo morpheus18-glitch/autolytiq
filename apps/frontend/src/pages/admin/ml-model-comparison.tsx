@@ -6,7 +6,7 @@ import { Progress } from '@repo/ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui';
 import { Alert, AlertDescription } from '@repo/ui';
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@repo/ui";
 import {
   BarChart,
   Bar,

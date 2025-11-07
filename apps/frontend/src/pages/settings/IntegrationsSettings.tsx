@@ -31,7 +31,7 @@ import { Input } from '@repo/ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
 import { Skeleton } from '@repo/ui';
 import { TestConnectionButton } from '@/components/settings/TestConnectionButton.tsx';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { apiRequest } from '@/lib/queryClient';
 import { useForm } from 'react-hook-form';
 

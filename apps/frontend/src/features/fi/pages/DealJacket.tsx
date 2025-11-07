@@ -22,7 +22,7 @@ import { Label } from '@repo/ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@repo/ui';
 import { Skeleton } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import DealStatusBadge from '../components/DealStatusBadge';
 import DocumentViewer from '../components/DocumentViewer';
 import CreditApplication from './CreditApplication';

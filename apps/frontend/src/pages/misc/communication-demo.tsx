@@ -7,7 +7,7 @@ import { Textarea } from '@repo/ui';
 import { Badge } from '@repo/ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
 import { MessageSquare, Phone, Send, Clock, CheckCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { apiRequest } from '@/lib/queryClient';
 
 interface Customer {

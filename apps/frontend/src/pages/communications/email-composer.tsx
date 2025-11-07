@@ -8,7 +8,7 @@ import { Badge } from '@repo/ui';
 import { Calendar } from '@repo/ui';
 import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { TemplatePicker } from '@/components/communications/TemplatePicker.tsx';
 import { RichTextEditor } from '@/components/settings/RichTextEditor.tsx';
 import {

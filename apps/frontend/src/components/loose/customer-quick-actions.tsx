@@ -24,7 +24,7 @@ import { Input } from '@repo/ui';
 import { Textarea } from '@repo/ui';
 import { Label } from '@repo/ui';
 import { Checkbox } from '@repo/ui';
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@repo/ui";
 import { apiRequest } from "@/lib/queryClient";
 import {
   ArrowRightLeft,

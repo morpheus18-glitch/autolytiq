@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@repo/ui';
 import { exportStatementRequest } from '@/lib/accountingApi';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 
 interface ExportButtonProps {
   statement: 'pl' | 'balance-sheet' | 'cash-flow';

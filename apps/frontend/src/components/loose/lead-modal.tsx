@@ -6,7 +6,7 @@ import { Label } from '@repo/ui';
 import { Textarea } from '@repo/ui';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@repo/ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { apiRequest } from '@/lib/queryClient';
 import { Loader2 } from 'lucide-react';
 import type { Lead } from '@shared/schema';

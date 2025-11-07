@@ -36,7 +36,7 @@ import {
 import { Slider } from '@repo/ui';
 import { Calendar } from '@repo/ui';
 import { ToggleGroup, ToggleGroupItem } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLeadDashboardStore } from '@/stores/lead-dashboard-store';
 import { useLeadSocket } from '@/hooks/use-lead-socket';

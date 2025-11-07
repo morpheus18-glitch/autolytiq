@@ -15,7 +15,7 @@ import {
   PageHeader,
   StatCard
 } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import {
   Car,

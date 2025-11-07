@@ -5,7 +5,7 @@ import { Button } from '@repo/ui';
 import { Input } from '@repo/ui';
 import { Badge } from '@repo/ui';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { apiRequest } from '@/lib/queryClient';
 import {
   FileText,

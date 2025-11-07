@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { usePixelTracker } from '@/hooks/use-pixel-tracker';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { 

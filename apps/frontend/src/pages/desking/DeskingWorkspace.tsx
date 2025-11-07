@@ -4,7 +4,7 @@ import { Badge } from '@repo/ui';
 import { Button } from '@repo/ui';
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
 import { Separator } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import {
   Car,
   User,

@@ -37,7 +37,7 @@ import { Switch } from '@repo/ui';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@repo/ui';
 import { Textarea } from '@repo/ui';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import {
   finalizePayrollRequest,
   previewPayrollRequest,

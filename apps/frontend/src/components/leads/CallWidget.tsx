@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
 import { Button } from '@repo/ui';
 import { Textarea } from '@repo/ui';
 import dayjs from 'dayjs';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 
 interface CallWidgetProps {
   leadName: string;

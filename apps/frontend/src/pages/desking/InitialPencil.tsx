@@ -10,7 +10,7 @@ import { Button } from '@repo/ui';
 import { Badge } from '@repo/ui';
 import { Separator } from '@repo/ui';
 import { Skeleton } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { apiRequest } from '@/lib/queryClient';
 import {
   ClipboardList,

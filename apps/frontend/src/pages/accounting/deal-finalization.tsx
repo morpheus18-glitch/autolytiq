@@ -9,7 +9,7 @@ import { Label } from '@repo/ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
 import { Badge } from '@repo/ui';
 import { CheckCircle, DollarSign, FileText, Calculator, CreditCard, AlertTriangle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@repo/ui";
 
 interface DealFinalizationProps {
   dealId?: string;

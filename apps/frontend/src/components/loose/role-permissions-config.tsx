@@ -10,7 +10,7 @@ import { Textarea } from '@repo/ui';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@repo/ui';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@repo/ui';
 import { Checkbox } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { cn } from '@/lib/utils';
 import { 
   Plus, 

@@ -20,7 +20,7 @@ import {
   type BalanceSheetLineItem,
   type BalanceSheetReport,
 } from '@/lib/accountingApi';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { cn } from '@/lib/utils';
 import { parseEmailAddresses } from '@/lib/email';
 import { Button } from '@repo/ui';

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@repo
 import { Badge } from '@repo/ui';
 import { Button } from '@repo/ui';
 import { Separator } from '@repo/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@repo/ui';
 import { apiRequest } from '@/lib/queryClient';
 import { Sparkles, Printer, Save, ArrowRight, BarChart3 } from 'lucide-react';
 import { useApprovalPredictions, useDeal, useOptimizeDeal, useSimilarDeals } from '@/features/desking/hooks';
