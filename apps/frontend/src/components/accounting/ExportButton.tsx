@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Download } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@repo/ui';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@repo/ui';
 import { exportStatementRequest } from '@/lib/accountingApi';
 import { useToast } from '@/hooks/use-toast';
 

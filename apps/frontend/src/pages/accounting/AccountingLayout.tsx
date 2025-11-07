@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
+import { Separator } from '@repo/ui';
 import { PropsWithChildren } from 'react';
 
 const NAVIGATION_ITEMS = [

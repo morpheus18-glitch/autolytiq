@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@repo/ui';
+import { Badge } from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui';
+import { ScrollArea } from '@repo/ui';
 import { TemplateDefinition } from '@/stores/communications-store';
 import { Sparkles, Stars } from 'lucide-react';
 

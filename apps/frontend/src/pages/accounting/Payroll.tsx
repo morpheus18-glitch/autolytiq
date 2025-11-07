@@ -19,16 +19,16 @@ import AccountingLayout from './AccountingLayout';
 import { fetchPayrolls } from '@/lib/accountingApi';
 import { fetchUsers } from '@/lib/settingsUsersApi';
 import { StatementHeader } from '@/components/accounting/StatementHeader.tsx';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@repo/ui';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@repo/ui';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,11 +36,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from '@repo/ui';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
+import { Skeleton } from '@repo/ui';
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@repo/ui';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui';
 import { useToast } from '@/hooks/use-toast';
 import type { PayrollResponse } from '@/lib/accountingApi';
 import type { SettingsUser } from '@shared/settings-schema';

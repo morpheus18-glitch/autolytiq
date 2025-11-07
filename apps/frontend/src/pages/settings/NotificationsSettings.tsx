@@ -1,12 +1,12 @@
 import { useEffect, useMemo } from 'react';
 import { type FieldPath } from 'react-hook-form';
 import { z } from 'zod';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Input } from '@repo/ui';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@repo/ui';
+import { Skeleton } from '@repo/ui';
+import { Checkbox } from '@repo/ui';
 import { TestConnectionButton } from '@/components/settings/TestConnectionButton.tsx';
 import { apiRequest } from '@/lib/queryClient';
 import { useSettingsSection } from './useSettingsSection';

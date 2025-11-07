@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, type ButtonProps } from '@/components/ui/button';
+import { Button, type ButtonProps } from '@repo/ui';
 import { useToast } from '@/hooks/use-toast';
 
 export interface TestConnectionButtonProps extends ButtonProps {

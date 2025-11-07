@@ -1,9 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Money, MoneyInput } from "@/components/ui/money";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
+import { Money, MoneyInput } from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Input } from '@repo/ui';
+import { Checkbox } from '@repo/ui';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
 import { Plus, Trash2, Shield } from "lucide-react";
 
 export interface DealProduct {

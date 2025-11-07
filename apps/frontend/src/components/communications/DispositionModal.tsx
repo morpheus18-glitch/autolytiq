@@ -7,15 +7,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+} from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Label } from '@repo/ui';
+import { RadioGroup, RadioGroupItem } from '@repo/ui';
+import { Checkbox } from '@repo/ui';
+import { Textarea } from '@repo/ui';
+import { Input } from '@repo/ui';
+import { Calendar } from '@repo/ui';
+import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui';
 import { cn } from '@/lib/utils';
 import { CalendarDays, Clock, Loader2 } from 'lucide-react';
 import { addDays, addMinutes } from 'date-fns';

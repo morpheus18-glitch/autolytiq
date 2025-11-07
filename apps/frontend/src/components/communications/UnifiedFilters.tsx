@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { CommunicationFilter } from '@/stores/communications-store';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@repo/ui';
+import { Button } from '@repo/ui';
 import { cn } from '@/lib/utils';
 
 export interface UnifiedFilterDefinition {

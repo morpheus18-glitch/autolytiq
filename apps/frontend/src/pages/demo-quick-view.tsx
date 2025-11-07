@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@repo/ui';
 import { CustomerLink, VehicleLink } from '@/components/shared/QuickViewLinks';
-import { Button } from '@/components/ui/button';
+import { Button } from '@repo/ui';
 import { useQuickView } from '@/contexts/QuickViewContext';
 import { useQuery } from '@tanstack/react-query';
 import { Sparkles, Users, Car } from 'lucide-react';

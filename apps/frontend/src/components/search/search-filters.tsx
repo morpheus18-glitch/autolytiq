@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Slider } from "@/components/ui/slider";
-import { Calendar } from "@/components/ui/calendar";
+import { Button } from '@repo/ui';
+import { Input } from '@repo/ui';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
+import { Badge } from '@repo/ui';
+import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui';
+import { Checkbox } from '@repo/ui';
+import { Slider } from '@repo/ui';
+import { Calendar } from '@repo/ui';
 import { format } from "date-fns";
 import { 
   Filter, 

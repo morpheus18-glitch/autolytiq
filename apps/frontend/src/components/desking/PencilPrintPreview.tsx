@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { ApprovalPredictions, DeskingDeal, PaymentScenario, SimilarDealSummary } from '@/features/desking/types';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@repo/ui';
+import { Button } from '@repo/ui';
 import { format } from 'date-fns';
 
 interface PencilPrintPreviewProps {

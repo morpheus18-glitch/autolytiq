@@ -1,5 +1,5 @@
 import { Fragment, useMemo } from 'react';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Checkbox } from '@repo/ui';
 import { cn } from '@/lib/utils';
 
 export interface PermissionDefinition {

@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
+import { Badge } from '@repo/ui';
 import { cn } from '@/lib/utils';
 
 export interface KPIItem {

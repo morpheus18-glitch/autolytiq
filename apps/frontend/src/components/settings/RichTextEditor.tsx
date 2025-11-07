@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@repo/ui';
+import { Label } from '@repo/ui';
+import { Textarea } from '@repo/ui';
 import { cn } from '@/lib/utils';
 
 export interface RichTextEditorProps {

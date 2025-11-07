@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Badge } from '@repo/ui';
+import { ScrollArea } from '@repo/ui';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
 import { useSearchParams } from 'react-router-dom';
 import {
   CommunicationRecord,
@@ -12,7 +12,7 @@ import {
   useCommunicationsStore,
 } from '@/stores/communications-store';
 import { format, parseISO } from 'date-fns';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui';
 import { DollarSign, Mail, MessageCircle, PhoneCall, ShieldCheck, Sparkles, Users } from 'lucide-react';
 
 const channelIcons: Record<string, JSX.Element> = {

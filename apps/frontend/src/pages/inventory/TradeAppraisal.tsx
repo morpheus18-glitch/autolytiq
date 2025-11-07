@@ -12,9 +12,9 @@ import {
   Printer,
   MessageSquare,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@repo/ui';
+import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
+import { Badge } from '@repo/ui';
 import VINScanner from '@/components/shared/VINScanner';
 import NotesPanel from '@/components/shared/NotesPanel';
 import { decodeVIN, validateVIN, estimateVehicleValue, type VINDecodeResult } from '@/services/vinDecoder';

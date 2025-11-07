@@ -1,5 +1,5 @@
 import type { DealTimelineEvent } from '@/features/desking/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
 import { cn } from '@/lib/utils';
 import { CheckCircle2, Clock3, Circle } from 'lucide-react';
 import { format } from 'date-fns';

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
+import { Badge } from '@repo/ui';
+import { Button } from '@repo/ui';
 import { Users, MessageSquare, Clock, CheckCircle } from 'lucide-react';
 
 interface RealTimeCollaborationProps {

@@ -11,14 +11,14 @@ import {
   Plus,
   ShieldCheck,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@repo/ui';
+import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
+import { Badge } from '@repo/ui';
+import { Tabs, TabsList, TabsTrigger } from '@repo/ui';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@repo/ui';
+import { ScrollArea } from '@repo/ui';
+import { Separator } from '@repo/ui';
+import { Skeleton } from '@repo/ui';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type {

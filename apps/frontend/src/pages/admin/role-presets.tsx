@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Input } from '@repo/ui';
+import { Label } from '@repo/ui';
+import { Textarea } from '@repo/ui';
 import {
   Dialog,
   DialogContent,
@@ -11,12 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
+} from '@repo/ui';
 import { RolePresetCard, type RolePreset } from '@/components/settings/RolePresetCard.tsx';
 import { PermissionSelector, type Permission } from '@/components/settings/PermissionSelector.tsx';
 import { Plus, Search, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@repo/ui';
 
 // Mock permissions data - in production, this would come from your API
 const MOCK_PERMISSIONS: Permission[] = [

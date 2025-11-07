@@ -1,18 +1,18 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Badge } from '@repo/ui';
 import { useToast } from '@/hooks/use-toast';
 import type { DealJacketDto } from '../api';
 import { fetchCreditApplication, fetchCreditReport, pullCredit, shareCreditReport } from '../api';
 import type { CreditApplicationDto, CreditReportDto } from '../api';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@repo/ui';
+import { Input } from '@repo/ui';
+import { Textarea } from '@repo/ui';
 import { cn } from '@/lib/utils';
-import { Label } from '@/components/ui/label';
+import { Label } from '@repo/ui';
 
 const bureauOptions: Array<{ label: string; value: 'experian' | 'transunion' | 'equifax' | 'tri-merge' }> = [
   { label: 'Experian', value: 'experian' },

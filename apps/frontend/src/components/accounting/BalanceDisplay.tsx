@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
 
 const currency = new Intl.NumberFormat('en-US', {
   style: 'currency',

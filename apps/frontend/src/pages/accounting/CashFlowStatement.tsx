@@ -18,19 +18,19 @@ import {
   type FinancialStatementSection,
 } from '@/lib/accountingApi';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Badge } from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@repo/ui';
+import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui';
+import { Calendar } from '@repo/ui';
+import { ToggleGroup, ToggleGroupItem } from '@repo/ui';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@repo/ui';
 import {
   Dialog,
   DialogContent,
@@ -38,12 +38,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Checkbox } from '@/components/ui/checkbox';
+} from '@repo/ui';
+import { Input } from '@repo/ui';
+import { Textarea } from '@repo/ui';
+import { Skeleton } from '@repo/ui';
+import { Alert, AlertDescription, AlertTitle } from '@repo/ui';
+import { Checkbox } from '@repo/ui';
 import { parseEmailAddresses } from '@/lib/email';
 import {
   ResponsiveContainer,

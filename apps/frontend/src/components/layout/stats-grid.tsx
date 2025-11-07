@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@repo/ui';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface StatItem {

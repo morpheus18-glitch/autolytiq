@@ -5,10 +5,10 @@ import {
   SheetHeader,
   SheetTitle,
   SheetDescription
-} from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+} from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Badge } from '@repo/ui';
+import { Separator } from '@repo/ui';
 import {
   TrendingUp,
   User,

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Camera, X, Loader } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@repo/ui';
 
 interface VINScannerProps {
   onScan: (vin: string) => void;

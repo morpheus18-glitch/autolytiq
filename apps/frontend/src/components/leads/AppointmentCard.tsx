@@ -1,5 +1,5 @@
 import { CalendarClock, MapPin, Users } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
 import type { Appointment } from '@/types/leads';
 import dayjs from 'dayjs';
 

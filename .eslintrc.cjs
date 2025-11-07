@@ -35,5 +35,16 @@ module.exports = {
     'react/react-in-jsx-scope': 'off',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', ignoreRestSiblings: true }],
     '@typescript-eslint/explicit-module-boundary-types': 'off',
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            group: ['@/components/ui', '@/components/ui/*'],
+            message: 'Import from @repo/ui instead of @/components/ui. Use the shared component library.',
+          },
+        ],
+      },
+    ],
   },
 };

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@repo/ui';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 

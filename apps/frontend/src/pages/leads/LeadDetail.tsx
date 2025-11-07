@@ -17,9 +17,9 @@ import {
   Input,
 } from '@repo/ui';
 // TODO: Missing components to be added to @repo/ui
-import { Separator } from '@/components/ui/separator';
-import { Form, FormControl, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@repo/ui';
+import { Form, FormControl, FormItem, FormLabel, FormMessage } from '@repo/ui';
+import { Textarea } from '@repo/ui';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';

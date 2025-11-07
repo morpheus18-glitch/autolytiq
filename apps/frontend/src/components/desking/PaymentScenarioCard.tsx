@@ -1,9 +1,9 @@
 import type { PaymentScenario } from '@/features/desking/types';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardFooter, CardHeader } from '@repo/ui';
+import { Badge } from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Separator } from '@repo/ui';
 import { ArrowRightCircle, CheckCircle2 } from 'lucide-react';
 
 interface PaymentScenarioCardProps {

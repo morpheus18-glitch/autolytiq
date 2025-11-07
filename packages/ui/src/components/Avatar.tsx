@@ -63,4 +63,29 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
 
 Avatar.displayName = 'Avatar';
 
-export { Avatar, avatarVariants };
+// Compound components for flexible Avatar composition
+const AvatarImage = React.forwardRef<
+  HTMLImageElement,
+  React.ImgHTMLAttributes<HTMLImageElement>
+>(({ className, ...props }, ref) => (
+  <img
+    ref={ref}
+    className={`aspect-square h-full w-full object-cover ${className || ''}`}
+    {...props}
+  />
+));
+AvatarImage.displayName = 'AvatarImage';
+
+const AvatarFallback = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={`flex h-full w-full items-center justify-center rounded-full bg-surface-subtle text-text-secondary ${className || ''}`}
+    {...props}
+  />
+));
+AvatarFallback.displayName = 'AvatarFallback';
+
+export { Avatar, AvatarImage, AvatarFallback, avatarVariants };

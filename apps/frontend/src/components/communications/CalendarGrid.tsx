@@ -12,8 +12,8 @@ import {
 } from 'date-fns';
 import { AppointmentRecord } from '@/stores/communications-store';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@repo/ui';
+import { ScrollArea } from '@repo/ui';
 
 export type CalendarView = 'day' | 'week' | 'month';
 

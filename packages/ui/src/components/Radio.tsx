@@ -110,4 +110,7 @@ export const RadioGroup = ({
 
 RadioGroup.displayName = 'RadioGroup';
 
-export { Radio, radioVariants };
+// Alias for compatibility
+const RadioGroupItem = Radio;
+
+export { Radio, RadioGroupItem, radioVariants };

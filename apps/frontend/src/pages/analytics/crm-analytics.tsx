@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '@repo/ui';
-import { Select } from '@/components/ui/select';
+import { Select } from '@repo/ui';
 import { KPIGroup } from '@/components/communications/KPIGroup.tsx';
 import { useCommunicationsStore } from '@/stores/communications-store';
 import { format, parseISO, subDays } from 'date-fns';

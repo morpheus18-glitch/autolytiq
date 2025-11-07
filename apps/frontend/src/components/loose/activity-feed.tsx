@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from '@repo/ui';
 import { useQuery } from "@tanstack/react-query";
 import { Handshake, Plus, UserPlus, Users } from "lucide-react";
 import type { Activity } from "@shared/schema";

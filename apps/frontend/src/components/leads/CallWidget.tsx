@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Phone, PhoneOff, MicOff, Mic, Volume2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Textarea } from '@repo/ui';
 import dayjs from 'dayjs';
 import { useToast } from '@/hooks/use-toast';
 

@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@repo/ui';
+import { Label } from '@repo/ui';
+import { Input } from '@repo/ui';
+import { Separator } from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Badge } from '@repo/ui';
 import { Loader2, RefreshCcw } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';

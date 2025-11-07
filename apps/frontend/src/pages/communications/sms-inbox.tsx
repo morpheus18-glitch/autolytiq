@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
+import { ScrollArea } from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Badge } from '@repo/ui';
+import { Textarea } from '@repo/ui';
+import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui';
 import { useToast } from '@/hooks/use-toast';
 import {
   CommunicationRecord,
@@ -13,7 +13,7 @@ import {
   groupCommunicationsByThread,
   useCommunicationsStore,
 } from '@/stores/communications-store';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@repo/ui';
 import { Paperclip, Send, Smile, Sparkles, Star, UploadCloud } from 'lucide-react';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';

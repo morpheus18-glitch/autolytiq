@@ -1,7 +1,7 @@
 import { Controller, Control, FieldErrors } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@repo/ui';
+import { Input } from '@repo/ui';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
 import type { AccountNode } from '@/lib/accountingApi';
 
 interface JournalEntryFormLine {

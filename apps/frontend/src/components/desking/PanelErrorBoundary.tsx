@@ -1,6 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@repo/ui';
+import { Button } from '@repo/ui';
 import { RefreshCcw } from 'lucide-react';
 
 interface PanelErrorBoundaryProps {

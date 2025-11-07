@@ -26,9 +26,9 @@ export { Badge, badgeVariants, type BadgeProps } from './components/Badge.js';
 export { PageHeader, type PageHeaderProps } from './components/PageHeader.js';
 export { StatCard, statCardVariants, type StatCardProps } from './components/StatCard.js';
 export { SearchInput, type SearchInputProps } from './components/SearchInput.js';
-export { Avatar, avatarVariants, type AvatarProps } from './components/Avatar.js';
+export { Avatar, AvatarImage, AvatarFallback, avatarVariants, type AvatarProps } from './components/Avatar.js';
 export { Skeleton, skeletonVariants, type SkeletonProps } from './components/Skeleton.js';
-export { Alert, alertVariants, type AlertProps } from './components/Alert.js';
+export { Alert, AlertTitle, AlertDescription, alertVariants, type AlertProps } from './components/Alert.js';
 export { Tabs, TabsList, TabsTrigger, TabsContent, type TabsProps } from './components/Tabs.js';
 export { EmptyState, type EmptyStateProps } from './components/EmptyState.js';
 export { QuickAction, type QuickActionProps } from './components/QuickAction.js';
@@ -52,7 +52,7 @@ export {
 } from './components/RadixSelect.js';
 export { Textarea, textareaVariants, type TextareaProps } from './components/Textarea.js';
 export { Checkbox, checkboxVariants, type CheckboxProps } from './components/Checkbox.js';
-export { Radio, RadioGroup, radioVariants, type RadioProps, type RadioGroupProps } from './components/Radio.js';
+export { Radio, RadioGroup, RadioGroupItem, radioVariants, type RadioProps, type RadioGroupProps } from './components/Radio.js';
 export { Switch, switchVariants, type SwitchProps } from './components/Switch.js';
 export { Label, labelVariants, type LabelProps } from './components/Label.js';
 export { FormField, formFieldVariants, formDescriptionVariants, type FormFieldProps } from './components/FormField.js';
@@ -94,8 +94,23 @@ export {
   PopoverContent,
   PopoverAnchor,
 } from './components/RadixPopover.js';
-export { Sheet, sheetOverlayVariants, sheetContentVariants, type SheetProps } from './components/Sheet.js';
+export {
+  Sheet,
+  SheetPortal,
+  SheetOverlay,
+  SheetTrigger,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+  SheetDescription,
+  sheetOverlayVariants,
+  sheetContentVariants,
+  type SheetProps,
+} from './components/Sheet.js';
 export { Toast, ToastProvider, useToast, toastVariants, type ToastProps } from './components/Toast.js';
+export { Toaster } from './components/Toaster.js';
 // Command Palette
 export {
   Command,
@@ -107,6 +122,72 @@ export {
   CommandShortcut,
   CommandSeparator,
 } from './components/RadixCommand.js';
+// Alert Dialog (Radix UI primitive)
+export {
+  AlertDialog,
+  AlertDialogPortal,
+  AlertDialogOverlay,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from './components/AlertDialog.js';
+// Dialog (Radix UI primitive)
+export {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogClose,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from './components/Dialog.js';
+// Dropdown Menu (Radix UI primitive)
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuGroup,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuRadioGroup,
+} from './components/DropdownMenu.js';
+// Form (React Hook Form integration)
+export {
+  useFormField,
+  Form,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+  FormMessage,
+  FormField as RHFFormField,
+} from './components/Form.js';
+// Scroll Area (Radix UI primitive)
+export { ScrollArea, ScrollBar } from './components/ScrollArea.js';
+// Toggle (Radix UI primitive)
+export { Toggle, toggleVariants } from './components/Toggle.js';
+// Toggle Group (Radix UI primitive)
+export { ToggleGroup, ToggleGroupItem } from './components/ToggleGroup.js';
+// Collapsible (Radix UI primitive)
+export { Collapsible, CollapsibleTrigger, CollapsibleContent } from './components/Collapsible.js';
+// Collapsible Section
+export { CollapsibleSection } from './components/CollapsibleSection.js';
 
 // Tier 4: Navigation Components
 export { Accordion, accordionVariants, type AccordionProps, type AccordionItem } from './components/Accordion.js';

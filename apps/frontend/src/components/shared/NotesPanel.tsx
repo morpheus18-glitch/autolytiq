@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MessageSquare, Send, User, Clock, Edit, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@repo/ui';
+import { Card } from '@repo/ui';
+import { Badge } from '@repo/ui';
 
 // Note interface with full audit trail
 export interface Note {

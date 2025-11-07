@@ -17,9 +17,9 @@ import {
   Filter,
   Download,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Badge } from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Card } from '@repo/ui';
 
 // Interfaces
 interface Lead {

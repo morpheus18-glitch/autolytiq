@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow
 } from "@repo/ui";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
 import { Plus, Search, Filter, Download, Upload, BookOpen, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
 
 const accountCategories = [

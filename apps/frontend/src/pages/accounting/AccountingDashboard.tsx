@@ -73,13 +73,13 @@ import { Skeleton } from '@repo/ui';
 import { Alert } from '@repo/ui';
 import { Switch } from '@repo/ui';
 // TODO: Migrate to Radix Popover when available in @repo/ui
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui';
+import { Calendar } from '@repo/ui';
 import { cn } from '@repo/ui';
 import { parseEmailAddresses } from '@/lib/email';
 import { Textarea } from '@repo/ui';
 // TODO: Migrate to Radix Select when available in @repo/ui
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
 import { Label as FormLabel } from '@repo/ui';
 import { Input } from '@repo/ui';
 import { Checkbox } from '@repo/ui';

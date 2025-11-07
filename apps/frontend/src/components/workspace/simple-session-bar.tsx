@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Badge } from '@repo/ui';
 import {
   User,
   Car,

@@ -1,7 +1,7 @@
 import { Lightbulb, TrendingUp, Users } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@repo/ui';
+import { Badge } from '@repo/ui';
+import { Button } from '@repo/ui';
 import type { AIInsight } from '@/types/leads';
 import { cn } from '@/lib/utils';
 

@@ -33,9 +33,9 @@ import {
   Skeleton,
 } from '@repo/ui';
 // TODO: Missing components to be added to @repo/ui
-import { Slider } from '@/components/ui/slider';
-import { Calendar } from '@/components/ui/calendar';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Slider } from '@repo/ui';
+import { Calendar } from '@repo/ui';
+import { ToggleGroup, ToggleGroupItem } from '@repo/ui';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLeadDashboardStore } from '@/stores/lead-dashboard-store';

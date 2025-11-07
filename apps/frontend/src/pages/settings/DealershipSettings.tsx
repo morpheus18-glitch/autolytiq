@@ -5,9 +5,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+} from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Input } from '@repo/ui';
 import {
   Form,
   FormControl,
@@ -15,9 +15,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Switch } from '@/components/ui/switch';
+} from '@repo/ui';
+import { Skeleton } from '@repo/ui';
+import { Switch } from '@repo/ui';
 import { ImageUploader } from '@/components/settings/ImageUploader.tsx';
 import {
   DAY_LABELS,

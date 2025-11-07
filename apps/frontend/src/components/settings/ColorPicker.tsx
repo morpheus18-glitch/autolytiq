@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Label } from '@/components/ui/label';
+import { Label } from '@repo/ui';
 import { cn } from '@/lib/utils';
 
 export interface ColorPickerProps {

@@ -17,12 +17,12 @@ import {
   type FiDashboardProductPerformanceDto,
   type LenderDto,
 } from '../api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@repo/ui';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
+import { Input } from '@repo/ui';
+import { Badge } from '@repo/ui';
+import { Skeleton } from '@repo/ui';
 import { cn } from '@/lib/utils';
 import { TrendingDown, TrendingUp, Minus, DollarSign, Package, Percent, ClipboardCheck } from 'lucide-react';
 

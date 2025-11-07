@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@repo/ui';
+import { Input } from '@repo/ui';
+import { Label } from '@repo/ui';
+import { Badge } from '@repo/ui';
 import { cn } from '@/lib/utils';
 import { Search, ChevronDown, ChevronRight } from 'lucide-react';
 

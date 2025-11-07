@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import { Phone, Mail, MessageSquare, ExternalLink, MapPin } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@repo/ui';
+import { Button } from '@repo/ui';
 import LeadScoreBadge from '@/components/leads/LeadScoreBadge';
 import type { Lead } from '@/types/leads';
 import { cn } from '@/lib/utils';

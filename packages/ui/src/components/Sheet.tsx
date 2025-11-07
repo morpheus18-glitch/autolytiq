@@ -189,4 +189,116 @@ const Sheet = ({
 
 Sheet.displayName = 'Sheet';
 
-export { Sheet, sheetOverlayVariants, sheetContentVariants };
+// Compound components for compatibility with Radix UI pattern
+const SheetPortal = ({ children }: { children: React.ReactNode }) => {
+  return <>{children}</>;
+};
+
+const SheetOverlay = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & { state?: 'open' | 'closed' }
+>(({ className, state = 'closed', ...props }, ref) => (
+  <div
+    ref={ref}
+    className={sheetOverlayVariants({ state, className })}
+    {...props}
+  />
+));
+SheetOverlay.displayName = 'SheetOverlay';
+
+const SheetContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof sheetContentVariants>
+>(({ className, side = 'right', state = 'open', children, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={sheetContentVariants({ side, state, className })}
+    role="dialog"
+    aria-modal="true"
+    {...props}
+  >
+    {children}
+  </div>
+));
+SheetContent.displayName = 'SheetContent';
+
+const SheetHeader = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={`flex flex-col space-y-2 text-center sm:text-left ${className || ''}`}
+    {...props}
+  />
+);
+SheetHeader.displayName = 'SheetHeader';
+
+const SheetFooter = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={`flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 ${className || ''}`}
+    {...props}
+  />
+);
+SheetFooter.displayName = 'SheetFooter';
+
+const SheetTitle = React.forwardRef<
+  HTMLHeadingElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h2
+    ref={ref}
+    className={`text-lg font-semibold text-text-primary ${className || ''}`}
+    {...props}
+  />
+));
+SheetTitle.displayName = 'SheetTitle';
+
+const SheetDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={`text-sm text-text-secondary ${className || ''}`}
+    {...props}
+  />
+));
+SheetDescription.displayName = 'SheetDescription';
+
+const SheetTrigger = React.forwardRef<
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement>
+>(({ ...props }, ref) => <button ref={ref} {...props} />);
+SheetTrigger.displayName = 'SheetTrigger';
+
+const SheetClose = React.forwardRef<
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement>
+>(({ className, ...props }, ref) => (
+  <button
+    ref={ref}
+    className={`p-1 rounded-md hover:bg-surface-subtle transition-colors ${className || ''}`}
+    {...props}
+  >
+    <X className="w-5 h-5 text-text-secondary" />
+  </button>
+));
+SheetClose.displayName = 'SheetClose';
+
+export {
+  Sheet,
+  SheetPortal,
+  SheetOverlay,
+  SheetTrigger,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+  SheetDescription,
+  sheetOverlayVariants,
+  sheetContentVariants,
+};

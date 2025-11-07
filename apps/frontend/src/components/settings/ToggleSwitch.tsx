@@ -1,6 +1,6 @@
 import { useId } from 'react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { Switch } from '@repo/ui';
+import { Label } from '@repo/ui';
 
 export interface ToggleSwitchProps {
   enabled: boolean;

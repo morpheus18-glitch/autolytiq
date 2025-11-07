@@ -1,6 +1,6 @@
-import { KPICard } from "@/components/ui/money";
+import { KPICard } from '@repo/ui';
 import { Info } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@repo/ui';
 
 interface KPIData {
   // Vehicle fields
