@@ -96,66 +96,67 @@ model Tenant {
 }
 
 model User {
-  id                        String                @id @default(cuid())
-  tenantId                  String                @map("tenant_id")
+  id                        String                 @id @default(cuid())
+  tenantId                  String                 @map("tenant_id")
   email                     String
   password                  String
-  firstName                 String                @map("first_name")
-  lastName                  String                @map("last_name")
+  firstName                 String                 @map("first_name")
+  lastName                  String                 @map("last_name")
   phone                     String?
-  role                      UserRole              @default(SALES)
-  rolePresetId              String?               @map("role_preset_id")
-  permissions               Json                  @default(dbgenerated("jsonb_build_array()"))
-  customPermissions         Json?                 @default(dbgenerated("jsonb_build_array()")) @map("custom_permissions")
-  status                    UserStatus            @default(ACTIVE)
-  isSuperAdmin              Boolean               @default(false) @map("is_super_admin")
-  lastLoginAt               DateTime?             @map("last_login_at") @db.Timestamptz(6)
-  createdAt                 DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt                 DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt                 DateTime?             @map("deleted_at") @db.Timestamptz(6)
+  role                      UserRole               @default(SALES)
+  rolePresetId              String?                @map("role_preset_id")
+  permissions               Json                   @default(dbgenerated("jsonb_build_array()"))
+  customPermissions         Json?                  @default(dbgenerated("jsonb_build_array()")) @map("custom_permissions")
+  status                    UserStatus             @default(ACTIVE)
+  isSuperAdmin              Boolean                @default(false) @map("is_super_admin")
+  lastLoginAt               DateTime?              @map("last_login_at") @db.Timestamptz(6)
+  createdAt                 DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                 DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt                 DateTime?              @map("deleted_at") @db.Timestamptz(6)
   activities                Activity[]
   aiCounterOffers           AICounterOffer[]
-  appointments              Appointment[]         @relation("AppointmentAssignedTo")
-  appraisalsCreated         Appraisal[]           @relation("AppraisalsAppraiser")
-  appraisalsReviewed        Appraisal[]           @relation("AppraisalsManager")
+  appointments              Appointment[]          @relation("AppointmentAssignedTo")
+  appraisalsCreated         Appraisal[]            @relation("AppraisalsAppraiser")
+  appraisalsReviewed        Appraisal[]            @relation("AppraisalsManager")
   auditLogs                 AuditLog[]
   commissions               Commission[]
   communications            Communication[]
-  counterOffersHandled      CounterOffer[]        @relation("CounterOfferHandledBy")
+  counterOffersHandled      CounterOffer[]         @relation("CounterOfferHandledBy")
   customerActivities        CustomerActivity[]
   interactions              CustomerInteraction[]
-  customers                 Customer[]            @relation("CustomerAssignedTo")
-  createdCustomers          Customer[]            @relation("CustomerCreator")
+  customers                 Customer[]             @relation("CustomerAssignedTo")
+  createdCustomers          Customer[]             @relation("CustomerCreator")
   dealActivities            DealActivity[]
   dealEventsCreated         DealEvent[]
-  dealJacketsAsFinance      DealJacket[]          @relation("DealJacketFIManager")
-  dealJacketsAsSales        DealJacket[]          @relation("DealJacketSalesperson")
-  dealOptimizationsRun      DealOptimization[]    @relation("DealOptimizationRunBy")
-  dealVersionsCreated       DealVersion[]         @relation("DealVersionCreatedBy")
-  dealWorksheets            DealWorksheet[]       @relation("DealWorksheetSalesperson")
-  deliveredDeals            Deal[]                @relation("DealDeliveredBy")
-  fiDeals                   Deal[]                @relation("FinanceManagerDeals")
-  managedDeals              Deal[]                @relation("DealSalesManager")
-  salesDeals                Deal[]                @relation("SalesPersonDeals")
-  fundingChecklistsReviewed FundingChecklist[]    @relation("FundingChecklistReviewer")
+  dealJacketsAsFinance      DealJacket[]           @relation("DealJacketFIManager")
+  dealJacketsAsSales        DealJacket[]           @relation("DealJacketSalesperson")
+  dealOptimizationsRun      DealOptimization[]     @relation("DealOptimizationRunBy")
+  dealVersionsCreated       DealVersion[]          @relation("DealVersionCreatedBy")
+  dealWorksheets            DealWorksheet[]        @relation("DealWorksheetSalesperson")
+  deliveredDeals            Deal[]                 @relation("DealDeliveredBy")
+  fiDeals                   Deal[]                 @relation("FinanceManagerDeals")
+  managedDeals              Deal[]                 @relation("DealSalesManager")
+  salesDeals                Deal[]                 @relation("SalesPersonDeals")
+  fundingChecklistsReviewed FundingChecklist[]     @relation("FundingChecklistReviewer")
   journalEntries            JournalEntry[]
   leadActivities            LeadActivity[]
-  leadsAssigned             Lead[]                @relation("LeadAssignedTo")
-  leadsOwned                Lead[]                @relation("LeadOwner")
+  leadsAssigned             Lead[]                 @relation("LeadAssignedTo")
+  leadsOwned                Lead[]                 @relation("LeadOwner")
   notifications             Notification[]
-  priceChanges              PriceHistory[]        @relation("PriceHistoryChangedBy")
-  reports                   Report[]              @relation("ReportCreatedBy")
-  advisedServiceOrders      ServiceOrder[]        @relation("ServiceAdvisor")
-  techServiceOrders         ServiceOrder[]        @relation("ServiceTechnician")
-  stageTransitions          StageTransition[]     @relation("StageTransitionActor")
+  priceChanges              PriceHistory[]         @relation("PriceHistoryChangedBy")
+  reports                   Report[]               @relation("ReportCreatedBy")
+  advisedServiceOrders      ServiceOrder[]         @relation("ServiceAdvisor")
+  techServiceOrders         ServiceOrder[]         @relation("ServiceTechnician")
+  stageTransitions          StageTransition[]      @relation("StageTransitionActor")
   systemSettings            SystemSetting[]
-  appraisedTradeIns         TradeIn[]             @relation("TradeInAppraiser")
-  tenant                    Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  assignedWorkflowTasks     WorkflowTask[]          @relation("WorkflowTaskAssignee")
+  appraisedTradeIns         TradeIn[]              @relation("TradeInAppraiser")
+  tenant                    Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignedWorkflowTasks     WorkflowTask[]         @relation("WorkflowTaskAssignee")
   dashboardLayouts          DashboardLayout[]
   widgetPreferences         UserWidgetPreference[]
   searchQueries             SearchQuery[]
   dealStageTransitions      DealStageTransition[]
+  Note                      Note[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -233,6 +234,7 @@ model Customer {
   leads                  Lead[]
   serviceOrders          ServiceOrder[]
   tradeIns               TradeIn[]
+  Note                   Note[]
 
   @@index([tenantId, leadStatus])
   @@index([tenantId, assignedToUserId])
@@ -327,6 +329,7 @@ model Lead {
   customer            Customer?       @relation(fields: [customerId], references: [id])
   owner               User?           @relation("LeadOwner", fields: [ownerId], references: [id])
   tenant              Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  Note                Note[]
 
   @@index([tenantId, status])
   @@index([tenantId, assignedToId])
@@ -469,6 +472,7 @@ model ServiceOrder {
   technician        User?              @relation("ServiceTechnician", fields: [technicianId], references: [id])
   tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   vehicle           Vehicle            @relation(fields: [vehicleId], references: [id])
+  Note              Note[]
 
   @@unique([tenantId, roNumber])
   @@index([tenantId, status])
@@ -733,6 +737,7 @@ model Vehicle {
   tenant                Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   wholesaleListings     WholesaleListing[]
   workflowTasks         WorkflowTask[]
+  Note                  Note[]
 
   @@unique([tenantId, stockNumber])
   @@index([tenantId, status])
@@ -826,6 +831,7 @@ model Appraisal {
   tenant           Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   vehicle          Vehicle?                 @relation(fields: [vehicleId], references: [id])
   reconItems       ReconItem[]
+  Note             Note[]
 
   @@index([tenantId, status])
   @@index([tenantId, vehicleId])
@@ -1084,6 +1090,7 @@ model Deal {
   tradeVehicle         CustomerVehicle?        @relation("TradeVehicleDeal", fields: [tradeVehicleId], references: [id])
   vehicle              Vehicle                 @relation(fields: [vehicleId], references: [id])
   journalEntries       JournalEntry[]
+  Note                 Note[]
 
   @@unique([tenantId, dealNumber])
   @@index([tenantId, status])
@@ -1096,18 +1103,18 @@ model Deal {
 }
 
 model DealStageTransition {
-  id               String    @id @default(cuid())
-  tenantId         String    @map("tenant_id")
-  dealId           String    @map("deal_id")
-  fromStage        DealStage @map("from_stage")
-  toStage          DealStage @map("to_stage")
-  transitionedBy   String    @map("transitioned_by")
-  transitionedAt   DateTime  @default(now()) @map("transitioned_at") @db.Timestamptz(6)
-  notes            String?
+  id             String    @id @default(cuid())
+  tenantId       String    @map("tenant_id")
+  dealId         String    @map("deal_id")
+  fromStage      DealStage @map("from_stage")
+  toStage        DealStage @map("to_stage")
+  transitionedBy String    @map("transitioned_by")
+  transitionedAt DateTime  @default(now()) @map("transitioned_at") @db.Timestamptz(6)
+  notes          String?
 
-  deal                   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
-  tenant                 Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  transitionedByUser     User   @relation(fields: [transitionedBy], references: [id])
+  deal               Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  tenant             Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  transitionedByUser User   @relation(fields: [transitionedBy], references: [id])
 
   @@index([tenantId, dealId])
   @@index([dealId, transitionedAt])
@@ -1903,27 +1910,90 @@ model Report {
 }
 
 model Notification {
-  id          String           @id @default(cuid())
-  tenantId    String           @map("tenant_id")
-  userId      String           @map("user_id")
-  kind        String           @default("system")
-  type        NotificationType
-  title       String
-  message     String
-  actionUrl   String?          @map("action_url")
-  isRead      Boolean          @default(false) @map("is_read")
-  readAt      DateTime?        @map("read_at") @db.Timestamptz(6)
-  payload     Json?
-  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
-  priority    String?          @default("normal") @db.VarChar
-  action_data Json?
-  expires_at  DateTime?        @db.Timestamp(6)
-  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  tenantId String @map("tenant_id")
+  userId   String @map("user_id")
+
+  // Content
+  type     NotificationType
+  title    String
+  message  String           @db.Text
+  link     String? // Optional link to navigate to
+  metadata Json? // Additional data
+
+  // Status
+  isRead Boolean @default(false) @map("is_read")
+
+  // Timestamps
+  createdAt DateTime  @default(now()) @map("created_at")
+  readAt    DateTime? @map("read_at")
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, userId, isRead])
+  @@index([tenantId, userId, createdAt])
   @@map("notifications")
+}
+
+// Notes System - Context-Aware Note Taking
+// Supports notes attached to any entity (customers, appraisals, deals, vehicles, etc.)
+model Note {
+  id       String @id @default(cuid())
+  tenantId String @map("tenant_id")
+
+  // Content
+  content String @db.Text
+
+  // Context - determines where the note appears
+  context NoteContext
+
+  // Entity this note belongs to
+  entityId   String  @map("entity_id")
+  entityType String? @map("entity_type") // For standalone context
+
+  // Metadata
+  isPrivate Boolean  @default(false) @map("is_private")
+  tags      String[] @default([])
+
+  // Relationships (optional - for querying)
+  customerId String?   @map("customer_id")
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  appraisalId String?    @map("appraisal_id")
+  appraisal   Appraisal? @relation(fields: [appraisalId], references: [id], onDelete: Cascade)
+
+  dealId String? @map("deal_id")
+  deal   Deal?   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  vehicleId String?  @map("vehicle_id")
+  vehicle   Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  leadId String? @map("lead_id")
+  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  serviceOrderId String?       @map("service_order_id")
+  serviceOrder   ServiceOrder? @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+
+  // Author
+  createdBy     String  @map("created_by")
+  createdByName String? @map("created_by_name")
+  user          User    @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId, context, entityId])
+  @@index([tenantId, customerId])
+  @@index([tenantId, appraisalId])
+  @@index([tenantId, dealId])
+  @@index([tenantId, vehicleId])
+  @@index([tenantId, leadId])
+  @@index([tenantId, createdBy])
+  @@index([createdAt])
+  @@map("notes")
 }
 
 model WorkflowDefinition {
@@ -2713,11 +2783,26 @@ enum ReportType {
 }
 
 enum NotificationType {
-  DEAL_APPROVAL
-  FOLLOW_UP
-  INVENTORY_ALERT
-  TASK
-  SYSTEM
+  DEAL // Deal status changes, approvals needed
+  LEAD // New lead assignments, lead updates
+  MESSAGE // New messages, mentions
+  TASK // Task assignments, due dates
+  SYSTEM // System notifications, maintenance
+
+  @@map("notification_type")
+}
+
+enum NoteContext {
+  CUSTOMER // Appears in customer timeline
+  SHOWROOM // Appears in customer timeline (from showroom manager)
+  APPRAISAL // Stays with appraisal record
+  DEAL // Appears in deal history
+  VEHICLE // Stays with vehicle record
+  LEAD // Appears in lead timeline
+  SERVICE // Stays with service order
+  STANDALONE // Generic note, use entityType to specify
+
+  @@map("note_context")
 }
 
 enum WorkflowTaskType {
@@ -2764,14 +2849,14 @@ enum AuditAction {
 // =============================================================================
 
 model DashboardLayout {
-  id          String    @id @default(cuid())
-  userId      String    @map("user_id")
-  tenantId    String    @map("tenant_id")
-  role        UserRole? // If null, applies to all roles
-  isDefault   Boolean   @default(false) @map("is_default")
-  layout      Json      // Widget positions and sizes
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  tenantId  String    @map("tenant_id")
+  role      UserRole? // If null, applies to all roles
+  isDefault Boolean   @default(false) @map("is_default")
+  layout    Json // Widget positions and sizes
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -2842,11 +2927,11 @@ enum WidgetType {
 }
 
 enum WidgetSize {
-  SMALL  // 1x1
+  SMALL // 1x1
   MEDIUM // 2x1
-  LARGE  // 2x2
-  WIDE   // 4x1
-  FULL   // 4x2
+  LARGE // 2x2
+  WIDE // 4x1
+  FULL // 4x2
 }
 
 // ============================================================================
@@ -2854,40 +2939,46 @@ enum WidgetSize {
 // ============================================================================
 
 model SearchQuery {
-  id            String   @id @default(cuid())
-  tenantId      String   @map("tenant_id")
-  userId        String   @map("user_id")
-  query         String   // Original query text
-  parsedQuery   Json?    @map("parsed_query") // Parsed NLP structure
-  resultType    String   @map("result_type") // customers, vehicles, deals, etc.
-  resultCount   Int      @map("result_count")
-  executionTime Int      @map("execution_time") // milliseconds
-  clicked       Boolean  @default(false) // Did user click a result?
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id       String @id @default(cuid())
+  tenantId String @map("tenant_id")
+  userId   String @map("user_id")
 
+  // Query details
+  query         String // Original query text
+  parsedQuery   Json?  @map("parsed_query") // Parsed NLP structure
+  resultType    String @map("result_type") // customers, vehicles, deals, etc.
+  resultCount   Int    @map("result_count")
+  executionTime Int    @map("execution_time") // milliseconds
+
+  // Analytics
+  clicked Boolean @default(false) // Did user click a result?
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, userId])
   @@index([tenantId, createdAt])
-  @@index([query])
+  @@index([tenantId, resultType])
   @@map("search_queries")
 }
 
+// Popular searches cache
 model PopularSearch {
-  id        String    @id @default(cuid())
-  tenantId  String?   @map("tenant_id") // null = global
-  query     String
-  category  String    // customer, vehicle, deal, report
-  count     Int       @default(1)
-  lastUsed  DateTime  @default(now()) @map("last_used") @db.Timestamptz(6)
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  id       String   @id @default(cuid())
+  tenantId String?  @map("tenant_id") // null = global
+  query    String   @unique
+  category String // customer, vehicle, deal, report
+  count    Int      @default(1)
+  lastUsed DateTime @default(now()) @updatedAt @map("last_used")
 
   tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  @@unique([tenantId, query])
   @@index([tenantId, category])
-  @@index([tenantId, count])
+  @@index([count])
   @@map("popular_searches")
 }
 
@@ -2898,9 +2989,9 @@ model PopularSearch {
 model InsightRule {
   id        String   @id @default(cuid())
   key       String   @unique
-  domain    String   // sales, fi, inventory, service, accounting, admin, dev
-  severity  String   // info, notice, warning, urgent
-  audience  Json     // { roles: string[], userIds?: string[] }
+  domain    String // sales, fi, inventory, service, accounting, admin, dev
+  severity  String // info, notice, warning, urgent
+  audience  Json // { roles: string[], userIds?: string[] }
   active    Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -2913,8 +3004,8 @@ model InsightRule {
 model InsightEvent {
   id        String   @id @default(cuid())
   tenantId  String   @map("tenant_id")
-  key       String   // Event key that triggered evaluation
-  payload   Json     // Context data for evaluation
+  key       String // Event key that triggered evaluation
+  payload   Json // Context data for evaluation
   at        DateTime @default(now()) @db.Timestamptz(6)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -2926,13 +3017,13 @@ model InsightEvent {
 model InsightQueue {
   id          String    @id @default(cuid())
   tenantId    String    @map("tenant_id")
-  role        String    // Target role
+  role        String // Target role
   userId      String?   @map("user_id") // Optional specific user
   ruleKey     String    @map("rule_key")
-  severity    String    // info, notice, warning, urgent
-  score       Float     // Prioritization score (0..1)
-  message     String    // Generated message
-  card        Json      // Card payload for rendering
+  severity    String // info, notice, warning, urgent
+  score       Float // Prioritization score (0..1)
+  message     String // Generated message
+  card        Json // Card payload for rendering
   state       String    @default("new") // new, seen, snoozed, muted, done
   expiresAt   DateTime? @map("expires_at") @db.Timestamptz(6)
   snoozeUntil DateTime? @map("snooze_until") @db.Timestamptz(6)

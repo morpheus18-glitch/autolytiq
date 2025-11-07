@@ -22,6 +22,7 @@ COPY services/rust/shared/Cargo.toml shared/Cargo.toml
 COPY services/rust/cache-service/Cargo.toml cache-service/Cargo.toml
 COPY services/rust/comm-service/Cargo.toml comm-service/Cargo.toml
 COPY services/rust/rate-limiter/Cargo.toml rate-limiter/Cargo.toml
+COPY services/rust/tax-svc/Cargo.toml tax-svc/Cargo.toml
 
 RUN mkdir -p \
       price-engine/src \
@@ -29,10 +30,12 @@ RUN mkdir -p \
       cache-service/src \
       comm-service/src \
       rate-limiter/src \
+      tax-svc/src \
  && echo 'fn main() {}' > price-engine/src/main.rs \
  && echo 'fn main() {}' > cache-service/src/main.rs \
  && echo 'fn main() {}' > comm-service/src/main.rs \
  && echo 'fn main() {}' > rate-limiter/src/main.rs \
+ && echo 'fn main() {}' > tax-svc/src/main.rs \
  && echo 'pub fn placeholder() {}' > shared/src/lib.rs
 
 # Build dependencies with cache mount
@@ -45,6 +48,7 @@ COPY services/rust/cache-service ./cache-service
 COPY services/rust/comm-service ./comm-service
 COPY services/rust/rate-limiter ./rate-limiter
 COPY services/rust/price-engine ./price-engine
+COPY services/rust/tax-svc ./tax-svc
 COPY services/rust/proto ./proto
 
 # Build with cache mount but copy binary OUT before mount disappears

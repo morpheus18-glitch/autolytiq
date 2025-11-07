@@ -2,18 +2,25 @@
 
 FROM node:20-alpine AS builder
 
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl openssl-dev
+
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
 # Copy workspace files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-workspace.yaml ./
 COPY packages/db/package.json packages/db/
 COPY packages/shared/package.json packages/shared/
 COPY apps/worker/package.json apps/worker/
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile --filter @repo/worker...
+# Copy Prisma schema BEFORE install (so postinstall can find it)
+COPY packages/db/schema.prisma ./packages/db/schema.prisma
+
+# Install dependencies (postinstall will now find schema)
+# Note: No lockfile exists in repo, so we can't use --frozen-lockfile
+RUN pnpm install --filter @repo/worker...
 
 # Copy source
 COPY packages ./packages
@@ -21,13 +28,14 @@ COPY apps/worker ./apps/worker
 
 WORKDIR /app/apps/worker
 
+# Prisma already generated during postinstall, just copy schema for runtime
 RUN mkdir -p prisma \
   && cp ../../packages/db/schema.prisma prisma/schema.prisma
 
-ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/autolytiq"
-RUN npx prisma generate --schema prisma/schema.prisma
-
 FROM node:20-alpine
+
+# Install OpenSSL for Prisma runtime
+RUN apk add --no-cache openssl
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
