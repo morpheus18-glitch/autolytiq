@@ -13,7 +13,7 @@ COPY packages/shared/package.json packages/shared/
 COPY apps/worker/package.json apps/worker/
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile --filter worker...
+RUN pnpm install --frozen-lockfile --filter @repo/worker...
 
 # Copy source
 COPY packages ./packages
