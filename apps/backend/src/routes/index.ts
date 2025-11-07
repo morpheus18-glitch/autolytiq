@@ -29,6 +29,7 @@ import { pricingIntelligenceRouter } from './pricing-intelligence.routes';
 import { merchandisingRouter } from './merchandising.routes';
 import { appraisalRouter } from './appraisal.routes';
 import { accountingRouter } from './accounting.routes';
+import insightsRouter from './insights';
 
 export function registerRoutes(app: Express) {
   // Health check routes (no auth required)
@@ -64,6 +65,7 @@ export function registerRoutes(app: Express) {
   apiRouter.use('/merchandising', merchandisingRouter);
   apiRouter.use('/appraisals', appraisalRouter);
   apiRouter.use('/accounting', accountingRouter);
+  apiRouter.use('/insights', insightsRouter);
 
   const leadRoutingRoles: Role[] = ['ADMIN', 'BDC', 'SALES'];
   apiRouter.post(

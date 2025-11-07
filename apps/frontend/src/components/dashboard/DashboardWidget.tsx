@@ -1,4 +1,7 @@
 import { Suspense, lazy } from 'react';
+import { useAuth } from '@repo/ui';
+import { canAccessCard } from '@/lib/dashboard/resolveCards';
+import { getCardComponent, getCardDef } from '@/lib/dashboard/cardRegistry';
 
 interface WidgetConfig {
   id: string;
@@ -13,8 +16,10 @@ interface DashboardWidgetProps {
   isEditing: boolean;
 }
 
-// Widget registry - maps widget keys to components
-const widgetComponents: Record<string, any> = {
+// Legacy widget registry - maps widget keys to components
+// NOTE: This is being phased out in favor of cardRegistry
+// Keeping for backward compatibility during migration
+const legacyWidgetComponents: Record<string, any> = {
   'active-deals': lazy(() => import('@/components/widgets/ActiveDealsWidget')),
   'hot-leads': lazy(() => import('@/components/widgets/HotLeadsWidget')),
   'today-appointments': lazy(() => import('@/components/widgets/TodayAppointmentsWidget')),
@@ -45,8 +50,36 @@ function WidgetError({ widgetKey }: { widgetKey: string }) {
   );
 }
 
+function WidgetPermissionDenied({ widgetKey }: { widgetKey: string }) {
+  return (
+    <div className="flex items-center justify-center h-full text-center p-4">
+      <div>
+        <p className="text-gray-600 font-medium mb-1">Access Restricted</p>
+        <p className="text-xs text-gray-500">
+          You don't have permission to view "{widgetKey}"
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function DashboardWidget({ widget, isEditing }: DashboardWidgetProps) {
-  const WidgetComponent = widgetComponents[widget.key];
+  const { user } = useAuth();
+
+  // Try to get card definition from new registry
+  const cardDef = getCardDef(widget.key);
+
+  // Check permissions if card is registered in new system
+  const hasAccess = cardDef
+    ? canAccessCard(widget.key, {
+        user,
+        featureFlags: [], // TODO: Get from context
+        entityContext: {}, // TODO: Get from context
+      })
+    : true; // Legacy widgets bypass permission checks (for now)
+
+  // Get component from new registry or fall back to legacy
+  const WidgetComponent = getCardComponent(widget.key) || legacyWidgetComponents[widget.key];
 
   const gridColumn = `span ${widget.size.w}`;
   const gridRow = `span ${widget.size.h}`;
@@ -76,7 +109,10 @@ export function DashboardWidget({ widget, isEditing }: DashboardWidgetProps) {
       )}
 
       <div className="p-4 h-full">
-        {!WidgetComponent ? (
+        {/* Permission check - show denied state if no access */}
+        {!hasAccess ? (
+          <WidgetPermissionDenied widgetKey={widget.key} />
+        ) : !WidgetComponent ? (
           <WidgetError widgetKey={widget.key} />
         ) : (
           <Suspense fallback={<WidgetLoading />}>

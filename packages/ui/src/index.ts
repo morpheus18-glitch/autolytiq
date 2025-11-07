@@ -3,6 +3,12 @@
  * A comprehensive React component library built on design tokens
  */
 
+// Primitives (Low-level building blocks)
+export * from './primitives/index.js';
+
+// Card Patterns (Dashboard cards)
+export * from './patterns/cards/index.js';
+
 // Mobile-First Layout Components
 export { PageContainer, type PageContainerProps } from './components/PageContainer.js';
 export { ResponsiveGrid, type ResponsiveGridProps } from './components/ResponsiveGrid.js';
