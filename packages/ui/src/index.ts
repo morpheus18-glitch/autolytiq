@@ -83,6 +83,20 @@ export {
 } from './components/RadixTooltip.js';
 export { Separator } from './components/Separator.js';
 
+// Kanban/Board Components
+export { LaneBoard, Lane, type LaneBoardProps, type LaneProps } from './components/LaneBoard.js';
+export {
+  LaneCard,
+  LaneCardHeader,
+  LaneCardTitle,
+  LaneCardDescription,
+  LaneCardContent,
+  LaneCardFooter,
+  LaneCardBadge,
+  type LaneCardProps,
+  type LaneCardBadgeProps,
+} from './components/LaneCard.js';
+
 // Tier 3: Overlay Components
 export { Modal, modalOverlayVariants, modalContentVariants, type ModalProps } from './components/Modal.js';
 export { Dropdown, dropdownContentVariants, dropdownItemVariants, type DropdownProps, type DropdownItem } from './components/Dropdown.js';
