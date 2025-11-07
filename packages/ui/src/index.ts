@@ -313,6 +313,11 @@ export { VehicleCard, type VehicleCardProps, type VehicleSummary } from './compo
 export { CustomerCard, type CustomerCardProps, type CustomerSummary } from './components/CustomerCard.js';
 export { QuickView, type QuickViewProps } from './components/QuickView.js';
 
+// Widget Components (Insight Engine Phase 2)
+export { InsightCard, type InsightCardProps } from './components/widgets/InsightCard.js';
+export { InsightList, type InsightListProps } from './components/widgets/InsightList.js';
+export { StatusPulse, type StatusPulseProps } from './components/widgets/StatusPulse.js';
+
 // Hooks (Legacy - will be deprecated)
 export {
   useMobile,

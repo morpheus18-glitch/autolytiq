@@ -5,7 +5,8 @@
  */
 
 import { PrismaClient } from '@repo/db';
-import { listRules } from '@repo/shared/insights';
+// TODO: Integrate with new @repo/insights-engine package
+// import { listRules } from '@repo/shared/insights';
 import type { PredicateCtx, InsightRule, EvaluationContext } from '@repo/shared/insights';
 import { executeQuery } from './fetchers';
 import { buildEffectivePermissions, hasAnyPermission } from '@repo/shared/rbac';
@@ -124,7 +125,8 @@ export async function evaluateRules(context: EvaluationContext): Promise<void> {
     return;
   }
 
-  const rules = listRules();
+  // TODO: Integrate with new @repo/insights-engine package
+  const rules: any[] = []; // listRules();
 
   for (const rule of rules) {
     // Check if user has permission for this rule's audience
@@ -176,7 +178,8 @@ export async function evaluateRules(context: EvaluationContext): Promise<void> {
  * Dry-run evaluation - returns results without writing to DB
  */
 export async function dryRunEvaluation(context: EvaluationContext) {
-  const rules = listRules();
+  // TODO: Integrate with new @repo/insights-engine package
+  const rules: any[] = []; // listRules();
   const results = [];
 
   for (const rule of rules) {

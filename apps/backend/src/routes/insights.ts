@@ -6,7 +6,8 @@
 
 import { Router, Request } from 'express';
 import { z } from 'zod';
-import { listRules } from '@repo/shared/insights';
+// TODO: Integrate with new @repo/insights-engine package
+// import { listRules } from '@repo/shared/insights';
 import { dryRunEvaluation, evaluateRules } from '../services/insights/evaluator.js';
 import {
   getQueue,
@@ -57,19 +58,20 @@ const evaluateSchema = z.object({
 
 router.get('/rules', async (req, res) => {
   try {
-    const rules = listRules().map((r) => ({
-      key: r.key,
-      domain: r.domain,
-      severity: r.severity,
-      audience: r.audience,
-      tags: r.tags,
-      ttlMinutes: r.ttlMinutes,
-      cooldownMinutes: r.cooldownMinutes,
-    }));
+    // TODO: Integrate with new @repo/insights-engine package
+    // const rules = listRules().map((r) => ({
+    //   key: r.key,
+    //   domain: r.domain,
+    //   severity: r.severity,
+    //   audience: r.audience,
+    //   tags: r.tags,
+    //   ttlMinutes: r.ttlMinutes,
+    //   cooldownMinutes: r.cooldownMinutes,
+    // }));
 
     res.json({
-      rules,
-      count: rules.length,
+      rules: [],
+      count: 0,
     });
   } catch (error) {
     console.error('Failed to list rules:', error);

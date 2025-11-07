@@ -764,6 +764,25 @@ importers:
         specifier: ^6.0.1
         version: 6.2.1
 
+  packages/customization:
+    dependencies:
+      '@repo/policy-engine':
+        specifier: workspace:*
+        version: link:../policy-engine
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.16.11
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.0(jiti@2.4.2)(postcss@8.4.47)(tsx@4.19.2)(typescript@5.6.3)(yaml@2.6.0)
+      typescript:
+        specifier: ^5.0.0
+        version: 5.6.3
+
   packages/db:
     dependencies:
       '@prisma/client':
@@ -783,6 +802,60 @@ importers:
         specifier: 5.6.3
         version: 5.6.3
 
+  packages/insights-engine:
+    dependencies:
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@repo/state-bus':
+        specifier: workspace:*
+        version: link:../state-bus
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.16.11
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.0(jiti@2.4.2)(postcss@8.4.47)(tsx@4.19.2)(typescript@5.6.3)(yaml@2.6.0)
+      typescript:
+        specifier: ^5.0.0
+        version: 5.6.3
+
+  packages/layout-recipes:
+    dependencies:
+      '@repo/policy-engine':
+        specifier: workspace:*
+        version: link:../policy-engine
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.16.11
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.0(jiti@2.4.2)(postcss@8.4.47)(tsx@4.19.2)(typescript@5.6.3)(yaml@2.6.0)
+      typescript:
+        specifier: ^5.0.0
+        version: 5.6.3
+
+  packages/policy-engine:
+    dependencies:
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.16.11
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.0(jiti@2.4.2)(postcss@8.4.47)(tsx@4.19.2)(typescript@5.6.3)(yaml@2.6.0)
+      typescript:
+        specifier: ^5.0.0
+        version: 5.6.3
+
   packages/shared:
     dependencies:
       zod:
@@ -794,6 +867,22 @@ importers:
         version: 8.5.0(jiti@2.4.2)(postcss@8.4.47)(tsx@4.19.2)(typescript@5.6.3)(yaml@2.6.0)
       typescript:
         specifier: 5.6.3
+        version: 5.6.3
+
+  packages/state-bus:
+    dependencies:
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.16.11
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.0(jiti@2.4.2)(postcss@8.4.47)(tsx@4.19.2)(typescript@5.6.3)(yaml@2.6.0)
+      typescript:
+        specifier: ^5.0.0
         version: 5.6.3
 
   packages/tokens:
@@ -834,6 +923,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.0
         version: 1.2.0(@types/react-dom@18.3.1)(@types/react@18.3.12)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@repo/insights-engine':
+        specifier: workspace:*
+        version: link:../insights-engine
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.1
