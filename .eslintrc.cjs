@@ -47,4 +47,12 @@ module.exports = {
       },
     ],
   },
+  overrides: [
+    {
+      files: ['apps/frontend-dev/**/*'],
+      rules: {
+        'no-restricted-imports': 'off',
+      },
+    },
+  ],
 };

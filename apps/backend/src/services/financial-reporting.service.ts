@@ -62,7 +62,7 @@ export interface MonthlyPerformanceSummary {
     turnRate: number;
     totalValue: number;
   };
-  compared ToLastMonth: {
+  comparedToLastMonth: {
     dealsChange: number; // Percentage
     revenueChange: number;
     profitChange: number;

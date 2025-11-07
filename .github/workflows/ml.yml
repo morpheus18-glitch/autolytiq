@@ -40,7 +40,7 @@ jobs:
           push: true
           provenance: false
           sbom: false
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
 
@@ -54,13 +54,13 @@ jobs:
         with:
           token: ${{ secrets.DO_TOKEN }}
       - name: Configure kubectl
-        run: doctl kubernetes cluster kubeconfig save "$CLUSTER"
+        run: doctl kubernetes cluster kubeconfig save ${{ env.CLUSTER }}
       - name: Ensure namespace exists
-        run: kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+        run: kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
       - name: Refresh DOCR secret
         run: |
           doctl registry docker-config --expiry-seconds 3600 \
-            | kubectl -n "$NAMESPACE" create secret generic do-regcred \
+            | kubectl -n ${{ env.NAMESPACE }} create secret generic do-regcred \
               --from-file=.dockerconfigjson=/dev/stdin \
               --type=kubernetes.io/dockerconfigjson \
               --dry-run=client -o yaml | kubectl apply -f -
@@ -68,5 +68,5 @@ jobs:
         run: |
           sed "s|image:.*ml-service:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
             infrastructure/k8s/production/ml-service-deployment.yaml | \
-            kubectl apply -n "$NAMESPACE" -f -
-          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n "$NAMESPACE" --timeout=180s
+            kubectl apply -n ${{ env.NAMESPACE }} -f -
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }} --timeout=180s
