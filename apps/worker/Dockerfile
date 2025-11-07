@@ -10,7 +10,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 # Copy workspace files
-COPY package.json pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/db/package.json packages/db/
 COPY packages/shared/package.json packages/shared/
 COPY apps/worker/package.json apps/worker/
@@ -19,8 +19,7 @@ COPY apps/worker/package.json apps/worker/
 COPY packages/db/schema.prisma ./packages/db/schema.prisma
 
 # Install dependencies (postinstall will now find schema)
-# Note: No lockfile exists in repo, so we can't use --frozen-lockfile
-RUN pnpm install --filter @repo/worker...
+RUN pnpm install --frozen-lockfile --filter @repo/worker...
 
 # Copy source
 COPY packages ./packages
