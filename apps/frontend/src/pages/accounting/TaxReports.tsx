@@ -20,14 +20,14 @@ import {
 } from '@/lib/accountingApi';
 import AccountingLayout from './AccountingLayout';
 import { StatementHeader } from '@/components/accounting/StatementHeader.tsx';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@repo/ui';
+import { Button } from '@repo/ui';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@repo/ui';
+import { Skeleton } from '@repo/ui';
+import { Badge } from '@repo/ui';
+import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui';
+import { Calendar } from '@repo/ui';
 import {
   Command,
   CommandEmpty,
@@ -35,9 +35,9 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+} from '@repo/ui';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@repo/ui';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@repo/ui';
 import { useToast } from '@/hooks/use-toast';
 import {
   CalendarIcon,
