@@ -23,14 +23,14 @@ jobs:
         with:
           token: ${{ secrets.DO_TOKEN }}
       - name: Configure kubectl
-        run: doctl kubernetes cluster kubeconfig save "$CLUSTER"
+        run: doctl kubernetes cluster kubeconfig save ${{ env.CLUSTER }}
       - name: Ensure namespace exists
-        run: kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+        run: kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
       - name: Deploy Redis StatefulSet
         run: |
           kubectl apply -f infrastructure/k8s/production/redis-deployment.yaml
-          kubectl rollout status statefulset/redis -n "$NAMESPACE" --timeout=180s
+          kubectl rollout status statefulset/redis -n ${{ env.NAMESPACE }} --timeout=180s
       - name: Verify Redis is running
         run: |
-          kubectl get statefulset redis -n "$NAMESPACE"
-          kubectl get pods -l app.kubernetes.io/name=redis -n "$NAMESPACE"
+          kubectl get statefulset redis -n ${{ env.NAMESPACE }}
+          kubectl get pods -l app.kubernetes.io/name=redis -n ${{ env.NAMESPACE }}
