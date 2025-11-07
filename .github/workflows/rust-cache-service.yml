@@ -38,13 +38,13 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
-          context: ./services/rust
-          file: ./services/rust/Dockerfile
+          context: .
+          file: services/rust/Dockerfile
           push: true
           provenance: false
           sbom: false
           build-args: |
-            SERVICE=cache-service
+            SERVICE_NAME=cache-service
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
