@@ -1,25 +1,21 @@
-name: Backend Deploy
+name: Rust Price Engine Deploy
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'apps/backend/**'
-      - 'packages/db/**'
-      - 'packages/shared/**'
-      - 'packages/customization/**'
-      - 'packages/policy-engine/**'
-      - 'packages/state-bus/**'
-      - 'infrastructure/docker/Dockerfile.backend'
-      - 'infrastructure/k8s/production/backend-deployment.yaml'
-      - '.github/workflows/backend.yml'
+      - 'services/rust/price-engine/**'
+      - 'services/rust/shared/**'
+      - 'services/rust/proto/**'
+      - 'services/rust/Cargo.toml'
+      - '.github/workflows/rust-price-engine.yml'
   workflow_dispatch:
 
 env:
   REGISTRY: registry.digitalocean.com/autolytiq
-  IMAGE_NAME: backend
-  DEPLOYMENT_NAME: backend
+  IMAGE_NAME: rust-price-engine
+  DEPLOYMENT_NAME: rust-pricing
   NAMESPACE: autolytiq-prod
   CLUSTER: autolytiq-cluster
 
@@ -28,21 +24,27 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+
       - uses: docker/setup-buildx-action@v3
+
       - name: Set up doctl
         uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DO_TOKEN }}
+
       - name: Authenticate to DOCR
         run: doctl registry login --expiry-seconds 3600
+
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: infrastructure/docker/Dockerfile.backend
+          context: ./services/rust
+          file: ./services/rust/Dockerfile
           push: true
           provenance: false
           sbom: false
+          build-args: |
+            SERVICE=price-engine
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
@@ -52,36 +54,37 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up doctl
         uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DO_TOKEN }}
+
       - name: Configure kubectl
         run: doctl kubernetes cluster kubeconfig save ${{ env.CLUSTER }}
+
       - name: Create namespace
         run: kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
-      - name: Create secrets
+
+      - name: Refresh secrets
         run: |
-          kubectl create secret generic app-env -n ${{ env.NAMESPACE }} \
+          kubectl create secret generic rust-price-engine-env -n ${{ env.NAMESPACE }} \
             --from-literal=DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-            --from-literal=DIRECT_URL="${{ secrets.DIRECT_URL }}" \
-            --from-literal=JWT_PRIVATE_KEY="${{ secrets.JWT_PRIVATE_KEY }}" \
-            --from-literal=JWT_PUBLIC_KEY="${{ secrets.JWT_PUBLIC_KEY }}" \
-            --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-            --from-literal=NODE_ENV=production \
             --from-literal=REDIS_URL="${{ secrets.REDIS_URL }}" \
-            --from-literal=PRICE_ENGINE__DATABASE__URL="${{ secrets.DATABASE_URL }}" \
-            --from-literal=PRICE_ENGINE__REDIS__URL="${{ secrets.REDIS_URL }}" \
+            --from-literal=RUST_LOG=info \
             --dry-run=client -o yaml | kubectl apply -f -
+
           doctl registry docker-config --expiry-seconds 3600 | \
             kubectl -n ${{ env.NAMESPACE }} create secret generic do-regcred \
             --from-file=.dockerconfigjson=/dev/stdin \
             --type=kubernetes.io/dockerconfigjson \
             --dry-run=client -o yaml | kubectl apply -f -
-      - name: Deploy
+
+      - name: Deploy price engine
         run: |
-          sed "s|image:.*backend:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
-            infrastructure/k8s/production/backend-deployment.yaml | \
+          sed "s|image:.*rust-price-engine:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
+            infrastructure/k8s/production/rust-pricing-deployment.yaml | \
             kubectl apply -n ${{ env.NAMESPACE }} -f -
+
       - name: Wait for rollout
-        run: kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }} --timeout=600s
+        run: kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }} --timeout=300s

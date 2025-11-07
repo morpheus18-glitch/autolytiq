@@ -1,0 +1,142 @@
+name: Rust Tax Service Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'services/rust/tax-svc/**'
+      - 'services/rust/shared/**'
+      - '.github/workflows/rust-tax-service.yml'
+  workflow_dispatch:
+
+env:
+  REGISTRY: registry.digitalocean.com/autolytiq
+  IMAGE_NAME: rust-tax-service
+  DEPLOYMENT_NAME: rust-tax-service
+  NAMESPACE: autolytiq-prod
+  CLUSTER: autolytiq-cluster
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Set up doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Authenticate to DOCR
+        run: doctl registry login --expiry-seconds 3600
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/rust/tax-svc
+          file: ./services/rust/tax-svc/Dockerfile
+          push: true
+          provenance: false
+          sbom: false
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+
+  deploy:
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Configure kubectl
+        run: doctl kubernetes cluster kubeconfig save ${{ env.CLUSTER }}
+
+      - name: Create namespace
+        run: kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Refresh secrets
+        run: |
+          kubectl create secret generic rust-tax-env -n ${{ env.NAMESPACE }} \
+            --from-literal=REDIS_URL="${{ secrets.REDIS_URL }}" \
+            --from-literal=RUST_LOG=info \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          doctl registry docker-config --expiry-seconds 3600 | \
+            kubectl -n ${{ env.NAMESPACE }} create secret generic do-regcred \
+            --from-file=.dockerconfigjson=/dev/stdin \
+            --type=kubernetes.io/dockerconfigjson \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy tax service
+        run: |
+          kubectl apply -f - <<EOF
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: ${{ env.DEPLOYMENT_NAME }}
+            namespace: ${{ env.NAMESPACE }}
+          spec:
+            replicas: 2
+            selector:
+              matchLabels:
+                app: rust-tax-service
+            template:
+              metadata:
+                labels:
+                  app: rust-tax-service
+              spec:
+                imagePullSecrets:
+                  - name: do-regcred
+                containers:
+                  - name: tax-service
+                    image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+                    ports:
+                      - containerPort: 8080
+                        name: http
+                    envFrom:
+                      - secretRef:
+                          name: rust-tax-env
+                    resources:
+                      requests:
+                        memory: "128Mi"
+                        cpu: "100m"
+                      limits:
+                        memory: "512Mi"
+                        cpu: "1000m"
+                    livenessProbe:
+                      httpGet:
+                        path: /health
+                        port: 8080
+                      initialDelaySeconds: 10
+                      periodSeconds: 30
+                    readinessProbe:
+                      httpGet:
+                        path: /health
+                        port: 8080
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: rust-tax-service
+            namespace: ${{ env.NAMESPACE }}
+          spec:
+            selector:
+              app: rust-tax-service
+            ports:
+              - port: 8080
+                targetPort: 8080
+                name: http
+          EOF
+
+      - name: Wait for rollout
+        run: kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }} --timeout=300s
