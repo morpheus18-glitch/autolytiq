@@ -32,6 +32,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Debug - Show workspace structure
+        run: |
+          echo "=== Workspace Structure ==="
+          ls -la packages/
+          echo "=== Frontend Package ==="
+          cat apps/frontend/package.json | grep -A 5 dependencies
+
       - uses: docker/setup-buildx-action@v3
 
       - name: Set up doctl
@@ -41,6 +48,14 @@ jobs:
 
       - name: Authenticate to DOCR
         run: doctl registry login --expiry-seconds 3600
+
+      - name: Debug - Show Docker build context
+        run: |
+          echo "=== Building Frontend Image ==="
+          echo "Registry: ${{ env.REGISTRY }}"
+          echo "Image: ${{ env.IMAGE_NAME }}"
+          echo "Tag: ${{ github.sha }}"
+          echo "Dockerfile: apps/frontend/Dockerfile"
 
       - name: Build and push image
         uses: docker/build-push-action@v6
@@ -53,7 +68,7 @@ jobs:
           build-args: |
             VITE_API_URL=https://api.autolytiq.com
             VITE_ML_SERVICE_URL=https://ml.autolytiq.com
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
 

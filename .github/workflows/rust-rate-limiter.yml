@@ -26,6 +26,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Debug - Show rate-limiter structure
+        run: |
+          echo "=== Building Rust Rate Limiter ==="
+          echo "Service: ${{ env.SERVICE_NAME }}"
+          echo "Image: ${{ env.IMAGE_NAME }}"
+          ls -la services/rust/rate-limiter/
+
       - uses: docker/setup-buildx-action@v3
 
       - name: Set up doctl

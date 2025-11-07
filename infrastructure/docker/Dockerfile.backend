@@ -21,6 +21,9 @@ COPY packages/db/package.json packages/db/
 COPY packages/db/schema.prisma packages/db/
 COPY packages/shared/package.json packages/shared/
 COPY packages/tokens/package.json packages/tokens/
+COPY packages/customization/package.json packages/customization/
+COPY packages/policy-engine/package.json packages/policy-engine/
+COPY packages/state-bus/package.json packages/state-bus/
 
 # Install without filter
 RUN pnpm install --frozen-lockfile

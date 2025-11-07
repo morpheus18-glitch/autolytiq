@@ -14,7 +14,7 @@ on:
 
 env:
   REGISTRY: registry.digitalocean.com/autolytiq
-  IMAGE_NAME: rust-price-engine
+  IMAGE_NAME: rust-pricing
   DEPLOYMENT_NAME: rust-pricing
   NAMESPACE: autolytiq-prod
   CLUSTER: autolytiq-cluster
@@ -26,6 +26,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Debug - Show Rust service structure
+        run: |
+          echo "=== Rust Services Structure ==="
+          ls -la services/rust/
+          echo "=== Price Engine ==="
+          ls -la services/rust/price-engine/
+          echo "=== Rust Dockerfile ==="
+          head -20 services/rust/Dockerfile
+
       - uses: docker/setup-buildx-action@v3
 
       - name: Set up doctl
@@ -35,6 +44,15 @@ jobs:
 
       - name: Authenticate to DOCR
         run: doctl registry login --expiry-seconds 3600
+
+      - name: Debug - Show build configuration
+        run: |
+          echo "=== Building Rust Price Engine ==="
+          echo "Registry: ${{ env.REGISTRY }}"
+          echo "Image: ${{ env.IMAGE_NAME }}"
+          echo "Tag: ${{ github.sha }}"
+          echo "Service: ${{ env.SERVICE_NAME }}"
+          echo "Dockerfile: services/rust/Dockerfile"
 
       - name: Build and push image
         uses: docker/build-push-action@v6
@@ -46,7 +64,7 @@ jobs:
           sbom: false
           build-args: |
             SERVICE_NAME=${{ env.SERVICE_NAME }}
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
 
@@ -83,7 +101,7 @@ jobs:
 
       - name: Deploy price engine
         run: |
-          sed "s|image:.*rust-price-engine:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
+          sed "s|image:.*rust-pricing:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
             infrastructure/k8s/production/rust-pricing-deployment.yaml | \
             kubectl apply -n ${{ env.NAMESPACE }} -f -
 

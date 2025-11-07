@@ -4,7 +4,7 @@ FROM rust:1.75-slim as builder
 WORKDIR /usr/src/tax-svc
 
 # Copy manifests
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml ./
 
 # Copy source code
 COPY src ./src

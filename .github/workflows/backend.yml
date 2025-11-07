@@ -28,6 +28,16 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+
+      - name: Debug - Show workspace structure
+        run: |
+          echo "=== Workspace Structure ==="
+          ls -la packages/
+          echo "=== Backend Package ==="
+          cat apps/backend/package.json | grep -A 5 dependencies
+          echo "=== Dockerfile Path ==="
+          ls -la infrastructure/docker/Dockerfile.backend
+
       - uses: docker/setup-buildx-action@v3
       - name: Set up doctl
         uses: digitalocean/action-doctl@v2
@@ -35,6 +45,14 @@ jobs:
           token: ${{ secrets.DO_TOKEN }}
       - name: Authenticate to DOCR
         run: doctl registry login --expiry-seconds 3600
+      - name: Debug - Show Docker build info
+        run: |
+          echo "=== Building Backend Image ==="
+          echo "Registry: ${{ env.REGISTRY }}"
+          echo "Image: ${{ env.IMAGE_NAME }}"
+          echo "Tag: ${{ github.sha }}"
+          echo "Dockerfile: infrastructure/docker/Dockerfile.backend"
+
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
@@ -43,7 +61,7 @@ jobs:
           push: true
           provenance: false
           sbom: false
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
 

@@ -16,12 +16,18 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/tokens/package.json ./packages/tokens/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/ui/package.json ./packages/ui/
+COPY packages/insights-engine/package.json ./packages/insights-engine/
+COPY packages/state-bus/package.json ./packages/state-bus/
+COPY packages/layout-recipes/package.json ./packages/layout-recipes/
 COPY apps/frontend/package.json ./apps/frontend/
 
 # Install workspace dependencies with dev tooling for builds
 RUN pnpm install \
     --filter @repo/tokens... \
     --filter @repo/shared... \
+    --filter @repo/state-bus... \
+    --filter @repo/insights-engine... \
+    --filter @repo/layout-recipes... \
     --filter @repo/ui... \
     --filter @repo/frontend... \
     --frozen-lockfile \
@@ -33,6 +39,9 @@ COPY . .
 # Build workspace packages in dependency order before the frontend
 RUN pnpm --filter @repo/shared build
 RUN pnpm --filter @repo/tokens build
+RUN pnpm --filter @repo/state-bus build
+RUN pnpm --filter @repo/insights-engine build
+RUN pnpm --filter @repo/layout-recipes build
 RUN pnpm --filter @repo/ui build
 
 WORKDIR /workspace/apps/frontend

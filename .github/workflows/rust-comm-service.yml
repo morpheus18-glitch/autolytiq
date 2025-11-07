@@ -9,8 +9,6 @@ on:
       - 'services/rust/shared/**'
       - 'services/rust/proto/**'
       - 'services/rust/Cargo.toml'
-      - 'services/rust/Dockerfile'
-      - 'infrastructure/k8s/production/rust-comm-service-deployment.yaml'
       - '.github/workflows/rust-comm-service.yml'
   workflow_dispatch:
 
@@ -28,6 +26,14 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+
+      - name: Debug - Show comm-service structure
+        run: |
+          echo "=== Building Rust Comm Service ==="
+          echo "Service: ${{ env.SERVICE_NAME }}"
+          echo "Image: ${{ env.IMAGE_NAME }}"
+          ls -la services/rust/comm-service/
+
       - uses: docker/setup-buildx-action@v3
       - name: Set up doctl
         uses: digitalocean/action-doctl@v2
