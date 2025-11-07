@@ -129,6 +129,39 @@ pnpm changelog:update "Brief description of changes"
 
 This is enforced by the team workflow (see `AGENTS.md` §6).
 
+### Documentation File Organization Rule
+
+**CRITICAL**: All `.md` files MUST be stored in the `docs/` directory hierarchy:
+
+```
+✅ CORRECT:
+docs/specs/FEATURE_NAME.md
+docs/ui/COMPONENT_GUIDE.md
+docs/architecture/DESIGN.md
+docs/deployment/GUIDE.md
+README.md (root level only)
+
+❌ INCORRECT:
+ROOT_LEVEL_DOC.md (except README.md)
+apps/backend/NOTES.md
+packages/ui/RANDOM.md
+```
+
+**Enforcement**:
+- **ONLY** `README.md` is allowed at repository root
+- All other markdown files → `docs/` with appropriate subdirectories:
+  - `docs/specs/` - Feature specifications
+  - `docs/ui/` - Component library & UI documentation
+  - `docs/architecture/` - System design & architecture
+  - `docs/deployment/` - Deployment & operations
+  - `docs/guides/` - How-to guides & troubleshooting
+  - `docs/features/` - Feature documentation
+  - `docs/operations/` - Runbooks & procedures
+- Package-specific READMEs (e.g., `packages/db/seed/README.md`) are allowed
+- App-specific READMEs (e.g., `apps/frontend/README.md`) are allowed
+
+**Pre-commit check**: `scripts/check-markdown-location.sh` validates this rule.
+
 ## Architecture Overview
 
 ### Monorepo Structure
