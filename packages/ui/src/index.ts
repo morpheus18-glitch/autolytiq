@@ -37,6 +37,19 @@ export { Progress, progressVariants, progressBarVariants, type ProgressProps } f
 // Tier 1: Form Components
 export { Select, selectVariants } from './components/Select.js';
 export type { SelectProps } from './components/Select.js';
+// Radix Select (compound component API)
+export {
+  Select as RadixSelect,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+} from './components/RadixSelect.js';
 export { Textarea, textareaVariants, type TextareaProps } from './components/Textarea.js';
 export { Checkbox, checkboxVariants, type CheckboxProps } from './components/Checkbox.js';
 export { Radio, RadioGroup, radioVariants, type RadioProps, type RadioGroupProps } from './components/Radio.js';
@@ -61,14 +74,39 @@ export {
   type TableProps,
 } from './components/Table.js';
 export { Tooltip, tooltipVariants, type TooltipProps } from './components/Tooltip.js';
+// Radix Tooltip (compound component API)
+export {
+  TooltipProvider,
+  Tooltip as RadixTooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from './components/RadixTooltip.js';
 export { Separator } from './components/Separator.js';
 
 // Tier 3: Overlay Components
 export { Modal, modalOverlayVariants, modalContentVariants, type ModalProps } from './components/Modal.js';
 export { Dropdown, dropdownContentVariants, dropdownItemVariants, type DropdownProps, type DropdownItem } from './components/Dropdown.js';
 export { Popover, popoverContentVariants, popoverArrowVariants, type PopoverProps } from './components/Popover.js';
+// Radix Popover (compound component API)
+export {
+  Popover as RadixPopover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverAnchor,
+} from './components/RadixPopover.js';
 export { Sheet, sheetOverlayVariants, sheetContentVariants, type SheetProps } from './components/Sheet.js';
 export { Toast, ToastProvider, useToast, toastVariants, type ToastProps } from './components/Toast.js';
+// Command Palette
+export {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandShortcut,
+  CommandSeparator,
+} from './components/RadixCommand.js';
 
 // Tier 4: Navigation Components
 export { Accordion, accordionVariants, type AccordionProps, type AccordionItem } from './components/Accordion.js';
