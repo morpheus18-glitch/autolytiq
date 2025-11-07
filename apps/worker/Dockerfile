@@ -41,14 +41,12 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV NODE_ENV=production
 WORKDIR /app
 
-# Copy built artifacts and node_modules
+# Copy built artifacts and node_modules (includes pnpm store with Prisma)
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/worker/package.json ./
 
 COPY --from=builder /app/apps/worker/index.js ./index.js
 COPY --from=builder /app/apps/worker/prisma ./prisma
-COPY --from=builder /app/apps/worker/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/apps/worker/node_modules/@prisma ./node_modules/@prisma
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 RUN chown -R nodejs:nodejs /app

@@ -52,16 +52,13 @@ COPY services/rust/tax-svc ./tax-svc
 COPY services/rust/proto ./proto
 
 # Build with cache mount but copy binary OUT before mount disappears
-# Note: Rust converts hyphens to underscores in binary names (tax-svc -> tax_svc)
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     cargo build --manifest-path Cargo.toml --release -p ${SERVICE_NAME} && \
-    BINARY_NAME=$(echo ${SERVICE_NAME} | tr '-' '_') && \
-    cp target/release/${BINARY_NAME} /tmp/service-binary
+    cp target/release/${SERVICE_NAME} /tmp/service-binary
 
 # Copy the binary to a known location that persists
-RUN BINARY_NAME=$(echo ${SERVICE_NAME} | tr '-' '_') && \
-    cp /tmp/service-binary target/release/${BINARY_NAME}
+RUN cp /tmp/service-binary target/release/${SERVICE_NAME}
 
 FROM debian:12-slim AS runtime
 ARG SERVICE_NAME=price-engine
