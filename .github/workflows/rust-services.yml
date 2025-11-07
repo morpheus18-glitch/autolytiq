@@ -1,0 +1,189 @@
+name: Rust Services (Consolidated)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'services/rust/**'
+      - '.github/workflows/rust-services.yml'
+  workflow_dispatch:
+
+env:
+  REGISTRY: registry.digitalocean.com/autolytiq
+  IMAGE_NAME: rust-services
+  NAMESPACE: autolytiq-prod
+  CLUSTER: autolytiq-cluster
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Debug - Show Rust services structure
+        run: |
+          echo "=== Rust Services Structure ==="
+          ls -la services/rust/
+          echo ""
+          echo "=== All Services ==="
+          for svc in price-engine cache-service comm-service rate-limiter tax-svc; do
+            if [ -d "services/rust/$svc" ]; then
+              echo "✅ $svc"
+              ls -la services/rust/$svc/
+            fi
+          done
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Set up doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Authenticate to DOCR
+        run: doctl registry login --expiry-seconds 3600
+
+      - name: Debug - Show build configuration
+        run: |
+          echo "=== Building Consolidated Rust Services Image ==="
+          echo "Registry: ${{ env.REGISTRY }}"
+          echo "Image: ${{ env.IMAGE_NAME }}"
+          echo "Tag: ${{ github.sha }}"
+          echo "Dockerfile: services/rust/Dockerfile.consolidated"
+          echo ""
+          echo "This ONE image contains ALL 5 Rust services:"
+          echo "  - price-engine (port 50051)"
+          echo "  - cache-service (port 50053)"
+          echo "  - comm-service (port 50052)"
+          echo "  - rate-limiter (port 50054)"
+          echo "  - tax-svc (port 8080)"
+
+      - name: Build and push consolidated image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/rust/Dockerfile.consolidated
+          push: true
+          provenance: false
+          sbom: false
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+
+  deploy:
+    runs-on: ubuntu-22.04
+    needs: build
+    strategy:
+      matrix:
+        service:
+          - name: price-engine
+            deployment: rust-pricing
+            port: 50051
+          - name: cache-service
+            deployment: rust-cache-service
+            port: 50053
+          - name: comm-service
+            deployment: rust-comm-service
+            port: 50052
+          - name: rate-limiter
+            deployment: rust-rate-limiter
+            port: 50054
+          - name: tax-svc
+            deployment: rust-tax-service
+            port: 8080
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Configure kubectl
+        run: doctl kubernetes cluster kubeconfig save ${{ env.CLUSTER }}
+
+      - name: Create namespace
+        run: kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Refresh secrets
+        run: |
+          kubectl create secret generic rust-${{ matrix.service.name }}-env -n ${{ env.NAMESPACE }} \
+            --from-literal=SERVICE_NAME=${{ matrix.service.name }} \
+            --from-literal=DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            --from-literal=REDIS_URL="${{ secrets.REDIS_URL }}" \
+            --from-literal=RUST_LOG=info \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          doctl registry docker-config --expiry-seconds 3600 | \
+            kubectl -n ${{ env.NAMESPACE }} create secret generic do-regcred \
+            --from-file=.dockerconfigjson=/dev/stdin \
+            --type=kubernetes.io/dockerconfigjson \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy ${{ matrix.service.name }}
+        run: |
+          # Check if deployment file exists
+          DEPLOYMENT_FILE="infrastructure/k8s/production/${{ matrix.service.deployment }}-deployment.yaml"
+
+          if [ -f "$DEPLOYMENT_FILE" ]; then
+            echo "Using existing deployment file: $DEPLOYMENT_FILE"
+            sed "s|image:.*rust-.*:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
+              "$DEPLOYMENT_FILE" | \
+              kubectl apply -n ${{ env.NAMESPACE }} -f -
+          else
+            echo "Creating inline deployment for ${{ matrix.service.name }}"
+            kubectl apply -f - <<EOF
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: ${{ matrix.service.deployment }}
+            namespace: ${{ env.NAMESPACE }}
+          spec:
+            replicas: 2
+            selector:
+              matchLabels:
+                app: ${{ matrix.service.deployment }}
+            template:
+              metadata:
+                labels:
+                  app: ${{ matrix.service.deployment }}
+              spec:
+                imagePullSecrets:
+                  - name: do-regcred
+                containers:
+                  - name: ${{ matrix.service.name }}
+                    image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+                    ports:
+                      - containerPort: ${{ matrix.service.port }}
+                        name: service
+                    envFrom:
+                      - secretRef:
+                          name: rust-${{ matrix.service.name }}-env
+                    resources:
+                      requests:
+                        memory: "128Mi"
+                        cpu: "100m"
+                      limits:
+                        memory: "512Mi"
+                        cpu: "1000m"
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: ${{ matrix.service.deployment }}
+            namespace: ${{ env.NAMESPACE }}
+          spec:
+            selector:
+              app: ${{ matrix.service.deployment }}
+            ports:
+              - port: ${{ matrix.service.port }}
+                targetPort: ${{ matrix.service.port }}
+                name: service
+          EOF
+          fi
+
+      - name: Wait for ${{ matrix.service.name }} rollout
+        run: kubectl rollout status deployment/${{ matrix.service.deployment }} -n ${{ env.NAMESPACE }} --timeout=300s

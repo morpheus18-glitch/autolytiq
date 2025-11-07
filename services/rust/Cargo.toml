@@ -5,6 +5,7 @@ members = [
     "shared",
     "cache-service",
     "rate-limiter",
+    "tax-svc",
 ]
 resolver = "2"
 

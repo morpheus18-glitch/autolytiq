@@ -1,0 +1,136 @@
+# syntax=docker/dockerfile:1.7
+# Consolidated Dockerfile for ALL Rust microservices
+# Builds all services in one image, runs based on SERVICE_NAME env var
+
+ARG RUST_VERSION=1.83
+
+FROM rust:${RUST_VERSION}-slim-bookworm AS builder
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      pkg-config \
+      libssl-dev \
+      libpq-dev \
+      clang \
+      protobuf-compiler \
+ && rm -rf /var/lib/apt/lists/*
+
+# Copy all workspace manifests
+COPY services/rust/Cargo.toml ./Cargo.toml
+COPY services/rust/price-engine/Cargo.toml price-engine/Cargo.toml
+COPY services/rust/shared/Cargo.toml shared/Cargo.toml
+COPY services/rust/cache-service/Cargo.toml cache-service/Cargo.toml
+COPY services/rust/comm-service/Cargo.toml comm-service/Cargo.toml
+COPY services/rust/rate-limiter/Cargo.toml rate-limiter/Cargo.toml
+COPY services/rust/tax-svc/Cargo.toml tax-svc/Cargo.toml
+
+# Create dummy source files for dependency caching
+RUN mkdir -p \
+      price-engine/src \
+      shared/src \
+      cache-service/src \
+      comm-service/src \
+      rate-limiter/src \
+      tax-svc/src \
+ && echo 'fn main() {}' > price-engine/src/main.rs \
+ && echo 'fn main() {}' > cache-service/src/main.rs \
+ && echo 'fn main() {}' > comm-service/src/main.rs \
+ && echo 'fn main() {}' > rate-limiter/src/main.rs \
+ && echo 'fn main() {}' > tax-svc/src/main.rs \
+ && echo 'pub fn placeholder() {}' > shared/src/lib.rs
+
+# Build dependencies with cache mount
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    cargo fetch --manifest-path Cargo.toml
+
+# Copy actual source code
+COPY services/rust/shared ./shared
+COPY services/rust/cache-service ./cache-service
+COPY services/rust/comm-service ./comm-service
+COPY services/rust/rate-limiter ./rate-limiter
+COPY services/rust/price-engine ./price-engine
+COPY services/rust/tax-svc ./tax-svc
+COPY services/rust/proto ./proto
+
+# Build ALL services
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    cargo build --manifest-path Cargo.toml --release && \
+    mkdir -p /tmp/binaries && \
+    cp target/release/price-engine /tmp/binaries/ && \
+    cp target/release/cache-service /tmp/binaries/ && \
+    cp target/release/comm-service /tmp/binaries/ && \
+    cp target/release/rate-limiter /tmp/binaries/ && \
+    cp target/release/tax-svc /tmp/binaries/
+
+# Runtime stage
+FROM debian:12-slim AS runtime
+
+ENV RUST_LOG=info \
+    DATABASE_URL="sqlite:////srv/app/storage/dev.db"
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      ca-certificates \
+      libssl3 \
+      libpq5 \
+      curl \
+ && rm -rf /var/lib/apt/lists/* \
+ && curl -fsSL https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.23/grpc_health_probe-linux-amd64 \
+      -o /usr/local/bin/grpc_health_probe \
+ && chmod +x /usr/local/bin/grpc_health_probe \
+ && groupadd --system --gid 1001 rustsvc \
+ && useradd --system --uid 1001 --gid rustsvc --home /srv/app --shell /usr/sbin/nologin rustsvc
+
+WORKDIR /srv/app
+
+# Copy ALL service binaries
+COPY --from=builder /tmp/binaries/* /usr/local/bin/
+
+# Create entrypoint script
+RUN cat > /usr/local/bin/entrypoint.sh <<'ENTRYPOINT' && chmod +x /usr/local/bin/entrypoint.sh
+#!/bin/bash
+set -e
+
+# Determine which service to run based on SERVICE_NAME env var
+case "${SERVICE_NAME}" in
+  price-engine)
+    echo "Starting Price Engine on port 50051..."
+    exec /usr/local/bin/price-engine
+    ;;
+  cache-service)
+    echo "Starting Cache Service on port 50053..."
+    exec /usr/local/bin/cache-service
+    ;;
+  comm-service)
+    echo "Starting Communication Service on port 50052..."
+    exec /usr/local/bin/comm-service
+    ;;
+  rate-limiter)
+    echo "Starting Rate Limiter on port 50054..."
+    exec /usr/local/bin/rate-limiter
+    ;;
+  tax-svc)
+    echo "Starting Tax Service on port 8080..."
+    exec /usr/local/bin/tax-svc
+    ;;
+  *)
+    echo "ERROR: SERVICE_NAME must be one of: price-engine, cache-service, comm-service, rate-limiter, tax-svc"
+    echo "Current SERVICE_NAME: ${SERVICE_NAME}"
+    exit 1
+    ;;
+esac
+ENTRYPOINT
+
+RUN mkdir -p storage \
+ && chown -R rustsvc:rustsvc /srv/app
+
+USER rustsvc
+
+# Expose all possible ports (actual port depends on SERVICE_NAME)
+EXPOSE 50051 50052 50053 50054 8080
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
