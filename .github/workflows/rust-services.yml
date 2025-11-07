@@ -78,23 +78,29 @@ jobs:
     runs-on: ubuntu-22.04
     needs: build
     strategy:
+      fail-fast: false
       matrix:
         service:
           - name: price-engine
             deployment: rust-pricing
             port: 50051
+            protocol: grpc
           - name: cache-service
             deployment: rust-cache-service
             port: 50053
+            protocol: grpc
           - name: comm-service
             deployment: rust-comm-service
             port: 50052
+            protocol: grpc
           - name: rate-limiter
             deployment: rust-rate-limiter
             port: 50054
+            protocol: grpc
           - name: tax-svc
             deployment: rust-tax-service
             port: 8080
+            protocol: http
     steps:
       - uses: actions/checkout@v4
 
@@ -131,7 +137,8 @@ jobs:
 
           if [ -f "$DEPLOYMENT_FILE" ]; then
             echo "Using existing deployment file: $DEPLOYMENT_FILE"
-            sed "s|image:.*rust-.*:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
+            # More robust sed pattern
+            sed -E "s|image:\s*[^[:space:]]+rust-[^:]+:[^[:space:]]+|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
               "$DEPLOYMENT_FILE" | \
               kubectl apply -n ${{ env.NAMESPACE }} -f -
           else
@@ -160,9 +167,26 @@ jobs:
                     ports:
                       - containerPort: ${{ matrix.service.port }}
                         name: service
+                    env:
+                      - name: SERVICE_NAME
+                        value: "${{ matrix.service.name }}"
+                      - name: PORT
+                        value: "${{ matrix.service.port }}"
+                      - name: RUST_LOG
+                        value: "info"
                     envFrom:
                       - secretRef:
                           name: rust-${{ matrix.service.name }}-env
+                    readinessProbe:
+                      tcpSocket:
+                        port: service
+                      initialDelaySeconds: 5
+                      periodSeconds: 5
+                    livenessProbe:
+                      tcpSocket:
+                        port: service
+                      initialDelaySeconds: 15
+                      periodSeconds: 10
                     resources:
                       requests:
                         memory: "128Mi"

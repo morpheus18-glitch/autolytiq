@@ -61,11 +61,12 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/app/target \
     cargo build --manifest-path Cargo.toml --release -j $(nproc) && \
     mkdir -p /tmp/binaries && \
-    cp target/release/price-engine /tmp/binaries/ && \
-    cp target/release/cache-service /tmp/binaries/ && \
-    cp target/release/comm-service /tmp/binaries/ && \
-    cp target/release/rate-limiter /tmp/binaries/ && \
-    cp target/release/tax-svc /tmp/binaries/
+    cp target/release/price-engine /tmp/binaries/price-engine && \
+    cp target/release/cache-service /tmp/binaries/cache-service && \
+    cp target/release/comm-service /tmp/binaries/comm-service && \
+    cp target/release/rate-limiter /tmp/binaries/rate-limiter && \
+    cp target/release/tax-svc /tmp/binaries/tax-svc && \
+    ls -lah /tmp/binaries/
 
 # Runtime stage
 FROM debian:12-slim AS runtime
@@ -88,50 +89,27 @@ RUN apt-get update \
 
 WORKDIR /srv/app
 
-# Copy ALL service binaries
-COPY --from=builder /tmp/binaries/* /usr/local/bin/
+# Copy ALL service binaries to /app/bin/
+RUN mkdir -p /app/bin
+COPY --from=builder /tmp/binaries/price-engine /app/bin/price-engine
+COPY --from=builder /tmp/binaries/cache-service /app/bin/cache-service
+COPY --from=builder /tmp/binaries/comm-service /app/bin/comm-service
+COPY --from=builder /tmp/binaries/rate-limiter /app/bin/rate-limiter
+COPY --from=builder /tmp/binaries/tax-svc /app/bin/tax-svc
 
-# Create entrypoint script
-RUN cat > /usr/local/bin/entrypoint.sh <<'ENTRYPOINT' && chmod +x /usr/local/bin/entrypoint.sh
-#!/bin/bash
-set -e
-
-# Determine which service to run based on SERVICE_NAME env var
-case "${SERVICE_NAME}" in
-  price-engine)
-    echo "Starting Price Engine on port 50051..."
-    exec /usr/local/bin/price-engine
-    ;;
-  cache-service)
-    echo "Starting Cache Service on port 50053..."
-    exec /usr/local/bin/cache-service
-    ;;
-  comm-service)
-    echo "Starting Communication Service on port 50052..."
-    exec /usr/local/bin/comm-service
-    ;;
-  rate-limiter)
-    echo "Starting Rate Limiter on port 50054..."
-    exec /usr/local/bin/rate-limiter
-    ;;
-  tax-svc)
-    echo "Starting Tax Service on port 8080..."
-    exec /usr/local/bin/tax-svc
-    ;;
-  *)
-    echo "ERROR: SERVICE_NAME must be one of: price-engine, cache-service, comm-service, rate-limiter, tax-svc"
-    echo "Current SERVICE_NAME: ${SERVICE_NAME}"
-    exit 1
-    ;;
-esac
-ENTRYPOINT
+# Copy dispatcher script
+COPY services/rust/ops/dispatch.sh /app/dispatch.sh
+RUN chmod +x /app/dispatch.sh /app/bin/*
 
 RUN mkdir -p storage \
- && chown -R rustsvc:rustsvc /srv/app
+ && chown -R rustsvc:rustsvc /srv/app /app
 
 USER rustsvc
 
 # Expose all possible ports (actual port depends on SERVICE_NAME)
 EXPOSE 50051 50052 50053 50054 8080
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# Verify binaries exist
+RUN ls -lah /app/bin/
+
+ENTRYPOINT ["/app/dispatch.sh"]
