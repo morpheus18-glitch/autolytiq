@@ -18,6 +18,7 @@ env:
   DEPLOYMENT_NAME: rust-cache-service
   NAMESPACE: autolytiq-prod
   CLUSTER: autolytiq-cluster
+  SERVICE_NAME: cache-service
 
 jobs:
   build:
@@ -44,7 +45,7 @@ jobs:
           provenance: false
           sbom: false
           build-args: |
-            SERVICE_NAME=cache-service
+            SERVICE_NAME=${{ env.SERVICE_NAME }}
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
