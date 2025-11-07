@@ -72,6 +72,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+        timeout-minutes: 45
 
   deploy:
     runs-on: ubuntu-22.04
@@ -186,4 +187,4 @@ jobs:
           fi
 
       - name: Wait for ${{ matrix.service.name }} rollout
-        run: kubectl rollout status deployment/${{ matrix.service.deployment }} -n ${{ env.NAMESPACE }} --timeout=300s
+        run: kubectl rollout status deployment/${{ matrix.service.deployment }} -n ${{ env.NAMESPACE }} --timeout=600s

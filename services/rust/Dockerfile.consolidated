@@ -55,10 +55,11 @@ COPY services/rust/price-engine ./price-engine
 COPY services/rust/tax-svc ./tax-svc
 COPY services/rust/proto ./proto
 
-# Build ALL services
+# Build ALL services with parallel compilation
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    cargo build --manifest-path Cargo.toml --release && \
+    --mount=type=cache,target=/app/target \
+    cargo build --manifest-path Cargo.toml --release -j $(nproc) && \
     mkdir -p /tmp/binaries && \
     cp target/release/price-engine /tmp/binaries/ && \
     cp target/release/cache-service /tmp/binaries/ && \
