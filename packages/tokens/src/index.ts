@@ -106,6 +106,16 @@ export const designTokens = {
       electric: '#00D4AA',
       midnight: '#0D1117',
     },
+
+    // Semantic status colors for cards and indicators
+    status: {
+      ok: '#22C55E',           // green-500 - success/healthy state
+      caution: '#F59E0B',      // orange-500 - warning/attention needed
+      risk: '#EF4444',         // red-500 - error/critical issue
+      critical: '#DC2626',     // red-600 - urgent/severe issue
+      info: '#3B82F6',         // blue-500 - informational
+      muted: '#64748B',        // gray-500 - neutral/inactive
+    },
   },
 
   // Brand gradients and glows for premium surfaces
@@ -281,6 +291,18 @@ export const designTokens = {
       xl: '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
       glow: '0 0 0 3px rgba(33, 150, 243, 0.25), 0 1px 3px 0 rgba(0, 0, 0, 0.5)',
     },
+  },
+
+  // ═════════════════════════════════════════════════════════════════════════
+  // ELEVATION - Semantic Shadow Levels for Cards
+  // ═════════════════════════════════════════════════════════════════════════
+
+  elevation: {
+    0: 'none',                                                                         // Flat surface
+    1: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',          // Subtle lift (sm)
+    2: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',       // Card default (base)
+    3: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',     // Elevated card (md)
+    4: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',    // Floating card (lg)
   },
 
   // ═════════════════════════════════════════════════════════════════════════

@@ -21,6 +21,12 @@ export const surfaceVariants = cva('rounded-lg', {
       elevated: 'bg-white dark:bg-gray-800',
       subtle: 'bg-slate-100 dark:bg-gray-850',
       transparent: 'bg-transparent',
+      // Semantic status variants (from @repo/tokens status colors)
+      ok: 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800',
+      caution: 'bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800',
+      risk: 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800',
+      info: 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800',
+      muted: 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700',
     },
     /**
      * Elevation level (shadow depth from @repo/tokens)
