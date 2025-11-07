@@ -83,7 +83,7 @@ jobs:
 
       - name: Deploy price engine
         run: |
-          sed "s|image:.*rust-price-engine:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
+          sed "s|image:.*rust-pricing:__TAG__|image: ${{ env.REGISTRY }}/rust-price-engine:${{ github.sha }}|g" \
             infrastructure/k8s/production/rust-pricing-deployment.yaml | \
             kubectl apply -n ${{ env.NAMESPACE }} -f -
 

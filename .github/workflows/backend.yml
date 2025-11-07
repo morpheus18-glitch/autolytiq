@@ -98,7 +98,7 @@ jobs:
             --dry-run=client -o yaml | kubectl apply -f -
       - name: Deploy
         run: |
-          sed "s|image:.*backend:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
+          sed "s|image:.*backend:__TAG__|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g" \
             infrastructure/k8s/production/backend-deployment.yaml | \
             kubectl apply -n ${{ env.NAMESPACE }} -f -
       - name: Wait for rollout
