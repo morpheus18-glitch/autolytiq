@@ -9,11 +9,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware - Allow all origins in development
+// Middleware - Allow all origins (frontend and backend on same domain via ingress)
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? process.env.FRONTEND_URL
-    : true, // Allow all origins in development
+  origin: true, // Allow all origins since we're behind ingress
   credentials: true,
 }));
 app.use(express.json());
