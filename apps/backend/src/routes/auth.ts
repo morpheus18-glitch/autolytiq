@@ -68,6 +68,11 @@ const mockTenants: Record<string, Tenant> = {
     name: 'Demo Motors',
     slug: 'demo',
   },
+  'main': {
+    id: 'tenant-demo',
+    name: 'Demo Motors',
+    slug: 'demo',
+  },
 };
 
 /**
