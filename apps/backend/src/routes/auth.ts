@@ -117,6 +117,8 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     // Generate JWT token
+    // Use RS256 if JWT_SECRET is an RSA key, otherwise HS256
+    const algorithm = JWT_SECRET.includes('BEGIN') ? 'RS256' : 'HS256';
     const token = jwt.sign(
       {
         userId: user.id,
@@ -125,7 +127,7 @@ router.post('/login', async (req: Request, res: Response) => {
         tenantId: tenant.id,
       },
       JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
+      { expiresIn: JWT_EXPIRES_IN, algorithm }
     );
 
     // Return success response
@@ -171,7 +173,9 @@ router.post('/verify', async (req: Request, res: Response) => {
     }
 
     // Verify token
-    const decoded = jwt.verify(token, JWT_SECRET) as {
+    // Use RS256 if JWT_SECRET is an RSA key, otherwise HS256
+    const algorithm = JWT_SECRET.includes('BEGIN') ? 'RS256' : 'HS256';
+    const decoded = jwt.verify(token, JWT_SECRET, { algorithms: [algorithm] }) as {
       userId: string;
       username: string;
       role: string;
