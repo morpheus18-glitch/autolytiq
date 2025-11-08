@@ -27,7 +27,7 @@ interface Tenant {
 }
 
 // Demo users with bcrypt hashed passwords (password: demo123)
-const DEMO_PASSWORD_HASH = '$2a$10$rB8PZ9F6qE7YJ3vN9pK8i.GxKYZ5F8YvN3pJHxYJ3vN9pK8i.GxKY';
+const DEMO_PASSWORD_HASH = '$2b$10$cltSK88XZH8rVC8U6SDDVuP9fwQbgm1kjFEF8mGGTkkzJPgqdjziO';
 
 const mockUsers: User[] = [
   {
