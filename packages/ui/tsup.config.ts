@@ -3,15 +3,21 @@ import { defineConfig } from 'tsup';
 export default defineConfig({
   entry: ['src/index.ts'],
   format: ['esm'],
-  target: 'es2020',
-  dts: true,
+  dts: {
+    resolve: true,
+    compilerOptions: {
+      moduleResolution: 'bundler',
+      module: 'ESNext',
+    },
+  },
   sourcemap: true,
   clean: true,
-  minify: false,
+  treeshake: true,
   splitting: false,
-  external: ['react', 'react-dom', '@repo/tokens', 'lucide-react', 'class-variance-authority'],
-  banner: {
-    js: '"use client";',
+  external: ['react', 'react-dom'],
+  esbuildOptions(options) {
+    options.banner = {
+      js: '"use client";',
+    };
   },
-  onSuccess: 'echo "✅ UI package built successfully"',
 });

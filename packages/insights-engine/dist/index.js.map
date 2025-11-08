@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/index.ts"],"sourcesContent":["export type Insight = any;\nexport type InsightQuery = any;\nexport function useInsights(..._args: any[]): any { return {}; }\nexport default {};\n"],"mappings":";AAEO,SAAS,eAAe,OAAmB;AAAE,SAAO,CAAC;AAAG;AAC/D,IAAO,gBAAQ,CAAC;","names":[]}

@@ -1,5 +1,5 @@
 {
-  "name": "@repo/tokens",
+  "name": "@autolytiq/tokens",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -10,22 +10,21 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./tailwind.preset.cjs": "./dist/tailwind.preset.cjs",
+    "./tailwind.preset": "./dist/tailwind.preset.cjs",
     "./styles.css": "./dist/tokens.css"
   },
   "files": ["dist"],
   "scripts": {
-    "tokens:build": "tsx scripts/build-tokens.ts",
     "build": "pnpm tokens:build && tsup",
+    "tokens:build": "tsx scripts/build-tokens.ts",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "tokens:clean": "rm -rf dist && mkdir -p dist"
+    "clean": "rm -rf dist"
   },
   "devDependencies": {
-    "@types/node": "20.16.11",
     "style-dictionary": "^4.2.0",
     "tsup": "^8.1.0",
-    "tsx": "^4.7.0",
+    "tsx": "^4.19.1",
     "typescript": "5.6.3"
   }
 }
