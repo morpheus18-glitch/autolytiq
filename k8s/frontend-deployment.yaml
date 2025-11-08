@@ -22,7 +22,7 @@ spec:
         doks.digitalocean.com/node-pool: pool-autolytiq
       containers:
       - name: frontend
-        image: autolytiq-frontend:latest
+        image: registry.digitalocean.com/autolytiq/autolytiq-frontend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80
