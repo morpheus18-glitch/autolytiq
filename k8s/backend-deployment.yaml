@@ -38,7 +38,7 @@ spec:
               name: autolytiq-secrets
               key: jwt-secret
         - name: FRONTEND_URL
-          value: "https://autolytiq.yourdomain.com"
+          value: "https://autolytiq.com"
         resources:
           requests:
             memory: "128Mi"

@@ -4,17 +4,46 @@ metadata:
   name: autolytiq-ingress
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
 spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - autolytiq.yourdomain.com
+    - autolytiq.com
+    - www.autolytiq.com
     secretName: autolytiq-tls
   rules:
-  # Default rule (works with IP or any hostname)
-  - http:
+  # Main domain
+  - host: autolytiq.com
+    http:
+      paths:
+      # Backend API
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: autolytiq-backend
+            port:
+              number: 3000
+      - path: /health
+        pathType: Prefix
+        backend:
+          service:
+            name: autolytiq-backend
+            port:
+              number: 3000
+      # Frontend (catch-all)
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: autolytiq-frontend
+            port:
+              number: 80
+  # WWW subdomain
+  - host: www.autolytiq.com
+    http:
       paths:
       # Backend API
       - path: /api
