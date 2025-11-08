@@ -1,0 +1,182 @@
+/**
+ * AutolytiQ Global Styles
+ * Imports design tokens and applies base styles
+ */
+
+/* Import design tokens */
+@import '@repo/tokens/dist/tokens.css';
+
+/* Base styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--typography-fontFamily-sans);
+  font-size: var(--typography-fontSize-base);
+  line-height: var(--typography-lineHeight-normal);
+  color: var(--semantic-text-primary);
+  background-color: var(--semantic-surface-base);
+  min-height: 100vh;
+}
+
+/* Smooth theme transitions */
+body,
+body * {
+  transition: background-color var(--motion-duration-base) var(--motion-easing-inOut),
+              border-color var(--motion-duration-base) var(--motion-easing-inOut),
+              color var(--motion-duration-base) var(--motion-easing-inOut);
+}
+
+/* Focus visible styles */
+:focus-visible {
+  outline: 2px solid var(--semantic-accent-primary);
+  outline-offset: 2px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--semantic-surface-subtle);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--semantic-border-base);
+  border-radius: var(--radius-base);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--semantic-border-strong);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--typography-fontWeight-semibold);
+  line-height: var(--typography-lineHeight-tight);
+  color: var(--semantic-text-primary);
+}
+
+h1 {
+  font-size: var(--typography-fontSize-4xl);
+}
+
+h2 {
+  font-size: var(--typography-fontSize-3xl);
+}
+
+h3 {
+  font-size: var(--typography-fontSize-2xl);
+}
+
+h4 {
+  font-size: var(--typography-fontSize-xl);
+}
+
+h5 {
+  font-size: var(--typography-fontSize-lg);
+}
+
+h6 {
+  font-size: var(--typography-fontSize-base);
+}
+
+p {
+  line-height: var(--typography-lineHeight-relaxed);
+}
+
+a {
+  color: var(--semantic-accent-primary);
+  text-decoration: none;
+  transition: color var(--motion-duration-fast) var(--motion-easing-out);
+}
+
+a:hover {
+  color: var(--semantic-accent-primaryHover);
+}
+
+code {
+  font-family: var(--typography-fontFamily-mono);
+  font-size: 0.875em;
+  background-color: var(--semantic-surface-muted);
+  padding: 0.125rem 0.25rem;
+  border-radius: var(--radius-sm);
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+}
+
+/* Utilities */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in var(--motion-duration-base) var(--motion-easing-out);
+}
+
+.animate-scale-in {
+  animation: scale-in var(--motion-duration-base) var(--motion-easing-out);
+}
+
+.animate-slide-up {
+  animation: slide-up var(--motion-duration-base) var(--motion-easing-out);
+}

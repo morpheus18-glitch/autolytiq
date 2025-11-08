@@ -1,0 +1,73 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/backend/**'
+      - 'packages/db/**'
+      - 'packages/shared/**'
+  workflow_dispatch:
+
+env:
+  NODE_ENV: production
+
+jobs:
+  build:
+    name: Build Backend
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Build packages
+        run: pnpm --filter "@autolytiq/db" --filter "@autolytiq/shared" build
+      
+      - name: Build backend
+        run: pnpm --filter "@autolytiq/backend" build
+      
+      - name: Run migrations
+        run: pnpm --filter "@autolytiq/db" migrate:deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      
+      - name: Build Docker image
+        run: |
+          docker build -t autolytiq-backend:${{ github.sha }} -f apps/backend/Dockerfile .
+      
+      - name: Push to registry
+        run: |
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+          docker tag autolytiq-backend:${{ github.sha }} ${{ secrets.DOCKER_REGISTRY }}/autolytiq-backend:latest
+          docker push ${{ secrets.DOCKER_REGISTRY }}/autolytiq-backend:latest
+
+  deploy-railway:
+    name: Deploy to Railway
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Deploy to Railway
+        uses: bervProject/railway-deploy@main
+        with:
+          railway_token: ${{ secrets.RAILWAY_TOKEN }}
+          service: backend

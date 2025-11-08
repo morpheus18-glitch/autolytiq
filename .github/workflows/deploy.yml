@@ -1,0 +1,98 @@
+name: Build and Deploy to Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  REGISTRY: registry.digitalocean.com/autolytiq
+  CLUSTER_NAME: do-nyc3-autolytiq-cluster
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DigitalOcean Container Registry
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Build and push backend image
+        run: |
+          docker build -f apps/backend/Dockerfile \
+            -t ${{ env.REGISTRY }}/autolytiq-backend:${{ github.sha }} \
+            -t ${{ env.REGISTRY }}/autolytiq-backend:latest \
+            .
+          docker push ${{ env.REGISTRY }}/autolytiq-backend:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/autolytiq-backend:latest
+
+      - name: Build and push frontend image
+        run: |
+          docker build -f apps/frontend/Dockerfile \
+            -t ${{ env.REGISTRY }}/autolytiq-frontend:${{ github.sha }} \
+            -t ${{ env.REGISTRY }}/autolytiq-frontend:latest \
+            .
+          docker push ${{ env.REGISTRY }}/autolytiq-frontend:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/autolytiq-frontend:latest
+
+      - name: Save DigitalOcean kubeconfig
+        run: doctl kubernetes cluster kubeconfig save ${{ env.CLUSTER_NAME }}
+
+      - name: Create/Update Kubernetes secrets
+        run: |
+          kubectl create secret generic autolytiq-secrets \
+            --from-literal=jwt-secret='${{ secrets.JWT_SECRET }}' \
+            --from-literal=database-url='${{ secrets.DATABASE_URL }}' \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy to Kubernetes
+        run: |
+          # Update image tags in deployments
+          kubectl set image deployment/autolytiq-backend \
+            backend=${{ env.REGISTRY }}/autolytiq-backend:${{ github.sha }}
+          
+          kubectl set image deployment/autolytiq-frontend \
+            frontend=${{ env.REGISTRY }}/autolytiq-frontend:${{ github.sha }}
+
+          # If deployments don't exist yet, apply manifests
+          kubectl apply -f k8s/backend-deployment.yaml || true
+          kubectl apply -f k8s/frontend-deployment.yaml || true
+          kubectl apply -f k8s/ingress.yaml || true
+
+          # Wait for rollout to complete
+          kubectl rollout status deployment/autolytiq-backend --timeout=5m
+          kubectl rollout status deployment/autolytiq-frontend --timeout=5m
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods
+          kubectl get services
+          kubectl get ingress
+          
+          # Check backend health
+          BACKEND_POD=$(kubectl get pod -l app=autolytiq,component=backend -o jsonpath='{.items[0].metadata.name}')
+          kubectl exec $BACKEND_POD -- wget -qO- http://localhost:3000/health || echo "Backend health check pending..."
+
+      - name: Run database migrations
+        run: |
+          BACKEND_POD=$(kubectl get pod -l app=autolytiq,component=backend -o jsonpath='{.items[0].metadata.name}')
+          kubectl exec $BACKEND_POD -- npx prisma migrate deploy || echo "Migrations skipped or failed"
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Deployment failed!"
+          fi

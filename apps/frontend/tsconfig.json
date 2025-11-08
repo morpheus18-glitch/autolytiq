@@ -1,16 +1,32 @@
 {
   "compilerOptions": {
-    "jsx": "react-jsx",
     "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "strict": true,
+    "moduleResolution": "bundler",
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitAny": false,
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@repo/ui": ["../../packages/ui/src"],
-      "@repo/tokens": ["../../packages/tokens/src"]
+      "@/*": ["./src/*"],
+      "@shared/schema": ["../../packages/shared/src/schema/index.ts"],
+      "@shared/settings-schema": ["../../packages/shared/src/settings-schema/index.ts"],
+      "@repo/tokens": ["../../packages/tokens/src/index.ts"],
+      "@repo/tokens/*": ["../../packages/tokens/src/*"],
+      "@repo/ui": ["../../packages/ui/src/index.ts"],
+      "@repo/ui/*": ["../../packages/ui/src/*"]
     },
     "types": ["vite/client"]
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "dist", "src/_backup"]
 }

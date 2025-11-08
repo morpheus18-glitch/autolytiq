@@ -1,0 +1,210 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Ultra-crisp font rendering */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+   * CHATGPT/GITHUB INSPIRED COLOR SYSTEM
+   * ═══════════════════════════════════════════════════════════════ */
+
+  :root {
+    /* Light Mode - GitHub inspired */
+    --canvas: 255 255 255;              /* #FFFFFF */
+    --elevated: 246 248 250;            /* #F6F8FA */
+    --inset: 234 238 242;               /* #EAEEF2 */
+
+    /* Borders */
+    --border-default: 208 215 222;      /* #D0D7DE */
+    --border-muted: 234 238 242;        /* #EAEEF2 */
+    --border-strong: 175 184 193;       /* #AFB8C1 */
+
+    /* Text */
+    --text-primary: 36 41 47;           /* #24292F */
+    --text-secondary: 87 96 106;        /* #57606A */
+    --text-tertiary: 110 119 129;       /* #6E7781 */
+    --text-placeholder: 140 149 159;    /* #8C959F */
+    --text-inverse: 255 255 255;        /* #FFFFFF */
+
+    /* Actions */
+    --action-primary: 16 185 129;       /* #10B981 - Teal/Green */
+    --action-hover: 5 150 105;          /* #059669 */
+    --action-active: 4 120 87;          /* #047857 */
+
+    /* Links */
+    --link-default: 37 99 235;          /* #2563EB - GitHub blue */
+    --link-hover: 29 78 216;            /* #1D4ED8 */
+
+    /* Semantic */
+    --success: 34 197 94;               /* #22C55E */
+    --error: 239 68 68;                 /* #EF4444 */
+    --warning: 245 158 11;              /* #F59E0B */
+    --info: 59 130 246;                 /* #3B82F6 */
+  }
+
+  .dark {
+    /* Dark Mode - ChatGPT/GitHub hybrid */
+    --canvas: 13 17 23;                 /* #0D1117 */
+    --elevated: 22 27 34;               /* #161B22 */
+    --inset: 28 33 40;                  /* #1C2128 */
+
+    /* Borders */
+    --border-default: 50 56 63;         /* #32383F */
+    --border-muted: 28 33 40;           /* #1C2128 */
+    --border-strong: 66 74 83;          /* #424A53 */
+
+    /* Text - ChatGPT warm whites */
+    --text-primary: 236 236 241;        /* #ECECF1 */
+    --text-secondary: 197 197 210;      /* #C5C5D2 */
+    --text-tertiary: 155 155 167;       /* #9B9BA7 */
+    --text-placeholder: 110 110 128;    /* #6E6E80 */
+    --text-inverse: 36 41 47;           /* #24292F */
+
+    /* Actions - Brighter for dark mode */
+    --action-primary: 52 211 153;       /* #34D399 */
+    --action-hover: 16 185 129;         /* #10B981 */
+    --action-active: 5 150 105;         /* #059669 */
+
+    /* Links - Brighter for dark mode */
+    --link-default: 96 165 250;         /* #60A5FA */
+    --link-hover: 147 197 253;          /* #93C5FD */
+
+    /* Semantic - Adjusted for dark */
+    --success: 34 197 94;               /* #22C55E */
+    --error: 239 68 68;                 /* #EF4444 */
+    --warning: 245 158 11;              /* #F59E0B */
+    --info: 96 165 250;                 /* #60A5FA */
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+   * BASE STYLES
+   * ═══════════════════════════════════════════════════════════════ */
+
+  html {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    font-weight: 400;
+    letter-spacing: -0.011em;
+  }
+
+  body {
+    @apply bg-[rgb(var(--canvas))] text-[rgb(var(--text-primary))];
+    min-height: 100vh;
+  }
+
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold text-[rgb(var(--text-primary))];
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  h1 { @apply text-3xl; }
+  h2 { @apply text-2xl; }
+  h3 { @apply text-xl; }
+  h4 { @apply text-lg; }
+  h5 { @apply text-base; }
+  h6 { @apply text-sm; }
+
+  /* Links */
+  a {
+    @apply text-[rgb(var(--link-default))];
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  a:hover {
+    @apply text-[rgb(var(--link-hover))];
+  }
+
+  /* Scrollbars - ChatGPT style */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-[rgb(var(--canvas))];
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-[rgb(var(--border-strong))];
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-[rgb(var(--text-tertiary))];
+  }
+
+  /* Dark mode scrollbars */
+  .dark ::-webkit-scrollbar-thumb {
+    @apply bg-[rgb(var(--border-default))];
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    @apply bg-[rgb(var(--border-strong))];
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-[rgb(var(--action-primary)_/_0.2)];
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * UTILITY CLASSES
+ * ═══════════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  /* Text colors */
+  .text-primary {
+    color: rgb(var(--text-primary));
+  }
+
+  .text-secondary {
+    color: rgb(var(--text-secondary));
+  }
+
+  .text-tertiary {
+    color: rgb(var(--text-tertiary));
+  }
+
+  /* Background colors */
+  .bg-canvas {
+    background-color: rgb(var(--canvas));
+  }
+
+  .bg-elevated {
+    background-color: rgb(var(--elevated));
+  }
+
+  .bg-inset {
+    background-color: rgb(var(--inset));
+  }
+
+  /* Border colors */
+  .border-default {
+    border-color: rgb(var(--border-default));
+  }
+
+  .border-muted {
+    border-color: rgb(var(--border-muted));
+  }
+
+  /* Action button */
+  .btn-primary {
+    @apply bg-[rgb(var(--action-primary))] text-white;
+    @apply hover:bg-[rgb(var(--action-hover))];
+    @apply active:bg-[rgb(var(--action-active))];
+    @apply transition-colors duration-150;
+  }
+}

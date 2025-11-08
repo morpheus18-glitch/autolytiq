@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main, rescue-*, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  quality:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Validate ESM compliance
+        run: bash scripts/validate-esm.sh
+      
+      - name: Type check
+        run: pnpm typecheck
+      
+      - name: Lint
+        run: pnpm lint
+      
+      - name: Build all packages
+        run: pnpm build
+      
+      - name: Verify DTS generation
+        run: |
+          echo "Checking for .d.ts files..."
+          if [ -f "packages/ui/dist/index.d.ts" ]; then
+            echo "✅ UI package DTS generated"
+          else
+            echo "❌ UI package DTS missing"
+            exit 1
+          fi
+      
+      - name: Run tests
+        run: pnpm test
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          files: ./coverage/coverage-final.json
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      
+      - name: Audit dependencies
+        run: pnpm audit --audit-level=moderate

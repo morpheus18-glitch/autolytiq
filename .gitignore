@@ -1,0 +1,81 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+*.lcov
+
+# Production builds
+dist/
+build/
+*.tsbuildinfo
+
+# Environment variables - NEVER commit these!
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+apps/backend/.env
+apps/frontend/.env
+
+# Secrets - NEVER commit these!
+*.pem
+*.key
+*.cert
+secrets.yaml
+k8s/secrets.yaml
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-*
+*.code-workspace
+
+# Cache
+.cache/
+.parcel-cache/
+.turbo/
+.next/
+.nuxt/
+.vuepress/dist
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+prisma/migrations/**/migration.sql.backup
+
+# Docker
+.dockerignore
+
+# Misc
+*.bak
+*.tmp
+.temp/
+temp/
+
+# Backup folders (if they contain sensitive data)
+_backup/
+_garage*/
+
+# K8s local configs
+kubeconfig
+*.kubeconfig
