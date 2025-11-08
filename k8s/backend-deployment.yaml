@@ -18,20 +18,8 @@ spec:
         component: backend
     spec:
       # Run on general pool, not ML pool
-      tolerations:
-      - key: "workload"
-        operator: "Equal"
-        value: "ml-heavy"
-        effect: "NoSchedule"
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: "doks.digitalocean.com/node-pool"
-                operator: In
-                values:
-                - "pool-autolytiq"
+      nodeSelector:
+        doks.digitalocean.com/node-pool: pool-autolytiq
       containers:
       - name: backend
         image: autolytiq-backend:latest
@@ -53,11 +41,11 @@ spec:
           value: "https://autolytiq.yourdomain.com"
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
+            memory: "128Mi"
+            cpu: "100m"
           limits:
-            memory: "512Mi"
-            cpu: "500m"
+            memory: "256Mi"
+            cpu: "200m"
         livenessProbe:
           httpGet:
             path: /health
