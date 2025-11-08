@@ -79,3 +79,4 @@ _garage*/
 # K8s local configs
 kubeconfig
 *.kubeconfig
+kubeconfig.yaml

@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: autolytiq-frontend
+  namespace: autolytiq-prod
   labels:
     app: autolytiq
     component: frontend
@@ -22,18 +23,22 @@ spec:
         doks.digitalocean.com/node-pool: pool-autolytiq
       containers:
       - name: frontend
-        image: registry.digitalocean.com/autolytiq/autolytiq-frontend:latest
+        image: registry.digitalocean.com/autolytiq/autolytiq-frontend:fresh
         imagePullPolicy: Always
         ports:
         - containerPort: 80
           name: http
         resources:
           requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
             memory: "128Mi"
             cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "200m"
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d
+          readOnly: true
         livenessProbe:
           httpGet:
             path: /
@@ -46,11 +51,16 @@ spec:
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 5
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: frontend-nginx-config
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: autolytiq-frontend
+  namespace: autolytiq-prod
   labels:
     app: autolytiq
     component: frontend
