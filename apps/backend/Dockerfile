@@ -9,8 +9,8 @@ COPY apps/backend/package.json ./
 # Install pnpm
 RUN npm install -g pnpm@10.20.0
 
-# Install dependencies
-RUN pnpm install
+# Install dependencies (no lockfile in Docker build)
+RUN pnpm install --no-frozen-lockfile
 
 # Copy source code
 COPY apps/backend/src ./src

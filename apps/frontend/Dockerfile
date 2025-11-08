@@ -13,7 +13,7 @@ COPY packages/ui/package.json ./packages/ui/
 RUN npm install -g pnpm@10.20.0
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 # Copy source
 COPY apps/frontend ./apps/frontend
