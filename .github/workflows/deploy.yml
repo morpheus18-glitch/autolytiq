@@ -50,10 +50,14 @@ jobs:
 
       - name: Create/Update Kubernetes secrets
         run: |
+          # Create app secrets
           kubectl create secret generic autolytiq-secrets \
             --from-literal=jwt-secret='${{ secrets.JWT_SECRET }}' \
             --from-literal=database-url='${{ secrets.DATABASE_URL }}' \
             --dry-run=client -o yaml | kubectl apply -f -
+
+          # Create registry credentials for pulling images
+          doctl registry kubernetes-manifest | kubectl apply -f -
 
       - name: Deploy to Kubernetes
         run: |
@@ -70,8 +74,21 @@ jobs:
             frontend=${{ env.REGISTRY }}/autolytiq-frontend:${{ github.sha }} || true
 
           # Wait for rollout to complete
-          kubectl rollout status deployment/autolytiq-backend --timeout=5m
-          kubectl rollout status deployment/autolytiq-frontend --timeout=5m
+          echo "Waiting for backend deployment..."
+          kubectl rollout status deployment/autolytiq-backend --timeout=5m || {
+            echo "Backend rollout failed, checking pods..."
+            kubectl get pods -l app=autolytiq,component=backend
+            kubectl describe pods -l app=autolytiq,component=backend
+            exit 1
+          }
+
+          echo "Waiting for frontend deployment..."
+          kubectl rollout status deployment/autolytiq-frontend --timeout=5m || {
+            echo "Frontend rollout failed, checking pods..."
+            kubectl get pods -l app=autolytiq,component=frontend
+            kubectl describe pods -l app=autolytiq,component=frontend
+            exit 1
+          }
 
       - name: Verify deployment
         run: |
