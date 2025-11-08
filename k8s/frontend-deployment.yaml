@@ -17,6 +17,16 @@ spec:
         app: autolytiq
         component: frontend
     spec:
+      # Run on general pool, not ML pool
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: "doks.digitalocean.com/node-pool"
+                operator: In
+                values:
+                - "pool-autolytiq"
       containers:
       - name: frontend
         image: autolytiq-frontend:latest

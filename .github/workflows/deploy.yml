@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: registry.digitalocean.com/autolytiq
-  CLUSTER_NAME: do-nyc3-autolytiq-cluster
+  CLUSTER_NAME: autolytiq-cluster
 
 jobs:
   build-and-deploy:

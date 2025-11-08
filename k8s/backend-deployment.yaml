@@ -17,6 +17,21 @@ spec:
         app: autolytiq
         component: backend
     spec:
+      # Run on general pool, not ML pool
+      tolerations:
+      - key: "workload"
+        operator: "Equal"
+        value: "ml-heavy"
+        effect: "NoSchedule"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: "doks.digitalocean.com/node-pool"
+                operator: In
+                values:
+                - "pool-autolytiq"
       containers:
       - name: backend
         image: autolytiq-backend:latest
