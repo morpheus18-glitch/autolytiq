@@ -57,17 +57,17 @@ jobs:
 
       - name: Deploy to Kubernetes
         run: |
-          # Update image tags in deployments
-          kubectl set image deployment/autolytiq-backend \
-            backend=${{ env.REGISTRY }}/autolytiq-backend:${{ github.sha }}
-          
-          kubectl set image deployment/autolytiq-frontend \
-            frontend=${{ env.REGISTRY }}/autolytiq-frontend:${{ github.sha }}
+          # Apply manifests (creates or updates)
+          kubectl apply -f k8s/backend-deployment.yaml
+          kubectl apply -f k8s/frontend-deployment.yaml
+          kubectl apply -f k8s/ingress.yaml
 
-          # If deployments don't exist yet, apply manifests
-          kubectl apply -f k8s/backend-deployment.yaml || true
-          kubectl apply -f k8s/frontend-deployment.yaml || true
-          kubectl apply -f k8s/ingress.yaml || true
+          # Update image tags to use commit SHA
+          kubectl set image deployment/autolytiq-backend \
+            backend=${{ env.REGISTRY }}/autolytiq-backend:${{ github.sha }} || true
+
+          kubectl set image deployment/autolytiq-frontend \
+            frontend=${{ env.REGISTRY }}/autolytiq-frontend:${{ github.sha }} || true
 
           # Wait for rollout to complete
           kubectl rollout status deployment/autolytiq-backend --timeout=5m
