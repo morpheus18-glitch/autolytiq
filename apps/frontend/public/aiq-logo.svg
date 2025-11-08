@@ -1,0 +1,63 @@
+<!-- ============================================================
+FILE REVIEW STATUS: ✅ APPROVED - NEW OPTIMIZED VERSION
+Created: 2025-11-08 13:55
+Action: Replace 1.1 MB PNG with optimized SVG
+Size: ~2 KB (99.8% smaller)
+Reason: Scalable, optimized, modern design
+Old file: Archived to _archive_20251108-135500/public/aiq-logo.png
+============================================================ -->
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Modern "AIQ" monogram with automotive accent -->
+  <defs>
+    <linearGradient id="aiqGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Icon: Stylized "AIQ" with automotive theme -->
+  <g id="icon">
+    <!-- Outer hexagon (automotive/precision feel) -->
+    <path d="M30 8 L42 15 L42 30 L30 37 L18 30 L18 15 Z"
+          stroke="url(#aiqGradient)"
+          stroke-width="2"
+          fill="none"/>
+
+    <!-- AI symbol (circuit/neural network inspired) -->
+    <circle cx="30" cy="22.5" r="2.5" fill="url(#aiqGradient)"/>
+    <path d="M25 22.5 L30 22.5 M30 22.5 L35 22.5"
+          stroke="url(#aiqGradient)"
+          stroke-width="1.5"
+          stroke-linecap="round"/>
+
+    <!-- Speed/analytics accent line -->
+    <path d="M22 28 L38 28"
+          stroke="url(#aiqGradient)"
+          stroke-width="2"
+          stroke-linecap="round"/>
+    <path d="M24 32 L36 32"
+          stroke="url(#aiqGradient)"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          opacity="0.6"/>
+  </g>
+
+  <!-- Wordmark: "AutolytiQ" -->
+  <g id="wordmark">
+    <text x="52" y="25"
+          font-family="'Inter', 'Helvetica', 'Arial', sans-serif"
+          font-size="18"
+          font-weight="700"
+          fill="#1e293b">
+      Autolytiq
+    </text>
+    <text x="52" y="40"
+          font-family="'Inter', 'Helvetica', 'Arial', sans-serif"
+          font-size="9"
+          font-weight="500"
+          fill="#64748b"
+          letter-spacing="1.5">
+      DEALERSHIP INTELLIGENCE
+    </text>
+  </g>
+</svg>

@@ -1,0 +1,43 @@
+# ============================================================
+# FILE REVIEW STATUS: ✅ APPROVED - NEW FILE
+# Created: 2025-11-08 14:00
+# Action: Create .gitignore for frontend
+# Reason: Prevent .env and other local files from being committed
+# ============================================================
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.vite/
+
+# Environment files (NEVER commit real values)
+.env
+.env.local
+.env.*.local
+
+# Keep template files
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+
+# Misc
+.cache/

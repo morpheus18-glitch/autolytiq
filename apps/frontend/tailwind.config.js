@@ -1,3 +1,10 @@
+// ============================================================
+// FILE REVIEW STATUS: ✅ APPROVED - KEEP
+// Reviewed: 2025-11-08 13:50
+// Action: Keep in apps/frontend/
+// Reason: Essential - Tailwind CSS configuration integrating @repo/tokens
+// ============================================================
+
 /** @type {import('tailwindcss').Config} */
 const formsPlugin = require('@tailwindcss/forms');
 const typographyPlugin = require('@tailwindcss/typography');

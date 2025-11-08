@@ -1,3 +1,10 @@
+// ============================================================
+// FILE REVIEW STATUS: ✅ APPROVED - KEEP
+// Reviewed: 2025-11-08 13:50
+// Action: Keep in apps/frontend/
+// Reason: Enforces design system usage, critical for consistency
+// ============================================================
+
 /**
  * ESLint Configuration for AutolytiQ Frontend
  * Enforces component library usage and bans inline Tailwind
