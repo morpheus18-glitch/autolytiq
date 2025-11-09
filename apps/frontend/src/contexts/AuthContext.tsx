@@ -14,7 +14,7 @@ interface AuthContextType {
   user: User | null
   isLoading: boolean
   isAuthenticated: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (storeId: string, username: string, password: string) => Promise<void>
   logout: () => void
   error: string | null
 }
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth()
   }, [])
 
-  const login = async (email: string, password: string) => {
+  const login = async (storeId: string, username: string, password: string) => {
     setError(null)
     setIsLoading(true)
 
@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ storeId, username, password })
       })
 
       if (!response.ok) {

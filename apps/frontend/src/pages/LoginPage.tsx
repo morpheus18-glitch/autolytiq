@@ -6,7 +6,8 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const { login, error: authError } = useAuth()
 
-  const [email, setEmail] = useState('')
+  const [storeId, setStoreId] = useState('demo')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -17,7 +18,8 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      await login(email, password)
+      await login(storeId, username, password)
+      // Always redirect to /dashboard - it will show the right dashboard based on role
       navigate('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
@@ -87,14 +89,50 @@ export default function LoginPage() {
               color: 'hsl(var(--foreground))',
               marginBottom: '0.5rem'
             }}>
-              Email
+              Store ID
             </label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={storeId}
+              onChange={(e) => setStoreId(e.target.value)}
               required
-              autoComplete="email"
+              autoComplete="organization"
+              placeholder="demo or main"
+              style={{
+                width: '100%',
+                padding: '0.5rem 0.75rem',
+                fontSize: '0.875rem',
+                backgroundColor: 'hsl(var(--background))',
+                color: 'hsl(var(--foreground))',
+                border: '1px solid hsl(var(--input))',
+                borderRadius: 'var(--radius)',
+                outline: 'none'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'hsl(var(--ring))'
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'hsl(var(--input))'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              color: 'hsl(var(--foreground))',
+              marginBottom: '0.5rem'
+            }}>
+              Username
+            </label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              autoComplete="username"
               style={{
                 width: '100%',
                 padding: '0.5rem 0.75rem',
@@ -187,7 +225,8 @@ export default function LoginPage() {
           color: 'hsl(var(--muted-foreground))'
         }}>
           <p style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Demo Credentials:</p>
-          <p>Email: admin@autolytiq.com</p>
+          <p>Store ID: demo</p>
+          <p>Username: admin (or sales, manager)</p>
           <p>Password: demo123</p>
         </div>
       </div>
