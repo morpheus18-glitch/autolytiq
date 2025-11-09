@@ -54,56 +54,59 @@ jobs:
           kubectl create secret generic autolytiq-secrets \
             --from-literal=jwt-secret='${{ secrets.JWT_SECRET }}' \
             --from-literal=database-url='${{ secrets.DATABASE_URL }}' \
+            -n autolytiq-prod \
             --dry-run=client -o yaml | kubectl apply -f -
 
           # Create registry credentials for pulling images
-          doctl registry kubernetes-manifest | kubectl apply -f -
+          doctl registry kubernetes-manifest | kubectl apply -f - -n autolytiq-prod
 
       - name: Deploy to Kubernetes
         run: |
           # Apply manifests (creates or updates)
-          kubectl apply -f k8s/backend-deployment.yaml
-          kubectl apply -f k8s/frontend-deployment.yaml
-          kubectl apply -f k8s/ingress.yaml
+          kubectl apply -f k8s/backend-deployment.yaml -n autolytiq-prod
+          kubectl apply -f k8s/frontend-deployment.yaml -n autolytiq-prod
+          kubectl apply -f k8s/ingress.yaml -n autolytiq-prod
 
           # Update image tags to use commit SHA
           kubectl set image deployment/autolytiq-backend \
-            backend=${{ env.REGISTRY }}/autolytiq-backend:${{ github.sha }} || true
+            backend=${{ env.REGISTRY }}/autolytiq-backend:${{ github.sha }} \
+            -n autolytiq-prod || true
 
           kubectl set image deployment/autolytiq-frontend \
-            frontend=${{ env.REGISTRY }}/autolytiq-frontend:${{ github.sha }} || true
+            frontend=${{ env.REGISTRY }}/autolytiq-frontend:${{ github.sha }} \
+            -n autolytiq-prod || true
 
           # Wait for rollout to complete
           echo "Waiting for backend deployment..."
-          kubectl rollout status deployment/autolytiq-backend --timeout=5m || {
+          kubectl rollout status deployment/autolytiq-backend -n autolytiq-prod --timeout=5m || {
             echo "Backend rollout failed, checking pods..."
-            kubectl get pods -l app=autolytiq,component=backend
-            kubectl describe pods -l app=autolytiq,component=backend
+            kubectl get pods -l app=autolytiq,component=backend -n autolytiq-prod
+            kubectl describe pods -l app=autolytiq,component=backend -n autolytiq-prod
             exit 1
           }
 
           echo "Waiting for frontend deployment..."
-          kubectl rollout status deployment/autolytiq-frontend --timeout=5m || {
+          kubectl rollout status deployment/autolytiq-frontend -n autolytiq-prod --timeout=5m || {
             echo "Frontend rollout failed, checking pods..."
-            kubectl get pods -l app=autolytiq,component=frontend
-            kubectl describe pods -l app=autolytiq,component=frontend
+            kubectl get pods -l app=autolytiq,component=frontend -n autolytiq-prod
+            kubectl describe pods -l app=autolytiq,component=frontend -n autolytiq-prod
             exit 1
           }
 
       - name: Verify deployment
         run: |
-          kubectl get pods
-          kubectl get services
-          kubectl get ingress
-          
+          kubectl get pods -n autolytiq-prod
+          kubectl get services -n autolytiq-prod
+          kubectl get ingress -n autolytiq-prod
+
           # Check backend health
-          BACKEND_POD=$(kubectl get pod -l app=autolytiq,component=backend -o jsonpath='{.items[0].metadata.name}')
-          kubectl exec $BACKEND_POD -- wget -qO- http://localhost:3000/health || echo "Backend health check pending..."
+          BACKEND_POD=$(kubectl get pod -l app=autolytiq,component=backend -n autolytiq-prod -o jsonpath='{.items[0].metadata.name}')
+          kubectl exec $BACKEND_POD -n autolytiq-prod -- wget -qO- http://localhost:3000/health || echo "Backend health check pending..."
 
       - name: Run database migrations
         run: |
-          BACKEND_POD=$(kubectl get pod -l app=autolytiq,component=backend -o jsonpath='{.items[0].metadata.name}')
-          kubectl exec $BACKEND_POD -- npx prisma migrate deploy || echo "Migrations skipped or failed"
+          BACKEND_POD=$(kubectl get pod -l app=autolytiq,component=backend -n autolytiq-prod -o jsonpath='{.items[0].metadata.name}')
+          kubectl exec $BACKEND_POD -n autolytiq-prod -- npx prisma migrate deploy || echo "Migrations skipped or failed"
 
       - name: Notify deployment status
         if: always()
