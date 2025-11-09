@@ -58,7 +58,10 @@ jobs:
             --dry-run=client -o yaml | kubectl apply -f -
 
           # Create registry credentials for pulling images
-          doctl registry kubernetes-manifest | kubectl apply -f - -n autolytiq-prod
+          # Note: doctl outputs namespace kube-system, so we patch it to autolytiq-prod
+          doctl registry kubernetes-manifest | \
+            sed 's/namespace: kube-system/namespace: autolytiq-prod/' | \
+            kubectl apply -f -
 
       - name: Deploy to Kubernetes
         run: |
