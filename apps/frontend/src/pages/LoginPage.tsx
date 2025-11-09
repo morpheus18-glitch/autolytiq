@@ -54,7 +54,7 @@ export default function LoginPage() {
             color: 'hsl(var(--foreground))',
             marginBottom: '0.5rem'
           }}>
-            Autolytiq
+            AutolytiQ
           </h1>
           <p style={{
             fontSize: '0.875rem',
