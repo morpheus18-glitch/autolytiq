@@ -13,10 +13,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
-import DashboardPage from './pages/DashboardPage'
+import Dashboard from './pages/Dashboard'
 
 // Create query client for TanStack Query
 const queryClient = new QueryClient({
@@ -31,8 +32,9 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
+      <ThemeProvider>
+        <AuthProvider>
+          <BrowserRouter>
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<LandingPage />} />
@@ -43,7 +45,7 @@ function App() {
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <DashboardPage />
+                  <Dashboard />
                 </ProtectedRoute>
               }
             />
@@ -53,6 +55,7 @@ function App() {
           </Routes>
         </BrowserRouter>
       </AuthProvider>
+    </ThemeProvider>
     </QueryClientProvider>
   )
 }
