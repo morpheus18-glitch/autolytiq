@@ -72,26 +72,28 @@
 
 ## Phase 2: Core API Routes (Days 4-8)
 
-### Priority 1: Auth & Users (Day 4)
-- [ ] `POST /api/auth/login`
-- [ ] `POST /api/auth/refresh`
-- [ ] `POST /api/auth/switch-tenant`
-- [ ] `GET /api/auth/me`
-- [ ] `GET /api/users`
-- [ ] `GET /api/users/:id`
+### Priority 1: Auth & Users (Day 5) ✅ COMPLETE
+- [x] `POST /api/auth/login` - Authenticate user, return JWT
+- [x] `POST /api/auth/refresh` - Refresh JWT token
+- [x] `POST /api/auth/switch-tenant` - Switch user tenant
+- [x] `GET /api/auth/me` - Get current user details
+- [x] `GET /api/users` - List all users for tenant
+- [x] `GET /api/users/:id` - Get single user
 
-### Priority 2: CRM Core (Day 4-5)
-**Day 4: Customers API ✅ COMPLETE**
+### Priority 2: CRM Core (Day 4-5) ✅ COMPLETE
+**Day 4: Customers API**
 - [x] `GET /api/customers` - List all customers for tenant
 - [x] `POST /api/customers` - Create new customer
 - [x] `GET /api/customers/:id` - Get single customer
 - [x] `PUT /api/customers/:id` - Update customer
 - [x] `DELETE /api/customers/:id` - Soft delete customer
 
-**Day 5: Leads API** (TODO)
-- [ ] `GET /api/leads`
-- [ ] `POST /api/leads`
-- [ ] `PUT /api/leads/:id`
+**Day 5: Leads API**
+- [x] `GET /api/leads` - List leads with optional status filter
+- [x] `POST /api/leads` - Create new lead
+- [x] `GET /api/leads/:id` - Get single lead
+- [x] `PUT /api/leads/:id` - Update lead
+- [x] `DELETE /api/leads/:id` - Delete lead
 
 ### Priority 3: Inventory (Day 6)
 - [ ] `GET /api/vehicles`

@@ -34,11 +34,16 @@ func main() {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
 
-	// Load JWT public key
+	// Load JWT keys
 	if err := middleware.LoadPublicKey(); err != nil {
 		log.Fatalf("Failed to load JWT public key: %v", err)
 	}
 	log.Println("✅ JWT public key loaded successfully")
+
+	if err := handlers.LoadPrivateKey(); err != nil {
+		log.Fatalf("Failed to load JWT private key: %v", err)
+	}
+	log.Println("✅ JWT private key loaded successfully")
 
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
@@ -79,8 +84,22 @@ func main() {
 		})
 	})
 
+	// Auth endpoints (public - no JWT required)
+	authHandler := handlers.NewAuthHandler(db.Client)
+	api.Post("/auth/login", authHandler.Login)
+
 	// Protected routes (require JWT + tenant validation)
 	protected := api.Group("", middleware.JWTAuth(), middleware.TenantScoping(db.Client))
+
+	// Auth endpoints (protected)
+	protected.Get("/auth/me", authHandler.Me)
+	protected.Post("/auth/refresh", authHandler.Refresh)
+	protected.Post("/auth/switch-tenant", authHandler.SwitchTenant)
+
+	// Users endpoints
+	usersHandler := handlers.NewUsersHandler(db.Client)
+	protected.Get("/users", usersHandler.List)
+	protected.Get("/users/:id", usersHandler.Get)
 
 	// Customers endpoints
 	customersHandler := handlers.NewCustomersHandler(db.Client)
@@ -89,6 +108,14 @@ func main() {
 	protected.Get("/customers/:id", customersHandler.Get)
 	protected.Put("/customers/:id", customersHandler.Update)
 	protected.Delete("/customers/:id", customersHandler.Delete)
+
+	// Leads endpoints
+	leadsHandler := handlers.NewLeadsHandler(db.Client)
+	protected.Get("/leads", leadsHandler.List)
+	protected.Post("/leads", leadsHandler.Create)
+	protected.Get("/leads/:id", leadsHandler.Get)
+	protected.Put("/leads/:id", leadsHandler.Update)
+	protected.Delete("/leads/:id", leadsHandler.Delete)
 
 	// Start server
 	port := getEnv("PORT", "3001")
