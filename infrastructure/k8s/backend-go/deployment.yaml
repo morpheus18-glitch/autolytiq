@@ -48,6 +48,8 @@ spec:
           value: "https://app.autolytiq.com,https://autolytiq.com"
         - name: GO_ENV
           value: "production"
+        - name: SKIP_MIGRATION
+          value: "true"
         volumeMounts:
         - name: jwt-keys
           mountPath: /etc/jwt

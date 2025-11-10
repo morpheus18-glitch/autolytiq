@@ -18,13 +18,13 @@ images:
   - name: registry.digitalocean.com/autolytiq/backend-go
     newTag: latest
 
-# Node affinity for autolytiq-pool
+# Node affinity for pool-autolytiq
 patches:
   - patch: |-
       - op: add
         path: /spec/template/spec/nodeSelector
         value:
-          doks.digitalocean.com/node-pool: autolytiq-pool
+          doks.digitalocean.com/node-pool: pool-autolytiq
     target:
       kind: Deployment
       name: backend-go

@@ -13,6 +13,9 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
+
+	// Import pgx driver
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func main() {
@@ -28,10 +31,15 @@ func main() {
 	}
 	defer db.Close()
 
-	// Auto-migrate database schema
+	// Auto-migrate database schema (optional, controlled by env var)
 	ctx := context.Background()
-	if err := db.AutoMigrate(ctx); err != nil {
-		log.Fatalf("Failed to migrate database: %v", err)
+	if os.Getenv("SKIP_MIGRATION") != "true" {
+		if err := db.AutoMigrate(ctx); err != nil {
+			log.Printf("Warning: Failed to migrate database: %v", err)
+			log.Println("Continuing without migration (set SKIP_MIGRATION=true to skip this message)")
+		}
+	} else {
+		log.Println("Skipping database migration (SKIP_MIGRATION=true)")
 	}
 
 	// Load JWT keys

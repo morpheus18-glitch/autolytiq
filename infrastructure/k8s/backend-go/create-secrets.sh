@@ -37,15 +37,15 @@ echo -e "${GREEN}✓ database-secret created${NC}"
 echo -e "${GREEN}Creating jwt-keys secret...${NC}"
 
 # Check if JWT keys exist
-if [ ! -f "../../backend/keys/jwt-public.pem" ] || [ ! -f "../../backend/keys/jwt-private.pem" ]; then
-    echo -e "${YELLOW}Warning: JWT keys not found at ../../backend/keys/${NC}"
+if [ ! -f "../../../apps/backend/keys/jwt-public.pem" ] || [ ! -f "../../../apps/backend/keys/jwt-private.pem" ]; then
+    echo -e "${YELLOW}Warning: JWT keys not found at ../../../apps/backend/keys/${NC}"
     echo -e "${YELLOW}Please ensure jwt-public.pem and jwt-private.pem exist${NC}"
     exit 1
 fi
 
 kubectl create secret generic jwt-keys \
-  --from-file=public.pem=../../backend/keys/jwt-public.pem \
-  --from-file=private.pem=../../backend/keys/jwt-private.pem \
+  --from-file=public.pem=../../../apps/backend/keys/jwt-public.pem \
+  --from-file=private.pem=../../../apps/backend/keys/jwt-private.pem \
   -n $NAMESPACE \
   --dry-run=client -o yaml | kubectl apply -f -
 

@@ -2,10 +2,12 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
 
+	entsql "entgo.io/ent/dialect/sql"
 	"github.com/autolytiq/backend/ent"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -22,10 +24,17 @@ func NewClient() (*Client, error) {
 		return nil, fmt.Errorf("DATABASE_URL environment variable not set")
 	}
 
-	client, err := ent.Open("postgres", databaseURL)
+	// Open database connection using pgx driver via stdlib
+	db, err := sql.Open("pgx", databaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
+
+	// Create ent SQL driver
+	drv := entsql.OpenDB("postgres", db)
+
+	// Create ent client with the driver
+	client := ent.NewClient(ent.Driver(drv))
 
 	log.Println("✅ Database connection established")
 
