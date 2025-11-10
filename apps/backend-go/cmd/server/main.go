@@ -158,6 +158,16 @@ func main() {
 	protected.Post("/notifications/:id/unread", notificationsHandler.MarkAsUnread)
 	protected.Delete("/notifications/:id", notificationsHandler.Delete)
 
+	// TradeIns endpoints
+	tradeInsHandler := handlers.NewTradeInsHandler(db.Client)
+	protected.Get("/trade-ins", tradeInsHandler.List)
+	protected.Post("/trade-ins", tradeInsHandler.Create)
+	protected.Get("/trade-ins/vin/:vin", tradeInsHandler.GetByVIN) // Must be before /:id
+	protected.Get("/trade-ins/:id", tradeInsHandler.Get)
+	protected.Put("/trade-ins/:id", tradeInsHandler.Update)
+	protected.Delete("/trade-ins/:id", tradeInsHandler.Delete)
+	protected.Post("/trade-ins/:id/appraise", tradeInsHandler.Appraise)
+
 	// Start server
 	port := getEnv("PORT", "3001")
 	log.Printf("🚀 Server starting on port %s\n", port)
