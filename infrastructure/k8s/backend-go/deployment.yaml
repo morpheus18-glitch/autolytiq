@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-go
+  namespace: autolytiq-prod
+  labels:
+    app: backend-go
+    tier: backend
+    version: v1.0.0
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: backend-go
+  template:
+    metadata:
+      labels:
+        app: backend-go
+        tier: backend
+        version: v1.0.0
+    spec:
+      containers:
+      - name: backend-go
+        image: registry.digitalocean.com/autolytiq/backend-go:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3001
+          name: http
+          protocol: TCP
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-secret
+              key: url
+        - name: JWT_PUBLIC_KEY_PATH
+          value: /etc/jwt/public.pem
+        - name: JWT_PRIVATE_KEY_PATH
+          value: /etc/jwt/private.pem
+        - name: PORT
+          value: "3001"
+        - name: CORS_ORIGINS
+          value: "https://app.autolytiq.com,https://autolytiq.com"
+        - name: GO_ENV
+          value: "production"
+        volumeMounts:
+        - name: jwt-keys
+          mountPath: /etc/jwt
+          readOnly: true
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+      volumes:
+      - name: jwt-keys
+        secret:
+          secretName: jwt-keys
+          items:
+          - key: public.pem
+            path: public.pem
+          - key: private.pem
+            path: private.pem
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
