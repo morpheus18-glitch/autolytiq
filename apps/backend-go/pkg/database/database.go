@@ -22,7 +22,7 @@ func NewClient() (*Client, error) {
 		return nil, fmt.Errorf("DATABASE_URL environment variable not set")
 	}
 
-	client, err := ent.Open("pgx", databaseURL)
+	client, err := ent.Open("postgres", databaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
