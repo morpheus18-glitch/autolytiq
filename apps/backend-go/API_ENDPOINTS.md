@@ -1,7 +1,7 @@
 # AutolytiQ Go Backend - API Endpoints
 
-**Status**: Days 3-7 Complete (31 Endpoints Operational)
-**Last Updated**: 2025-11-09
+**Status**: Days 3-9 Complete (53 Endpoints Operational)
+**Last Updated**: 2025-11-10
 **Go Version**: 1.24rc2
 **Framework**: Fiber v2.52.9
 **ORM**: Ent (Facebook's type-safe ORM)
@@ -247,6 +247,89 @@ All errors return JSON:
 
 ---
 
+## Notes (7 Endpoints) 🆕
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/notes` | List all notes for tenant |
+| POST | `/api/notes` | Create new note (context-aware) |
+| GET | `/api/notes/:entityType/:entityId` | Get notes for specific entity |
+| GET | `/api/notes/:id` | Get single note by ID |
+| PUT | `/api/notes/:id` | Update note (creator-only) |
+| DELETE | `/api/notes/:id` | Delete note (creator-only) |
+| POST | `/api/notes/:id/pin` | Pin/unpin note |
+
+**Query Params for List**:
+- `?entityType=customer|deal|vehicle|lead`
+- `?entityId={entityId}`
+- `?createdById={userId}`
+- `?isPinned=true|false`
+
+**Features**:
+- Context-aware notes (customer, deal, vehicle, lead)
+- Entity type validation
+- Creator-only edit/delete permissions
+- Pinned notes sort first
+- Loads created_by relationship
+
+---
+
+## Notifications (8 Endpoints) 🆕
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/notifications` | List notifications for current user |
+| POST | `/api/notifications` | Create notification (system use) |
+| GET | `/api/notifications/unread-count` | Get unread count for badge |
+| POST | `/api/notifications/mark-all-read` | Mark all as read for user |
+| GET | `/api/notifications/:id` | Get single notification |
+| POST | `/api/notifications/:id/read` | Mark as read (sets read_at) |
+| POST | `/api/notifications/:id/unread` | Mark as unread |
+| DELETE | `/api/notifications/:id` | Delete notification |
+
+**Query Params for List**:
+- `?isRead=true|false`
+- `?type=DEAL|LEAD|MESSAGE|TASK|SYSTEM`
+- `?limit=50` (default 50, max 100)
+
+**Features**:
+- User-scoped delivery
+- Read/unread tracking with timestamps
+- Bulk mark-all-read operation
+- Unread count endpoint for badge display
+- JSON data field for additional metadata
+- Type-based filtering
+
+---
+
+## TradeIns (7 Endpoints) 🆕
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/trade-ins` | List all trade-ins for tenant |
+| POST | `/api/trade-ins` | Create new trade-in |
+| GET | `/api/trade-ins/vin/:vin` | Get trade-in by VIN |
+| GET | `/api/trade-ins/:id` | Get single trade-in by ID |
+| PUT | `/api/trade-ins/:id` | Update trade-in |
+| DELETE | `/api/trade-ins/:id` | Delete trade-in |
+| POST | `/api/trade-ins/:id/appraise` | Appraise trade-in (ACV + allowance) |
+
+**Query Params for List**:
+- `?status=PENDING|APPRAISED|ACCEPTED|REJECTED`
+- `?dealId={dealId}`
+- `?customerId={customerId}`
+
+**Features**:
+- Vehicle information tracking (VIN, year, make, model, trim, mileage, condition)
+- Financial fields (estimatedValue, payoffAmount, actualCashValue, allowance)
+- Appraisal workflow (PENDING → APPRAISED)
+- Deal and customer relationships
+- Loads relationships automatically
+
+**Appraise Endpoint**: Sets actualCashValue, allowance, condition, and transitions status to APPRAISED
+
+---
+
 ## Database Schema (Ent ORM)
 
 **Entities Implemented** (9 of 84):
@@ -315,9 +398,10 @@ All errors return JSON:
 | Day 5: Leads | ✅ Complete | 5 |
 | Day 6: Vehicles | ✅ Complete | 7 |
 | Day 7: Deals | ✅ Complete | 7 |
-| **Total** | **31 Endpoints** | **31** |
-| Days 8-9: Remaining Routes | 🔄 In Progress | - |
-| Days 10-12: Testing | ⏳ Pending | - |
+| Day 8: Notes & Notifications | ✅ Complete | 15 |
+| Day 9: TradeIns | ✅ Complete | 7 |
+| **Total** | **53 Endpoints** | **53** |
+| Days 10-12: Testing & Integration | ⏳ Next | - |
 | Days 13-14: Deployment | ⏳ Pending | - |
 
 ---
