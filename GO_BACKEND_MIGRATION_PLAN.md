@@ -80,12 +80,15 @@
 - [ ] `GET /api/users`
 - [ ] `GET /api/users/:id`
 
-### Priority 2: CRM Core (Day 5)
-- [ ] `GET /api/customers`
-- [ ] `POST /api/customers`
-- [ ] `GET /api/customers/:id`
-- [ ] `PUT /api/customers/:id`
-- [ ] `DELETE /api/customers/:id`
+### Priority 2: CRM Core (Day 4-5)
+**Day 4: Customers API ✅ COMPLETE**
+- [x] `GET /api/customers` - List all customers for tenant
+- [x] `POST /api/customers` - Create new customer
+- [x] `GET /api/customers/:id` - Get single customer
+- [x] `PUT /api/customers/:id` - Update customer
+- [x] `DELETE /api/customers/:id` - Soft delete customer
+
+**Day 5: Leads API** (TODO)
 - [ ] `GET /api/leads`
 - [ ] `POST /api/leads`
 - [ ] `PUT /api/leads/:id`

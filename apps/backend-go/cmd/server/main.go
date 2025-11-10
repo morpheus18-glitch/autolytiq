@@ -85,7 +85,10 @@ func main() {
 	// Customers endpoints
 	customersHandler := handlers.NewCustomersHandler(db.Client)
 	protected.Get("/customers", customersHandler.List)
+	protected.Post("/customers", customersHandler.Create)
 	protected.Get("/customers/:id", customersHandler.Get)
+	protected.Put("/customers/:id", customersHandler.Update)
+	protected.Delete("/customers/:id", customersHandler.Delete)
 
 	// Start server
 	port := getEnv("PORT", "3001")

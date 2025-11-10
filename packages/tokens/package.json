@@ -10,8 +10,8 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./tailwind.preset": "./dist/tailwind.preset.cjs",
-    "./styles.css": "./dist/tokens.css"
+    "./tailwind.preset": "./src/tailwind.preset.cjs",
+    "./tokens.css": "./src/tokens.css"
   },
   "files": ["dist"],
   "scripts": {

@@ -1,0 +1,479 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autolytiq.dev/schemas/tokens/v1/schema.json",
+  "title": "Autolytiq Design Tokens (v1)",
+  "description": "Strict, minimal schema for custom design tokens. No layout, no app-specific settings.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$version",
+    "color",
+    "typography",
+    "space",
+    "radius",
+    "elevation",
+    "shadow",
+    "motion",
+    "zindex"
+  ],
+  "properties": {
+    "$version": {
+      "type": "string",
+      "description": "Semver of the tokens bundle."
+    },
+    "color": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "surface",
+        "text",
+        "brand",
+        "accent",
+        "semantic"
+      ],
+      "properties": {
+        "surface": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "canvas",
+            "layer1",
+            "layer2",
+            "tile",
+            "divider"
+          ],
+          "properties": {
+            "canvas": {
+              "type": "string"
+            },
+            "layer1": {
+              "type": "string"
+            },
+            "layer2": {
+              "type": "string"
+            },
+            "tile": {
+              "type": "string"
+            },
+            "divider": {
+              "type": "string"
+            }
+          }
+        },
+        "text": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "primary",
+            "muted",
+            "inverse"
+          ],
+          "properties": {
+            "primary": {
+              "type": "string"
+            },
+            "muted": {
+              "type": "string"
+            },
+            "inverse": {
+              "type": "string"
+            }
+          }
+        },
+        "brand": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "500",
+            "600",
+            "700"
+          ],
+          "properties": {
+            "500": {
+              "type": "string"
+            },
+            "600": {
+              "type": "string"
+            },
+            "700": {
+              "type": "string"
+            }
+          }
+        },
+        "accent": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "400",
+            "500",
+            "600"
+          ],
+          "properties": {
+            "400": {
+              "type": "string"
+            },
+            "500": {
+              "type": "string"
+            },
+            "600": {
+              "type": "string"
+            }
+          }
+        },
+        "semantic": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "success",
+            "warning",
+            "error",
+            "info"
+          ],
+          "properties": {
+            "success": {
+              "type": "string"
+            },
+            "warning": {
+              "type": "string"
+            },
+            "error": {
+              "type": "string"
+            },
+            "info": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "typography": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fontFamily",
+        "scale",
+        "weight",
+        "lineHeight",
+        "letterSpacing"
+      ],
+      "properties": {
+        "fontFamily": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sans",
+            "mono"
+          ],
+          "properties": {
+            "sans": {
+              "type": "string"
+            },
+            "mono": {
+              "type": "string"
+            }
+          }
+        },
+        "scale": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "xxl"
+          ],
+          "properties": {
+            "xs": {
+              "type": "number"
+            },
+            "sm": {
+              "type": "number"
+            },
+            "md": {
+              "type": "number"
+            },
+            "lg": {
+              "type": "number"
+            },
+            "xl": {
+              "type": "number"
+            },
+            "xxl": {
+              "type": "number"
+            }
+          }
+        },
+        "weight": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "regular",
+            "medium",
+            "semibold",
+            "bold"
+          ],
+          "properties": {
+            "regular": {
+              "type": "number"
+            },
+            "medium": {
+              "type": "number"
+            },
+            "semibold": {
+              "type": "number"
+            },
+            "bold": {
+              "type": "number"
+            }
+          }
+        },
+        "lineHeight": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "tight",
+            "normal",
+            "relaxed"
+          ],
+          "properties": {
+            "tight": {
+              "type": "number"
+            },
+            "normal": {
+              "type": "number"
+            },
+            "relaxed": {
+              "type": "number"
+            }
+          }
+        },
+        "letterSpacing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "tight",
+            "normal",
+            "wide"
+          ],
+          "properties": {
+            "tight": {
+              "type": "string"
+            },
+            "normal": {
+              "type": "string"
+            },
+            "wide": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "space": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Spacing scale (px)",
+      "patternProperties": {
+        "^[0-9]+$": {
+          "type": "number"
+        }
+      }
+    },
+    "radius": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sm",
+        "md",
+        "lg",
+        "pill",
+        "signature"
+      ],
+      "properties": {
+        "sm": {
+          "type": "number"
+        },
+        "md": {
+          "type": "number"
+        },
+        "lg": {
+          "type": "number"
+        },
+        "pill": {
+          "type": "number"
+        },
+        "signature": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "corner",
+            "cut",
+            "flare"
+          ],
+          "properties": {
+            "corner": {
+              "type": "string",
+              "enum": [
+                "tl",
+                "tr",
+                "bl",
+                "br"
+              ]
+            },
+            "cut": {
+              "type": "number"
+            },
+            "flare": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "elevation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "layer0",
+        "layer1",
+        "layer2",
+        "overlay"
+      ],
+      "properties": {
+        "layer0": {
+          "type": "number"
+        },
+        "layer1": {
+          "type": "number"
+        },
+        "layer2": {
+          "type": "number"
+        },
+        "overlay": {
+          "type": "number"
+        }
+      }
+    },
+    "shadow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "none",
+        "sm",
+        "md",
+        "lg"
+      ],
+      "properties": {
+        "none": {
+          "type": "string"
+        },
+        "sm": {
+          "type": "string"
+        },
+        "md": {
+          "type": "string"
+        },
+        "lg": {
+          "type": "string"
+        }
+      }
+    },
+    "motion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "duration",
+        "easing",
+        "spring"
+      ],
+      "properties": {
+        "duration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fast",
+            "base",
+            "slow"
+          ],
+          "properties": {
+            "fast": {
+              "type": "number"
+            },
+            "base": {
+              "type": "number"
+            },
+            "slow": {
+              "type": "number"
+            }
+          }
+        },
+        "easing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enter",
+            "exit",
+            "emphatic"
+          ],
+          "properties": {
+            "enter": {
+              "type": "string"
+            },
+            "exit": {
+              "type": "string"
+            },
+            "emphatic": {
+              "type": "string"
+            }
+          }
+        },
+        "spring": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "stiffness",
+            "damping",
+            "mass"
+          ],
+          "properties": {
+            "stiffness": {
+              "type": "number"
+            },
+            "damping": {
+              "type": "number"
+            },
+            "mass": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "zindex": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base",
+        "popover",
+        "modal",
+        "toast"
+      ],
+      "properties": {
+        "base": {
+          "type": "number"
+        },
+        "popover": {
+          "type": "number"
+        },
+        "modal": {
+          "type": "number"
+        },
+        "toast": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

@@ -5,6 +5,7 @@
 
 // Re-export tokens if they exist
 export * from './colors-new.js';
+export * from './typography.js';
 
 // Export token access helper
 export function getCSSVar(path: string): string {

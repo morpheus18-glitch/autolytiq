@@ -30,24 +30,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('auth_token')
-      if (token) {
-        try {
-          // Verify token with backend
-          const response = await fetch('/api/auth/me', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          })
+      const storedUser = localStorage.getItem('auth_user')
 
-          if (response.ok) {
-            const userData = await response.json()
-            setUser(userData)
-          } else {
-            localStorage.removeItem('auth_token')
-          }
+      if (token && storedUser) {
+        try {
+          // MOCK AUTH: Just restore from localStorage
+          const userData = JSON.parse(storedUser)
+          setUser(userData)
         } catch (err) {
-          console.error('Auth check failed:', err)
+          console.error('Auth restore failed:', err)
           localStorage.removeItem('auth_token')
+          localStorage.removeItem('auth_user')
         }
       }
       setIsLoading(false)
@@ -61,26 +54,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ storeId, username, password })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Login failed')
+      // MOCK AUTH: Accept any credentials (even blank)
+      // Just create a mock user and token
+      const mockUser: User = {
+        id: '1',
+        email: 'demo@autolytiq.com',
+        username: username || 'demo-user',
+        firstName: 'Demo',
+        lastName: 'User',
+        tenantId: storeId || 'demo',
+        role: 'admin'
       }
 
-      const data = await response.json()
+      const mockToken = 'mock-jwt-token-' + Date.now()
 
-      // Store token
-      localStorage.setItem('auth_token', data.token)
+      // Store token and user
+      localStorage.setItem('auth_token', mockToken)
+      localStorage.setItem('auth_user', JSON.stringify(mockUser))
 
       // Set user
-      setUser(data.user)
+      setUser(mockUser)
+
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 300))
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed'
       setError(message)
@@ -92,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem('auth_token')
+    localStorage.removeItem('auth_user')
     setUser(null)
     setError(null)
   }

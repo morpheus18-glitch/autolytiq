@@ -1,0 +1,124 @@
+{
+  "$version": "1.0.0",
+  "color": {
+    "surface": {
+      "canvas": "#0B0C10",
+      "layer1": "#16181D",
+      "layer2": "#1C1F26",
+      "tile": "#171A20",
+      "divider": "rgba(234,230,223,.08)"
+    },
+    "text": {
+      "primary": "#EAE6DF",
+      "muted": "rgba(234,230,223,.64)",
+      "inverse": "#0B0C10"
+    },
+    "brand": {
+      "500": "#FF7A43",
+      "600": "#FF4A1C",
+      "700": "#D83A12"
+    },
+    "accent": {
+      "400": "#AD6A41",
+      "500": "#C87C4A",
+      "600": "#9A5A37"
+    },
+    "semantic": {
+      "success": "#22C55E",
+      "warning": "#F59E0B",
+      "error": "#EF4444",
+      "info": "#38BDF8"
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "sans": "'Inter var', ui-sans-serif, system-ui",
+      "mono": "'JetBrains Mono', ui-monospace"
+    },
+    "scale": {
+      "xs": 11,
+      "sm": 12,
+      "md": 14,
+      "lg": 16,
+      "xl": 18,
+      "xxl": 22
+    },
+    "weight": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "lineHeight": {
+      "tight": 1.1,
+      "normal": 1.3,
+      "relaxed": 1.45
+    },
+    "letterSpacing": {
+      "tight": "-0.01em",
+      "normal": "0",
+      "wide": "0.02em"
+    }
+  },
+  "space": {
+    "0": 0,
+    "1": 4,
+    "2": 8,
+    "3": 12,
+    "4": 16,
+    "5": 20,
+    "6": 24,
+    "8": 32,
+    "10": 40,
+    "12": 48,
+    "16": 64,
+    "20": 80,
+    "24": 96
+  },
+  "radius": {
+    "sm": 2,
+    "md": 4,
+    "lg": 6,
+    "pill": 999,
+    "signature": {
+      "corner": "br",
+      "cut": 6,
+      "flare": 10
+    }
+  },
+  "elevation": {
+    "layer0": 0,
+    "layer1": 10,
+    "layer2": 20,
+    "overlay": 1000
+  },
+  "shadow": {
+    "none": "none",
+    "sm": "0 1px 2px rgba(0,0,0,.35)",
+    "md": "0 6px 16px rgba(0,0,0,.35)",
+    "lg": "0 12px 32px rgba(0,0,0,.40)"
+  },
+  "motion": {
+    "duration": {
+      "fast": 120,
+      "base": 180,
+      "slow": 260
+    },
+    "easing": {
+      "enter": "cubic-bezier(.2,.8,.2,1)",
+      "exit": "cubic-bezier(.4,0,.2,1)",
+      "emphatic": "cubic-bezier(.1,.9,.1,1)"
+    },
+    "spring": {
+      "stiffness": 420,
+      "damping": 32,
+      "mass": 1
+    }
+  },
+  "zindex": {
+    "base": 0,
+    "popover": 100,
+    "modal": 1000,
+    "toast": 1100
+  }
+}

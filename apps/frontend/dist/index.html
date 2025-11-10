@@ -8,9 +8,14 @@ Reason: Essential - SPA entry point with SEO and security headers
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>AutolytiQ - Dealership Management System</title>
-    <meta name="description" content="AutolytiQ - Comprehensive dealership management system with AI-powered analytics, competitive pricing intelligence, and secure SSL browsing." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#0EA5E9" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <title>AutolytiQ - AI-Powered Automotive CRM & Deal Management</title>
+    <meta name="description" content="Transform your dealership with AutolytiQ - the mobile-first CRM platform combining AI-powered deal optimization, real-time inventory management, and intelligent customer insights. Built for modern automotive sales teams." />
+    <meta name="keywords" content="automotive CRM, dealership management, car sales software, deal optimization, inventory management, AI automotive, mobile CRM, automotive software, dealership CRM, car dealer software" />
     
     <!-- Security & SSL Meta Tags -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; script-src-elem 'self' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3000 ws://localhost:3000 https://api.autolytiq.com https://ml.autolytiq.com https://www.google-analytics.com https://analytics.google.com;">
@@ -19,22 +24,29 @@ Reason: Essential - SPA entry point with SEO and security headers
     <meta name="referrer" content="strict-origin-when-cross-origin">
     
     <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="AutolytiQ - Dealership Management System" />
-    <meta property="og:description" content="Comprehensive dealership management with AI-powered analytics and secure SSL browsing." />
+    <meta property="og:title" content="AutolytiQ - AI-Powered Automotive CRM & Deal Management" />
+    <meta property="og:description" content="Transform your dealership with AutolytiQ - mobile-first CRM platform with AI deal optimization, real-time inventory, and intelligent customer insights." />
     <meta property="og:url" content="https://autolytiq.com" />
     <meta property="og:site_name" content="AutolytiQ" />
     <meta property="og:type" content="website" />
-    
+    <meta property="og:image" content="https://autolytiq.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="AutolytiQ - Dealership Management System" />
-    <meta name="twitter:description" content="Comprehensive dealership management with AI-powered analytics and secure SSL browsing." />
+    <meta name="twitter:title" content="AutolytiQ - AI-Powered Automotive CRM" />
+    <meta name="twitter:description" content="Mobile-first dealership management with AI deal optimization and real-time inventory management." />
+    <meta name="twitter:image" content="https://autolytiq.com/twitter-card.png" />
+    <meta name="twitter:creator" content="@AutolytiQ" />
     
     <!-- Canonical URL -->
     <link rel="canonical" href="https://autolytiq.com" />
     
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/aiq-logo.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     
     <!-- Preconnect to external domains for performance -->
     <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
@@ -50,10 +62,11 @@ Reason: Essential - SPA entry point with SEO and security headers
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700&display=swap"
     />
-    <script type="module" crossorigin src="/assets/index-DetpD8YD.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/vendor-4qhYPToS.js">
-    <link rel="modulepreload" crossorigin href="/assets/react-vendor-BdFonbji.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-5eA3Zfl4.css">
+    <script type="module" crossorigin src="/assets/index-C9_Ww7d4.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-BNXwBrTq.js">
+    <link rel="modulepreload" crossorigin href="/assets/radix-vendor-CFmJ1img.js">
+    <link rel="modulepreload" crossorigin href="/assets/react-vendor-C5uRWwC3.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-8G3JGf6y.css">
   </head>
   <body>
     <div id="root"></div>

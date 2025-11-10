@@ -1,0 +1,1090 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autolytiq.dev/schemas/theme/v1/aur-ux.schema.json",
+  "title": "Autolytiq Unified Theme & UI Schema",
+  "description": "Settings-first, mobile-native theme + UI configuration for the Autolytiq shell (Loop, Band, Tiles, Widgets). This schema is designed to be exported/imported across web (React), desktop (Tauri), and mobile (React Native).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$version",
+    "meta",
+    "palette",
+    "typography",
+    "space",
+    "radius",
+    "elevation",
+    "shadow",
+    "motion",
+    "iconography",
+    "layout",
+    "components",
+    "a11y",
+    "states"
+  ],
+  "properties": {
+    "$version": {
+      "type": "string",
+      "description": "Semantic version of this config (not the schema). Use major.minor.patch and bump major on breaking visual contract changes."
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "brand",
+        "lastUpdated",
+        "author"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Human-friendly theme name (e.g., 'Rebel Elite \u2013 Infrared + Cognac')."
+        },
+        "brand": {
+          "type": "string",
+          "description": "Primary brand key (e.g., 'autolytiq')."
+        },
+        "author": {
+          "type": "string",
+          "description": "Owner/maintainer of this theme."
+        },
+        "lastUpdated": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of last update."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Freeform notes about design intent and constraints."
+        }
+      }
+    },
+    "palette": {
+      "type": "object",
+      "description": "Core colors with roles. All colors should be hex or rgba. Roles are used instead of direct values in components.",
+      "additionalProperties": false,
+      "required": [
+        "surface",
+        "text",
+        "brand",
+        "accent",
+        "semantic"
+      ],
+      "properties": {
+        "surface": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "canvas",
+            "layer1",
+            "layer2",
+            "band",
+            "tile",
+            "divider"
+          ],
+          "properties": {
+            "canvas": {
+              "type": "string",
+              "description": "App background (charcoal)."
+            },
+            "layer1": {
+              "type": "string",
+              "description": "Primary card/tile surface (slate)."
+            },
+            "layer2": {
+              "type": "string",
+              "description": "Elevated surfaces."
+            },
+            "band": {
+              "type": "string",
+              "description": "Band launcher surface color."
+            },
+            "tile": {
+              "type": "string",
+              "description": "Default tile fill."
+            },
+            "divider": {
+              "type": "string",
+              "description": "Thin strokes, hairlines, separators."
+            }
+          }
+        },
+        "text": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "primary",
+            "muted",
+            "inverse",
+            "danger"
+          ],
+          "properties": {
+            "primary": {
+              "type": "string"
+            },
+            "muted": {
+              "type": "string"
+            },
+            "inverse": {
+              "type": "string"
+            },
+            "danger": {
+              "type": "string"
+            }
+          }
+        },
+        "brand": {
+          "type": "object",
+          "description": "Primary energy (Infrared) + tints/shades.",
+          "additionalProperties": false,
+          "required": [
+            "500",
+            "600",
+            "700"
+          ],
+          "properties": {
+            "500": {
+              "type": "string"
+            },
+            "600": {
+              "type": "string"
+            },
+            "700": {
+              "type": "string"
+            }
+          }
+        },
+        "accent": {
+          "type": "object",
+          "description": "Prestige accent (Cognac) + tints/shades.",
+          "additionalProperties": false,
+          "required": [
+            "400",
+            "500",
+            "600"
+          ],
+          "properties": {
+            "400": {
+              "type": "string"
+            },
+            "500": {
+              "type": "string"
+            },
+            "600": {
+              "type": "string"
+            }
+          }
+        },
+        "semantic": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "success",
+            "warning",
+            "error",
+            "info"
+          ],
+          "properties": {
+            "success": {
+              "type": "string"
+            },
+            "warning": {
+              "type": "string"
+            },
+            "error": {
+              "type": "string"
+            },
+            "info": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "typography": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fontFamily",
+        "scale",
+        "weight",
+        "lineHeight",
+        "letterSpacing"
+      ],
+      "properties": {
+        "fontFamily": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sans",
+            "mono"
+          ],
+          "properties": {
+            "sans": {
+              "type": "string",
+              "description": "Primary UI font stack."
+            },
+            "mono": {
+              "type": "string",
+              "description": "Numeric/tech readouts."
+            }
+          }
+        },
+        "scale": {
+          "type": "object",
+          "description": "Mobile-first type ramp in px.",
+          "additionalProperties": false,
+          "required": [
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "xxl"
+          ],
+          "properties": {
+            "xs": {
+              "type": "number"
+            },
+            "sm": {
+              "type": "number"
+            },
+            "md": {
+              "type": "number"
+            },
+            "lg": {
+              "type": "number"
+            },
+            "xl": {
+              "type": "number"
+            },
+            "xxl": {
+              "type": "number"
+            }
+          }
+        },
+        "weight": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "regular",
+            "medium",
+            "semibold",
+            "bold"
+          ],
+          "properties": {
+            "regular": {
+              "type": "number"
+            },
+            "medium": {
+              "type": "number"
+            },
+            "semibold": {
+              "type": "number"
+            },
+            "bold": {
+              "type": "number"
+            }
+          }
+        },
+        "lineHeight": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "tight",
+            "normal",
+            "relaxed"
+          ],
+          "properties": {
+            "tight": {
+              "type": "number"
+            },
+            "normal": {
+              "type": "number"
+            },
+            "relaxed": {
+              "type": "number"
+            }
+          }
+        },
+        "letterSpacing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "tight",
+            "normal",
+            "wide"
+          ],
+          "properties": {
+            "tight": {
+              "type": "string"
+            },
+            "normal": {
+              "type": "string"
+            },
+            "wide": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "space": {
+      "type": "object",
+      "description": "Spacing scale in px.",
+      "additionalProperties": false,
+      "required": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "8",
+        "10",
+        "12",
+        "16",
+        "20",
+        "24"
+      ],
+      "properties": {
+        "0": {
+          "type": "number"
+        },
+        "1": {
+          "type": "number"
+        },
+        "2": {
+          "type": "number"
+        },
+        "3": {
+          "type": "number"
+        },
+        "4": {
+          "type": "number"
+        },
+        "5": {
+          "type": "number"
+        },
+        "6": {
+          "type": "number"
+        },
+        "8": {
+          "type": "number"
+        },
+        "10": {
+          "type": "number"
+        },
+        "12": {
+          "type": "number"
+        },
+        "16": {
+          "type": "number"
+        },
+        "20": {
+          "type": "number"
+        },
+        "24": {
+          "type": "number"
+        }
+      }
+    },
+    "radius": {
+      "type": "object",
+      "description": "Corner radii. Core rule: 4px standard.",
+      "additionalProperties": false,
+      "required": [
+        "sm",
+        "md",
+        "lg",
+        "pill",
+        "signature"
+      ],
+      "properties": {
+        "sm": {
+          "type": "number"
+        },
+        "md": {
+          "type": "number"
+        },
+        "lg": {
+          "type": "number"
+        },
+        "pill": {
+          "type": "number"
+        },
+        "signature": {
+          "type": "object",
+          "description": "Signature corner break/flare sizes.",
+          "additionalProperties": false,
+          "required": [
+            "cut",
+            "flare"
+          ],
+          "properties": {
+            "cut": {
+              "type": "number"
+            },
+            "flare": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "elevation": {
+      "type": "object",
+      "description": "Z-layer tokens for overlays/components.",
+      "additionalProperties": false,
+      "required": [
+        "layer0",
+        "layer1",
+        "layer2",
+        "modal",
+        "toast"
+      ],
+      "properties": {
+        "layer0": {
+          "type": "number"
+        },
+        "layer1": {
+          "type": "number"
+        },
+        "layer2": {
+          "type": "number"
+        },
+        "modal": {
+          "type": "number"
+        },
+        "toast": {
+          "type": "number"
+        }
+      }
+    },
+    "shadow": {
+      "type": "object",
+      "description": "Shadow tokens expressed as CSS box-shadow strings for web; map to elevation on native.",
+      "additionalProperties": false,
+      "required": [
+        "none",
+        "sm",
+        "md",
+        "lg"
+      ],
+      "properties": {
+        "none": {
+          "type": "string"
+        },
+        "sm": {
+          "type": "string"
+        },
+        "md": {
+          "type": "string"
+        },
+        "lg": {
+          "type": "string"
+        }
+      }
+    },
+    "motion": {
+      "type": "object",
+      "description": "Motion tokens for consistent animation.",
+      "additionalProperties": false,
+      "required": [
+        "duration",
+        "easing",
+        "spring",
+        "ripple"
+      ],
+      "properties": {
+        "duration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fast",
+            "base",
+            "slow"
+          ],
+          "properties": {
+            "fast": {
+              "type": "number",
+              "description": "ms"
+            },
+            "base": {
+              "type": "number",
+              "description": "ms"
+            },
+            "slow": {
+              "type": "number",
+              "description": "ms"
+            }
+          }
+        },
+        "easing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enter",
+            "exit",
+            "emphatic"
+          ],
+          "properties": {
+            "enter": {
+              "type": "string",
+              "description": "cubic-bezier"
+            },
+            "exit": {
+              "type": "string"
+            },
+            "emphatic": {
+              "type": "string"
+            }
+          }
+        },
+        "spring": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "stiffness",
+            "damping",
+            "mass"
+          ],
+          "properties": {
+            "stiffness": {
+              "type": "number"
+            },
+            "damping": {
+              "type": "number"
+            },
+            "mass": {
+              "type": "number"
+            }
+          }
+        },
+        "ripple": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "color",
+            "alpha",
+            "duration"
+          ],
+          "properties": {
+            "color": {
+              "type": "string"
+            },
+            "alpha": {
+              "type": "number"
+            },
+            "duration": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "iconography": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "size",
+        "stroke",
+        "sprite"
+      ],
+      "properties": {
+        "size": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "properties": {
+            "sm": {
+              "type": "number"
+            },
+            "md": {
+              "type": "number"
+            },
+            "lg": {
+              "type": "number"
+            }
+          }
+        },
+        "stroke": {
+          "type": "number",
+          "description": "Default icon stroke width in px."
+        },
+        "sprite": {
+          "type": "string",
+          "description": "Path/URL to SVG sprite or icon font name."
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "description": "Mobile-first layout controls.",
+      "additionalProperties": false,
+      "required": [
+        "band",
+        "loop",
+        "grid"
+      ],
+      "properties": {
+        "band": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "visibility",
+            "height",
+            "background",
+            "tileSpacing",
+            "autoHideOffset",
+            "translucent"
+          ],
+          "properties": {
+            "visibility": {
+              "type": "string",
+              "enum": [
+                "always",
+                "auto-hide",
+                "semi"
+              ]
+            },
+            "height": {
+              "type": "number",
+              "description": "dp/px height on mobile."
+            },
+            "background": {
+              "type": "string",
+              "description": "Color token."
+            },
+            "tileSpacing": {
+              "type": "number",
+              "description": "Gap between tiles."
+            },
+            "autoHideOffset": {
+              "type": "number",
+              "description": "Pixels to trigger hide/show."
+            },
+            "translucent": {
+              "type": "boolean"
+            }
+          }
+        },
+        "loop": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "padding",
+            "sectionGap",
+            "maxWidth",
+            "widgetGap"
+          ],
+          "properties": {
+            "padding": {
+              "type": "number"
+            },
+            "sectionGap": {
+              "type": "number"
+            },
+            "maxWidth": {
+              "type": "number",
+              "description": "For web adaptation."
+            },
+            "widgetGap": {
+              "type": "number"
+            }
+          }
+        },
+        "grid": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cols",
+            "rowHeight",
+            "snap"
+          ],
+          "properties": {
+            "cols": {
+              "type": "number"
+            },
+            "rowHeight": {
+              "type": "number"
+            },
+            "snap": {
+              "type": "number",
+              "description": "Snap step in px for drag."
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "type": "object",
+      "description": "Component-level style and behavior vars.",
+      "additionalProperties": false,
+      "required": [
+        "tile",
+        "widget",
+        "button",
+        "input",
+        "card",
+        "chart"
+      ],
+      "properties": {
+        "tile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "radius",
+            "signatureCorner",
+            "padding",
+            "iconSize",
+            "labelSize",
+            "facetStyle",
+            "pressed",
+            "focused",
+            "danger"
+          ],
+          "properties": {
+            "radius": {
+              "type": "number",
+              "const": 4,
+              "description": "Standardized 4px radius."
+            },
+            "signatureCorner": {
+              "type": "string",
+              "enum": [
+                "top-left",
+                "top-right",
+                "bottom-left",
+                "bottom-right"
+              ],
+              "description": "Where to apply cut/flare."
+            },
+            "padding": {
+              "type": "number"
+            },
+            "iconSize": {
+              "type": "number"
+            },
+            "labelSize": {
+              "type": "string",
+              "enum": [
+                "xs",
+                "sm",
+                "md"
+              ]
+            },
+            "facetStyle": {
+              "type": "string",
+              "enum": [
+                "bar",
+                "spark",
+                "counter",
+                "status"
+              ]
+            },
+            "pressed": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "shadow": {
+                  "type": "string"
+                },
+                "scale": {
+                  "type": "number"
+                },
+                "tint": {
+                  "type": "string"
+                }
+              }
+            },
+            "focused": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "outline": {
+                  "type": "string"
+                },
+                "glow": {
+                  "type": "string"
+                }
+              }
+            },
+            "danger": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "tint": {
+                  "type": "string"
+                },
+                "outline": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "widget": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "radius",
+            "padding",
+            "headerHeight",
+            "border",
+            "background"
+          ],
+          "properties": {
+            "radius": {
+              "type": "number"
+            },
+            "padding": {
+              "type": "number"
+            },
+            "headerHeight": {
+              "type": "number"
+            },
+            "border": {
+              "type": "string"
+            },
+            "background": {
+              "type": "string"
+            }
+          }
+        },
+        "button": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "height",
+            "radius",
+            "variants"
+          ],
+          "properties": {
+            "height": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "sm",
+                "md",
+                "lg"
+              ],
+              "properties": {
+                "sm": {
+                  "type": "number"
+                },
+                "md": {
+                  "type": "number"
+                },
+                "lg": {
+                  "type": "number"
+                }
+              }
+            },
+            "radius": {
+              "type": "number"
+            },
+            "variants": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "primary",
+                "ghost"
+              ],
+              "properties": {
+                "primary": {
+                  "type": "object",
+                  "properties": {
+                    "bg": {
+                      "type": "string"
+                    },
+                    "fg": {
+                      "type": "string"
+                    },
+                    "hover": {
+                      "type": "string"
+                    },
+                    "active": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "ghost": {
+                  "type": "object",
+                  "properties": {
+                    "bg": {
+                      "type": "string"
+                    },
+                    "fg": {
+                      "type": "string"
+                    },
+                    "hover": {
+                      "type": "string"
+                    },
+                    "active": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "input": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "height",
+            "radius",
+            "border",
+            "placeholder",
+            "focus"
+          ],
+          "properties": {
+            "height": {
+              "type": "number"
+            },
+            "radius": {
+              "type": "number"
+            },
+            "border": {
+              "type": "string"
+            },
+            "placeholder": {
+              "type": "string"
+            },
+            "focus": {
+              "type": "string"
+            }
+          }
+        },
+        "card": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "radius",
+            "border",
+            "background"
+          ],
+          "properties": {
+            "radius": {
+              "type": "number"
+            },
+            "border": {
+              "type": "string"
+            },
+            "background": {
+              "type": "string"
+            }
+          }
+        },
+        "chart": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "palette",
+            "grid",
+            "axis",
+            "spark"
+          ],
+          "properties": {
+            "palette": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "grid": {
+              "type": "string"
+            },
+            "axis": {
+              "type": "string"
+            },
+            "spark": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "height",
+                "thickness"
+              ],
+              "properties": {
+                "height": {
+                  "type": "number"
+                },
+                "thickness": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "a11y": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contrast",
+        "focusRing",
+        "hitTarget",
+        "reduceMotion"
+      ],
+      "properties": {
+        "contrast": {
+          "type": "string",
+          "enum": [
+            "AA",
+            "AAA"
+          ],
+          "description": "Minimum contrast standard."
+        },
+        "focusRing": {
+          "type": "string",
+          "description": "CSS outline or RN shadow style for focus."
+        },
+        "hitTarget": {
+          "type": "number",
+          "description": "Minimum tap target size in dp/px (mobile-first)."
+        },
+        "reduceMotion": {
+          "type": "boolean",
+          "description": "Respect prefers-reduced-motion."
+        }
+      }
+    },
+    "states": {
+      "type": "object",
+      "description": "Global state tokens for consistent interactions.",
+      "additionalProperties": false,
+      "required": [
+        "hover",
+        "active",
+        "disabled",
+        "selected",
+        "error"
+      ],
+      "properties": {
+        "hover": {
+          "type": "string"
+        },
+        "active": {
+          "type": "string"
+        },
+        "disabled": {
+          "type": "string"
+        },
+        "selected": {
+          "type": "string"
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

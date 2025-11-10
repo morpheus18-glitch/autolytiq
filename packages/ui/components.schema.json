@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autolytiq.dev/schemas/components/v1/schema.json",
+  "title": "Autolytiq Custom Components (v1)",
+  "description": "Schema for component blueprints that consume tokens. Solely custom components; no layout rules.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$version",
+    "components"
+  ],
+  "properties": {
+    "$version": {
+      "type": "string"
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "description",
+          "props",
+          "slots",
+          "variants",
+          "states",
+          "styles"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "props": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "slots": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "variants": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "states": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "styles": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "base": {
+                "type": "object",
+                "description": "Token references only."
+              },
+              "variantStyles": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object"
+                }
+              },
+              "stateStyles": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

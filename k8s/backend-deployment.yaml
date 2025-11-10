@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: autolytiq-backend
+  namespace: autolytiq-prod
   labels:
     app: autolytiq
     component: backend
@@ -35,17 +36,17 @@ spec:
         - name: JWT_SECRET
           valueFrom:
             secretKeyRef:
-              name: autolytiq-secrets
-              key: jwt-secret
+              name: app-env
+              key: JWT_SECRET
         - name: FRONTEND_URL
           value: "https://autolytiq.com"
         resources:
           requests:
-            memory: "128Mi"
-            cpu: "100m"
+            memory: "96Mi"
+            cpu: "75m"
           limits:
-            memory: "256Mi"
-            cpu: "200m"
+            memory: "192Mi"
+            cpu: "150m"
         livenessProbe:
           httpGet:
             path: /health
@@ -65,6 +66,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: autolytiq-backend
+  namespace: autolytiq-prod
   labels:
     app: autolytiq
     component: backend

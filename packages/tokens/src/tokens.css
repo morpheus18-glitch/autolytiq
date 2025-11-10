@@ -1,0 +1,157 @@
+/**
+ * @autolytiq/tokens - CSS Custom Properties
+ *
+ * These CSS variables enable runtime theme switching without recompiling.
+ * Light mode is the default, dark mode activates with .dark class on <html>
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* LIGHT MODE (DEFAULT) */
+/* ═══════════════════════════════════════════════════════════════ */
+:root {
+  /* Surfaces */
+  --color-surface-base: #FFFFFF;
+  --color-surface-elevated: #F6F8FA;
+  --color-surface-inset: #EAEEF2;
+  --color-surface-subtle: #F6F8FA;
+  --color-surface-muted: #EAEEF2;
+
+  /* Borders */
+  --color-border-base: #D0D7DE;
+  --color-border-muted: #EAEEF2;
+  --color-border-strong: #AFB8C1;
+
+  /* Text */
+  --color-text-primary: #24292F;
+  --color-text-secondary: #57606A;
+  --color-text-tertiary: #6E7781;
+  --color-text-placeholder: #8C959F;
+  --color-text-inverse: #FFFFFF;
+
+  /* Actions (Teal/Green accent) */
+  --color-accent-primary: #10B981;
+  --color-accent-primary-hover: #059669;
+  --color-accent-primary-active: #047857;
+  --color-accent-secondary: #3B82F6;
+  --color-accent-secondary-hover: #2563EB;
+
+  /* Links */
+  --color-link-base: #2563EB;
+  --color-link-hover: #1D4ED8;
+
+  /* Status Colors */
+  --color-status-success: #22C55E;
+  --color-status-success-bg: #F0FDF4;
+  --color-status-error: #DC2626;
+  --color-status-error-bg: #FEF2F2;
+  --color-status-warning: #D97706;
+  --color-status-warning-bg: #FFFBEB;
+  --color-status-info: #2563EB;
+  --color-status-info-bg: #EFF6FF;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* DARK MODE */
+/* ═══════════════════════════════════════════════════════════════ */
+.dark {
+  /* Surfaces */
+  --color-surface-base: #0D1117;
+  --color-surface-elevated: #161B22;
+  --color-surface-inset: #1C2128;
+  --color-surface-subtle: #161B22;
+  --color-surface-muted: #1C2128;
+
+  /* Borders */
+  --color-border-base: #32383F;
+  --color-border-muted: #1C2128;
+  --color-border-strong: #424A53;
+
+  /* Text */
+  --color-text-primary: #ECECF1;
+  --color-text-secondary: #C5C5D2;
+  --color-text-tertiary: #9B9BA7;
+  --color-text-placeholder: #6E6E80;
+  --color-text-inverse: #24292F;
+
+  /* Actions (brighter for dark mode) */
+  --color-accent-primary: #34D399;
+  --color-accent-primary-hover: #10B981;
+  --color-accent-primary-active: #059669;
+  --color-accent-secondary: #60A5FA;
+  --color-accent-secondary-hover: #3B82F6;
+
+  /* Links */
+  --color-link-base: #60A5FA;
+  --color-link-hover: #93C5FD;
+
+  /* Status Colors (brighter for dark mode) */
+  --color-status-success: #34D399;
+  --color-status-success-bg: #064E3B;
+  --color-status-error: #EF4444;
+  --color-status-error-bg: #7F1D1D;
+  --color-status-warning: #F59E0B;
+  --color-status-warning-bg: #78350F;
+  --color-status-info: #60A5FA;
+  --color-status-info-bg: #1E3A8A;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* BASE STYLES */
+/* ═══════════════════════════════════════════════════════════════ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--color-surface-base);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* ACCESSIBILITY */
+/* ═══════════════════════════════════════════════════════════════ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus visible for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

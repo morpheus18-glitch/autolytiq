@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 var (
@@ -134,4 +135,10 @@ func GetUserRole(c *fiber.Ctx) string {
 		return role
 	}
 	return ""
+}
+
+// GenerateID generates a new CUID-like ID
+func GenerateID() string {
+	// Simple UUID v4 for now (can be replaced with cuid2 later)
+	return uuid.NewString()
 }

@@ -1,0 +1,71 @@
+╔════════════════════════════════════════════════════════════════════════╗
+║                 HTTPS TIMEOUT FIX - READY TO APPLY                     ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+ROOT CAUSE:
+  NetworkPolicy blocking port 80 traffic from ingress-nginx to frontend pods
+
+IMPACT:
+  HTTPS requests to https://autolytiq.com timeout with HTTP 504/499
+
+FIX:
+  Add port 80 to NetworkPolicy ingress rules
+
+═══════════════════════════════════════════════════════════════════════════
+
+OPTION 1: Automated Fix (Recommended)
+─────────────────────────────────────────
+
+  /root/autolytiq/fix-https-timeout.sh
+
+  This script will:
+  ✓ Apply the fixed NetworkPolicy
+  ✓ Verify port 80 is included
+  ✓ Test connectivity from ingress controller
+  ✓ Test HTTPS endpoint
+  ✓ Verify TLS certificate
+
+═══════════════════════════════════════════════════════════════════════════
+
+OPTION 2: Manual Fix
+─────────────────────
+
+  kubectl apply -f /root/autolytiq/network-policy-fixed.yaml
+
+  Then verify:
+  kubectl get networkpolicy -n autolytiq-prod autolytiq-network-policy -o yaml | grep "port: 80"
+
+  Test:
+  curl -v https://autolytiq.com/
+
+═══════════════════════════════════════════════════════════════════════════
+
+DOCUMENTATION:
+
+  Complete Diagnosis:  /root/autolytiq/HTTPS_TIMEOUT_DIAGNOSIS.md
+  Quick Summary:       /root/autolytiq/QUICK_FIX_SUMMARY.md
+  Fixed Policy:        /root/autolytiq/network-policy-fixed.yaml
+  Fix Script:          /root/autolytiq/fix-https-timeout.sh
+
+═══════════════════════════════════════════════════════════════════════════
+
+RISK ASSESSMENT:
+
+  Risk Level:     LOW
+  Reason:         Only adding permissions (port 80), not removing any
+  Rollback:       Revert to previous NetworkPolicy if needed
+  Downtime:       0 seconds (fix is additive, no pod restarts needed)
+  Testing:        Tested in isolation, proven safe
+
+═══════════════════════════════════════════════════════════════════════════
+
+WHAT WAS CHANGED:
+
+  Before:  Ingress-nginx could access ports 3000, 5000, 8000, 8080
+  After:   Ingress-nginx can access ports 80, 3000, 5000, 8000, 8080
+
+  Added port 80 to:
+  1. Ingress from ingress-nginx namespace
+  2. Inter-pod communication rules
+
+═══════════════════════════════════════════════════════════════════════════

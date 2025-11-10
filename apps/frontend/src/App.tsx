@@ -18,6 +18,14 @@ import ProtectedRoute from './components/ProtectedRoute'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import Dashboard from './pages/Dashboard'
+import { MobileShell } from './components/mobile/MobileShell'
+import { HomePage } from './pages/mobile/HomePage'
+import { CustomerLens } from './pages/mobile/CustomerLens'
+import { VehicleLens } from './pages/mobile/VehicleLens'
+import { DealLens } from './pages/mobile/DealLens'
+import { WorkPage } from './pages/mobile/WorkPage'
+import { ReportsPage } from './pages/mobile/ReportsPage'
+import { SettingsPage } from './pages/mobile/SettingsPage'
 
 // Create query client for TanStack Query
 const queryClient = new QueryClient({
@@ -46,6 +54,80 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Mobile-first home routes */}
+            <Route
+              path="/home"
+              element={
+                <ProtectedRoute>
+                  <MobileShell>
+                    <HomePage />
+                  </MobileShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/home/customer"
+              element={
+                <ProtectedRoute>
+                  <MobileShell>
+                    <CustomerLens />
+                  </MobileShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/home/vehicle"
+              element={
+                <ProtectedRoute>
+                  <MobileShell>
+                    <VehicleLens />
+                  </MobileShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/home/deal"
+              element={
+                <ProtectedRoute>
+                  <MobileShell>
+                    <DealLens />
+                  </MobileShell>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Mobile tab routes */}
+            <Route
+              path="/work"
+              element={
+                <ProtectedRoute>
+                  <MobileShell>
+                    <WorkPage />
+                  </MobileShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute>
+                  <MobileShell>
+                    <ReportsPage />
+                  </MobileShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <MobileShell>
+                    <SettingsPage />
+                  </MobileShell>
                 </ProtectedRoute>
               }
             />

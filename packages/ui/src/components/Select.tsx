@@ -3,25 +3,24 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../utils/cn.js';
 
 export const selectVariants = cva(
-  'block w-full rounded-md border outline-none transition-colors ' +
-    'bg-[var(--surface,white)] text-[var(--text,#0b1020)] ' +
-    'border-[var(--border,#c9d3e3)] ' +
-    'focus:ring-2 focus:ring-[var(--ring,rgba(42,125,225,0.28))] ' +
-    'disabled:opacity-50 disabled:cursor-not-allowed',
+  'w-full rounded-md border bg-surface-base text-text-primary transition-smooth focus-ring disabled:disabled',
   {
     variants: {
-      size: {
-        sm: 'h-8 px-2 text-[13px]',
-        md: 'h-10 px-3 text-[14px]',
-        lg: 'h-11 px-3 text-[15px]'
+      variant: {
+        default: 'border-border-base',
+        error: 'border-status-error focus-visible:ring-status-error',
+        success: 'border-status-success focus-visible:ring-status-success',
       },
-      tone: {
-        default: '',
-        subtle: 'bg-[var(--panel,#f7f9fc)]',
-        danger: 'border-[var(--danger-border,#ffb4b4)] focus:ring-[rgba(255,88,88,.28)]'
-      }
+      size: {
+        sm: 'h-8 px-2.5 py-1 text-xs',
+        md: 'h-10 px-3 py-2 text-sm',
+        lg: 'h-12 px-4 py-3 text-base',
+      },
     },
-    defaultVariants: { size: 'md', tone: 'default' }
+    defaultVariants: {
+      variant: 'default',
+      size: 'md',
+    },
   }
 );
 
@@ -30,16 +29,33 @@ export type SelectOption = { label: string; value: string; disabled?: boolean };
 export interface SelectProps
   extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size' | 'onChange'>,
     VariantProps<typeof selectVariants> {
-  options?: SelectOption[];            // convenience list
-  placeholder?: string;                // renders a disabled first option
+  options?: SelectOption[];
+  placeholder?: string;
+  error?: boolean;
+  success?: boolean;
   onValueChange?: (value: string) => void;
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function Select(
-  { className, size, tone, options, placeholder, onValueChange, defaultValue, value, children, ...rest },
+  {
+    className,
+    variant,
+    size,
+    error,
+    success,
+    options,
+    placeholder,
+    onValueChange,
+    defaultValue,
+    value,
+    children,
+    ...rest
+  },
   ref
 ) {
-  // Controlled vs uncontrolled both supported
+  // Determine variant based on error/success state
+  const computedVariant = error ? 'error' : success ? 'success' : variant;
+
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onValueChange?.(e.target.value);
   };
@@ -47,7 +63,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
   return (
     <select
       ref={ref}
-      className={cn(selectVariants({ size, tone }), className)}
+      className={cn(selectVariants({ variant: computedVariant, size }), className)}
       onChange={handleChange}
       value={value}
       defaultValue={defaultValue}
@@ -63,7 +79,6 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
           {o.label}
         </option>
       ))}
-      {/* If consumer passes <option> children, render them too */}
       {children}
     </select>
   );

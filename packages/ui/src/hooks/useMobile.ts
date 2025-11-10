@@ -225,8 +225,8 @@ export function useResponsiveValue<T>(values: Partial<Record<Breakpoint, T>>): T
   const currentIndex = breakpointOrder.indexOf(breakpoint);
 
   for (let i = currentIndex - 1; i >= 0; i--) {
-    const fallbackBreakpoint = breakpointOrder[i];
-    if (values[fallbackBreakpoint] !== undefined) {
+    const fallbackBreakpoint = breakpointOrder[i] as Breakpoint;
+    if (fallbackBreakpoint && values[fallbackBreakpoint] !== undefined) {
       return values[fallbackBreakpoint];
     }
   }

@@ -15,14 +15,26 @@ export const textVariants = cva('', {
      * Typography variant (from @repo/tokens typography)
      */
     variant: {
+      // iOS Typography Scale
+      largeTitle: 'text-[34px] font-bold leading-[1.1] tracking-[-0.02em]',
+      title1: 'text-[28px] font-bold leading-[1.15] tracking-[-0.015em]',
+      title2: 'text-[22px] font-semibold leading-[1.2] tracking-[-0.01em]',
+      title3: 'text-[20px] font-semibold leading-[1.25]',
+      body: 'text-[17px] font-normal leading-[1.4]',
+      bodySemibold: 'text-[17px] font-semibold leading-[1.4] tracking-[-0.003em]',
+      subheadline: 'text-[15px] font-normal leading-[1.35]',
+      footnote: 'text-[13px] font-normal leading-[1.3]',
+      footnoteSemibold: 'text-[13px] font-semibold leading-[1.3]',
+      caption: 'text-[12px] font-normal leading-[1.3]',
+      captionSemibold: 'text-[12px] font-semibold leading-[1.3]',
+
+      // Legacy variants (for backwards compatibility)
       display: 'text-4xl font-bold tracking-tight',
       h1: 'text-3xl font-bold',
       h2: 'text-2xl font-semibold',
       h3: 'text-xl font-semibold',
       h4: 'text-lg font-medium',
-      body: 'text-base font-normal',
       ui: 'text-sm font-medium',
-      caption: 'text-xs font-normal',
       mono: 'font-mono text-sm',
     },
     /**

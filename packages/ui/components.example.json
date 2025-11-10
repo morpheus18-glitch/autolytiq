@@ -1,0 +1,198 @@
+{
+  "$version": "1.0.0",
+  "components": [
+    {
+      "name": "Tile",
+      "description": "App tile with signature corner (jailbreak motif).",
+      "props": {
+        "label": {
+          "type": "string",
+          "required": true
+        },
+        "icon": {
+          "type": "string",
+          "required": false
+        },
+        "active": {
+          "type": "boolean",
+          "required": false,
+          "default": false
+        },
+        "danger": {
+          "type": "boolean",
+          "required": false,
+          "default": false
+        }
+      },
+      "slots": [
+        "icon",
+        "label",
+        "facet"
+      ],
+      "variants": {
+        "default": {},
+        "live": {
+          "description": "Live facet pulse for active data"
+        }
+      },
+      "states": {
+        "hover": {
+          "description": "Pointer hover"
+        },
+        "pressed": {
+          "description": "Pointer down"
+        },
+        "focused": {
+          "description": "Keyboard or programmatic focus"
+        },
+        "disabled": {
+          "description": "Unavailable"
+        }
+      },
+      "styles": {
+        "base": {
+          "background": "{color.surface.tile}",
+          "color": "{color.text.primary}",
+          "radius": "{radius.md}",
+          "padding": "{space.3}",
+          "border": "1px solid {color.surface.divider}",
+          "shadow": "{shadow.sm}"
+        },
+        "variantStyles": {
+          "live": {
+            "border": "1px solid {color.brand.600}"
+          }
+        },
+        "stateStyles": {
+          "hover": {
+            "background": "rgba(234,230,223,.06)"
+          },
+          "pressed": {
+            "background": "rgba(255,74,28,.06)",
+            "shadow": "{shadow.md}"
+          },
+          "focused": {
+            "outline": "1px solid rgba(200,124,74,.6)"
+          },
+          "disabled": {
+            "opacity": 0.5
+          }
+        }
+      }
+    },
+    {
+      "name": "Button",
+      "description": "Primary action button with Infrared energy.",
+      "props": {
+        "children": {
+          "type": "string",
+          "required": true
+        },
+        "variant": {
+          "type": "enum",
+          "values": [
+            "primary",
+            "ghost"
+          ],
+          "default": "primary"
+        },
+        "size": {
+          "type": "enum",
+          "values": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "default": "md"
+        },
+        "disabled": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "slots": [
+        "leftIcon",
+        "rightIcon",
+        "children"
+      ],
+      "variants": {
+        "primary": {
+          "bg": "{color.brand.600}",
+          "fg": "{color.text.primary}",
+          "hover": "{color.brand.500}",
+          "active": "{color.brand.700}"
+        },
+        "ghost": {
+          "bg": "transparent",
+          "fg": "{color.text.primary}",
+          "hover": "rgba(234,230,223,.06)",
+          "active": "rgba(234,230,223,.1)"
+        }
+      },
+      "states": {
+        "hover": {},
+        "active": {},
+        "focused": {},
+        "disabled": {}
+      },
+      "styles": {
+        "base": {
+          "radius": "{radius.md}",
+          "shadow": "{shadow.none}",
+          "border": "1px solid {color.surface.divider}"
+        },
+        "variantStyles": {
+          "primary": {},
+          "ghost": {}
+        },
+        "stateStyles": {
+          "focused": {
+            "outline": "0 0 0 2px rgba(255,74,28,.5)"
+          }
+        }
+      }
+    },
+    {
+      "name": "Input",
+      "description": "Text input styled for Autolytiq.",
+      "props": {
+        "value": {
+          "type": "string",
+          "required": true
+        },
+        "placeholder": {
+          "type": "string",
+          "required": false
+        },
+        "disabled": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "slots": [],
+      "variants": {
+        "default": {}
+      },
+      "states": {
+        "hover": {},
+        "focused": {},
+        "disabled": {}
+      },
+      "styles": {
+        "base": {
+          "height": 40,
+          "radius": "{radius.md}",
+          "background": "{color.surface.layer1}",
+          "border": "1px solid {color.surface.divider}",
+          "color": "{color.text.primary}",
+          "placeholder": "{color.text.muted}"
+        },
+        "stateStyles": {
+          "focused": {
+            "border": "1px solid {color.brand.600}"
+          }
+        }
+      }
+    }
+  ]
+}

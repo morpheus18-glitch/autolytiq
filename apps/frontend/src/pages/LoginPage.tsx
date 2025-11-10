@@ -19,8 +19,8 @@ export default function LoginPage() {
 
     try {
       await login(storeId, username, password)
-      // Always redirect to /dashboard - it will show the right dashboard based on role
-      navigate('/dashboard')
+      // Redirect to mobile home page
+      navigate('/home')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
@@ -95,9 +95,8 @@ export default function LoginPage() {
               type="text"
               value={storeId}
               onChange={(e) => setStoreId(e.target.value)}
-              required
               autoComplete="organization"
-              placeholder="demo or main"
+              placeholder="(optional - blank is fine)"
               style={{
                 width: '100%',
                 padding: '0.5rem 0.75rem',
@@ -131,8 +130,8 @@ export default function LoginPage() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              required
               autoComplete="username"
+              placeholder="(optional - blank is fine)"
               style={{
                 width: '100%',
                 padding: '0.5rem 0.75rem',
@@ -166,8 +165,8 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
               autoComplete="current-password"
+              placeholder="(optional - blank is fine)"
               style={{
                 width: '100%',
                 padding: '0.5rem 0.75rem',
@@ -215,7 +214,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Demo Credentials */}
+        {/* Demo Info */}
         <div style={{
           marginTop: '1.5rem',
           padding: '1rem',
@@ -224,10 +223,9 @@ export default function LoginPage() {
           fontSize: '0.75rem',
           color: 'hsl(var(--muted-foreground))'
         }}>
-          <p style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Demo Credentials:</p>
-          <p>Store ID: demo</p>
-          <p>Username: admin (or sales, manager)</p>
-          <p>Password: demo123</p>
+          <p style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Demo Mode:</p>
+          <p>Just click "Sign in" - no credentials needed!</p>
+          <p style={{ marginTop: '0.5rem', fontStyle: 'italic' }}>All fields are optional (leave blank or fill anything)</p>
         </div>
       </div>
     </div>
