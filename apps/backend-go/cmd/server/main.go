@@ -117,6 +117,26 @@ func main() {
 	protected.Put("/leads/:id", leadsHandler.Update)
 	protected.Delete("/leads/:id", leadsHandler.Delete)
 
+	// Vehicles endpoints
+	vehiclesHandler := handlers.NewVehiclesHandler(db.Client)
+	protected.Get("/vehicles", vehiclesHandler.List)
+	protected.Post("/vehicles", vehiclesHandler.Create)
+	protected.Get("/vehicles/search", vehiclesHandler.Search)       // Must be before /:id
+	protected.Get("/vehicles/vin/:vin", vehiclesHandler.GetByVIN)   // VIN lookup
+	protected.Get("/vehicles/:id", vehiclesHandler.Get)
+	protected.Put("/vehicles/:id", vehiclesHandler.Update)
+	protected.Delete("/vehicles/:id", vehiclesHandler.Delete)
+
+	// Deals endpoints
+	dealsHandler := handlers.NewDealsHandler(db.Client)
+	protected.Get("/deals", dealsHandler.List)
+	protected.Post("/deals", dealsHandler.Create)
+	protected.Get("/deals/number/:dealNumber", dealsHandler.GetByDealNumber) // Must be before /:id
+	protected.Get("/deals/:id", dealsHandler.Get)
+	protected.Put("/deals/:id", dealsHandler.Update)
+	protected.Delete("/deals/:id", dealsHandler.Delete)
+	protected.Post("/deals/:id/submit", dealsHandler.Submit)
+
 	// Start server
 	port := getEnv("PORT", "3001")
 	log.Printf("🚀 Server starting on port %s\n", port)
