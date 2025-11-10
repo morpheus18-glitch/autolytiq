@@ -137,6 +137,27 @@ func main() {
 	protected.Delete("/deals/:id", dealsHandler.Delete)
 	protected.Post("/deals/:id/submit", dealsHandler.Submit)
 
+	// Notes endpoints
+	notesHandler := handlers.NewNotesHandler(db.Client)
+	protected.Get("/notes", notesHandler.List)
+	protected.Post("/notes", notesHandler.Create)
+	protected.Get("/notes/:entityType/:entityId", notesHandler.ListByEntity) // Must be before /:id
+	protected.Get("/notes/:id", notesHandler.Get)
+	protected.Put("/notes/:id", notesHandler.Update)
+	protected.Delete("/notes/:id", notesHandler.Delete)
+	protected.Post("/notes/:id/pin", notesHandler.Pin)
+
+	// Notifications endpoints
+	notificationsHandler := handlers.NewNotificationsHandler(db.Client)
+	protected.Get("/notifications", notificationsHandler.List)
+	protected.Post("/notifications", notificationsHandler.Create)
+	protected.Get("/notifications/unread-count", notificationsHandler.GetUnreadCount) // Must be before /:id
+	protected.Post("/notifications/mark-all-read", notificationsHandler.MarkAllAsRead) // Must be before /:id
+	protected.Get("/notifications/:id", notificationsHandler.Get)
+	protected.Post("/notifications/:id/read", notificationsHandler.MarkAsRead)
+	protected.Post("/notifications/:id/unread", notificationsHandler.MarkAsUnread)
+	protected.Delete("/notifications/:id", notificationsHandler.Delete)
+
 	// Start server
 	port := getEnv("PORT", "3001")
 	log.Printf("🚀 Server starting on port %s\n", port)
