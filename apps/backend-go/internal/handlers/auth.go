@@ -53,6 +53,7 @@ func LoadPrivateKey() error {
 // Login authenticates a user and returns a JWT token
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	ctx := context.Background()
+	fmt.Println("🔐 [AUTH] Login attempt started")
 
 	// Parse request body
 	var req struct {
@@ -61,19 +62,24 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	}
 
 	if err := c.BodyParser(&req); err != nil {
+		fmt.Printf("❌ [AUTH] Failed to parse request body: %v\n", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid request body",
 		})
 	}
 
+	fmt.Printf("📧 [AUTH] Login request for email: %s\n", req.Email)
+
 	// Validate required fields
 	if req.Email == "" || req.Password == "" {
+		fmt.Println("❌ [AUTH] Missing email or password")
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "email and password are required",
 		})
 	}
 
 	// Find user by email
+	fmt.Printf("🔍 [AUTH] Looking up user: %s\n", req.Email)
 	foundUser, err := h.db.User.
 		Query().
 		Where(user.Email(req.Email)).
@@ -82,40 +88,67 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 
 	if err != nil {
 		if ent.IsNotFound(err) {
+			fmt.Printf("❌ [AUTH] User not found: %s\n", req.Email)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid credentials",
 			})
 		}
+		fmt.Printf("❌ [AUTH] Database error looking up user: %v\n", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to authenticate",
 		})
 	}
 
+	fmt.Printf("✅ [AUTH] User found: %s (ID: %s, Tenant: %s)\n", foundUser.Email, foundUser.ID, foundUser.TenantID)
+
 	// Verify password
+	fmt.Println("🔑 [AUTH] Verifying password...")
 	if err := bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(req.Password)); err != nil {
+		fmt.Printf("❌ [AUTH] Password verification failed: %v\n", err)
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Invalid credentials",
 		})
 	}
 
+	fmt.Println("✅ [AUTH] Password verified successfully")
+
 	// Check tenant is active
 	tenant := foundUser.Edges.Tenant
+	if tenant == nil {
+		fmt.Println("❌ [AUTH] Tenant edge is nil")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to load tenant data",
+		})
+	}
+
+	fmt.Printf("🏢 [AUTH] Tenant loaded: %s (Status: %s)\n", tenant.Name, tenant.Status)
+
 	if tenant.Status != "ACTIVE" {
+		fmt.Printf("❌ [AUTH] Tenant is not active: %s\n", tenant.Status)
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"error": "Account is not active",
 		})
 	}
 
 	// Update last login
-	h.db.User.UpdateOne(foundUser).SetLastLoginAt(time.Now()).Save(ctx)
+	fmt.Println("📝 [AUTH] Updating last login timestamp...")
+	_, err = h.db.User.UpdateOne(foundUser).SetLastLoginAt(time.Now()).Save(ctx)
+	if err != nil {
+		fmt.Printf("⚠️  [AUTH] Failed to update last login: %v\n", err)
+		// Don't fail the login for this
+	}
 
 	// Generate JWT token
+	fmt.Println("🎫 [AUTH] Generating JWT token...")
 	token, err := h.generateToken(foundUser)
 	if err != nil {
+		fmt.Printf("❌ [AUTH] Failed to generate token: %v\n", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to generate token",
 		})
 	}
+
+	fmt.Printf("✅ [AUTH] Login successful for %s\n", foundUser.Email)
 
 	return c.JSON(fiber.Map{
 		"token": token,

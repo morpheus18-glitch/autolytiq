@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: backend-go-seed
+  namespace: autolytiq-prod
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: seed
+        image: registry.digitalocean.com/autolytiq/backend-go:v1.0.5
+        command: ["/app/seed"]
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-secret
+              key: DATABASE_URL
+        - name: JWT_PRIVATE_KEY_PATH
+          value: /app/keys/jwt-private.pem
+        volumeMounts:
+        - name: jwt-keys
+          mountPath: /app/keys
+          readOnly: true
+      volumes:
+      - name: jwt-keys
+        secret:
+          secretName: jwt-keys

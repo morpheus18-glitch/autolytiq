@@ -29,7 +29,11 @@ COPY packages/tokens ./packages/tokens
 COPY packages/ui ./packages/ui
 COPY tailwind.config.ts ./
 
-# Build frontend
+# Build tokens package first (needed by Tailwind config)
+WORKDIR /app/packages/tokens
+RUN pnpm build
+
+# Build frontend (UI package uses source files directly, no build needed)
 WORKDIR /app/apps/frontend
 RUN pnpm build
 

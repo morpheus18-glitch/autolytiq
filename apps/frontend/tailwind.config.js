@@ -6,8 +6,6 @@
 // ============================================================
 
 /** @type {import('tailwindcss').Config} */
-const formsPlugin = require('@tailwindcss/forms');
-const typographyPlugin = require('@tailwindcss/typography');
 const tailwindcssAnimate = require('tailwindcss-animate');
 
 // Import colors from the built tokens package
@@ -98,5 +96,5 @@ module.exports = {
       },
     },
   },
-  plugins: [tailwindcssAnimate, formsPlugin, typographyPlugin],
+  plugins: [tailwindcssAnimate],
 };

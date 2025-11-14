@@ -54,29 +54,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true)
 
     try {
-      // MOCK AUTH: Accept any credentials (even blank)
-      // Just create a mock user and token
-      const mockUser: User = {
-        id: '1',
-        email: 'demo@autolytiq.com',
-        username: username || 'demo-user',
-        firstName: 'Demo',
-        lastName: 'User',
-        tenantId: storeId || 'demo',
-        role: 'admin'
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+
+      // Call the real Go backend login API
+      // Backend expects "email" field (not username/tenantId)
+      // Use username as email or default to demo@example.com
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: username || 'demo@autolytiq.com',
+          password: password || 'demo123'
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Login failed' }))
+        throw new Error(errorData.error || `Login failed with status ${response.status}`)
       }
 
-      const mockToken = 'mock-jwt-token-' + Date.now()
+      const data = await response.json()
+
+      // Extract user and token from response
+      const user: User = {
+        id: data.user.id,
+        email: data.user.email || '',
+        username: data.user.email, // Go backend doesn't have username, use email
+        firstName: data.user.firstName,
+        lastName: data.user.lastName,
+        tenantId: data.user.tenantId,
+        role: data.user.role
+      }
 
       // Store token and user
-      localStorage.setItem('auth_token', mockToken)
-      localStorage.setItem('auth_user', JSON.stringify(mockUser))
+      localStorage.setItem('auth_token', data.token)
+      localStorage.setItem('auth_user', JSON.stringify(user))
 
       // Set user
-      setUser(mockUser)
-
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 300))
+      setUser(user)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed'
       setError(message)

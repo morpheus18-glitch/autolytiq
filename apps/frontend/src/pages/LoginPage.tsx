@@ -1,6 +1,7 @@
 import { useState, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { Button, Input, Card, Label, Alert } from '@repo/ui'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -19,7 +20,6 @@ export default function LoginPage() {
 
     try {
       await login(storeId, username, password)
-      // Redirect to mobile home page
       navigate('/home')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
@@ -29,205 +29,81 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'hsl(var(--background))',
-      padding: '1rem'
-    }}>
-      <div style={{
-        width: '100%',
-        maxWidth: '400px',
-        padding: '2rem',
-        backgroundColor: 'hsl(var(--card))',
-        borderRadius: 'var(--radius)',
-        border: '1px solid hsl(var(--border))',
-        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-      }}>
+    <div className="min-h-screen flex items-center justify-center bg-surface-base p-4">
+      <Card className="w-full max-w-md p-8">
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <h1 style={{
-            fontSize: '1.875rem',
-            fontWeight: '700',
-            color: 'hsl(var(--foreground))',
-            marginBottom: '0.5rem'
-          }}>
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-text-primary mb-2">
             AutolytiQ
           </h1>
-          <p style={{
-            fontSize: '0.875rem',
-            color: 'hsl(var(--muted-foreground))'
-          }}>
+          <p className="text-sm text-text-secondary">
             Sign in to your account
           </p>
         </div>
 
         {/* Error Display */}
         {(error || authError) && (
-          <div style={{
-            padding: '0.75rem 1rem',
-            marginBottom: '1rem',
-            backgroundColor: 'hsl(var(--destructive) / 0.1)',
-            border: '1px solid hsl(var(--destructive) / 0.3)',
-            borderRadius: 'var(--radius)',
-            color: 'hsl(var(--destructive))',
-            fontSize: '0.875rem'
-          }}>
+          <Alert variant="error" className="mb-4">
             {error || authError}
-          </div>
+          </Alert>
         )}
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              color: 'hsl(var(--foreground))',
-              marginBottom: '0.5rem'
-            }}>
-              Store ID
-            </label>
-            <input
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="storeId">Store ID</Label>
+            <Input
+              id="storeId"
               type="text"
               value={storeId}
               onChange={(e) => setStoreId(e.target.value)}
               autoComplete="organization"
               placeholder="(optional - blank is fine)"
-              style={{
-                width: '100%',
-                padding: '0.5rem 0.75rem',
-                fontSize: '0.875rem',
-                backgroundColor: 'hsl(var(--background))',
-                color: 'hsl(var(--foreground))',
-                border: '1px solid hsl(var(--input))',
-                borderRadius: 'var(--radius)',
-                outline: 'none'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = 'hsl(var(--ring))'
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'hsl(var(--input))'
-              }}
             />
           </div>
 
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              color: 'hsl(var(--foreground))',
-              marginBottom: '0.5rem'
-            }}>
-              Username
-            </label>
-            <input
-              type="text"
+          <div className="space-y-2">
+            <Label htmlFor="username">Email</Label>
+            <Input
+              id="username"
+              type="email"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              autoComplete="username"
-              placeholder="(optional - blank is fine)"
-              style={{
-                width: '100%',
-                padding: '0.5rem 0.75rem',
-                fontSize: '0.875rem',
-                backgroundColor: 'hsl(var(--background))',
-                color: 'hsl(var(--foreground))',
-                border: '1px solid hsl(var(--input))',
-                borderRadius: 'var(--radius)',
-                outline: 'none'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = 'hsl(var(--ring))'
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'hsl(var(--input))'
-              }}
+              autoComplete="email"
+              placeholder="demo@autolytiq.com"
             />
           </div>
 
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              color: 'hsl(var(--foreground))',
-              marginBottom: '0.5rem'
-            }}>
-              Password
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
               placeholder="(optional - blank is fine)"
-              style={{
-                width: '100%',
-                padding: '0.5rem 0.75rem',
-                fontSize: '0.875rem',
-                backgroundColor: 'hsl(var(--background))',
-                color: 'hsl(var(--foreground))',
-                border: '1px solid hsl(var(--input))',
-                borderRadius: 'var(--radius)',
-                outline: 'none'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = 'hsl(var(--ring))'
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'hsl(var(--input))'
-              }}
             />
           </div>
 
-          <button
+          <Button
             type="submit"
-            disabled={isLoading}
-            style={{
-              width: '100%',
-              padding: '0.625rem 1rem',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              color: 'hsl(var(--primary-foreground))',
-              backgroundColor: isLoading ? 'hsl(var(--muted))' : 'hsl(var(--primary))',
-              border: 'none',
-              borderRadius: 'var(--radius)',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.opacity = '0.9'
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = '1'
-            }}
+            variant="primary"
+            size="md"
+            fullWidth
+            loading={isLoading}
           >
             {isLoading ? 'Signing in...' : 'Sign in'}
-          </button>
+          </Button>
         </form>
 
         {/* Demo Info */}
-        <div style={{
-          marginTop: '1.5rem',
-          padding: '1rem',
-          backgroundColor: 'hsl(var(--muted))',
-          borderRadius: 'var(--radius)',
-          fontSize: '0.75rem',
-          color: 'hsl(var(--muted-foreground))'
-        }}>
-          <p style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Demo Mode:</p>
-          <p>Just click "Sign in" - no credentials needed!</p>
-          <p style={{ marginTop: '0.5rem', fontStyle: 'italic' }}>All fields are optional (leave blank or fill anything)</p>
-        </div>
-      </div>
+        <Card className="mt-6 p-4 bg-surface-subtle">
+          <p className="font-semibold mb-2 text-xs text-text-secondary">Demo Mode:</p>
+          <p className="text-xs text-text-tertiary">Just click "Sign in" - no credentials needed!</p>
+          <p className="mt-2 italic text-xs text-text-tertiary">All fields are optional (leave blank or fill anything)</p>
+        </Card>
+      </Card>
     </div>
   )
 }
