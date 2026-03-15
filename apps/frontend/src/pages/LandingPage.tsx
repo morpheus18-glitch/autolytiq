@@ -395,6 +395,49 @@ export default function LandingPage() {
         backdropFilter: 'blur(10px)'
       }}>
         <p>&copy; 2025 AutolytiQ. All rights reserved.</p>
+        <p style={{ marginTop: '0.75rem', fontSize: '0.8125rem' }}>
+          Part of the{' '}
+          <a
+            href="https://blackridgetools.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'hsl(var(--primary))', textDecoration: 'none' }}
+            onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+            onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+          >
+            Blackridge Autonomy
+          </a>{' '}
+          ecosystem
+        </p>
+        <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'hsl(var(--muted-foreground) / 0.7)' }}>
+          More tools from Blackridge:{' '}
+          {[
+            { name: 'ProposalForge', path: '/proposalforge' },
+            { name: 'SiteAuditPro', path: '/siteauditpro' },
+            { name: 'ShipKit', path: '/shipkit' },
+            { name: 'DocParseAPI', path: '/docparseapi' }
+          ].map((tool, index, arr) => (
+            <span key={tool.name}>
+              <a
+                href={`https://blackridgetools.com${tool.path}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'hsl(var(--muted-foreground))', textDecoration: 'none' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'hsl(var(--primary))'
+                  e.currentTarget.style.textDecoration = 'underline'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'hsl(var(--muted-foreground))'
+                  e.currentTarget.style.textDecoration = 'none'
+                }}
+              >
+                {tool.name}
+              </a>
+              {index < arr.length - 1 && <span style={{ margin: '0 0.375rem', opacity: 0.4 }}>|</span>}
+            </span>
+          ))}
+        </p>
       </footer>
     </div>
   )
