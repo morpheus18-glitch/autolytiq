@@ -1,0 +1,201 @@
+// Unmapped — V1 data model.
+//
+// Standalone schema for the "World Object Graph" project. This is a
+// separate product from AutolytiQ and intentionally does not share a
+// database, tenant model, or Prisma client with packages/db — it lives
+// here until/unless the project earns its own service.
+//
+// Design constraints baked into this schema:
+//   - No PII beyond what's needed to run the product (no name, no email
+//     required to play; auth identity lives in a separate, swappable
+//     Account table so it can be deleted independently of gameplay data).
+//   - No precise location. `timezoneOffsetMinutes` is the only
+//     geographic signal, and it's coarse by construction.
+//   - A Scan is a discovery/interest signal, never proof of purchase —
+//     `context` captures the player's own claim, nothing inferred.
+//   - Specimens store only the seed + a few denormalized display fields;
+//     the genome itself is recomputed client-side from creature-generator.ts.
+
+datasource db {
+  provider = "postgresql"
+  url      = env("WORLD_OBJECT_GRAPH_DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum AgeGate {
+  ADULT_OR_TEEN_13_PLUS // only value collectable at signup in V1
+}
+
+enum SourceCategory {
+  BEVERAGE
+  SNACK
+  CANDY
+  // Additional categories (apparel, media, automotive parts, etc.) are
+  // deliberately out of scope for V1 — see V1_ECONOMIC_MODEL.md §2.
+}
+
+enum SourceStatus {
+  ACTIVE
+  DISCONTINUED
+  UNVERIFIED // lookup returned no match; awaiting manual/backfill enrichment
+}
+
+enum ScanContext {
+  OWN
+  USE
+  WANT
+  FOUND
+  SEEN_ELSEWHERE
+}
+
+enum RarityTier {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+  MYTHIC
+}
+
+enum MissionStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}
+
+/// Pseudonymous player identity. Never carries real name/email — those,
+/// if collected at all for account recovery, live in a separate auth
+/// provider keyed by `authSubjectId`, deletable without touching the
+/// object graph.
+model Account {
+  id                   String   @id @default(cuid())
+  authSubjectId        String   @unique
+  handle               String   @unique
+  ageGate              AgeGate
+  createdAt            DateTime @default(now())
+  timezoneOffsetMinutes Int     // coarse, for cadence analytics only
+
+  scans        Scan[]
+  specimens    Specimen[]
+  missionVotes MissionResponse[]
+
+  @@index([createdAt])
+}
+
+/// One row per unique UPC ever seen, across all players. This is the
+/// flywheel table: it gets more complete the more people play, and every
+/// subsequent scan of the same UPC is a cache hit, not a new lookup.
+model Source {
+  id                String         @id @default(cuid())
+  upc               String         @unique
+  name              String?
+  brandId           String?
+  category          SourceCategory
+  subcategory       String?
+  packageSize       String?
+  status            SourceStatus   @default(UNVERIFIED)
+  lookupProvider    String? // which product-data API resolved this UPC
+  lookupRawJson     Json? // raw provider response, for re-enrichment later
+  firstDiscoveredByAccountId String?
+  firstDiscoveredAt DateTime?
+  globalScanCount   Int            @default(0)
+  createdAt         DateTime       @default(now())
+
+  brand Brand?  @relation(fields: [brandId], references: [id])
+  scans Scan[]
+  specimens Specimen[]
+
+  @@index([category])
+  @@index([brandId])
+}
+
+model Brand {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  isSponsor  Boolean  @default(false)
+  sponsorTier String?
+  createdAt  DateTime @default(now())
+
+  sources           Source[]
+  researchMissions  ResearchMission[]
+}
+
+/// A discovery event. Cheap and small by design — this is the row that
+/// scales with usage (2M/mo at 100K users), so it stays a handful of
+/// scalar columns with no per-scan blob.
+model Scan {
+  id         String      @id @default(cuid())
+  accountId  String
+  sourceId   String
+  context    ScanContext
+  createdAt  DateTime    @default(now())
+  specimenId String?     @unique // set once generation completes
+
+  account  Account   @relation(fields: [accountId], references: [id])
+  source   Source    @relation(fields: [sourceId], references: [id])
+  specimen Specimen? @relation(fields: [specimenId], references: [id])
+
+  @@index([accountId, createdAt])
+  @@index([sourceId])
+}
+
+/// A generated creature. Only the seed and a few denormalized fields for
+/// list/grid rendering are persisted — genome recomputation happens
+/// client-side via creature-generator.ts, so this row stays tiny even
+/// though the design space it points into is combinatorially enormous.
+model Specimen {
+  id            String     @id @default(cuid())
+  accountId     String
+  sourceId      String
+  genomeVersion String
+  seedHex       String
+  rarity        RarityTier
+  nickname      String?
+  discoveredAt  DateTime   @default(now())
+
+  account Account @relation(fields: [accountId], references: [id])
+  source  Source  @relation(fields: [sourceId], references: [id])
+  scan    Scan?
+
+  @@unique([accountId, sourceId, genomeVersion])
+  @@index([accountId])
+  @@index([rarity])
+}
+
+/// A brand-funded in-game question ("which of these 4 designs?"). This
+/// is the "brands pay to ask questions instead of us selling answers
+/// about players" product — see V1_ECONOMIC_MODEL.md §5, signal #5.
+model ResearchMission {
+  id            String        @id @default(cuid())
+  brandId       String
+  title         String
+  prompt        String
+  optionsJson   Json // [{ id, label, assetRef }, ...]
+  minResponses  Int           @default(500)
+  status        MissionStatus @default(DRAFT)
+  startsAt      DateTime?
+  endsAt        DateTime?
+  createdAt     DateTime      @default(now())
+
+  brand     Brand             @relation(fields: [brandId], references: [id])
+  responses MissionResponse[]
+
+  @@index([brandId, status])
+}
+
+model MissionResponse {
+  id               String   @id @default(cuid())
+  missionId        String
+  accountId        String
+  selectedOptionId String
+  respondedAt      DateTime @default(now())
+
+  mission ResearchMission @relation(fields: [missionId], references: [id])
+  account Account         @relation(fields: [accountId], references: [id])
+
+  @@unique([missionId, accountId]) // one vote per player per mission
+  @@index([missionId])
+}
